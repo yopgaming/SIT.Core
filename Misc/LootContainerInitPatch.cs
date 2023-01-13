@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.Misc
+namespace SIT.Tarkov.Core.Misc
 {
     internal class LootContainerInitPatch : ModulePatch
     {

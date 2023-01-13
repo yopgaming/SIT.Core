@@ -61,6 +61,7 @@ namespace SIT.Tarkov.Core
             request.Headers.Add("Accept-Encoding", "deflate");
 
             request.Method = method;
+            request.Timeout = 1000;
 
             if (method != "GET" && !string.IsNullOrEmpty(data))
             {

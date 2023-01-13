@@ -7,13 +7,13 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.PlayerPatches
+namespace SIT.Tarkov.Core.PlayerPatches
 {
     internal class OfflineDisplayProgressPatch : ModulePatch
     {
         static OfflineDisplayProgressPatch()
         {
-            _ = nameof(MainApplication);
+            _ = nameof(TarkovApplication);
             _ = nameof(EFT.RaidSettings);
         }
 

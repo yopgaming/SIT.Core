@@ -6,7 +6,7 @@ using Comfort.Common;
 using EFT.InventoryLogic;
 using SIT.Tarkov.Core;
 
-namespace SIT.A.Tarkov.Core.Spawners
+namespace SIT.Tarkov.Core.Spawners
 {
     public class ItemFactory
 	{

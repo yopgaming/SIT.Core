@@ -7,7 +7,7 @@ using EFT;
 using SIT.Tarkov.Core;
 using HarmonyLib;
 
-namespace SIT.A.Tarkov.Core.PlayerPatches
+namespace SIT.Tarkov.Core.PlayerPatches
 {
     public class WeaponDrawSpeed : ModulePatch
     {

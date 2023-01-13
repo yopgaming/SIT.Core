@@ -3,12 +3,12 @@ using BepInEx;
 using Comfort.Common;
 using EFT;
 using Microsoft.Win32;
-using SIT.A.Tarkov.Core.Hideout;
-using SIT.A.Tarkov.Core.Menus;
-using SIT.A.Tarkov.Core.Misc;
-using SIT.A.Tarkov.Core.PlayerPatches;
-using SIT.A.Tarkov.Core.SP;
-using SIT.A.Tarkov.Core.SP.Raid;
+using SIT.Tarkov.Core.Hideout;
+using SIT.Tarkov.Core.Menus;
+using SIT.Tarkov.Core.Misc;
+using SIT.Tarkov.Core.PlayerPatches;
+using SIT.Tarkov.Core.SP;
+using SIT.Tarkov.Core.SP.Raid;
 using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.AI;
 using SIT.Tarkov.Core.Bundles;
@@ -33,9 +33,10 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SIT.A.Tarkov.Core
+namespace SIT.Core
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    //[BepInDependency()]
     public class Plugin : BaseUnityPlugin
     {
         private void Awake()
@@ -51,98 +52,100 @@ namespace SIT.A.Tarkov.Core
             new BattlEyePatch().Enable();
             new SslCertificatePatch().Enable();
             new UnityWebRequestPatch().Enable();
+            new TransportPrefixPatch().Enable();
+            //new TransportPrefix2Patch().Enable();
             new WebSocketPatch().Enable();
 
-            // --------- Container Id Debug ------------
-            //new LootableContainerInteractPatch().Enable();
+            //// --------- Container Id Debug ------------
+            ////new LootableContainerInteractPatch().Enable();
 
-            // --------- PMC Dogtags -------------------
-            new UpdateDogtagPatch().Enable();
+            //// --------- PMC Dogtags -------------------
+            //new UpdateDogtagPatch().Enable();
 
-            // --------- On Dead -----------------------
+            //// --------- On Dead -----------------------
             new OnDeadPatch(Config).Enable();
 
-            // --------- Player Init -------------------
+            //// --------- Player Init -------------------
             new PlayerInitPatch().Enable();
 
-            // --------- SCAV MODE ---------------------
+            //// --------- SCAV MODE ---------------------
             new DisableScavModePatch().Enable();
 
-            // --------- Airdrop -----------------------
-            //new AirdropBoxPatch().Enable();
-            //new AirdropPatch(Config).Enable();
-            new AirdropPatch().Enable();
+            //// --------- Airdrop -----------------------
+            ////new AirdropBoxPatch().Enable();
+            ////new AirdropPatch(Config).Enable();
+            //new AirdropPatch().Enable();
 
-            // --------- AI -----------------------
-            var enableSITAISystem = Config.Bind("AI", "Enable SIT AI", true).Value;
-            if (enableSITAISystem)
-            {
-                //new IsEnemyPatch().Enable();
-                new IsPlayerEnemyPatch().Enable();
-                new IsPlayerEnemyByRolePatch().Enable();
-                new BotBrainActivatePatch().Enable();
-                new BotSelfEnemyPatch().Enable();
-            }
+            //// --------- AI -----------------------
+            //var enableSITAISystem = Config.Bind("AI", "Enable SIT AI", true).Value;
+            //if (enableSITAISystem)
+            //{
+            //    //new IsEnemyPatch().Enable();
+            //    new IsPlayerEnemyPatch().Enable();
+            //    new IsPlayerEnemyByRolePatch().Enable();
+            //    new BotBrainActivatePatch().Enable();
+            //    new BotSelfEnemyPatch().Enable();
+            //}
 
-            // --------- Matchmaker ----------------
+            //// --------- Matchmaker ----------------
             new AutoSetOfflineMatch().Enable();
-            //new BringBackInsuranceScreen().Enable();
-            new DisableReadyButtonOnFirstScreen().Enable();
+            ////new BringBackInsuranceScreen().Enable();
+            //new DisableReadyButtonOnFirstScreen().Enable();
 
-            // -------------------------------------
-            // Progression
+            //// -------------------------------------
+            //// Progression
             new OfflineSaveProfile().Enable();
             new ExperienceGainFix().Enable();
-            new OfflineDisplayProgressPatch().Enable();
+            //new OfflineDisplayProgressPatch().Enable();
 
-            // -------------------------------------
-            // Quests
-            new ItemDroppedAtPlace_Beacon().Enable();
+            //// -------------------------------------
+            //// Quests
+            //new ItemDroppedAtPlace_Beacon().Enable();
 
-            // -------------------------------------
-            // Raid
-            new LoadBotDifficultyFromServer().Enable();
+            //// -------------------------------------
+            //// Raid
+            //new LoadBotDifficultyFromServer().Enable();
             //new SpawnPointPatch().Enable();
-            //new BossSpawnChancePatch().Enable();
+            ////new BossSpawnChancePatch().Enable();
 
-            // --------------------------------------
-            // Health stuff
+            //// --------------------------------------
+            //// Health stuff
             new ReplaceInPlayer().Enable();
 
             new ChangeHealthPatch().Enable();
             new ChangeEnergyPatch().Enable();
             new ChangeHydrationPatch().Enable();
 
-            // ----------------------------------------------------------------
-            // MongoID. This forces bad JET ids to become what BSG Code expects
-            if (MongoIDPatch.MongoIDExists)
-            {
-                new MongoIDPatch().Enable();
-            }
+            //// ----------------------------------------------------------------
+            //// MongoID. This forces bad JET ids to become what BSG Code expects
+            //if (MongoIDPatch.MongoIDExists)
+            //{
+            //    new MongoIDPatch().Enable();
+            //}
 
-            new HideoutItemViewFactoryShowPatch().Enable();
-            new ItemRequirementPanelShowPatch().Enable();
+            //new HideoutItemViewFactoryShowPatch().Enable();
+            //new ItemRequirementPanelShowPatch().Enable();
 
-            new LootContainerInitPatch().Enable();
-            new CollectLootPointsDataPatch().Enable();
+            //new LootContainerInitPatch().Enable();
+            //new CollectLootPointsDataPatch().Enable();
 
-            new SetupItemActionsSettingsPatch().Enable();
+            //new SetupItemActionsSettingsPatch().Enable();
 
-            // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            //// Plugin startup logic
+            //Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
 
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
+            //SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            //SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
 
-            // - Loading Bundles from Server. Working Aki version with some tweaks by me -----
-            var enableBundles = Config.Bind("Bundles", "Enable", true);
-            if (enableBundles != null && enableBundles.Value == true)
-            {
-                BundleSetup.Init();
-                BundleManager.GetBundles(); // Crash happens here
-                new EasyAssetsPatch().Enable();
-                new EasyBundlePatch().Enable();
-            }
+            //// - Loading Bundles from Server. Working Aki version with some tweaks by me -----
+            //var enableBundles = Config.Bind("Bundles", "Enable", true);
+            //if (enableBundles != null && enableBundles.Value == true)
+            //{
+            //    BundleSetup.Init();
+            //    BundleManager.GetBundles(); // Crash happens here
+            //    new EasyAssetsPatch().Enable();
+            //    new EasyBundlePatch().Enable();
+            //}
 
             //var enableRagdollBodies = Config.Bind("SERVPH Ragdoll Bodies", "Enable", true);
             //if (enableRagdollBodies != null && enableRagdollBodies.Value == true)
@@ -155,120 +158,120 @@ namespace SIT.A.Tarkov.Core
 
         }
 
-        private void SceneManager_sceneUnloaded(Scene arg0)
-        {
+        //private void SceneManager_sceneUnloaded(Scene arg0)
+        //{
 
-        }
+        //}
 
-        GameWorld gameWorld = null;
-
-
-        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
-        {
-            GetPoolManager();
-            GetBackendConfigurationInstance();
-
-            gameWorld = Singleton<GameWorld>.Instance;
-        }
-
-        public void SetupMoreGraphicsMenuOptions()
-        {
-            Logger.LogInfo("Adjusting sliders for Overall Visibility and LOD Quality");
-            var TypeOfGraphicsSettingsTab = typeof(EFT.UI.Settings.GraphicsSettingsTab);
-
-            var readOnlyCollection_0 = TypeOfGraphicsSettingsTab.GetField(
-                "readOnlyCollection_0",
-                BindingFlags.Static |
-                BindingFlags.NonPublic
-                );
-
-            var readOnlyCollection_3 = TypeOfGraphicsSettingsTab.GetField(
-                "readOnlyCollection_3",
-                BindingFlags.Static |
-                BindingFlags.NonPublic
-                );
-
-            List<float> overallVisibility = new();
-            for (int i = 0; i <= 11; i++)
-            {
-                overallVisibility.Add(400 + (i * 50));
-            }
-
-            for (int i = 0; i <= 4; i++)
-            {
-                overallVisibility.Add(1000 + (i * 500));
-            }
+        //GameWorld gameWorld = null;
 
 
-            List<float> lodQuality = new();
-            for (int i = 0; i <= 9; i++)
-            {
-                lodQuality.Add((float)(2 + (i * 0.25)));
-            }
+        //private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        //{
+        //    GetPoolManager();
+        //    GetBackendConfigurationInstance();
 
-            var Collection_0 = Array.AsReadOnly<float>(overallVisibility.ToArray());
-            var Collection_3 = Array.AsReadOnly<float>(lodQuality.ToArray());
+        //    gameWorld = Singleton<GameWorld>.Instance;
+        //}
 
-            readOnlyCollection_0.SetValue(null, Collection_0);
-            readOnlyCollection_3.SetValue(null, Collection_3);
-            Logger.LogInfo("Adjusted sliders for Overall Visibility and LOD Quality");
-        }
-        private void GetBackendConfigurationInstance()
-        {
-            if (
-                PatchConstants.BackendStaticConfigurationType != null &&
-                PatchConstants.BackendStaticConfigurationConfigInstance == null)
-            {
-                PatchConstants.BackendStaticConfigurationConfigInstance = PatchConstants.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
-                //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
-            }
+        //public void SetupMoreGraphicsMenuOptions()
+        //{
+        //    Logger.LogInfo("Adjusting sliders for Overall Visibility and LOD Quality");
+        //    var TypeOfGraphicsSettingsTab = typeof(EFT.UI.Settings.GraphicsSettingsTab);
 
-            if (PatchConstants.BackendStaticConfigurationConfigInstance != null
-                && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
-                )
-            {
-                PatchConstants.CharacterControllerSettings.CharacterControllerInstance
-                    = PatchConstants.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
-                Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
-            }
+        //    var readOnlyCollection_0 = TypeOfGraphicsSettingsTab.GetField(
+        //        "readOnlyCollection_0",
+        //        BindingFlags.Static |
+        //        BindingFlags.NonPublic
+        //        );
 
-            if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
-                && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
-                )
-            {
-                PatchConstants.CharacterControllerSettings.ClientPlayerMode
-                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
+        //    var readOnlyCollection_3 = TypeOfGraphicsSettingsTab.GetField(
+        //        "readOnlyCollection_3",
+        //        BindingFlags.Static |
+        //        BindingFlags.NonPublic
+        //        );
 
-                PatchConstants.CharacterControllerSettings.ObservedPlayerMode
-                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
+        //    List<float> overallVisibility = new();
+        //    for (int i = 0; i <= 11; i++)
+        //    {
+        //        overallVisibility.Add(400 + (i * 50));
+        //    }
 
-                PatchConstants.CharacterControllerSettings.BotPlayerMode
-                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
-            }
-
-        }
+        //    for (int i = 0; i <= 4; i++)
+        //    {
+        //        overallVisibility.Add(1000 + (i * 500));
+        //    }
 
 
+        //    List<float> lodQuality = new();
+        //    for (int i = 0; i <= 9; i++)
+        //    {
+        //        lodQuality.Add((float)(2 + (i * 0.25)));
+        //    }
 
-        private void GetPoolManager()
-        {
-            if (PatchConstants.PoolManagerType == null)
-            {
-                PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
-                //Logger.LogInfo($"Loading PoolManagerType:{ PatchConstants.PoolManagerType.FullName}");
+        //    var Collection_0 = Array.AsReadOnly<float>(overallVisibility.ToArray());
+        //    var Collection_3 = Array.AsReadOnly<float>(lodQuality.ToArray());
 
-                //Logger.LogInfo($"Getting PoolManager Instance");
-                Type generic = typeof(Comfort.Common.Singleton<>);
-                Type[] typeArgs = { PatchConstants.PoolManagerType };
-                ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
-                //Logger.LogInfo(PatchConstants.PoolManagerType.FullName);
-                //Logger.LogInfo(ConstructedBundleAndPoolManagerSingletonType.FullName);
+        //    readOnlyCollection_0.SetValue(null, Collection_0);
+        //    readOnlyCollection_3.SetValue(null, Collection_3);
+        //    Logger.LogInfo("Adjusted sliders for Overall Visibility and LOD Quality");
+        //}
+        //private void GetBackendConfigurationInstance()
+        //{
+        //    if (
+        //        PatchConstants.BackendStaticConfigurationType != null &&
+        //        PatchConstants.BackendStaticConfigurationConfigInstance == null)
+        //    {
+        //        PatchConstants.BackendStaticConfigurationConfigInstance = PatchConstants.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
+        //        //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
+        //    }
 
-                //new LoadBotTemplatesPatch().Enable();
-                //new RemoveUsedBotProfile().Enable();
-                //new CreateFriendlyAIPatch().Enable();
-            }
-        }
+        //    if (PatchConstants.BackendStaticConfigurationConfigInstance != null
+        //        && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
+        //        )
+        //    {
+        //        PatchConstants.CharacterControllerSettings.CharacterControllerInstance
+        //            = PatchConstants.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
+        //        Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
+        //    }
+
+        //    if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
+        //        && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
+        //        )
+        //    {
+        //        PatchConstants.CharacterControllerSettings.ClientPlayerMode
+        //            = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
+
+        //        PatchConstants.CharacterControllerSettings.ObservedPlayerMode
+        //            = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
+
+        //        PatchConstants.CharacterControllerSettings.BotPlayerMode
+        //            = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
+        //    }
+
+        //}
+
+
+
+        //private void GetPoolManager()
+        //{
+        //    if (PatchConstants.PoolManagerType == null)
+        //    {
+        //        PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
+        //        //Logger.LogInfo($"Loading PoolManagerType:{ PatchConstants.PoolManagerType.FullName}");
+
+        //        //Logger.LogInfo($"Getting PoolManager Instance");
+        //        Type generic = typeof(Comfort.Common.Singleton<>);
+        //        Type[] typeArgs = { PatchConstants.PoolManagerType };
+        //        ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
+        //        //Logger.LogInfo(PatchConstants.PoolManagerType.FullName);
+        //        //Logger.LogInfo(ConstructedBundleAndPoolManagerSingletonType.FullName);
+
+        //        //new LoadBotTemplatesPatch().Enable();
+        //        //new RemoveUsedBotProfile().Enable();
+        //        //new CreateFriendlyAIPatch().Enable();
+        //    }
+        //}
 
         private Type ConstructedBundleAndPoolManagerSingletonType { get; set; }
         public static object BundleAndPoolManager { get; set; }
@@ -288,48 +291,9 @@ namespace SIT.A.Tarkov.Core
                     return;
                 }
 
-                //var raidE = Enum.Parse(poolsCategoryType, "Raid");
-                ////PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: raidE is " + raidE.ToString());
+                //await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(
+                //    PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, resources, JobPriority.General, null, CancellationToken.None);
 
-                //var localE = Enum.Parse(assemblyTypeType, "Local");
-                ////PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: localE is " + localE.ToString());
-
-                //var GenProp = PatchConstants.GetPropertyFromType(PatchConstants.JobPriorityType, "General").GetValue(null, null);
-                //PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: GenProp is " + GenProp.ToString());
-
-                await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(
-                    PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, resources, JobPriority.General, null, CancellationToken.None);
-
-                //await PatchConstants.InvokeAsyncStaticByReflection(
-                //    LoadBundlesAndCreatePoolsMethod,
-                //    BundleAndPoolManager
-                //    , raidE
-                //    , localE
-                //    , resources
-                //    , GenProp
-                //    , (object o) => { PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: Progressing!"); }
-                //    , default(CancellationToken)
-                //    );
-
-                //Task task = LoadBundlesAndCreatePoolsMethod.Invoke(BundleAndPoolManager,
-                //    new object[] {
-                //    Enum.Parse(poolsCategoryType, "Raid")
-                //    , Enum.Parse(assemblyTypeType, "Local")
-                //    , resources
-                //    , PatchConstants.GetPropertyFromType(PatchConstants.JobPriorityType, "General").GetValue(null, null)
-                //    , null
-                //    , default(CancellationToken)
-                //    }
-                //    ) as Task;
-                ////PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: task is " + task.GetType());
-
-                //if (task != null) // && task.GetType() == typeof(Task))
-                //{
-                //    task.ContinueWith(t => { PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools loaded"); });
-                //    //var t = task as Task;
-                //    PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: task is " + task.GetType());
-                //    return task;
-                //}
             }
             catch (Exception ex)
             {
@@ -426,32 +390,32 @@ namespace SIT.A.Tarkov.Core
         //    }
         //}
 
-        void FixedUpdate()
-        {
-            if (PatchConstants.PoolManagerType != null && ConstructedBundleAndPoolManagerSingletonType != null && BundleAndPoolManager == null)
-            {
-                BundleAndPoolManager = PatchConstants.GetPropertyFromType(ConstructedBundleAndPoolManagerSingletonType, "Instance").GetValue(null, null); //Activator.CreateInstance(PatchConstants.PoolManagerType);
-                if (BundleAndPoolManager != null)
-                {
-                    //Logger.LogInfo("BundleAndPoolManager Singleton Instance found: " + BundleAndPoolManager.GetType().FullName);
-                    poolsCategoryType = BundleAndPoolManager.GetType().GetNestedType("PoolsCategory");
-                    if (poolsCategoryType != null)
-                    {
-                        Logger.LogInfo(poolsCategoryType.FullName);
-                    }
-                    assemblyTypeType = BundleAndPoolManager.GetType().GetNestedType("AssemblyType");
-                    if (assemblyTypeType != null)
-                    {
-                        Logger.LogInfo(assemblyTypeType.FullName);
-                    }
-                    LoadBundlesAndCreatePoolsMethod = PatchConstants.GetMethodForType(BundleAndPoolManager.GetType(), "LoadBundlesAndCreatePools");
-                    if (LoadBundlesAndCreatePoolsMethod != null)
-                    {
-                        Logger.LogInfo(LoadBundlesAndCreatePoolsMethod.Name);
-                    }
-                }
-            }
-        }
+        //void FixedUpdate()
+        //{
+        //    if (PatchConstants.PoolManagerType != null && ConstructedBundleAndPoolManagerSingletonType != null && BundleAndPoolManager == null)
+        //    {
+        //        BundleAndPoolManager = PatchConstants.GetPropertyFromType(ConstructedBundleAndPoolManagerSingletonType, "Instance").GetValue(null, null); //Activator.CreateInstance(PatchConstants.PoolManagerType);
+        //        if (BundleAndPoolManager != null)
+        //        {
+        //            //Logger.LogInfo("BundleAndPoolManager Singleton Instance found: " + BundleAndPoolManager.GetType().FullName);
+        //            poolsCategoryType = BundleAndPoolManager.GetType().GetNestedType("PoolsCategory");
+        //            if (poolsCategoryType != null)
+        //            {
+        //                Logger.LogInfo(poolsCategoryType.FullName);
+        //            }
+        //            assemblyTypeType = BundleAndPoolManager.GetType().GetNestedType("AssemblyType");
+        //            if (assemblyTypeType != null)
+        //            {
+        //                Logger.LogInfo(assemblyTypeType.FullName);
+        //            }
+        //            LoadBundlesAndCreatePoolsMethod = PatchConstants.GetMethodForType(BundleAndPoolManager.GetType(), "LoadBundlesAndCreatePools");
+        //            if (LoadBundlesAndCreatePoolsMethod != null)
+        //            {
+        //                Logger.LogInfo(LoadBundlesAndCreatePoolsMethod.Name);
+        //            }
+        //        }
+        //    }
+        //}
 
 
         internal static bool LegalityCheck()

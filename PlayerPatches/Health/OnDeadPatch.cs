@@ -17,7 +17,7 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
 
         public OnDeadPatch(BepInEx.Configuration.ConfigFile config)
         {
-            var enableDeathMessage = config.Bind("Bundles", "Enable", true);
+            var enableDeathMessage = config.Bind("SIT", "Enable Death Message", true);
             if (enableDeathMessage != null && enableDeathMessage.Value == true)
             {
                 DisplayDeathMessage = enableDeathMessage.Value;
@@ -25,11 +25,11 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
                 //DisplayDeathMessage = JsonConvert.DeserializeObject<bool>();
             }
 
-            if(bool.TryParse(new Request().PostJson("/client/raid/person/killed/showMessage", null, true), out bool serverDecision))
-            {
-                Logger.LogInfo("OnDeadPatch:Server Decision:" + serverDecision);
-                DisplayDeathMessage = serverDecision;
-            }
+            //if(bool.TryParse(new Request().PostJson("/client/raid/person/killed/showMessage", null, true), out bool serverDecision))
+            //{
+            //    Logger.LogInfo("OnDeadPatch:Server Decision:" + serverDecision);
+            //    DisplayDeathMessage = serverDecision;
+            //}
         }
 
         protected override MethodBase GetTargetMethod() => PatchConstants.GetMethodForType(typeof(Player), "OnDead");

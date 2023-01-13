@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 
-namespace SIT.A.Tarkov.Core.PlayerPatches.SERVPH
+namespace SIT.Tarkov.Core.PlayerPatches.SERVPH
 {
 
 	/// <summary>

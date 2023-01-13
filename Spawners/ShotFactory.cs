@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.A.Tarkov.Core.Spawners
+namespace SIT.Tarkov.Core.Spawners
 {
     public class ShotFactory
 	{

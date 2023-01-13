@@ -10,7 +10,7 @@ using EFT;
 using EFT.Communications;
 using FilesChecker;
 using Newtonsoft.Json;
-using SIT.A.Tarkov.Core.Web;
+using SIT.Tarkov.Core.Web;
 using SIT.Tarkov.Core.AI;
 using UnityEngine;
 
@@ -152,7 +152,7 @@ namespace SIT.Tarkov.Core
             {
                 if (_backEndSession == null)
                 {
-                    _backEndSession = Singleton<ClientApplication>.Instance.GetClientBackEndSession();
+                    _backEndSession = Singleton<TarkovApplication>.Instance.GetClientBackEndSession();
                 }
 
                 return _backEndSession;
@@ -214,6 +214,11 @@ namespace SIT.Tarkov.Core
 
         public static MethodInfo GetMethodForType(Type t, string methodName, bool debug = false)
         {
+            if (t == null)
+            {
+                Logger.LogError("GetMethodForType. t is NULL");
+                return null;
+            }
             return GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower()); 
         }
 
@@ -448,6 +453,16 @@ namespace SIT.Tarkov.Core
                 await (Task)methodInfo
                     .Invoke(null, p);
             }
+        }
+
+        public static ClientApplication<ISession> GetClientApp()
+        {
+            return Singleton<ClientApplication<ISession>>.Instance;
+        }
+
+        public static TarkovApplication GetMainApp()
+        {
+            return GetClientApp() as TarkovApplication;
         }
 
         /// <summary>
