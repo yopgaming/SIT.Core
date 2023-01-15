@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.SP
+namespace SIT.Tarkov.Core.SP
 {
     internal class LootableContainerInteractPatch : ModulePatch
     {

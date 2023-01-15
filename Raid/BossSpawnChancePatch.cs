@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.SP.Raid
+namespace SIT.Tarkov.Core.SP.Raid
 {
     internal class BossSpawnChancePatch :ModulePatch
     {

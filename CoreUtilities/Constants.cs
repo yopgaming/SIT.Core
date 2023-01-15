@@ -19,7 +19,7 @@ namespace SIT.Tarkov.Core
 
                 TargetAssembly = typeof(ActionTrigger).Assembly;
                 FileCheckerAssembly = typeof(ICheckResult).Assembly;
-                MainApplicationType = typeof(EFT.MainApplication);// TargetAssemblyTypes.Single(x => x.Name == "MainApplication");
+                MainApplicationType = typeof(EFT.TarkovApplication);// TargetAssemblyTypes.Single(x => x.Name == "MainApplication");
                 UnityCertificateHandlerType = typeof(UnityEngine.Networking.CertificateHandler);
                 UnityUnityWebRequestType = typeof(UnityEngine.Networking.UnityWebRequestTexture);
 

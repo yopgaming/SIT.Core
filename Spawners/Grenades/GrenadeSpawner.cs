@@ -9,7 +9,7 @@ using Comfort;
 using Comfort.Common;
 
 
-namespace SIT.A.Tarkov.Core.Spawners.Grenades
+namespace SIT.Tarkov.Core.Spawners.Grenades
 {
 	public class GrenadeSpawner : MonoBehaviour
 	{

@@ -22,11 +22,23 @@ namespace SIT.Tarkov.Core.Menus
 
         private static DefaultRaidSettings raidSettings = null;
 
+        protected override MethodBase GetTargetMethod()
+        {
+            return typeof(EFT.UI.Matchmaker.MatchmakerOfflineRaidScreen).GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance);
+        }
+
 
         [PatchPostfix]
-        public static void PatchPostfix(UpdatableToggle ____offlineModeToggle, UpdatableToggle ____botsEnabledToggle,
-            DropDownBox ____aiAmountDropdown, DropDownBox ____aiDifficultyDropdown, UpdatableToggle ____enableBosses,
-            UpdatableToggle ____scavWars, UpdatableToggle ____taggedAndCursed, UpdatableToggle ____coopModeToggle)
+        public static void PatchPostfix(
+            UpdatableToggle ____offlineModeToggle
+            //, UpdatableToggle ____botsEnabledToggle
+            , DropDownBox ____aiAmountDropdown
+            , DropDownBox ____aiDifficultyDropdown
+            , UpdatableToggle ____enableBosses
+            , UpdatableToggle ____scavWars
+            , UpdatableToggle ____taggedAndCursed
+            , UpdatableToggle ____coopModeToggle
+            )
         {
 
             //Logger.LogInfo("AutoSetOfflineMatch.PatchPostfix");
@@ -39,38 +51,35 @@ namespace SIT.Tarkov.Core.Menus
             ____offlineModeToggle.gameObject.SetActive(false);
             ____offlineModeToggle.enabled = false;
             ____offlineModeToggle.interactable = false;
-            ____botsEnabledToggle.isOn = true;
-            ____enableBosses.isOn = true;
+            //____botsEnabledToggle.isOn = true;
+            //____enableBosses.isOn = true;
 
             ____aiAmountDropdown.UpdateValue((int)EBotAmount.Medium, false);
             ____aiDifficultyDropdown.UpdateValue((int)EBotDifficulty.Medium, false);
 
-            Request();
+            //Request();
 
-            if (raidSettings != null)
-            {
-                ____aiAmountDropdown.UpdateValue((int)raidSettings.AiAmount, false);
-                ____aiDifficultyDropdown.UpdateValue((int)raidSettings.AiDifficulty, false);
-                ____enableBosses.isOn = raidSettings.BossEnabled;
-                ____scavWars.isOn = raidSettings.ScavWars;
-                ____taggedAndCursed.isOn = raidSettings.TaggedAndCursed;
+            //if (raidSettings != null)
+            //{
+            //    ____aiAmountDropdown.UpdateValue((int)raidSettings.AiAmount, false);
+            //    ____aiDifficultyDropdown.UpdateValue((int)raidSettings.AiDifficulty, false);
+            //    ____enableBosses.isOn = raidSettings.BossEnabled;
+            //    ____scavWars.isOn = raidSettings.ScavWars;
+            //    ____taggedAndCursed.isOn = raidSettings.TaggedAndCursed;
 
-                ____offlineModeToggle.gameObject.SetActive(false);
-                ____offlineModeToggle.enabled = false;
-                ____offlineModeToggle.interactable = false;
-            }
-            else
-            {
-                Logger.LogInfo("AutoSetOfflineMatch.PatchPostfix : Raid Settings are Null!");
-            }
+            //    ____offlineModeToggle.gameObject.SetActive(false);
+            //    ____offlineModeToggle.enabled = false;
+            //    ____offlineModeToggle.interactable = false;
+            //}
+            //else
+            //{
+            //    Logger.LogInfo("AutoSetOfflineMatch.PatchPostfix : Raid Settings are Null!");
+            //}
 
           
         }
 
-        protected override MethodBase GetTargetMethod()
-        {
-            return typeof(EFT.UI.Matchmaker.MatchmakerOfflineRaidScreen).GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance);
-        }
+       
 
 
         public static DefaultRaidSettings Request()

@@ -33,7 +33,7 @@ namespace SIT.Tarkov.Core
         /// <param name="name">Name</param>
         protected ModulePatch(string name = null)
         {
-            A.Tarkov.Core.Plugin.LegalityCheck();
+            //Tarkov.Core.Plugin.LegalityCheck();
             _harmony = new Harmony(name ?? GetType().Name);
             _prefixList = GetPatchMethods(typeof(PatchPrefixAttribute));
             _postfixList = GetPatchMethods(typeof(PatchPostfixAttribute));
@@ -87,7 +87,9 @@ namespace SIT.Tarkov.Core
 
             if (target == null)
             {
-                throw new InvalidOperationException($"{_harmony.Id}: TargetMethod is null");
+                //throw new InvalidOperationException($"{_harmony.Id}: TargetMethod is null");
+                Logger.LogError($"{_harmony.Id}: TargetMethod is null");
+                return;
             }
 
             try

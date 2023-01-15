@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.Spawners.Grenades
+namespace SIT.Tarkov.Core.Spawners.Grenades
 {
     public class SmokeGrenadeSpawner : GrenadeSpawner
     {

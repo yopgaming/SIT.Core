@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.Hideout
+namespace SIT.Tarkov.Core.Hideout
 {
     internal class HideoutItemViewFactoryShowPatch : ModulePatch
     {

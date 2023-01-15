@@ -14,17 +14,17 @@ namespace SIT.Tarkov.Core
         /// Method toi get access to ClientApplication Instance
         /// </summary>
         /// <returns>ClientApplication</returns>
-        public static ClientApplication GetClientApp()
+        public static TarkovApplication GetClientApp()
         {
-            return Singleton<ClientApplication>.Instance;
+            return Singleton<TarkovApplication>.Instance;
         }
         /// <summary>
         /// Method to get accessto MainApplication instance
         /// </summary>
         /// <returns></returns>
-        public static MainApplication GetMainApp()
+        public static TarkovApplication GetMainApp()
         {
-            return GetClientApp() as MainApplication;
+            return GetClientApp() as TarkovApplication;
         }
         #endregion 
 

@@ -25,7 +25,7 @@ namespace Aki.Custom.Airdrops.Patches
 
             if (gameWorld != null && points)
             {
-                gameWorld.gameObject.AddComponent<AirdropsManager>();
+                //gameWorld.gameObject.AddComponent<AirdropsManager>();
             }
         }
     }

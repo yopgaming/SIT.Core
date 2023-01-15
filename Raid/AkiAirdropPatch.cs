@@ -9,7 +9,7 @@
 //using Comfort.Common;
 //using Newtonsoft.Json;
 //using SIT.Tarkov.Core;
-//using SIT.A.Tarkov.Core.Spawners.Grenades;
+//using SIT.Tarkov.Core.Spawners.Grenades;
 //using EFT.Airdrop;
 //using EFT.SynchronizableObjects;
 

@@ -8,7 +8,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SIT.A.Tarkov.Core.Menus
+namespace SIT.Tarkov.Core.Menus
 {
     internal class SetupItemActionsSettingsPatch : ModulePatch
     {
