@@ -34,6 +34,8 @@ using UnityEngine.SceneManagement;
 using SIT.Core.AkiSupport;
 using SIT.Core.Misc;
 using SIT.Core.AkiSupport.Custom;
+using SIT.Coop.Core.Matchmaker;
+using SIT.Coop.Core.LocalGame;
 
 namespace SIT.Core
 {
@@ -49,20 +51,44 @@ namespace SIT.Core
             //new Request().PostJson("/client/sit-validator", null);
 
             // - TURN OFF BS Checkers, FileChecker and BattlEye doesn't work BSG, I see cheaters ALL the time -----
-            new ConsistencySinglePatch().Enable();
-            new ConsistencyMultiPatch().Enable();
-            new BattlEyePatch().Enable();
-            new SslCertificatePatch().Enable();
-            new UnityWebRequestPatch().Enable();
-            new TransportPrefixPatch().Enable();
-            //new TransportPrefix2Patch().Enable();
-            new WebSocketPatch().Enable();
+            EnableCorePatches();
+            EnableSPPatches();
+            EnableCoopPatches();
+
+            // Plugin startup logic
+            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            //SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
+
+            //// - Loading Bundles from Server. Working Aki version with some tweaks by me -----
+            //var enableBundles = Config.Bind("Bundles", "Enable", true);
+            //if (enableBundles != null && enableBundles.Value == true)
+            //{
+            //    BundleSetup.Init();
+            //    BundleManager.GetBundles(); // Crash happens here
+            //    new EasyAssetsPatch().Enable();
+            //    new EasyBundlePatch().Enable();
+            //}
+
+        }
+
+        private void EnableCoopPatches()
+        {
+            new LocalGameStartingPatch(Config).Enable();
+            new LocalGameBotWaveSystemPatch().Enable();
+            //new MatchmakerAcceptScreenAwakePatch().Enable();
+            //new MatchmakerAcceptScreenShowPatch().Enable();
+        }
+
+        private void EnableSPPatches()
+        {
 
             //// --------- Container Id Debug ------------
             ////new LootableContainerInteractPatch().Enable();
 
             //// --------- PMC Dogtags -------------------
-            //new UpdateDogtagPatch().Enable();
+            new UpdateDogtagPatch().Enable();
 
             //// --------- On Dead -----------------------
             new OnDeadPatch(Config).Enable();
@@ -128,23 +154,18 @@ namespace SIT.Core
             //new IsBossOrFollowerFixPatch().Enable();
 
             new VersionLabelPatch().Enable();
+        }
 
-            // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
-
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            //SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
-
-            //// - Loading Bundles from Server. Working Aki version with some tweaks by me -----
-            //var enableBundles = Config.Bind("Bundles", "Enable", true);
-            //if (enableBundles != null && enableBundles.Value == true)
-            //{
-            //    BundleSetup.Init();
-            //    BundleManager.GetBundles(); // Crash happens here
-            //    new EasyAssetsPatch().Enable();
-            //    new EasyBundlePatch().Enable();
-            //}
-
+        private static void EnableCorePatches()
+        {
+            new ConsistencySinglePatch().Enable();
+            new ConsistencyMultiPatch().Enable();
+            new BattlEyePatch().Enable();
+            new SslCertificatePatch().Enable();
+            new UnityWebRequestPatch().Enable();
+            new TransportPrefixPatch().Enable();
+            //new TransportPrefix2Patch().Enable();
+            new WebSocketPatch().Enable();
         }
 
         //private void SceneManager_sceneUnloaded(Scene arg0)
@@ -161,6 +182,9 @@ namespace SIT.Core
             GetBackendConfigurationInstance();
 
             gameWorld = Singleton<GameWorld>.Instance;
+
+            //EnableCoopPatches();
+
         }
 
         //public void SetupMoreGraphicsMenuOptions()

@@ -6,20 +6,20 @@ This is by no means designed for cheats or illegally downloading the game. This 
 You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com)
 
 ## SPT-AKI
-Stay in Tarkov requires the latest AKI Server to run. You can learn about SPT-Aki here.
+Stay in Tarkov requires the latest AKI Server to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
 
 ## Summary
 
 The Stay in Tarkov handles almost everything to create the Single Player experience of Escape from Tarkov.
 Including but not limited to:
-- Turning off BattlEye (lets be honest, it doesn't work anyway BSG, please change to something else!)
+- Turning off BattlEye
 - Turning off FileChecker (this is BSG's own checker, this needs to be turned off to allow us to mod the game) - See FileChecker
-- Setting up Auto Singleplayer mode (see Menus)
-- Fixing bots / AI to shoot each other (see AI)
-- Fixing bots / AI to become "PMC" (see AI)
+- Setting up Auto Singleplayer mode
+- Fixing bots / AI to shoot each other
+- Fixing bots / AI to become "PMC"
 - Fixing "offline" mode to use only the designated online spawn points
-- Fixing "offline" mode to save Progression of the character (something I used was in Live in some form!)
-- Fixing "offline" mode to save Health of the character (something I used was in Live in some form!)
+- Fixing "offline" mode to save Progression of the character
+- Fixing "offline" mode to save Health of the character
 - Lots more
 
 ## How to compile? 

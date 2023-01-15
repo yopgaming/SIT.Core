@@ -35,9 +35,9 @@ namespace SIT.Coop.Core.Matchmaker
 		public static Type GetThisType()
 		{
             return Tarkov.Core.PatchConstants.EftTypes
-                 //.Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
-                 .Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
-		}
+                 .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
+            //.Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
+        }
 
         protected override MethodBase GetTargetMethod()
         {
