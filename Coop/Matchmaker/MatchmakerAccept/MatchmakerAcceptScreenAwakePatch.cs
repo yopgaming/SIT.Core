@@ -64,10 +64,10 @@ namespace SIT.Coop.Core.Matchmaker
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
             ref DefaultUIButton ____backButton,
             ref DefaultUIButton ____acceptButton,
-            ref DefaultUIButton ____updateListButton,
+            ref Button ____updateListButton,
+            ref DefaultUIButton ____findOtherPlayersButton,
             ref Profile ___profile_0,
             ref CanvasGroup ____canvasGroup,
-            ref object ___UI,
             ref ERaidMode ___eraidMode_0
             )
         {
@@ -80,30 +80,18 @@ namespace SIT.Coop.Core.Matchmaker
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             screenController = MatchmakerAcceptPatches.MatchmakerScreenController;
             ___eraidMode_0 = ERaidMode.Online;
-            //var screenControllerFieldInfo = __instance.GetType().GetField("ScreenController", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-            //if(screenControllerFieldInfo != null)
-            //{
-            //    //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix.Found ScreenController FieldInfo");
-            //    screenController = screenControllerFieldInfo.GetValue(__instance);
-            //    if(screenController != null)
-            //    {
-
-            //    }
-            //}
-            //var GotoNextScreenMethod = __instance.GetType().GetMethod("method_15", privateFlags);
-            //var BackOutScreenMethod = __instance.GetType().GetMethod("method_20", privateFlags);
-            //var UpdateListScreenMethod = __instance.GetType().GetMethod("method_22", privateFlags);
-            ____acceptButton.OnClick.AddListener(() => { GoToRaid();});
-            ____backButton.OnClick.AddListener(() => { BackOut(); });
-            ____updateListButton.OnClick.AddListener(() => 
-            { 
-
-                MatchmakerAcceptPatches.CheckForMatch(); 
             
-            });
+            ____acceptButton.OnClick.AddListener(() => { GoToRaid(); });
+            ____backButton.OnClick.AddListener(() => { BackOut(); });
+            //____updateListButton.OnClick.AddListener(() =>
+            //{
 
-            //_canvasGroup = ____canvasGroup;
-            //_canvasGroup.interactable = true;
+            //    MatchmakerAcceptPatches.CheckForMatch();
+
+            //});
+
+            _canvasGroup = ____canvasGroup;
+            _canvasGroup.interactable = true;
 
             //DefaultUIButton startServerButton = GameObject.Instantiate<DefaultUIButton>(____acceptButton);
             //RectTransform acceptBtnRectTransform = ____acceptButton.GetComponent<RectTransform>();
@@ -112,7 +100,6 @@ namespace SIT.Coop.Core.Matchmaker
             //startServerButton.SetRawText("CUNT!", 18);
 
             profile = ___profile_0;
-            //return false; // dont do anything, think for ourselves?
             return true; // run the original
 
         }

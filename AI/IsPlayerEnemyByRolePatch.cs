@@ -51,13 +51,14 @@ namespace SIT.Tarkov.Core.AI
         static List<WildSpawnType> ScavRoles = new List<WildSpawnType>() { WildSpawnType.assault, WildSpawnType.assaultGroup, WildSpawnType.marksman };
         static List<WildSpawnType> KnightRoles = new List<WildSpawnType>() { WildSpawnType.bossKnight, WildSpawnType.followerBigPipe, WildSpawnType.followerBirdEye };
         static List<WildSpawnType> PMCRoles = new List<WildSpawnType>() { WildSpawnType.pmcBot };
+        static List<long> PMCRolesU = new List<long>() { 0x80000000, 0x100000000 };
         static List<WildSpawnType> exUsecRoles = new List<WildSpawnType>() { WildSpawnType.exUsec };
 
 
         public static bool IsEnemyRole(WildSpawnType myRole, WildSpawnType enemyRole)
         {
             // PMCs kill everyone and everyone kills PMCs
-            if (PMCRoles.Contains(myRole) || PMCRoles.Contains(enemyRole))
+            if (PMCRoles.Contains(myRole) || PMCRoles.Contains(enemyRole) || PMCRolesU.Contains((long)myRole) || PMCRolesU.Contains((long)enemyRole))
                 return true;
 
             // Scavs don't kill other scavs

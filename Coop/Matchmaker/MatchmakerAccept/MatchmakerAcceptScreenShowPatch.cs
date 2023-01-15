@@ -45,8 +45,8 @@ namespace SIT.Coop.Core.Matchmaker
 
         [PatchPrefix]
         private static bool PatchPrefix(
-            //ref object session, ref ESideType side, ref object selectedDateTime, ref object location, ref bool local, ref string keyId,
-            ref object session, ref RaidSettings raidSettings,
+            ref ISession session, 
+            ref RaidSettings raidSettings,
             ref EFT.ERaidMode ___eraidMode_0,
             ref EFT.RaidSettings ___raidSettings_0,
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,

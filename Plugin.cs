@@ -36,6 +36,8 @@ using SIT.Core.Misc;
 using SIT.Core.AkiSupport.Custom;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.LocalGame;
+using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
+using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
 
 namespace SIT.Core
 {
@@ -73,20 +75,10 @@ namespace SIT.Core
 
         }
 
-        private void EnableCoopPatches()
-        {
-            new LocalGameStartingPatch(Config).Enable();
-            new LocalGameBotWaveSystemPatch().Enable();
-            //new MatchmakerAcceptScreenAwakePatch().Enable();
-            //new MatchmakerAcceptScreenShowPatch().Enable();
-        }
+        
 
         private void EnableSPPatches()
         {
-
-            //// --------- Container Id Debug ------------
-            ////new LootableContainerInteractPatch().Enable();
-
             //// --------- PMC Dogtags -------------------
             new UpdateDogtagPatch().Enable();
 
@@ -108,11 +100,11 @@ namespace SIT.Core
             //var enableSITAISystem = Config.Bind("AI", "Enable SIT AI", true).Value;
             //if (enableSITAISystem)
             //{
+            new BotSelfEnemyPatch().Enable();
             //    //new IsEnemyPatch().Enable();
-            //    new IsPlayerEnemyPatch().Enable();
-            //    new IsPlayerEnemyByRolePatch().Enable();
+            //new IsPlayerEnemyPatch().Enable();
+            new IsPlayerEnemyByRolePatch().Enable();
             //    new BotBrainActivatePatch().Enable();
-            //    new BotSelfEnemyPatch().Enable();
             //}
 
             //// --------- Matchmaker ----------------
@@ -154,6 +146,9 @@ namespace SIT.Core
             //new IsBossOrFollowerFixPatch().Enable();
 
             new VersionLabelPatch().Enable();
+
+            new QTEPatch().Enable();
+            new TinnitusFixPatch().Enable();
         }
 
         private static void EnableCorePatches()
@@ -166,6 +161,16 @@ namespace SIT.Core
             new TransportPrefixPatch().Enable();
             //new TransportPrefix2Patch().Enable();
             new WebSocketPatch().Enable();
+        }
+
+        private void EnableCoopPatches()
+        {
+            new LocalGameStartingPatch(Config).Enable();
+            //new LocalGameBotWaveSystemPatch().Enable();
+            new MatchmakerAcceptScreenAwakePatch().Enable();
+            new MatchmakerAcceptScreenShowPatch().Enable();
+            //new SendInvitePatch().Enable();
+            //new AcceptInvitePatch().Enable();
         }
 
         //private void SceneManager_sceneUnloaded(Scene arg0)

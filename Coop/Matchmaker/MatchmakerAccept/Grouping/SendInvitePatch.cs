@@ -28,9 +28,13 @@ namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping
         {
             //Logger.LogInfo("SendInvitePatch.PatchPostfix");
             MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
-            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers++;
-            MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
 
+            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers == 0) 
+                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
+
+            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers++;
+
+            MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
             
             _ = ServerCommunication.SendDataDownWebSocket("Start=" + PatchConstants.GetPHPSESSID());
 
