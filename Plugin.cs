@@ -21,7 +21,6 @@ using SIT.Tarkov.Core.SP;
 using SIT.Tarkov.Core.SP.Raid;
 using SIT.Tarkov.Core.SP.ScavMode;
 using SIT.Tarkov.SP;
-using SIT.Tarkov.SP.Raid;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,11 +31,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SIT.Core.AkiSupport;
+using SIT.Core.Misc;
+using SIT.Core.AkiSupport.Custom;
 
 namespace SIT.Core
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    //[BepInDependency()]
+    //[BepInDependency()] // Should probably be dependant on Aki right?
     public class Plugin : BaseUnityPlugin
     {
         private void Awake()
@@ -90,7 +92,7 @@ namespace SIT.Core
             //// --------- Matchmaker ----------------
             new AutoSetOfflineMatch().Enable();
             ////new BringBackInsuranceScreen().Enable();
-            //new DisableReadyButtonOnFirstScreen().Enable();
+            new DisableReadyButtonOnFirstScreen().Enable();
 
             //// -------------------------------------
             //// Progression
@@ -116,25 +118,21 @@ namespace SIT.Core
             new ChangeEnergyPatch().Enable();
             new ChangeHydrationPatch().Enable();
 
-            //// ----------------------------------------------------------------
-            //// MongoID. This forces bad JET ids to become what BSG Code expects
-            //if (MongoIDPatch.MongoIDExists)
-            //{
-            //    new MongoIDPatch().Enable();
-            //}
+            //// --------------------------------------
+            // Bots
+            //new CoreDifficultyPatch().Enable();
+            //new CustomAiPatch().Enable();
+            new AddSptBotSettingsPatch().Enable();
+            new RemoveUsedBotProfilePatch().Enable();
 
-            //new HideoutItemViewFactoryShowPatch().Enable();
-            //new ItemRequirementPanelShowPatch().Enable();
+            //new IsBossOrFollowerFixPatch().Enable();
 
-            //new LootContainerInitPatch().Enable();
-            //new CollectLootPointsDataPatch().Enable();
+            new VersionLabelPatch().Enable();
 
-            //new SetupItemActionsSettingsPatch().Enable();
+            // Plugin startup logic
+            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
 
-            //// Plugin startup logic
-            //Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
-
-            //SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
             //SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
 
             //// - Loading Bundles from Server. Working Aki version with some tweaks by me -----
@@ -147,15 +145,6 @@ namespace SIT.Core
             //    new EasyBundlePatch().Enable();
             //}
 
-            //var enableRagdollBodies = Config.Bind("SERVPH Ragdoll Bodies", "Enable", true);
-            //if (enableRagdollBodies != null && enableRagdollBodies.Value == true)
-            //{
-            //    new PlayerPatches.SERVPH.SERVPHBodyPatch();
-            //}
-
-            //SetupMoreGraphicsMenuOptions();
-            //new WeaponDrawSpeed().Enable();
-
         }
 
         //private void SceneManager_sceneUnloaded(Scene arg0)
@@ -163,16 +152,16 @@ namespace SIT.Core
 
         //}
 
-        //GameWorld gameWorld = null;
+        public static GameWorld gameWorld { get; private set; }
 
 
-        //private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
-        //{
-        //    GetPoolManager();
-        //    GetBackendConfigurationInstance();
+        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        {
+            GetPoolManager();
+            GetBackendConfigurationInstance();
 
-        //    gameWorld = Singleton<GameWorld>.Instance;
-        //}
+            gameWorld = Singleton<GameWorld>.Instance;
+        }
 
         //public void SetupMoreGraphicsMenuOptions()
         //{
@@ -216,62 +205,63 @@ namespace SIT.Core
         //    readOnlyCollection_3.SetValue(null, Collection_3);
         //    Logger.LogInfo("Adjusted sliders for Overall Visibility and LOD Quality");
         //}
-        //private void GetBackendConfigurationInstance()
-        //{
-        //    if (
-        //        PatchConstants.BackendStaticConfigurationType != null &&
-        //        PatchConstants.BackendStaticConfigurationConfigInstance == null)
-        //    {
-        //        PatchConstants.BackendStaticConfigurationConfigInstance = PatchConstants.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
-        //        //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
-        //    }
 
-        //    if (PatchConstants.BackendStaticConfigurationConfigInstance != null
-        //        && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
-        //        )
-        //    {
-        //        PatchConstants.CharacterControllerSettings.CharacterControllerInstance
-        //            = PatchConstants.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
-        //        Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
-        //    }
+        private void GetBackendConfigurationInstance()
+        {
+            if (
+                PatchConstants.BackendStaticConfigurationType != null &&
+                PatchConstants.BackendStaticConfigurationConfigInstance == null)
+            {
+                PatchConstants.BackendStaticConfigurationConfigInstance = PatchConstants.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
+                //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
+            }
 
-        //    if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
-        //        && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
-        //        )
-        //    {
-        //        PatchConstants.CharacterControllerSettings.ClientPlayerMode
-        //            = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
+            if (PatchConstants.BackendStaticConfigurationConfigInstance != null
+                && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
+                )
+            {
+                PatchConstants.CharacterControllerSettings.CharacterControllerInstance
+                    = PatchConstants.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
+                Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
+            }
 
-        //        PatchConstants.CharacterControllerSettings.ObservedPlayerMode
-        //            = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
+            if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
+                && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
+                )
+            {
+                PatchConstants.CharacterControllerSettings.ClientPlayerMode
+                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
 
-        //        PatchConstants.CharacterControllerSettings.BotPlayerMode
-        //            = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
-        //    }
+                PatchConstants.CharacterControllerSettings.ObservedPlayerMode
+                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
 
-        //}
+                PatchConstants.CharacterControllerSettings.BotPlayerMode
+                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
+            }
+
+        }
 
 
 
-        //private void GetPoolManager()
-        //{
-        //    if (PatchConstants.PoolManagerType == null)
-        //    {
-        //        PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
-        //        //Logger.LogInfo($"Loading PoolManagerType:{ PatchConstants.PoolManagerType.FullName}");
+        private void GetPoolManager()
+        {
+            if (PatchConstants.PoolManagerType == null)
+            {
+                PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
+                //Logger.LogInfo($"Loading PoolManagerType:{ PatchConstants.PoolManagerType.FullName}");
 
-        //        //Logger.LogInfo($"Getting PoolManager Instance");
-        //        Type generic = typeof(Comfort.Common.Singleton<>);
-        //        Type[] typeArgs = { PatchConstants.PoolManagerType };
-        //        ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
-        //        //Logger.LogInfo(PatchConstants.PoolManagerType.FullName);
-        //        //Logger.LogInfo(ConstructedBundleAndPoolManagerSingletonType.FullName);
+                //Logger.LogInfo($"Getting PoolManager Instance");
+                Type generic = typeof(Comfort.Common.Singleton<>);
+                Type[] typeArgs = { PatchConstants.PoolManagerType };
+                ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
+                //Logger.LogInfo(PatchConstants.PoolManagerType.FullName);
+                //Logger.LogInfo(ConstructedBundleAndPoolManagerSingletonType.FullName);
 
-        //        //new LoadBotTemplatesPatch().Enable();
-        //        //new RemoveUsedBotProfile().Enable();
-        //        //new CreateFriendlyAIPatch().Enable();
-        //    }
-        //}
+                //new LoadBotTemplatesPatch().Enable();
+                //new RemoveUsedBotProfile().Enable();
+                //new CreateFriendlyAIPatch().Enable();
+            }
+        }
 
         private Type ConstructedBundleAndPoolManagerSingletonType { get; set; }
         public static object BundleAndPoolManager { get; set; }

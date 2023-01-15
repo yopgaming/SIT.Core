@@ -81,7 +81,7 @@
 //            await __result.ContinueWith((x) =>
 //            {
 //                var p = x.Result;
-                
+
 //                Logger.LogInfo($"LocalGamePlayerSpawn:PatchPostfix:{p.GetType()}");
 
 //                var profile = PatchConstants.GetPlayerProfile(p);
@@ -95,7 +95,8 @@
 
 //                //gameWorld = Singleton<GameWorld>.Instance;
 //                //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
-//                if(Singleton<GameWorld>.Instance.TryGetComponent<CoopGameComponent>(out var coopGameComponent)) {
+//                if (Singleton<GameWorld>.Instance.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
+//                {
 
 //                    Logger.LogInfo("LocalGamePlayerSpawn CoopGameComponent Found!");
 
@@ -231,19 +232,19 @@
 //                        //await Task.Delay(1000);
 //                        Thread.Sleep(500);
 //                    }
-//                    if(spawnPointPosition != Vector3.zero)
+//                    if (spawnPointPosition != Vector3.zero)
 //                    {
 //                        //p.Teleport(spawnPointPosition, true);
 //                    }
 //                }
-//                    //gameWorld.GetType().DontDestroyOnLoad(coopGameComponent);
+//                //gameWorld.GetType().DontDestroyOnLoad(coopGameComponent);
 //                //}
 //            });
 
 
-            
+
 //        }
 
-     
+
 //    }
 //}

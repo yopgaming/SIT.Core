@@ -23,8 +23,10 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
 
         public IReadOnlyDictionary<EBodyPart, BodyPartHealth> Health => _health;
 
-        public float Hydration { get; set; }
+        public float Hydration { get; set; } = 100;
 
-        public float Energy { get; set; }
+        public float Energy { get; set; } = 100;
+
+        public float Temperature { get; set; } = 40;
     }
 }

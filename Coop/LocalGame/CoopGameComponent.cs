@@ -5,7 +5,7 @@
 //using Newtonsoft.Json;
 //using Newtonsoft.Json.Linq;
 //using SIT.Coop.Core.Matchmaker;
-//using SIT.Coop.Core.Player;
+////using SIT.Coop.Core.Player;
 //using SIT.Coop.Core.Web;
 //using SIT.Tarkov.Core;
 //using SIT.Tarkov.Core.AI;
@@ -35,7 +35,7 @@
 //		}
 //		public Task<Profile> LoadBundle(Profile p)
 //		{
-//			var loadTask = SIT.A.Tarkov.Core.Plugin.LoadBundlesAndCreatePools(Profile.GetAllPrefabPaths(false).ToArray());
+//			var loadTask = SIT.Core.Plugin.LoadBundlesAndCreatePools(Profile.GetAllPrefabPaths(false).ToArray());
 
 //			return loadTask.ContinueWith((t) => { return p; }, TaskScheduler);
 //		}
@@ -44,7 +44,7 @@
 //		{
 //			Profile = task.Result;
 
-//			var loadTask = SIT.A.Tarkov.Core.Plugin.LoadBundlesAndCreatePools(Profile.GetAllPrefabPaths(false).ToArray());
+//			var loadTask = SIT.Core.Plugin.LoadBundlesAndCreatePools(Profile.GetAllPrefabPaths(false).ToArray());
 
 //			return loadTask.ContinueWith(GetProfile, TaskScheduler);
 //		}
@@ -77,7 +77,6 @@
 
 //		bool doingClientSpawnPlayersWork = false;
 
-//		private SITNetworkManager HostNetworkManager { get; set; }
 //		private NetworkClient HostNetworkClient { get; set; }
 
 //		public static ConnectionConfig GetConnectionConfig()
@@ -325,7 +324,8 @@
 //					{
 //						Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converting Profile data");
 //						//profile.Info = parsedDict["p.info"].ToString().ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
-//						profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+//						//profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+//						//profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
 //						Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
 //					}
 //					if (parsedDict.ContainsKey("p.cust"))
@@ -433,7 +433,7 @@
 //						, PatchConstants.CharacterControllerSettings.ClientPlayerMode
 //						, () => 1f
 //						, () => 1f
-//						, (IGStatisticsSession2)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
+//						, (IGStatisticsSession)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
 //						, GFilterCustomization1.Default
 //						, null
 //						, false

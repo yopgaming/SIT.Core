@@ -22,20 +22,36 @@ Including but not limited to:
 - Fixing "offline" mode to save Health of the character (something I used was in Live in some form!)
 - Lots more
 
+## How to compile? 
+1. Deobfuscate latest Assembly-CSharp via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher)
+2. All the following assembly references must be placed in Tarkov.References in the parent folder of this project. You can copy-paste from your Tarkov Install.
+- Assembly-CSharp (deobfuscated via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher))
+- bsg.componentace.compression.libs.zlib
+- com.unity.multiplayer-hlapi.Runtime
+- Comfort
+- Comfort.Unity
+- DissonanceVoip
+- FilesChecker
+- Sirenix.Serialization.Config
+- Sirenix.Serialization
+- Sirenix.Utilities
+- Unity.ScriptableBuildPipeline
+- UnityEngine.AssetBundleModule
+- UnityEngine.CoreModule
+- UnityEngine
+- UnityEngine.UI
+3. You will need BepInEx Nuget Feed installed on your PC by running the following command in a terminal. 
+```
+dotnet new -i BepInEx.Templates --nuget-source https://nuget.bepinex.dev/v3/index.json
+```
+4. Open the .sln with Visual Studio 2022
+5. Rebuild Solution (This should download and install all nuget packages on compilation)
+
 ## Which version of BepInEx is this built for?
 Version 5
 
 # How to install BepInEx
 [https://docs.bepinex.dev/articles/user_guide/installation/index.html](https://docs.bepinex.dev/articles/user_guide/installation/index.html)
-
-## How to compile? 
-- The references for Assembly-CSharp (cleaned via de4dot), Comfort, FilesChecker, UnityEngine will need to be setup to your Tarkov installation
-- You will need BepInEx Nuget Feed installed on your PC by running the following command in a terminal. 
-```
-dotnet new -i BepInEx.Templates --nuget-source https://nuget.bepinex.dev/v3/index.json
-```
-- Open the .sln with Visual Studio 2022
-- Rebuild Solution (This should download and install all nuget packages on compilation)
 
 ## Install to Tarkov
 BepInEx 5 must be installed and configured first (see How to install BepInEx)

@@ -87,7 +87,9 @@ namespace SIT.Tarkov.Core
 
             if (target == null)
             {
-                throw new InvalidOperationException($"{_harmony.Id}: TargetMethod is null");
+                //throw new InvalidOperationException($"{_harmony.Id}: TargetMethod is null");
+                Logger.LogError($"{_harmony.Id}: TargetMethod is null");
+                return;
             }
 
             try
