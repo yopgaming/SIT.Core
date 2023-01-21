@@ -11,7 +11,6 @@ using static EFT.UI.Matchmaker.MatchMakerAcceptScreen;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
 using System.Reflection;
 using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
 using SIT.Tarkov.Core;
 
@@ -38,9 +37,9 @@ namespace SIT.Coop.Core.Matchmaker
     {
         public static EFT.UI.Matchmaker.MatchMakerAcceptScreen MatchMakerAcceptScreenInstance { get; set; }
 
-        public static object MatchmakerScreenController 
-        { 
-            get 
+        public static object MatchmakerScreenController
+        {
+            get
             {
                 var screenController = PatchConstants.GetFieldOrPropertyFromInstance<object>(MatchMakerAcceptScreenInstance, "ScreenController", false);
                 if (screenController != null)
@@ -51,7 +50,7 @@ namespace SIT.Coop.Core.Matchmaker
 
                 }
                 return null;
-            } 
+            }
         }
         //public static string GroupId { get; set; }
         public static EMatchmakerType MatchingType { get; set; } = EMatchmakerType.Single;
@@ -95,7 +94,7 @@ namespace SIT.Coop.Core.Matchmaker
         {
             if (Grouping == null)
                 return null;
-                //return new List<object>();
+            //return new List<object>();
 
             var properties = Grouping.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
             foreach (PropertyInfo property in properties)
@@ -144,7 +143,7 @@ namespace SIT.Coop.Core.Matchmaker
         {
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
-                string json = new SIT.Tarkov.Core.Request().GetJson("/client/match/group/getInvites");
+                string json = new SIT.Tarkov.Core.Request().GetJson("/coop/get-invites");
                 if (!string.IsNullOrEmpty(json))
                 {
                     var gClass = Activator.CreateInstance(MatchmakerAcceptPatches.InviteType);
@@ -155,7 +154,7 @@ namespace SIT.Coop.Core.Matchmaker
                         PatchConstants.Logger.LogInfo($"Invite Popup! {gClass} {from}");
 
                         PatchConstants.Logger.LogInfo("GetMatchStatus");
-                        string text = new SIT.Tarkov.Core.Request().PostJson("/client/match/group/server/status", JsonConvert.SerializeObject(from));
+                        string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/read", JsonConvert.SerializeObject(from));
                         if (!string.IsNullOrEmpty(text))
                         {
                             //PatchConstants.Logger.LogInfo("GetMatchStatus[1] ::" + text.Length);
@@ -214,6 +213,19 @@ namespace SIT.Coop.Core.Matchmaker
             new MatchmakerAcceptScreenShowPatch().Enable();
             new AcceptInvitePatch().Enable();
             new SendInvitePatch().Enable();
+        }
+
+        internal static void CreateMatch()
+        {
+            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(PatchConstants.GetPHPSESSID()));
+            if (!string.IsNullOrEmpty(text))
+            {
+                PatchConstants.Logger.LogInfo("CreateMatch:: Match Created");
+                return;
+            }
+
+            PatchConstants.Logger.LogError("CreateMatch:: Match NOT Created");
+
         }
     }
 }

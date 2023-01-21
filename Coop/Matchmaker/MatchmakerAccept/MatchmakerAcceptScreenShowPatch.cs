@@ -52,8 +52,10 @@ namespace SIT.Coop.Core.Matchmaker
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
             //ref ScreenController ___ScreenController, 
             ref DefaultUIButton ____updateListButton,
-            ref Profile ___profile_0
-			)
+            ref Profile ___profile_0,
+            ref DefaultUIButton ____findOtherPlayersButton
+
+            )
         {
 			Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
 			//_updateListButton = ____updateListButton;
@@ -78,7 +80,8 @@ namespace SIT.Coop.Core.Matchmaker
 			ref Profile ___profile_0,
             ref DefaultUIButton ____acceptButton,
             ref DefaultUIButton ____playersRaidReadyPanel,
-			ref DefaultUIButton ____groupPreview
+			ref DefaultUIButton ____groupPreview,
+            ref DefaultUIButton ____findOtherPlayersButton
             )
         {
 
@@ -92,6 +95,8 @@ namespace SIT.Coop.Core.Matchmaker
             ____acceptButton.gameObject.SetActive(true);
             ____playersRaidReadyPanel.ShowGameObject();
             ____playersRaidReadyPanel.gameObject.SetActive(true);
+
+            ____findOtherPlayersButton.SetHeaderText("Start a Server / Check for Match", 16);
         }
 
 

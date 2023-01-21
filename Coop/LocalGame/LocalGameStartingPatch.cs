@@ -86,12 +86,16 @@ namespace SIT.Coop.Core.LocalGame
             )
         {
             LocalGamePatches.LocalGameInstance = __instance;
-            //var gameWorld = Singleton<GameWorld>.Instance;
-            //if (gameWorld.TryGetComponent<CoopGameComponent>(out CoopGameComponent coopGameComponent))
-            //{
-            //    GameObject.Destroy(coopGameComponent);
-            //}
-            //gameWorld.GetOrAddComponent<CoopGameComponent>();
+            var gameWorld = Singleton<GameWorld>.Instance;
+            if (gameWorld.TryGetComponent<CoopGameComponent>(out CoopGameComponent coopGameComponent))
+            {
+                GameObject.Destroy(coopGameComponent);
+            }
+            var coopGC = gameWorld.GetOrAddComponent<CoopGameComponent>();
+            if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
+                coopGC.ServerId = MatchmakerAcceptPatches.GetGroupId();
+            else
+                coopGC.ServerId = PatchConstants.GetPHPSESSID();
 
             await StartAndConnectToServer(__instance);
         }
@@ -182,7 +186,7 @@ namespace SIT.Coop.Core.LocalGame
                             });
                         }
                     }
-                    catch (Exception ex2)
+                    catch (Exception)
                     {
                         return;
                     }

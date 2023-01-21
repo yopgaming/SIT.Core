@@ -89,6 +89,7 @@ namespace SIT.Coop.Core.Matchmaker
             //    MatchmakerAcceptPatches.CheckForMatch();
 
             //});
+            ____findOtherPlayersButton.OnClick.AddListener(() => { MatchmakerAcceptPatches.CreateMatch(); MatchmakerAcceptPatches.CheckForMatch(); });
 
             _canvasGroup = ____canvasGroup;
             _canvasGroup.interactable = true;

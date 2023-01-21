@@ -12,13 +12,8 @@ using SIT.Tarkov.Core.SP.Raid;
 using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.AI;
 using SIT.Tarkov.Core.Bundles;
-using SIT.Tarkov.Core.Menus;
-using SIT.Tarkov.Core.Misc;
-using SIT.Tarkov.Core.PlayerPatches;
 using SIT.Tarkov.Core.PlayerPatches.Health;
 using SIT.Tarkov.Core.Raid;
-using SIT.Tarkov.Core.SP;
-using SIT.Tarkov.Core.SP.Raid;
 using SIT.Tarkov.Core.SP.ScavMode;
 using SIT.Tarkov.SP;
 using System;
@@ -38,6 +33,7 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
+using SIT.Core.Coop;
 
 namespace SIT.Core
 {
@@ -167,10 +163,11 @@ namespace SIT.Core
         {
             new LocalGameStartingPatch(Config).Enable();
             //new LocalGameBotWaveSystemPatch().Enable();
-            new MatchmakerAcceptScreenAwakePatch().Enable();
-            new MatchmakerAcceptScreenShowPatch().Enable();
+            //new MatchmakerAcceptScreenAwakePatch().Enable();
+            //new MatchmakerAcceptScreenShowPatch().Enable();
             //new SendInvitePatch().Enable();
             //new AcceptInvitePatch().Enable();
+            CoopPatches.Run(Config);
         }
 
         //private void SceneManager_sceneUnloaded(Scene arg0)

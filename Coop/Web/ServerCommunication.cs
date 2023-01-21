@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SIT.Coop.Core.Matchmaker;
 using Newtonsoft.Json;
+using SIT.Coop.Core.LocalGame;
 
 namespace SIT.Coop.Core.Web
 {
@@ -188,7 +189,12 @@ namespace SIT.Coop.Core.Web
 			{
 				data.Add("accountId", PatchConstants.GetPlayerProfileAccountId(profile));
 			}
-			_ = SendDataDownWebSocket(data, useReliable);
+            if (!data.ContainsKey("serverId"))
+            {
+                data.Add("serverId", CoopGameComponent.GetServerId());
+            }
+            //_ = SendDataDownWebSocket(data, useReliable);
+            _ = new Request().PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data));
 
 			if (OnPostLocalPlayerData != null)
 			{
