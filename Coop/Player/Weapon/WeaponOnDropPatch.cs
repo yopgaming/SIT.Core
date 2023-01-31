@@ -39,7 +39,8 @@ namespace SIT.Coop.Core.Player.Weapon
                 dictionary.Add("nextControllerItem.Id", nextControllerItem.Id);
                 dictionary.Add("nextControllerItem.Tpl", nextControllerItem.TemplateId);
             }
-            dictionary.Add("m", "Drop");
+            //dictionary.Add("m", "Drop");
+            dictionary.Add("m", "ItemDrop");
 
             var player = PatchConstants.GetAllFieldsForObject(__instance).Single(x => x.Name == "_player").GetValue(__instance);
             ServerCommunication.PostLocalPlayerData(player, dictionary);

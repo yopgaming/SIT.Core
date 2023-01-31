@@ -220,6 +220,7 @@ namespace SIT.Coop.Core.Matchmaker
             string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(PatchConstants.GetPHPSESSID()));
             if (!string.IsNullOrEmpty(text))
             {
+                //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
                 PatchConstants.Logger.LogInfo("CreateMatch:: Match Created");
                 return;
             }

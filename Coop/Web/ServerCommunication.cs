@@ -163,15 +163,31 @@ namespace SIT.Coop.Core.Web
 		public delegate void PostLocalPlayerDataHandler(object player, Dictionary<string, object> data);
 		public static event PostLocalPlayerDataHandler OnPostLocalPlayerData;
 
-		/// <summary>
-		/// Posts the data to the Udp Socket and returns the changed Dictionary for any extra use
-		/// </summary>
-		/// <param name="player"></param>
-		/// <param name="data"></param>
-		/// <param name="useReliable"></param>
-		/// <returns></returns>
-		public static Dictionary<string, object> PostLocalPlayerData(object player, Dictionary<string, object> data, bool useReliable = false)
+		public static void PostLocalPlayerData(
+			object player
+			, Dictionary<string, object> data
+			)
 		{
+			string returnedData = string.Empty;
+			Dictionary<string, object> generatedData = new Dictionary<string, object>();
+			PostLocalPlayerData(player, data, out returnedData, out generatedData);
+        }
+
+            /// <summary>
+            /// Posts the data to the Udp Socket and returns the changed Dictionary for any extra use
+            /// </summary>
+            /// <param name="player"></param>
+            /// <param name="data"></param>
+            /// <param name="useReliable"></param>
+            /// <returns></returns>
+        public static void PostLocalPlayerData(
+			object player
+			, Dictionary<string, object> data
+			, out string returnedData
+			, out Dictionary<string, object> generatedData
+			, bool useReliable = false
+            )
+        {
 			var profile = PatchConstants.GetPlayerProfile(player);
 			//if (!data.ContainsKey("groupId"))
 			//{
@@ -193,14 +209,20 @@ namespace SIT.Coop.Core.Web
             {
                 data.Add("serverId", CoopGameComponent.GetServerId());
             }
-            //_ = SendDataDownWebSocket(data, useReliable);
-            _ = new Request().PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data));
+			//_ = SendDataDownWebSocket(data, useReliable);
+			returnedData = new Request().PostJson("/coop/server/update", JsonConvert.SerializeObject(data));
+
+			var cgc = CoopGameComponent.GetCoopGameComponent();
+			if( cgc != null )
+			{
+				cgc.ReadFromServerParseData(returnedData);
+            }
 
 			if (OnPostLocalPlayerData != null)
 			{
 				OnPostLocalPlayerData(player, data);
 			}
-			return data;
+            generatedData = data;
 		}
 
 		/// <summary>
@@ -210,10 +232,17 @@ namespace SIT.Coop.Core.Web
 		/// <param name="data"></param>
 		/// <param name="useReliable"></param>
 		/// <returns></returns>
-		public static async Task<Dictionary<string, object>> PostLocalPlayerDataAsync(object player, Dictionary<string, object> data, bool useReliable = false)
-		{
-			return await Task.Run(() => { return PostLocalPlayerData(player, data, useReliable); });
-		}
+		//public static async Task<Dictionary<string, object>> PostLocalPlayerDataAsync(
+  //          object player
+  //          , Dictionary<string, object> data
+  //          , out string returnedData
+  //          , out Dictionary<string, object> generatedData
+  //          , bool useReliable = false
+  //          )
+  //      {
+		//	return await Task.Run(() => { return PostLocalPlayerData(player, data, useReliable); });
+		//}
+
 		static bool lockedWS = false;
 		static object lockedWSObject = new object();
 

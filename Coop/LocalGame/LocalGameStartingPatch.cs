@@ -50,7 +50,7 @@ namespace SIT.Coop.Core.LocalGame
             if (t == null)
                 Logger.LogInfo($"LocalGameStartingPatch:Type is NULL");
 
-            var method = PatchConstants.GetAllMethodsForType(t, true)
+            var method = PatchConstants.GetAllMethodsForType(t, false)
                 .FirstOrDefault(x => x.GetParameters().Length >= 3
                 && x.GetParameters().Any(x => x.Name.Contains("botsSettings"))
                 && x.GetParameters().Any(x => x.Name.Contains("backendUrl"))
@@ -68,7 +68,7 @@ namespace SIT.Coop.Core.LocalGame
             )
         {
 
-            Logger.LogInfo($"LocalGameStartingPatch:PatchPrefix");
+            //Logger.LogInfo($"LocalGameStartingPatch:PatchPrefix");
             LocalGamePatches.LocalGameInstance = __instance;
 
             //new LocalGameSpawnAICoroutinePatch(_config, __instance).Enable();

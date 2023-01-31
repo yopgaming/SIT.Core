@@ -39,84 +39,93 @@ namespace SIT.Coop.Core.Player
         public static Dictionary<string, Vector2?> LastDirection { get; } = new Dictionary<string, Vector2?>();
 
         public static Dictionary<string, bool> ClientIsMoving { get; } = new Dictionary<string, bool>();
+        
+        public static System.Random RandomizerForAI = new System.Random();
 
         public static bool IsMyPlayer(EFT.Player player) { return player == (LocalGamePatches.MyPlayer as EFT.Player); }
 
-        //[PatchPrefix]
-        //public static bool PatchPrefix(
-        //    EFT.Player __instance,
-        //    Vector2 direction)
-        //{
-        //    return Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
-        //}
-
-        public static System.Random RandomizerForAI = new System.Random();
-
-        [PatchPostfix]
-        public static void PatchPostfix(
+        [PatchPrefix]
+        public static bool PrePatch(
             EFT.Player __instance,
             Vector2 direction)
         {
-            if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
-                return;
+            //direction.Normalize();
+            //direction.x = (float)Math.Round(direction.x, 2);
+            //direction.y = (float)Math.Round(direction.x, 2);
+        //    return false;// Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
+        //}
 
+
+        //[PatchPostfix]
+        //public static void PatchPostfix(
+        //    EFT.Player __instance,
+        //    Vector2 direction)
+        //{
             var accountId = __instance.Profile.AccountId;
             var nickname = __instance.Profile.Nickname;
+
+            direction.Normalize();
+            direction.x = (float)Math.Round(direction.x, 2);
+            direction.y = (float)Math.Round(direction.y, 2);
 
             var prc = __instance.GetComponent<PlayerReplicatedComponent>();
             if (prc == null)
             {
-                //Logger.LogInfo("PRC is NULL on " + nickname);
-                return;
+                Logger.LogInfo("PRC is NULL on " + nickname);
+                return true;
             }
 
-            //if (!LastDirection.ContainsKey(__instance.Profile.AccountId))
-            //    LastDirection.Add(__instance.Profile.AccountId, null);
+            if (!LastDirection.ContainsKey(accountId))
+                LastDirection.Add(accountId, null);
 
-            //if (LastDirection[__instance.Profile.AccountId] != direction)
-            //{
-            //    LastDirection[__instance.Profile.AccountId] = direction;
+            if (LastDirection[accountId] != direction)
+            {
+                LastDirection[accountId] = direction;
 
-            //    var timeToWait = __instance.IsAI ? -(450 + RandomizerForAI.Next(-100, 100))  : -5;
+                //    var timeToWait = __instance.IsAI ? -(450 + RandomizerForAI.Next(-100, 100))  : -5;
 
-            //    if (!LastPacketSent.ContainsKey(accountId) || LastPacketSent[accountId] < DateTime.Now.AddMilliseconds(timeToWait))
-            //    {
-            //        if (!Sequence.ContainsKey(accountId))
-            //            Sequence.Add(accountId, 0);
+                //    if (!LastPacketSent.ContainsKey(accountId) || LastPacketSent[accountId] < DateTime.Now.AddMilliseconds(timeToWait))
+                //    {
+                //        if (!Sequence.ContainsKey(accountId))
+                //            Sequence.Add(accountId, 0);
 
-            //        Sequence[accountId]++;
+                //        Sequence[accountId]++;
 
-            //        //Logger.LogInfo(__instance.Profile.AccountId + " " + direction);
-            //        __instance.CurrentState.Move(direction);
-            //        __instance.InputDirection = direction;
+                //        //Logger.LogInfo(__instance.Profile.AccountId + " " + direction);
+                //        __instance.CurrentState.Move(direction);
+                //        __instance.InputDirection = direction;
 
-            //        if (!LastPacketSent.ContainsKey(accountId))
-            //            LastPacketSent.Add(accountId, DateTime.Now);
+                //        if (!LastPacketSent.ContainsKey(accountId))
+                //            LastPacketSent.Add(accountId, DateTime.Now);
 
-            //        LastPacketSent[accountId] = DateTime.Now;
+                //        LastPacketSent[accountId] = DateTime.Now;
 
-            //        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            //        dictionary.Add("seq", Sequence[accountId]);
-            //        dictionary.Add("dX", direction.x.ToString());
-            //        dictionary.Add("dY", direction.y.ToString());
-            //        //dictionary.Add("pX", __instance.Position.x);
-            //        //dictionary.Add("pY", __instance.Position.y);
-            //        //dictionary.Add("pZ", __instance.Position.z);
-            //        dictionary.Add("rX", __instance.Rotation.x);
-            //        dictionary.Add("rY", __instance.Rotation.y);
-            //        dictionary.Add("m", "Move");
+                Dictionary<string, object> dictionary = new Dictionary<string, object>();
+                //dictionary.Add("seq", Sequence[accountId]);
+                dictionary.Add("dX", Math.Round(direction.x, 2).ToString());
+                dictionary.Add("dY", Math.Round(direction.y, 2).ToString());
+                //dictionary.Add("pX", __instance.Position.x);
+                //dictionary.Add("pY", __instance.Position.y);
+                //dictionary.Add("pZ", __instance.Position.z);
+                dictionary.Add("rX", Math.Round(__instance.Rotation.x, 2).ToString());
+                dictionary.Add("rY", Math.Round(__instance.Rotation.y, 2).ToString());
+                dictionary.Add("m", "Move");
 
-            //        //Logger.LogInfo("Sending Move for " + nickname);
-            //        ServerCommunication.PostLocalPlayerData(__instance, dictionary);
-            //        // setup prediction of outcome
-            //        prc.DequeueAllMovementPackets();
-            //        prc.LastMovementPacket = dictionary;
-            //    }
-            //}
+                //        //Logger.LogInfo("Sending Move for " + nickname);
+                ServerCommunication.PostLocalPlayerData(__instance, dictionary, out string returnedData, out var genData);
+                //        // setup prediction of outcome
+                //        prc.DequeueAllMovementPackets();
+                //        prc.LastMovementPacket = dictionary;
+                //    }
+            }
+
+            return false;
         }
 
         public static void MoveReplicated(EFT.Player player, Dictionary<string, object> dict)
         {
+
+
             var accountId = player.Profile.AccountId;
 
             var thisPacket = dict;
@@ -141,8 +150,8 @@ namespace SIT.Coop.Core.Player
             var packetTime = long.Parse(dict["t"].ToString());
 
             // Is first packet OR is after the last packet received. This copes with unordered received packets
-            if ((!LastPacketReceived.ContainsKey(accountId) || LastPacketReceived[accountId] <= packetTime))
-            {
+            //if ((!LastPacketReceived.ContainsKey(accountId) || LastPacketReceived[accountId] <= packetTime))
+            //{
                 player.CurrentState.Move(direction);
                 player.InputDirection = direction;
 
@@ -157,7 +166,7 @@ namespace SIT.Coop.Core.Player
 
                 LastPacketReceived[accountId] = packetTime;
 
-            }
+            //}
 
 
 

@@ -116,11 +116,14 @@ namespace SIT.Coop.Core.Player
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
-            await ServerCommunication.PostLocalPlayerDataAsync(player, dictionary2);
+            ServerCommunication.PostLocalPlayerData(player, dictionary2);
+
+            CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
+            
             //Logger.LogInfo($"PlayerOnInitPatch. Sent to Server!");
 
-            if (Matchmaker.MatchmakerAcceptPatches.IsServer)
-                PatchConstants.DisplayMessageNotification($"{__instance.Profile.Nickname}:{__instance.Side}:{__instance.Profile.Info.Settings.Role} has spawned");
+            //if (Matchmaker.MatchmakerAcceptPatches.IsServer)
+            //    PatchConstants.DisplayMessageNotification($"{__instance.Profile.Nickname}:{__instance.Side}:{__instance.Profile.Info.Settings.Role} has spawned");
 
 
             //Logger.LogInfo($"BotCreationMethod. [SUCCESS] Adding AI {profile.AccountId} to CoopGameComponent.Players list");

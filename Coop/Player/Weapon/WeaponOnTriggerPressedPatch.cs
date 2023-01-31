@@ -6,11 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace SIT.Coop.Core.Player.Weapon
 {
     internal class WeaponOnTriggerPressedPatch : ModulePatch
     {
+
         protected override MethodBase GetTargetMethod()
         {
             //foreach (var tt in PatchConstants.EftTypes.Where(x => x.Name.Contains("FirearmController")))
@@ -28,16 +30,18 @@ namespace SIT.Coop.Core.Player.Weapon
             return method;
         }
 
+        private static Dictionary<string, float> lastTriggerPressedPacketSent = new Dictionary<string, float>();
+
         [PatchPrefix]
         public static bool PatchPrefix(
             EFT.Player.FirearmController __instance,
             bool pressed
             )
         {
-            return Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
+            return false;
+            //return Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
         }
 
-        private static Dictionary<string, float> lastTriggerPressedPacketSent = new Dictionary<string, float>();
 
 
         [PatchPostfix]
@@ -46,15 +50,15 @@ namespace SIT.Coop.Core.Player.Weapon
             bool pressed
             )
         {
-            if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
-                return;
+            //if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
+            //    return;
 
             var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             Dictionary<string, object> packet = new Dictionary<string, object>();
             packet.Add("pressed", pressed);
             packet.Add("m", "SetTriggerPressed");
 
-            var createdPacket = ServerCommunication.PostLocalPlayerData(player, packet);
+            ServerCommunication.PostLocalPlayerData(__instance, packet, out string returnedData, out var createdPacket);
             Replicated(player, createdPacket);
         }
 

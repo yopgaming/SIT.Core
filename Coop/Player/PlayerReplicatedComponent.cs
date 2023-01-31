@@ -5,6 +5,7 @@ using SIT.Coop.Core.Player.Weapon;
 using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,10 +73,128 @@ namespace SIT.Coop.Core.Player
             if (this.ListOfInteractiveObjects == null)
             {
                 this.ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
-                //PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
+                PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
             }
+
+            StartCoroutine(HandleQueuedPackets());
         }
 
+        private IEnumerator HandleQueuedPackets()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(0.033f);
+
+                if (!QueuedPackets.Any())
+                    continue;
+
+                if (QueuedPackets.TryDequeue(out Dictionary<string, object> packet))
+                {
+                    var method = packet["m"].ToString();
+                    if (packet["accountId"].ToString() != player.Profile.AccountId)
+                        continue;
+
+                    // Any packets are ancient and lossless, then remove
+                    //if (packet.ContainsKey("t") && long.Parse(packet["t"].ToString()) < DateTime.Now.AddSeconds(-PacketTimeoutInSeconds).Ticks)
+                    //{
+                    //    QueuedPackets.TryDequeue(out _);
+                    //    continue;
+                    //}
+
+                    switch (method)
+                    {
+
+                        case "ApplyCorpseImpulse":
+                            PlayerOnApplyCorpseImpulsePatch.Replicated(player, packet);
+                            break;
+                        case "Damage":
+                            PlayerOnDamagePatch.DamageReplicated(player, packet);
+                            break;
+                        case "Dead":
+                            PatchConstants.Logger.LogInfo("Dead");
+                            break;
+                        case "Door":
+                            PlayerOnInteractWithDoorPatch.Replicated(player, packet);
+                            break;
+                        case "DropBackpack":
+                            PlayerOnDropBackpackPatch.Replicated(player, packet);
+                            break;
+                        case "EnableSprint":
+                            PlayerOnEnableSprintPatch.Replicated(player, packet);
+                            break;
+                        case "Gesture":
+                            PlayerOnGesturePatch.Replicated(player, packet);
+                            break;
+                        case "HostDied":
+                            PatchConstants.Logger.LogInfo("Host Died");
+                            LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
+                            break;
+                        case "Jump":
+                            PlayerOnJumpPatch.Replicated(player, packet);
+                            break;
+                        case "Move":
+                            //if (LastMovementPacket == null
+                            //    //|| int.Parse(packet["seq"].ToString()) > int.Parse(LastMovementPacket["seq"].ToString())
+                            //    )
+                                LastMovementPacket = packet;
+                            break;
+                        case "Position":
+                            if (!IsMyPlayer)
+                            {
+                                Vector3 newPos = Vector3.zero;
+                                newPos.x = float.Parse(packet["x"].ToString());
+                                newPos.y = float.Parse(packet["y"].ToString());
+                                newPos.z = float.Parse(packet["z"].ToString());
+                                ReceivedPacketPostion = newPos;
+                            }
+                            break;
+                        case "ReloadMag":
+                            //WeaponOnReloadMagPatch.Replicated(player, packet);
+                            break;
+                        case "Rotation":
+                            if (!IsMyPlayer)
+                            {
+                                var rotationX = float.Parse(packet["rX"].ToString());
+                                var rotationY = float.Parse(packet["rY"].ToString());
+                                ReceivedPacketRotation = new Vector2(rotationX, rotationY);
+                            }
+                            break;
+                        case "Say":
+                            PlayerOnSayPatch.SayReplicated(player, packet);
+                            break;
+                        case "SetTriggerPressed":
+                            //PatchConstants.Logger.LogInfo("SetTriggerPressed");
+                            WeaponOnTriggerPressedPatch.Replicated(player, packet);
+                            break;
+                        case "SetItemInHands":
+                            //PlayerOnSetItemInHandsPatch.SetItemInHandsReplicated(player, packet);
+                            break;
+                        case "InventoryOpened":
+                            //PlayerOnInventoryOpenedPatch.Replicated(player, packet);
+                            break;
+                        case "Tilt":
+                            //PlayerOnTiltPatch.TiltReplicated(player, packet);
+                            break;
+                        case "Proceed":
+                            switch (packet["pType"].ToString())
+                            {
+                                case "Weapon":
+                                    //PlayerOnProceedWeaponPatch.ProceedWeaponReplicated(player, packet);
+                                    break;
+                                case "Knife":
+                                    //PlayerOnProceedKnifePatch.ProceedWeaponReplicated(player, packet);
+                                    break;
+                                case "Meds":
+                                    break;
+                                case "Food":
+                                    break;
+                            }
+                            break;
+
+                    }
+                }
+            }
+        }
 
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; private set; }
 
@@ -100,9 +219,10 @@ namespace SIT.Coop.Core.Player
             //    this.listOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             //}
 
-            //UpdateMovement();
+            UpdateMovement();
 
-            //if (player != null && QueuedPackets.Any())
+
+
             ////if (!handlingPackets && player != null && QueuedPackets.Any())
             //{
             //    handlingPackets = true;
@@ -218,24 +338,24 @@ namespace SIT.Coop.Core.Player
             //}
         }
 
-        public void DequeueAllMovementPackets()
-        {
-            if (QueuedPackets.Any())
-            {
-                //handlingPackets = true;
+        //public void DequeueAllMovementPackets()
+        //{
+        //    if (QueuedPackets.Any())
+        //    {
+        //        //handlingPackets = true;
 
-                //PatchConstants.Logger.LogInfo($"QueuedPackets.Length:{QueuedPackets.Count}");
+        //        //PatchConstants.Logger.LogInfo($"QueuedPackets.Length:{QueuedPackets.Count}");
 
-                if (QueuedPackets.TryDequeue(out Dictionary<string, object> packet))
-                {
-                    var method = packet["m"].ToString();
-                    if (method != "Move")
-                    {
-                        QueuedPackets.Enqueue(packet);
-                    }
-                }
-            }
-        }
+        //        if (QueuedPackets.TryDequeue(out Dictionary<string, object> packet))
+        //        {
+        //            var method = packet["m"].ToString();
+        //            if (method != "Move")
+        //            {
+        //                QueuedPackets.Enqueue(packet);
+        //            }
+        //        }
+        //    }
+        //}
 
         public static bool ShouldReplicate(EFT.Player player, bool isMyPlayer)
         {
@@ -267,50 +387,53 @@ namespace SIT.Coop.Core.Player
                         ServerCommunication.PostLocalPlayerData(player, dictionary);
                     }
 
-                    if (!LastRotation.HasValue)
-                        LastRotation = player.MovementContext.TransformRotation;
+                    //if (!LastRotation.HasValue)
+                    //    LastRotation = player.MovementContext.TransformRotation;
 
-                    var rotationAngle = Quaternion.Angle(player.MovementContext.TransformRotation, LastRotation.Value);
+                    //var rotationAngle = Quaternion.Angle(player.MovementContext.TransformRotation, LastRotation.Value);
 
-                    if (player.MovementContext.TransformRotation != this.LastRotation && rotationAngle > 15)
-                    {
-                        this.LastRotation = player.MovementContext.TransformRotation;
-                        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                        dictionary.Add("rX", player.MovementContext.Rotation.x);
-                        dictionary.Add("rY", player.MovementContext.Rotation.y);
-                        dictionary.Add("m", "Rotation");
-                        ServerCommunication.PostLocalPlayerData(player, dictionary);
-                    }
+                    //if (player.MovementContext.TransformRotation != this.LastRotation && rotationAngle > 15)
+                    //{
+                    //    this.LastRotation = player.MovementContext.TransformRotation;
+                    //    Dictionary<string, object> dictionary = new Dictionary<string, object>();
+                    //    dictionary.Add("rX", player.MovementContext.Rotation.x);
+                    //    dictionary.Add("rY", player.MovementContext.Rotation.y);
+                    //    dictionary.Add("m", "Rotation");
+                    //    ServerCommunication.PostLocalPlayerData(player, dictionary);
+                    //}
 
-                    if (!LastSentPosition.HasValue || Vector3.Distance(LastSentPosition.Value, player.Position) > 0.9f)
-                    {
-                        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                        dictionary.Add("x", player.Position.x);
-                        dictionary.Add("y", player.Position.y);
-                        dictionary.Add("z", player.Position.z);
-                        dictionary.Add("m", "Position");
-                        ServerCommunication.PostLocalPlayerData(player, dictionary);
-                        LastSentPosition = player.Position;
-                    }
+                    //if (!LastSentPosition.HasValue || Vector3.Distance(LastSentPosition.Value, player.Position) > 0.9f)
+                    //{
+                    //    Dictionary<string, object> dictionary = new Dictionary<string, object>();
+                    //    dictionary.Add("x", player.Position.x);
+                    //    dictionary.Add("y", player.Position.y);
+                    //    dictionary.Add("z", player.Position.z);
+                    //    dictionary.Add("m", "Position");
+                    //    ServerCommunication.PostLocalPlayerData(player, dictionary);
+                    //    LastSentPosition = player.Position;
+                    //}
 
                 }
             }
 
-            if (!IsMyPlayer)
+            if (!IsMyPlayer && ReceivedPacketPostion != Vector3.zero)
             {
-                if (Vector3.Distance(player.Transform.position, ReceivedPacketPostion) < 2f)
-                    player.Transform.position = Vector3.Lerp(player.Transform.position, ReceivedPacketPostion, 2f * Time.deltaTime);
-                else
-                    player.Transform.position = ReceivedPacketPostion;
+                if (ReceivedPacketPostion != Vector3.zero)
+                {
+                    if (Vector3.Distance(player.Transform.position, ReceivedPacketPostion) < 2f)
+                        player.Transform.position = Vector3.Lerp(player.Transform.position, ReceivedPacketPostion, 2f * Time.deltaTime);
+                    else
+                        player.Transform.position = ReceivedPacketPostion;
+                }
 
-                //player.MovementContext.MovementDirection
-
-                player.MovementContext.Rotation = Vector2.Lerp(player.MovementContext.Rotation, ReceivedPacketRotation, 2f * Time.deltaTime);
+                if (ReceivedPacketRotation != Vector2.zero)
+                {
+                    player.MovementContext.Rotation = Vector2.Lerp(player.MovementContext.Rotation, ReceivedPacketRotation, 2f * Time.deltaTime);
+                }
             }
 
             if (LastMovementPacket == null)
                 return;
-
 
             PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
 

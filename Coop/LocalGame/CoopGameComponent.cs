@@ -5,11 +5,13 @@ using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Matchmaker;
+using SIT.Coop.Core.Player;
 //using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.AI;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,10 +62,16 @@ namespace SIT.Coop.Core.LocalGame
 	{
 		public string ServerId = null;
 
-		public static string GetServerId()
+		public static CoopGameComponent GetCoopGameComponent()
 		{
             var gameWorld = Singleton<GameWorld>.Instance;
             var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+			return coopGC;
+        }
+
+		public static string GetServerId()
+		{
+			var coopGC = GetCoopGameComponent();
             if (coopGC == null)
                 return null;
 
@@ -143,8 +151,7 @@ namespace SIT.Coop.Core.LocalGame
 
 		void Start()
 		{
-			//Logger.LogInfo("CoopGameComponent:Start");
-
+			Logger.LogInfo("CoopGameComponent:Start");
 
 			// ----------------------------------------------------
 			// Consume Data Received from ServerCommunication class
@@ -152,7 +159,10 @@ namespace SIT.Coop.Core.LocalGame
 			ServerCommunication.OnDataStringReceived += ServerCommunication_OnDataStringReceived;
 			ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
 			// ----------------------------------------------------
-		}
+
+			StartCoroutine(ReadFromServer());
+			StartCoroutine(RunQueuedActions());
+        }
 
 		void FixedUpdate()
 		{
@@ -162,38 +172,80 @@ namespace SIT.Coop.Core.LocalGame
 				UpdateClientSpawnPlayers();
 				doingClientSpawnPlayersWork = false;
 			}
-
-			_ = ReadFromServer();
 		}
 
-        private async Task ReadFromServer()
+        private IEnumerator ReadFromServer()
         {
-			if(
-                IsReadingFromServer ||
-                (LastReadFromServer != null && (DateTime.Now - LastReadFromServer.Value).TotalSeconds < 1)
-				)
-				return;
+			while (true)
+			{
+				yield return new WaitForSeconds(0.33f);
 
-			// Setup reading Flags so this method will not run again until finished
-            LastReadFromServer = DateTime.Now;
-			IsReadingFromServer = true;
+				if (RequestingObj == null)
+					RequestingObj = new SIT.Tarkov.Core.Request();
 
-			if (RequestingObj == null)
-				RequestingObj = new SIT.Tarkov.Core.Request();
+				Dictionary<string, object> d = new Dictionary<string, object>();
+				d.Add("serverId", GetServerId());
+				Task.Run(async () =>
+				{
+					var resultOfRead = await RequestingObj.PostJsonAsync("/coop/server/read", JsonConvert.SerializeObject(d));
+					//Logger.LogInfo($"CoopGameComponent:ReadFromServer:{resultOfRead.Length} bytes received");
+					//await Task.Run(() => { 
 
-			Dictionary<string, object> d = new Dictionary<string, object>();
-			d.Add("serverId", GetServerId());
-            var resultOfRead = await RequestingObj.PostJsonAsync("/coop/server/read", JsonConvert.SerializeObject(d));
-            Logger.LogInfo($"CoopGameComponent:ReadFromServer:{resultOfRead.Length} bytes received");
-            await Task.Run(() => { 
-			
-			});
-            // Unlock this method
-            IsReadingFromServer = false;
+					ReadFromServerParseData(resultOfRead);
 
-			Logger.LogInfo("CoopGameComponent:ReadFromServer:Complete");
+                }).Wait();
+                //}
+                //catch
+                //{
+
+                //}
+                //ServerCommunication_OnDataReceived(UTF8Encoding.UTF8.GetBytes(resultOfRead));
+                ////});
+                //// Unlock this method
+                //IsReadingFromServer = false;
+
+                //Logger.LogInfo("CoopGameComponent:ReadFromServer:Complete");
+            }
         }
 
+		public void ReadFromServerParseData(string resultOfRead)
+		{
+            if (string.IsNullOrEmpty(resultOfRead))
+            {
+                return;
+            }
+
+            if (!resultOfRead.StartsWith("{\"") || !resultOfRead.EndsWith("}"))
+            {
+                return;
+            }
+            //try
+            //{
+            Dictionary<string, object> rawDataFromServer = new Dictionary<string, object>();
+            JsonConvert.PopulateObject(resultOfRead, rawDataFromServer);
+            if (rawDataFromServer.ContainsKey("LastData"))
+            {
+                foreach (var item in rawDataFromServer.Select(x => JsonConvert.SerializeObject(x.Value)))
+                {
+                    if (string.IsNullOrEmpty(item))
+                        continue;
+
+                    if (!resultOfRead.StartsWith("{") || !resultOfRead.EndsWith("}"))
+                        continue;
+
+
+					if (resultOfRead.IndexOf("\":{\"") == -1)
+                        continue;
+
+                    //Logger.LogInfo(item);
+
+                    var lD = JsonConvert.DeserializeObject<Dictionary<string, object>>(item);
+                    var b = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(lD.Values));
+                    ServerCommunication_OnDataReceived(b);
+                }
+            }
+        }
+		
         private DateTime? LastReadFromServer { get; set; }
         private bool IsReadingFromServer { get; set; }
 		private SIT.Tarkov.Core.Request RequestingObj { get; set; }
@@ -203,14 +255,14 @@ namespace SIT.Coop.Core.LocalGame
 		{
 			//if (!doingclientwork)
 			{
-				doingclientwork = true;
+				//doingclientwork = true;
 				//UpdateParityCheck();
 				//UpdateAddPlayersToAICalc();
-				RunQueuedActions();
+				//RunQueuedActions();
 
 
 
-				doingclientwork = false;
+				//doingclientwork = false;
 			}
 		}
 
@@ -269,10 +321,13 @@ namespace SIT.Coop.Core.LocalGame
 				{
 					Task.Run(() =>
 					{
+						if (@string.Length == 0)
+							return;
+
 						//Logger.LogInfo($"CoopGameComponent:OnDataReceived:{buffer.Length}");
 						//Logger.LogInfo($"CoopGameComponent:OnDataReceived:{@string}");
 
-						if (@string.Length > 0 && @string[0] == '{' && @string[@string.Length - 1] == '}')
+						if (@string[0] == '{' && @string[@string.Length - 1] == '}')
 						{
 							var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string);
 
@@ -291,10 +346,37 @@ namespace SIT.Coop.Core.LocalGame
 										if (MatchmakerAcceptPatches.IsClient)
 											LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
 									}
+
+									if (dictionary.ContainsKey("accountId"))
+									{
+										//Logger.LogInfo(dictionary["accountId"]);
+
+										if (Players.ContainsKey(dictionary["accountId"].ToString()))
+										{
+											var prc = Players[dictionary["accountId"].ToString()].GetComponent<PlayerReplicatedComponent>();
+											if (prc == null)
+												return;
+
+											prc.QueuedPackets.Enqueue(dictionary);
+										}
+                                    }
+                                }
+								else
+								{
+									//Logger.LogInfo($"ServerCommunication_OnDataReceived:Unhandled:{@string}");
 								}
 							}
 						}
-					});
+						else if (@string[0] == '[' && @string[@string.Length - 1] == ']')
+						{
+							foreach (var item in JsonConvert.DeserializeObject<object[]>(@string).Select(x => JsonConvert.SerializeObject(x)))
+								ServerCommunication_OnDataReceived(Encoding.UTF8.GetBytes(item));
+						}
+						else
+						{
+                            Logger.LogInfo($"ServerCommunication_OnDataReceived:Unhandled:{@string}");
+                        }
+                    });
 				}
 			}
 			catch (Exception)
@@ -502,55 +584,60 @@ namespace SIT.Coop.Core.LocalGame
 
 		public ConcurrentDictionary<string, EFT.LocalPlayer> Players { get; } = new ConcurrentDictionary<string, EFT.LocalPlayer>();
 
-		public static ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new ConcurrentQueue<Dictionary<string, object>>();
+		public ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new ConcurrentQueue<Dictionary<string, object>>();
 
-		void RunQueuedActions()
+		IEnumerator RunQueuedActions()
 		{
-			if (QueuedPackets.Any())
+			while (true)
 			{
-				if (QueuedPackets.TryDequeue(out var queuedPacket))
+				yield return new WaitForSeconds(1);
+
+				if (QueuedPackets.Any())
 				{
-					if (queuedPacket != null)
+					if (QueuedPackets.TryDequeue(out var queuedPacket))
 					{
-						if (queuedPacket.ContainsKey("m"))
+						if (queuedPacket != null)
 						{
-							var method = queuedPacket["m"];
-							//PatchConstants.Logger.LogInfo("CoopGameComponent.RunQueuedActions:method:" + method);
-							switch (method)
+							if (queuedPacket.ContainsKey("m"))
 							{
-								case "PlayerSpawn":
-									string accountId = queuedPacket["accountId"].ToString();
-									if (Players != null && !Players.ContainsKey(accountId))
-									{
-
-										Vector3 newPosition = Players.First().Value.Position;
-										if (queuedPacket.ContainsKey("sPx")
-											&& queuedPacket.ContainsKey("sPy")
-											&& queuedPacket.ContainsKey("sPz"))
+								var method = queuedPacket["m"];
+								//PatchConstants.Logger.LogInfo("CoopGameComponent.RunQueuedActions:method:" + method);
+								switch (method)
+								{
+									case "PlayerSpawn":
+										string accountId = queuedPacket["accountId"].ToString();
+										if (Players != null && !Players.ContainsKey(accountId))
 										{
-											string npxString = queuedPacket["sPx"].ToString();
-											newPosition.x = float.Parse(npxString);
-											string npyString = queuedPacket["sPy"].ToString();
-											newPosition.y = float.Parse(npyString);
-											string npzString = queuedPacket["sPz"].ToString();
-											newPosition.z = float.Parse(npzString) + 0.5f;
 
-											//QuickLog("New Position found for Spawning Player");
+											Vector3 newPosition = Players.First().Value.Position;
+											if (queuedPacket.ContainsKey("sPx")
+												&& queuedPacket.ContainsKey("sPy")
+												&& queuedPacket.ContainsKey("sPz"))
+											{
+												string npxString = queuedPacket["sPx"].ToString();
+												newPosition.x = float.Parse(npxString);
+												string npyString = queuedPacket["sPy"].ToString();
+												newPosition.y = float.Parse(npyString);
+												string npzString = queuedPacket["sPz"].ToString();
+												newPosition.z = float.Parse(npzString) + 0.5f;
+
+												//QuickLog("New Position found for Spawning Player");
+											}
+											this.DataReceivedClient_PlayerBotSpawn(queuedPacket, accountId, queuedPacket["profileId"].ToString(), newPosition, false);
 										}
-										this.DataReceivedClient_PlayerBotSpawn(queuedPacket, accountId, queuedPacket["profileId"].ToString(), newPosition, false);
-									}
-									else
-									{
-										Logger.LogInfo($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
-									}
-									break;
-								case "HostDied":
-									{
-										Logger.LogInfo("Host Died");
-										if (MatchmakerAcceptPatches.IsClient)
-											LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
-									}
-									break;
+										else
+										{
+											Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
+										}
+										break;
+									case "HostDied":
+										{
+											Logger.LogInfo("Host Died");
+											if (MatchmakerAcceptPatches.IsClient)
+												LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
+										}
+										break;
+								}
 							}
 						}
 					}

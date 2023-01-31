@@ -71,6 +71,7 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=AID062158106353313252ruc -
 
 ## Thanks List
 - SPT-Aki team
+- MTGA team
 
 ## License
 

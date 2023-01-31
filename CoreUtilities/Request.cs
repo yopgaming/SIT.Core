@@ -35,7 +35,7 @@ namespace SIT.Tarkov.Core
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private Stream Send(string url, string method = "GET", string data = null, bool compress = true)
+        private Stream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1500)
         {
 
             // disable SSL encryption
@@ -61,7 +61,7 @@ namespace SIT.Tarkov.Core
             request.Headers.Add("Accept-Encoding", "deflate");
 
             request.Method = method;
-            request.Timeout = 1000;
+            request.Timeout = timeout;
 
             if (method != "GET" && !string.IsNullOrEmpty(data))
             {
@@ -76,9 +76,17 @@ namespace SIT.Tarkov.Core
                     request.Headers.Add("content-encoding", "deflate");
                 }
 
-                using (Stream stream = request.GetRequestStream())
+                try
                 {
-                    stream.Write(bytes, 0, bytes.Length);
+                    using (Stream stream = request.GetRequestStream())
+                    {
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (isUnity)
+                        Debug.LogError(e);
                 }
             }
 
