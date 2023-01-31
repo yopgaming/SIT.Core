@@ -74,7 +74,7 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=AID062158106353313252ruc -
 ### Highlight - BE AWARE
 Coop is in very early stages of redevelopment. Nothing works.
 
-### PREREQUIST
+### PREREQUISITE
 You must have the SPT-Aki mod installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
 
 ### Can Coop use BSG code?
