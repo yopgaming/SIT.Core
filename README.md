@@ -69,10 +69,25 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=AID062158106353313252ruc -
 ```
 - If BepInEx is working a console should open and display the module "plugin" as started
 
+## Coop
+
+### Highlight - BE AWARE
+Coop is in very early stages of redevelopment. Nothing works.
+
+### PREREQUIST
+You must have the SPT-Aki mod installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
+
+### Can Coop use BSG code?
+No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
+
+### How it will work and reason
+1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
+2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data. Initial movement tests work extremely well!
+
 ## Thanks List
 - SPT-Aki team
 - MTGA team
 
 ## License
 
->>SOME<< of the original core functionality completed by SPT-Aki teams. There may be licenses pertaining to them within this source.
+Some of the original core functionality completed by SPT-Aki teams. There may be licenses pertaining to them within this source.
