@@ -15,6 +15,7 @@ using System.Collections.Concurrent;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.Networking;
 using Comfort.Common;
+using SIT.Core.PlayerPatches.Health;
 
 namespace SIT.Coop.Core.Player
 {
@@ -76,11 +77,11 @@ namespace SIT.Coop.Core.Player
             //dictionary.Add("deflectedBy", damageInfo.DeflectedBy);
             dictionary.Add("didArmorDamage", damageInfo.DidArmorDamage);
             dictionary.Add("didBodyDamage", damageInfo.DidBodyDamage);
-            //dictionary.Add("direction", damageInfo.Direction);
-            //dictionary.Add("hitNormal", damageInfo.HitNormal);
-            //dictionary.Add("hitPoint", damageInfo.HitPoint);
-            //dictionary.Add("lightBleedingDelta", damageInfo.LightBleedingDelta);
-            //dictionary.Add("masterOrigin", damageInfo.MasterOrigin);
+            dictionary.Add("direction", damageInfo.Direction);
+            dictionary.Add("hitNormal", damageInfo.HitNormal);
+            dictionary.Add("hitPoint", damageInfo.HitPoint);
+            dictionary.Add("lightBleedingDelta", damageInfo.LightBleedingDelta);
+            dictionary.Add("masterOrigin", damageInfo.MasterOrigin);
             ////dictionary.Add("didArmorDamage", damageI.DidArmorDamage);
             ////dictionary.Add("didBodyDamage", damageI.DidBodyDamage);
             ////dictionary.Add("direction", damageI.Direction);
@@ -99,7 +100,7 @@ namespace SIT.Coop.Core.Player
             ////if (damageI.Weapon != null)
             ////    dictionary.Add("weapon", damageI.Weapon.Id);
 
-            //dictionary.Add("absorbed", absorbed);
+            dictionary.Add("absorbed", absorbed);
             //dictionary.Add("headSegment", headSegment);
             //foreach(var r in PatchConstants.GetAllPropertiesForObject(damageInfo))
             //{
@@ -110,18 +111,15 @@ namespace SIT.Coop.Core.Player
             //    dictionary.Add(r.Name, r.GetValue(damageInfo));
             //}
             dictionary.Add("m", "Damage");
+            dictionary.Add("t", DateTime.Now.Ticks);
             ServerCommunication.PostLocalPlayerData(__instance, dictionary, out string returnedData, out var generatedDict);
-            if (generatedDict != null && generatedDict.ContainsKey("t"))
-            {
-                if (!ProcessedDamages.Contains(generatedDict["t"]))
-                    ProcessedDamages.Add(generatedDict["t"].ToString());
-            }
+            
 
             //Logger.LogInfo("PlayerOnDamagePatch.PatchPostfix:Sent");
 
         }
 
-        private static ConcurrentBag<string> ProcessedDamages = new ConcurrentBag<string>();
+        private static ConcurrentBag<long> ProcessedDamages = new ConcurrentBag<long>();
 
         public static void DamageReplicated(EFT.Player player, Dictionary<string, object> dict)
         {
@@ -182,15 +180,13 @@ namespace SIT.Coop.Core.Player
 
             Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Check processed damages ");
 
-            if (dict.ContainsKey("t"))
+            var timestampOfDamage = long.Parse(dict["t"].ToString());
+            if (!ProcessedDamages.Contains(timestampOfDamage))
+                ProcessedDamages.Add(timestampOfDamage);
+            else
             {
-                if (!ProcessedDamages.Contains(dict["t"]))
-                    ProcessedDamages.Add(dict["t"].ToString());
-                else
-                {
-                    Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Ignoring already processed damage ");
-                    return;
-                }
+                //Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Ignoring already processed damage ");
+                return;
             }
 
             //EDamageType damageType = damageInfo.DamageType;
@@ -224,52 +220,50 @@ namespace SIT.Coop.Core.Player
             //    return;
             //ClientHandledDamages.Add(timeStamp, damageInfo);
 
-            //float currentBodyPartHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, bodyPart).Current;
+            float currentBodyPartHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, bodyPart).Current;
 
-            //Logger.LogInfo($"ClientApplyDamageInfo::Damage = {damage}");
-            //Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [before] = {currentBodyPartHealth}");
+            Logger.LogInfo($"ClientApplyDamageInfo::Damage = {damage}");
+            Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [before] = {currentBodyPartHealth}");
 
-            //try
-            //{
-            //    if (damage > 0f)
-            //    {
-            //        HealthControllerHelpers.ChangeHealth(ActiveHealthController, bodyPart, -damage, dmI);
+            try
+            {
+                if (damage > 0f)
+                {
+                    HealthControllerHelpers.ChangeHealth(ActiveHealthController, bodyPart, -damage, dmI);
 
-            //        //if (Singleton<PlayerGameAction>.Instantiated)
-            //        //{
-            //        //    //Singleton<PlayerGameAction>.Instance.BeingHitAction(dmI, player);
-            //        //}
-            //        //if (Singleton<GClass558>.Instantiated)
-            //        //{
-            //        //    Singleton<GClass558>.Instance.BeingHitAction(damageInfo, this);
-            //        //}
-            //        //ActiveHealthController.TryApplySideEffects(dmI, bodyPart, out var sideEffectComponent);
-            //        if (ActiveHealthController is PlayerHealthController)
-            //        {
-            //            Logger.LogInfo("Attempting to Kill!");
-            //            ((PlayerHealthController)ActiveHealthController).TryApplySideEffects(dmI, bodyPart, out _);
-            //        }
-            //    }
-            //}
-            //catch
-            //{
-            //}
+                    //if (Singleton<PlayerGameAction>.Instantiated)
+                    //{
+                    //    //Singleton<PlayerGameAction>.Instance.BeingHitAction(dmI, player);
+                    //}
+                    //if (Singleton<GClass558>.Instantiated)
+                    //{
+                    //    Singleton<GClass558>.Instance.BeingHitAction(damageInfo, this);
+                    //}
+                    //ActiveHealthController.TryApplySideEffects(dmI, bodyPart, out var sideEffectComponent);
+                    if (ActiveHealthController is PlayerHealthController)
+                    {
+                        Logger.LogInfo("Attempting to Kill!");
+                        ((PlayerHealthController)ActiveHealthController).TryApplySideEffects(dmI, bodyPart, out _);
+                    }
+                }
+            }
+            catch
+            {
+            }
 
             ////// get the health again
-            //currentBodyPartHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, bodyPart).Current;
-            ////currentBodyPartHealth = ActiveHealthController.GetBodyPartHealth(bodyPartType).Current;
-            ////Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [after] = {currentBodyPartHealth}");
-            ////UnityEngine.Debug.LogError($"ClientApplyDamageInfo::{bodyPartType} current health [after] = {currentBodyPartHealth}");
+            currentBodyPartHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, bodyPart).Current;
+            Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [after] = {currentBodyPartHealth}");
 
-            //if (currentBodyPartHealth == 0)
-            //{
-            //    if (!damageType.IsBleeding() && (bodyPart == EBodyPart.Head || bodyPart == EBodyPart.Chest))
-            //    {
-            //        UnityEngine.Debug.LogError($"ClientApplyDamageInfo::No BodyPart Health on Head/Chest, killing");
+            if (currentBodyPartHealth == 0)
+            {
+                if (!damageType.IsBleeding() && (bodyPart == EBodyPart.Head || bodyPart == EBodyPart.Chest))
+                {
+                    UnityEngine.Debug.LogError($"ClientApplyDamageInfo::No BodyPart Health on Head/Chest, killing");
 
-            //        Kill(ActiveHealthController, damageType);
-            //    }
-            //}
+                    Kill(ActiveHealthController, damageType);
+                }
+            }
 
             //var currentOVRHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, EBodyPart.Common).Current;
             //if (currentOVRHealth == 0)
@@ -282,7 +276,7 @@ namespace SIT.Coop.Core.Player
             //if (!isAlive)
             //    return;
 
-            //ActiveHealthController.DoWoundRelapse(damage, bodyPart);
+            ActiveHealthController.DoWoundRelapse(damage, bodyPart);
         }
 
         private static void Kill(AbstractActiveHealthController activeHealthController, EDamageType damageType)

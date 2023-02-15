@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Player.Weapon;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static GClass1643;
 
 namespace SIT.Core.Coop
 {
@@ -27,13 +29,15 @@ namespace SIT.Core.Coop
                 return;
             }
 
+            new LocalGameStartingPatch(config).Enable();
+
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
 
             // ------ PLAYER -------------------------
             new PlayerOnInitPatch(config).Enable();
             //new PlayerOnApplyCorpseImpulsePatch().Enable();
-            //new PlayerOnDamagePatch().Enable();
+            new PlayerOnDamagePatch().Enable();
             //new PlayerOnDeadPatch(config).Enable();
             //new PlayerOnDropBackpackPatch().Enable();
             //new PlayerOnEnableSprintPatch().Enable();
