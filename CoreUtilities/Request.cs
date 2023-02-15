@@ -5,6 +5,9 @@ using System.Text;
 using UnityEngine;
 using ComponentAce.Compression.Libs.zlib;
 using System.Threading.Tasks;
+using System.Security.Policy;
+using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 
 namespace SIT.Tarkov.Core
 {
@@ -13,13 +16,36 @@ namespace SIT.Tarkov.Core
         public static string Session;
         public static string RemoteEndPoint;
         public bool isUnity;
+        private Dictionary<string, string> m_RequestHeaders;
 
         public Request()
         {
-            if(string.IsNullOrEmpty(Session))
-                Session = PatchConstants.GetPHPSESSID();
-            if(string.IsNullOrEmpty(RemoteEndPoint))
+            //if(string.IsNullOrEmpty(Session))
+            //    Session = PatchConstants.GetPHPSESSID();
+            if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
+
+
+            string[] args = Environment.GetCommandLineArgs();
+
+            foreach (string arg in args)
+            {
+                //if (arg.Contains("BackendUrl"))
+                //{
+                //    string json = arg.Replace("-config=", string.Empty);
+                //    _host = Json.Deserialize<ServerConfig>(json).BackendUrl;
+                //}
+
+                if (arg.Contains("-token="))
+                {
+                    Session = arg.Replace("-token=", string.Empty);
+                    m_RequestHeaders = new Dictionary<string, string>()
+                    {
+                        { "Cookie", $"PHPSESSID={Session}" },
+                        { "SessionId", Session }
+                    };
+                }
+            }
         }
 
         public Request(string session, string remoteEndPoint, bool isUnity = true)
@@ -38,6 +64,7 @@ namespace SIT.Tarkov.Core
         private Stream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1500)
         {
 
+           
             // disable SSL encryption
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -49,13 +76,28 @@ namespace SIT.Tarkov.Core
 
             //PatchConstants.Logger.LogInfo(fullUri);
 
-            WebRequest request = WebRequest.Create(new Uri(fullUri));
+            var uri = new Uri(fullUri);
+            if (uri.Scheme == "https")
+            {
+                // disable SSL encryption
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            }
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.ServerCertificateValidationCallback = delegate { return true; };
             //var request = WebRequest.CreateHttp(fullUri);
 
-            if (!string.IsNullOrEmpty(Session))
+            //if (!string.IsNullOrEmpty(Session))
+            //{
+            //    request.Headers.Add("Cookie", $"PHPSESSID={Session}");
+            //    request.Headers.Add("SessionId", Session);
+            //}
+            foreach(var item in m_RequestHeaders)
             {
-                request.Headers.Add("Cookie", $"PHPSESSID={Session}");
-                request.Headers.Add("SessionId", Session);
+                request.Headers.Add(item.Key, item.Value);
             }
 
             request.Headers.Add("Accept-Encoding", "deflate");

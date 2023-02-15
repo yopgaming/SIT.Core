@@ -29,6 +29,7 @@ namespace SIT.Core.AkiSupport.Custom
                 return;
             }
 
+            Logger.LogInfo("AddSptBotSettingsPatch:PatchPrefix");
             ___dictionary_0.Add((WildSpawnType)sptUsecValue, new BotSettingsValuesClass(false, false, false, EPlayerSide.Savage.ToStringNoBox()));
             ___dictionary_0.Add((WildSpawnType)sptBearValue, new BotSettingsValuesClass(false, false, false, EPlayerSide.Savage.ToStringNoBox()));
         }

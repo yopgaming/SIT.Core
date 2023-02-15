@@ -118,6 +118,10 @@ namespace SIT.Tarkov.Core
 
         public static string GetPHPSESSID()
         {
+            if (BackendConnection.GetBackendConnection() == null)
+                Logger.LogError("Cannot get Backend Info");
+            //throw new Exception("Cannot get Backend Info");
+
             return BackendConnection.GetBackendConnection().PHPSESSID;
         }
 

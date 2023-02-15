@@ -155,13 +155,12 @@ namespace SIT.Core
             new SslCertificatePatch().Enable();
             new UnityWebRequestPatch().Enable();
             new TransportPrefixPatch().Enable();
-            //new TransportPrefix2Patch().Enable();
             new WebSocketPatch().Enable();
         }
 
         private void EnableCoopPatches()
         {
-            new LocalGameStartingPatch(Config).Enable();
+            //new LocalGameStartingPatch(Config).Enable();
             //new LocalGameBotWaveSystemPatch().Enable();
             //new MatchmakerAcceptScreenAwakePatch().Enable();
             //new MatchmakerAcceptScreenShowPatch().Enable();

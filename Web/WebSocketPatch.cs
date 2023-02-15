@@ -78,7 +78,6 @@ namespace SIT.Tarkov.Core
         private static Uri PatchPostfix(Uri __instance)
         {
             return new Uri(__instance.ToString().Replace("wss:", "ws:"));
-            //return new Uri(__instance.ToString().Replace("wss:", "http:"));
         }
     }
 

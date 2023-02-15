@@ -11,18 +11,18 @@ namespace SIT.Tarkov.Core
     {
         public TransportPrefixPatch()
         {
-            //try
-            //{
-            //    var type = PatchConstants.EftTypes.Single(t => t.Name == "Class226");
-            //    var value = Traverse.Create(type).Field("TransportPrefixes").GetValue<Dictionary<ETransportProtocolType, string>>();
-            //    value[ETransportProtocolType.HTTPS] = "http://";
-            //    value[ETransportProtocolType.WSS] = "ws://";
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.LogError($"{nameof(TransportPrefixPatch)}: {ex}");
-            //    throw;
-            //}
+            try
+            {
+                var type = PatchConstants.EftTypes.Single(t => t.Name == "Class226");
+                var value = Traverse.Create(type).Field("TransportPrefixes").GetValue<Dictionary<ETransportProtocolType, string>>();
+                value[ETransportProtocolType.HTTPS] = "http://";
+                value[ETransportProtocolType.WSS] = "ws://";
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"{nameof(TransportPrefixPatch)}: {ex}");
+                throw;
+            }
         }
 
         protected override MethodBase GetTargetMethod()

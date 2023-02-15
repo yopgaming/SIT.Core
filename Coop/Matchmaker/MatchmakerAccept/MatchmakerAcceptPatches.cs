@@ -215,17 +215,25 @@ namespace SIT.Coop.Core.Matchmaker
             new SendInvitePatch().Enable();
         }
 
-        internal static void CreateMatch()
+        internal static void CreateMatch(string accountId)
         {
-            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(PatchConstants.GetPHPSESSID()));
+            var phpId = accountId;
+            PatchConstants.Logger.LogInfo($"CreateMatch:: Create Match for {phpId}");
+            Dictionary<string, string> data = new Dictionary<string, string>();
+            data.Add("serverId", phpId);
+
+            //string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(PatchConstants.GetPHPSESSID()));
+            //string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", "{ i: \"" +  phpId + "\" }");
+            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(data));
             if (!string.IsNullOrEmpty(text))
             {
                 //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
-                PatchConstants.Logger.LogInfo("CreateMatch:: Match Created");
+                PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {phpId}");
+                MatchmakerAcceptPatches.SetGroupId(phpId);
                 return;
             }
 
-            PatchConstants.Logger.LogError("CreateMatch:: Match NOT Created");
+            PatchConstants.Logger.LogError("CreateMatch:: ERROR: Match NOT Created");
 
         }
     }

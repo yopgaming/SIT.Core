@@ -85,8 +85,10 @@ namespace SIT.Coop.Core.Matchmaker
             )
         {
 
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
-            Logger.LogInfo(___profile_0.AccountId);
+            MatchmakerAcceptPatches.Profile = ___profile_0;
+            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
+            //Logger.LogInfo(___profile_0.AccountId);
+
 
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
 

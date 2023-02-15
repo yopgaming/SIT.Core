@@ -21,14 +21,19 @@ namespace SIT.Tarkov.Core.Web
             Version = version;
         }
 
-        static BackendConnection Instance;
+        //static BackendConnection Instance = null;
 
         private static BackendConnection CreateBackendConnectionFromEnvVars()
         {
-            if(Instance != null)
-                return Instance;
+            //if (Instance != null)
+            //    return Instance;
 
             string[] args = Environment.GetCommandLineArgs();
+            if(args == null)
+                return null;
+
+            var beUrl = string.Empty;
+            var php = string.Empty;
 
             // Get backend url
             foreach (string arg in args)
@@ -38,26 +43,35 @@ namespace SIT.Tarkov.Core.Web
                 if (arg.Contains("BackendUrl"))
                 {
                     string json = arg.Replace("-config=", string.Empty);
-                    Instance = JsonConvert.DeserializeObject<BackendConnection>(json);
+                    var item = JsonConvert.DeserializeObject<BackendConnection>(json);
+                    beUrl = item.BackendUrl;
                 }
-            }
 
-            // get token / phpsessid
-            foreach (string arg in args)
-            {
+                // get token / phpsessid
                 if (arg.Contains("-token="))
                 {
-                    Instance.PHPSESSID = arg.Replace("-token=", string.Empty);
+                    php = arg.Replace("-token=", string.Empty);
                 }
             }
 
-            return Instance;
+
+
+            if (!string.IsNullOrEmpty(php) && !string.IsNullOrEmpty(beUrl))
+            {
+                //Instance = new BackendConnection(beUrl, php);
+                return new BackendConnection(beUrl, php);
+            }
+            //return Instance;
+
+
+            // return juicy mem leak for now
+            return null;
         }
 
         public static BackendConnection GetBackendConnection()
         {
-            if (Instance != null)
-                return Instance;
+            //if (Instance != null)
+            //    return Instance;
 
             return CreateBackendConnectionFromEnvVars();
         }

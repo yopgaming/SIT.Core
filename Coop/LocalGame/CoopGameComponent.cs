@@ -60,7 +60,7 @@ namespace SIT.Coop.Core.LocalGame
 #pragma warning disable CS0618 // Type or member is obsolete
 	public class CoopGameComponent : NetworkBehaviour
 	{
-		public string ServerId = null;
+		public string ServerId { get; set; } = null;
 
 		public static CoopGameComponent GetCoopGameComponent()
 		{
@@ -93,9 +93,9 @@ namespace SIT.Coop.Core.LocalGame
 
 		private readonly ConcurrentDictionary<string, string> AccountsLoading = new ConcurrentDictionary<string, string>();
 
-		bool doingclientwork = false;
+		//bool doingclientwork = false;
 
-		bool doingClientSpawnPlayersWork = false;
+		//bool doingClientSpawnPlayersWork = false;
 
 		//private NetworkClient HostNetworkClient { get; set; }
 
@@ -162,15 +162,16 @@ namespace SIT.Coop.Core.LocalGame
 
 			StartCoroutine(ReadFromServer());
 			StartCoroutine(RunQueuedActions());
+			//StartCoroutine(UpdateClientSpawnPlayers());
         }
 
 		void FixedUpdate()
 		{
 			//if (!doingClientSpawnPlayersWork)
 			{
-				doingClientSpawnPlayersWork = true;
+				//doingClientSpawnPlayersWork = true;
 				UpdateClientSpawnPlayers();
-				doingClientSpawnPlayersWork = false;
+				//doingClientSpawnPlayersWork = false;
 			}
 		}
 
@@ -646,7 +647,8 @@ namespace SIT.Coop.Core.LocalGame
 		}
 
 		private async Task UpdateClientSpawnPlayers()
-		{
+		//private va UpdateClientSpawnPlayers()
+        {
 			try
 			{
 				if (!PlayersToSpawn.Any())

@@ -71,7 +71,9 @@ namespace SIT.Coop.Core.Matchmaker
             ref ERaidMode ___eraidMode_0
             )
         {
-            //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
+            Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
+            //MatchmakerAcceptPatches.Profile = ___profile_0;
+            //Logger.LogInfo(___profile_0.AccountId);
 
             // ----------------------------------------------------
             // Reset number of players for next Raid
@@ -89,7 +91,10 @@ namespace SIT.Coop.Core.Matchmaker
             //    MatchmakerAcceptPatches.CheckForMatch();
 
             //});
-            ____findOtherPlayersButton.OnClick.AddListener(() => { MatchmakerAcceptPatches.CreateMatch(); MatchmakerAcceptPatches.CheckForMatch(); });
+            ____findOtherPlayersButton.OnClick.AddListener(() => 
+                {
+                    DoCreateAndCheck();
+                });
 
             _canvasGroup = ____canvasGroup;
             _canvasGroup.interactable = true;
@@ -105,13 +110,24 @@ namespace SIT.Coop.Core.Matchmaker
 
         }
 
-        [PatchPostfix]
-        private static void PatchPostfix(
-            ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
-            ref ERaidMode ___eraidMode_0
-            )
+        //[PatchPostfix]
+        //private static void PatchPostfix(
+        //    ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
+        //    ref ERaidMode ___eraidMode_0
+        //    )
+        //{
+        //    //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPostfix");
+        //}
+
+        public static void DoCreateAndCheck()
         {
-            //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPostfix");
+            if(MatchmakerAcceptPatches.Profile == null)
+            {
+                Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
+                return;
+            }
+            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
+            //MatchmakerAcceptPatches.CheckForMatch();
         }
 
         public static void GoToRaid()
