@@ -30,6 +30,7 @@ namespace SIT.Core.Coop
             }
 
             new LocalGameStartingPatch(config).Enable();
+            //new LocalGamePlayerSpawn().Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
@@ -43,8 +44,8 @@ namespace SIT.Core.Coop
             //new PlayerOnEnableSprintPatch().Enable();
             //new PlayerOnGesturePatch().Enable();
             //new PlayerOnHealPatch().Enable();
-            //new PlayerOnInteractWithDoorPatch().Enable();
-            //new PlayerOnInventoryOpenedPatch().Enable();
+            new PlayerOnInteractWithDoorPatch().Enable();
+            new PlayerOnInventoryOpenedPatch().Enable();
             new PlayerOnJumpPatch().Enable();
             new PlayerOnMovePatch().Enable();
             //new PlayerOnSayPatch().Enable();
