@@ -56,8 +56,11 @@ namespace SIT.Coop.Core.Player
             if (player == null)
                 return;
 
-            if(LastJumps.Any(x => x.Item1 == player.Profile.AccountId && x.Item2 == float.Parse(packet["t"].ToString())))
+            var timeStamp = long.Parse(packet["t"].ToString());
+            if (LastJumps.Any(x => x.Item1 == player.Profile.AccountId && x.Item2 == timeStamp))
                 return;
+
+            LastJumps.Add((player.Profile.AccountId, timeStamp));
 
             //Logger.LogInfo("Jumping BIIIITCH!");
 
