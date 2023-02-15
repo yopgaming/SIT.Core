@@ -34,6 +34,7 @@ using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
 using SIT.Core.Coop;
+using static GClass1643;
 
 namespace SIT.Core
 {
@@ -75,6 +76,13 @@ namespace SIT.Core
 
         private void EnableSPPatches()
         {
+            var enabled = Config.Bind<bool>("SIT SP Patches", "Enable", true);
+            if (!enabled.Value) // if it is disabled. stop all SIT SP Patches.
+            {
+                Logger.LogInfo("SIT SP Patches has been disabled! Ignoring Patches.");
+                return;
+            }
+
             //// --------- PMC Dogtags -------------------
             new UpdateDogtagPatch().Enable();
 
@@ -147,8 +155,15 @@ namespace SIT.Core
             new TinnitusFixPatch().Enable();
         }
 
-        private static void EnableCorePatches()
+        private void EnableCorePatches()
         {
+            var enabled = Config.Bind<bool>("SIT Core Patches", "Enable", true);
+            if (!enabled.Value) // if it is disabled. stop all SIT Core Patches.
+            {
+                Logger.LogInfo("SIT Core Patches has been disabled! Ignoring Patches.");
+                return;
+            }
+
             new ConsistencySinglePatch().Enable();
             new ConsistencyMultiPatch().Enable();
             new BattlEyePatch().Enable();
