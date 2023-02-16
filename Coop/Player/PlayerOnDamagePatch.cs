@@ -175,10 +175,10 @@ namespace SIT.Coop.Core.Player
 
             Enum.TryParse<EBodyPart>(dict["bodyPart"].ToString(), out EBodyPart bodyPart);
 
-            bool autoKillThisCunt = (dict.ContainsKey("killThisCunt") ? bool.Parse(dict["killThisCunt"].ToString()) : false);
+            bool autoKillThisDude = (dict.ContainsKey("killThisCunt") ? bool.Parse(dict["killThisCunt"].ToString()) : false);
 
 
-            Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Check processed damages ");
+            //Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Check processed damages ");
 
             var timestampOfDamage = long.Parse(dict["t"].ToString());
             if (!ProcessedDamages.Contains(timestampOfDamage))
@@ -191,9 +191,9 @@ namespace SIT.Coop.Core.Player
 
             //EDamageType damageType = damageInfo.DamageType;
             EDamageType damageType = dmI.DamageType;
-            if (Matchmaker.MatchmakerAcceptPatches.IsClient && (damageType == EDamageType.Undefined || damageType == EDamageType.Fall))
+            if (damageType == EDamageType.Undefined)
             {
-                Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Ignoring undefined or fall damage ");
+                Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Ignoring undefined damage ");
 
                 return;
             }
@@ -206,11 +206,11 @@ namespace SIT.Coop.Core.Player
 
             if (!isAlive)
             {
-                Logger.LogInfo($"PlayerOnDamagePatch.DamageReplicated() - Attempting to Apply Damage to a Dead Guy");
+                //Logger.LogInfo($"PlayerOnDamagePatch.DamageReplicated() - Attempting to Apply Damage to a Dead Guy");
                 return;
             }
 
-            if (autoKillThisCunt)
+            if (autoKillThisDude)
             {
                 Kill(ActiveHealthController, damageType);
                 return;
@@ -222,8 +222,8 @@ namespace SIT.Coop.Core.Player
 
             float currentBodyPartHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, bodyPart).Current;
 
-            Logger.LogInfo($"ClientApplyDamageInfo::Damage = {damage}");
-            Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [before] = {currentBodyPartHealth}");
+            //Logger.LogInfo($"ClientApplyDamageInfo::Damage = {damage}");
+            //Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [before] = {currentBodyPartHealth}");
 
             try
             {
@@ -242,7 +242,7 @@ namespace SIT.Coop.Core.Player
                     //ActiveHealthController.TryApplySideEffects(dmI, bodyPart, out var sideEffectComponent);
                     if (ActiveHealthController is PlayerHealthController)
                     {
-                        Logger.LogInfo("Attempting to Kill!");
+                        //Logger.LogInfo("Attempting to Kill!");
                         ((PlayerHealthController)ActiveHealthController).TryApplySideEffects(dmI, bodyPart, out _);
                     }
                 }
@@ -253,28 +253,29 @@ namespace SIT.Coop.Core.Player
 
             ////// get the health again
             currentBodyPartHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, bodyPart).Current;
-            Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [after] = {currentBodyPartHealth}");
+            //Logger.LogInfo($"ClientApplyDamageInfo::{bodyPart} current health [after] = {currentBodyPartHealth}");
 
-            if (currentBodyPartHealth == 0)
+            if (currentBodyPartHealth <= 0)
             {
                 if (!damageType.IsBleeding() && (bodyPart == EBodyPart.Head || bodyPart == EBodyPart.Chest))
                 {
-                    UnityEngine.Debug.LogError($"ClientApplyDamageInfo::No BodyPart Health on Head/Chest, killing");
+                    //UnityEngine.Debug.LogError($"ClientApplyDamageInfo::No BodyPart Health on Head/Chest, killing");
 
                     Kill(ActiveHealthController, damageType);
                 }
             }
 
-            //var currentOVRHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, EBodyPart.Common).Current;
-            //if (currentOVRHealth == 0)
-            //{
-            //    UnityEngine.Debug.LogError($"ClientApplyDamageInfo::Common Health, killing");
+            var currentOVRHealth = HealthControllerHelpers.GetBodyPartHealth(ActiveHealthController, EBodyPart.Common).Current;
+            if (currentOVRHealth <= 0)
+            {
+                //UnityEngine.Debug.LogError($"ClientApplyDamageInfo::Common Health, killing");
 
-            //    Kill(ActiveHealthController, damageType);
-            //}
+                Kill(ActiveHealthController, damageType);
+            }
 
-            //if (!isAlive)
-            //    return;
+            isAlive = PatchConstants.GetFieldOrPropertyFromInstance<bool>(ActiveHealthController, "IsAlive", false);
+            if (!isAlive)
+                return;
 
             ActiveHealthController.DoWoundRelapse(damage, bodyPart);
         }
@@ -286,7 +287,7 @@ namespace SIT.Coop.Core.Player
 
             if (activeHealthController is PlayerHealthController)
             {
-                Logger.LogInfo("Attempting to Kill!");
+                //Logger.LogInfo("Attempting to Kill!");
                 ((PlayerHealthController)activeHealthController).Kill(damageType);
             }
 
