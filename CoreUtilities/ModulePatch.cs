@@ -62,7 +62,7 @@ namespace SIT.Tarkov.Core
         /// </summary>
         /// <param name="attributeType">Attribute type</param>
         /// <returns>Method</returns>
-        private List<HarmonyMethod> GetPatchMethods(Type attributeType)
+        public virtual List<HarmonyMethod> GetPatchMethods(Type attributeType)
         {
 	        var T = GetType();
 	        var methods = new List<HarmonyMethod>();

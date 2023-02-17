@@ -59,6 +59,7 @@ namespace SIT.Core.Coop
             //new WeaponOnReloadMagPatch().Enable();
 
             new FirearmControllerCheckAmmoPatch().Enable();
+            new FirearmController_ReloadMag_Patch().Enable();   
             new ItemHandsControllerPickupPatch().Enable();  
 
 

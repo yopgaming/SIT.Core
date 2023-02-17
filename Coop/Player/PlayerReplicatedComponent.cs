@@ -3,6 +3,7 @@ using EFT.Interactive;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Player.Weapon;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
@@ -69,6 +70,15 @@ namespace SIT.Coop.Core.Player
                     if (packet["accountId"].ToString() != player.Profile.AccountId)
                         continue;
 
+                    foreach(var patch in ModuleReplicationPatch.Patches)
+                    {
+                        if(patch.MethodName == method)
+                        {
+                            patch.Replicated(player, packet);
+                            break;
+                        }
+                    }
+
                     switch (method)
                     {
 
@@ -116,9 +126,10 @@ namespace SIT.Coop.Core.Player
                                 //ReceivedPacketPostion = newPos;
                             }
                             break;
-                        case "ReloadMag":
-                            //WeaponOnReloadMagPatch.Replicated(player, packet);
-                            break;
+                        //case "ReloadMag":
+                        //    //WeaponOnReloadMagPatch.Replicated(player, packet);
+                        //    //ModuleReplicationPatch.Replicate(typeof(FirearmController_ReloadMag_Patch), player, packet);
+                        //    break;
                         case "Rotation":
                             if (!IsMyPlayer)
                             {
