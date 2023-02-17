@@ -1,4 +1,6 @@
-﻿using SIT.Coop.Core.Web;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
@@ -10,10 +12,10 @@ using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmControllerCheckAmmoPatch : ModuleReplicationPatch
+    public class FirearmController_SetTriggerPressed_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "CheckAmmo";
+        public override string MethodName => "SetTriggerPressed";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -40,7 +42,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         }
 
         [PatchPrefix]
-        public void PostPatch(EFT.Player.FirearmController __instance)
+        public void PostPatch(
+            EFT.Player.FirearmController __instance
+            , bool pressed
+            )
         {
             var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
@@ -54,7 +59,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("m", "CheckAmmo");
+            dictionary.Add("pr", pressed.ToString());
+            dictionary.Add("m", MethodName);
             ServerCommunication.PostLocalPlayerData(player, dictionary);
         }
 
@@ -70,10 +76,19 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddMinutes(-5).Ticks);
                 return;
             }
+
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
-                firearmCont.CheckAmmo();
+                try
+                {
+                    bool pressed = bool.Parse(dict["pr"].ToString());
+                    CallLocally.Add(player.Profile.AccountId, true);
+                    firearmCont.SetTriggerPressed(pressed);
+                }
+                catch(Exception e)
+                {
+                    Logger.LogInfo(e);
+                }
             }
         }
     }

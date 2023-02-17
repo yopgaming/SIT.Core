@@ -23,12 +23,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
+        public Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
 
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance)
+        public bool PrePatch(EFT.Player.FirearmController __instance)
         {
             var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
@@ -52,12 +52,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            //GridItemAddressDescriptor addressDescriptor = new GridItemAddressDescriptor();
-            //addressDescriptor.Container = new ContainerDescriptor() { ContainerId = gridItemAddress.Container.ID, ParentId = gridItemAddress.Container.ParentItem.Id };
-            //addressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
-
-            ItemDescriptor itemDescriptor = new ItemDescriptor() { };
-
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
             {
                 CallLocally.Remove(player.Profile.AccountId);
@@ -68,8 +62,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("mg", JsonConvert.SerializeObject(magazine, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
             dictionary.Add("a", JsonConvert.SerializeObject(gridItemAddress, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
-            //dictionary.Add("a", gridItemAddress.SITToJson());
-            //dictionary.Add("ad", addressDescriptor.SITToJson());
             dictionary.Add("m", MethodName);
             ServerCommunication.PostLocalPlayerData(player, dictionary);
         }

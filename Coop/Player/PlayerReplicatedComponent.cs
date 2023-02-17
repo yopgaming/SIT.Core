@@ -141,10 +141,10 @@ namespace SIT.Coop.Core.Player
                         case "Say":
                             PlayerOnSayPatch.SayReplicated(player, packet);
                             break;
-                        case "SetTriggerPressed":
-                            //PatchConstants.Logger.LogInfo("SetTriggerPressed");
-                            WeaponOnTriggerPressedPatch.Replicated(player, packet);
-                            break;
+                        //case "SetTriggerPressed":
+                        //    //PatchConstants.Logger.LogInfo("SetTriggerPressed");
+                        //    //WeaponOnTriggerPressedPatch.Replicated(player, packet);
+                        //    break;
                         case "SetItemInHands":
                             //PlayerOnSetItemInHandsPatch.SetItemInHandsReplicated(player, packet);
                             break;
@@ -170,7 +170,7 @@ namespace SIT.Coop.Core.Player
                             }
                             break;
                         case "CheckAmmo":
-                            FirearmControllerCheckAmmoPatch.Replicated(player, packet);
+                            //FirearmControllerCheckAmmoPatch.Replicated(player, packet);
                             break;
 
                     }
