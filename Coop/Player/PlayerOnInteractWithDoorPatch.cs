@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EFT.Interactive;
 using EFT;
+using SIT.Coop.Core.LocalGame;
 
 namespace SIT.Coop.Core.Player
 {
@@ -71,9 +72,13 @@ namespace SIT.Coop.Core.Player
             if (comp == null)
                 return;
 
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+                return;
+
             Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType);
 
-            var foundDoor = comp.ListOfInteractiveObjects
+            var foundDoor = coopGC.ListOfInteractiveObjects
                 .FirstOrDefault(
                 x => x.Id == packet["doorId"].ToString());
             if (foundDoor == null)

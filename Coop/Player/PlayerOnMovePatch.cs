@@ -49,6 +49,8 @@ namespace SIT.Coop.Core.Player
             EFT.Player __instance,
             Vector2 direction)
         {
+            if (__instance == null)
+                return false;
             //direction.Normalize();
             //direction.x = (float)Math.Round(direction.x, 2);
             //direction.y = (float)Math.Round(direction.x, 2);
@@ -68,7 +70,9 @@ namespace SIT.Coop.Core.Player
             direction.x = (float)Math.Round(direction.x, 2);
             direction.y = (float)Math.Round(direction.y, 2);
 
-            var prc = __instance.GetComponent<PlayerReplicatedComponent>();
+            if(!__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                return false;
+
             if (prc == null)
             {
                 Logger.LogInfo("PRC is NULL on " + nickname);
@@ -111,12 +115,7 @@ namespace SIT.Coop.Core.Player
                 dictionary.Add("rY", Math.Round(__instance.Rotation.y, 2).ToString());
                 dictionary.Add("m", "Move");
 
-                //        //Logger.LogInfo("Sending Move for " + nickname);
-                ServerCommunication.PostLocalPlayerData(__instance, dictionary, out string returnedData, out var genData);
-                //        // setup prediction of outcome
-                //        prc.DequeueAllMovementPackets();
-                //        prc.LastMovementPacket = dictionary;
-                //    }
+                ServerCommunication.PostLocalPlayerData(__instance, dictionary, out _, out _);
             }
 
             return false;

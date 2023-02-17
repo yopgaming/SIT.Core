@@ -3,6 +3,7 @@ using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Player.Weapon;
+using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,8 @@ namespace SIT.Core.Coop
             //new WeaponOnTriggerPressedPatch().Enable();
             //new WeaponOnReloadMagPatch().Enable();
 
+            new FirearmControllerCheckAmmoPatch().Enable();
+            new ItemHandsControllerPickupPatch().Enable();  
 
 
         }

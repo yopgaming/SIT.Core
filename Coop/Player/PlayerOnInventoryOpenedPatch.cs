@@ -47,8 +47,8 @@ namespace SIT.Coop.Core.Player
                 //Logger.LogInfo("PlayerOnInventoryOpenedPatch.PatchPostfix");
                 Dictionary<string, object> dictionary = new Dictionary<string, object>();
                 dictionary.Add("opened", opened);
-                if (!opened)
-                    dictionary.Add("p.equip", __instance.Inventory.Equipment.SITToJson());
+                //if (!opened)
+                //    dictionary.Add("p.equip", __instance.Inventory.Equipment.SITToJson());
                 dictionary.Add("m", "InventoryOpened");
                 ServerCommunication.PostLocalPlayerData(__instance, dictionary);
                 LastOpenedValue.TryAdd(__instance, opened);

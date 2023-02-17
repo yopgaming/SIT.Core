@@ -13,39 +13,89 @@ namespace SIT.Tarkov.Core
 {
     public class Request : IDisposable
     {
-        public static string Session;
-        public static string RemoteEndPoint;
-        public bool isUnity;
-        private Dictionary<string, string> m_RequestHeaders;
+        private string m_Session;
+
+        public string Session
+        {
+            get 
+            { 
+                return m_Session; 
+            }
+            set { m_Session = value; }
+        }
+
+
+
+        private string m_RemoteEndPoint;
+
+        public string RemoteEndPoint
+        {
+            get 
+            {
+                if (string.IsNullOrEmpty(m_RemoteEndPoint))
+                    m_RemoteEndPoint = PatchConstants.GetBackendUrl();
+
+                return m_RemoteEndPoint;
+            
+            }
+            set { m_RemoteEndPoint = value; }
+        }
+
+        //public bool isUnity;
+        private Dictionary<string, string> m_RequestHeaders { get; set; }
+
+        private static Request m_Instance { get; set; }
+        public static Request Instance
+        {
+            get
+            {
+                if (m_Instance == null || m_Instance.Session == null || m_Instance.RemoteEndPoint == null)
+                    m_Instance = new Request();
+
+                return m_Instance;
+            }
+        }
 
         public Request()
         {
+            if (m_Instance == null)
+                return;
+
             //if(string.IsNullOrEmpty(Session))
             //    Session = PatchConstants.GetPHPSESSID();
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
+            GetHeaders();
 
+            m_Instance = this;
+        }
 
-            string[] args = Environment.GetCommandLineArgs();
+        private Dictionary<string, string> GetHeaders()
+        {
+            //if (string.IsNullOrEmpty(Session) || m_RequestHeaders == null)
+            //{
+                string[] args = Environment.GetCommandLineArgs();
 
-            foreach (string arg in args)
-            {
-                //if (arg.Contains("BackendUrl"))
-                //{
-                //    string json = arg.Replace("-config=", string.Empty);
-                //    _host = Json.Deserialize<ServerConfig>(json).BackendUrl;
-                //}
-
-                if (arg.Contains("-token="))
+                foreach (string arg in args)
                 {
-                    Session = arg.Replace("-token=", string.Empty);
-                    m_RequestHeaders = new Dictionary<string, string>()
+                    //if (arg.Contains("BackendUrl"))
+                    //{
+                    //    string json = arg.Replace("-config=", string.Empty);
+                    //    _host = Json.Deserialize<ServerConfig>(json).BackendUrl;
+                    //}
+
+                    if (arg.Contains("-token="))
                     {
-                        { "Cookie", $"PHPSESSID={Session}" },
-                        { "SessionId", Session }
-                    };
+                        Session = arg.Replace("-token=", string.Empty);
+                        m_RequestHeaders = new Dictionary<string, string>()
+                        {
+                            { "Cookie", $"PHPSESSID={Session}" },
+                            { "SessionId", Session }
+                        };
+                    }
                 }
-            }
+            //}
+            return m_RequestHeaders;
         }
 
         public Request(string session, string remoteEndPoint, bool isUnity = true)
@@ -61,10 +111,8 @@ namespace SIT.Tarkov.Core
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private Stream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1500)
+        private Stream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 300)
         {
-
-           
             // disable SSL encryption
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -95,7 +143,7 @@ namespace SIT.Tarkov.Core
             //    request.Headers.Add("Cookie", $"PHPSESSID={Session}");
             //    request.Headers.Add("SessionId", Session);
             //}
-            foreach(var item in m_RequestHeaders)
+            foreach(var item in GetHeaders())
             {
                 request.Headers.Add(item.Key, item.Value);
             }
@@ -109,7 +157,7 @@ namespace SIT.Tarkov.Core
             {
                 // set request body
                 byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_COMPRESSION) : Encoding.UTF8.GetBytes(data);
-
+                data = null;
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;
 
@@ -127,8 +175,7 @@ namespace SIT.Tarkov.Core
                 }
                 catch (Exception e)
                 {
-                    if (isUnity)
-                        Debug.LogError(e);
+                    Debug.LogError(e);
                 }
             }
 
@@ -140,10 +187,14 @@ namespace SIT.Tarkov.Core
             }
             catch (Exception e)
             {
-                if (isUnity)
-                    Debug.LogError(e);
+                Debug.LogError(e);
             }
-
+            finally
+            {
+                //fullUri = null;
+                //request = null;
+                //uri = null;
+            }
             return null;
         }
 
@@ -183,6 +234,8 @@ namespace SIT.Tarkov.Core
         {
             using (Stream stream = Send(url, "POST", data, compress))
             {
+                data = null;
+
                 using (MemoryStream ms = new MemoryStream())
                 {
                     if (stream == null)
@@ -217,6 +270,7 @@ namespace SIT.Tarkov.Core
 
         public void Dispose()
         {
+            //m_RequestHeaders = null;
         }
     }
 }

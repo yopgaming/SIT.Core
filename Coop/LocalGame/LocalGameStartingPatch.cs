@@ -76,7 +76,7 @@ namespace SIT.Coop.Core.LocalGame
             new NonWaveSpawnScenarioPatch(_config).Enable();
             new LocalGameBotWaveSystemPatch().Enable();
 
-            await StartAndConnectToServer(__instance);
+            //await StartAndConnectToServer(__instance);
         }
 
         [PatchPostfix]
@@ -92,107 +92,108 @@ namespace SIT.Coop.Core.LocalGame
                 GameObject.Destroy(coopGameComponent);
             }
             var coopGC = gameWorld.GetOrAddComponent<CoopGameComponent>();
+
             if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
                 coopGC.ServerId = MatchmakerAcceptPatches.GetGroupId();
             else
                 coopGC.ServerId = PatchConstants.GetPHPSESSID();
 
-            await StartAndConnectToServer(__instance);
+            //await StartAndConnectToServer(__instance);
         }
 
-        public static async Task StartAndConnectToServer(object __instance)
-        {
-            if (!(__instance.GetType().Name.Contains("HideoutGame")) && MatchmakerAcceptPatches.MatchingType != EMatchmakerType.Single)
-            {
-                if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.GroupLeader)
-                {
-                    // ------ As Host, Notify Central Server --------
-                    await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/start", JsonConvert.SerializeObject(""));
-                    await Task.Delay(500);
-                }
-                else
-                {
+        //public static async Task StartAndConnectToServer(object __instance)
+        //{
+        //    //if (!(__instance.GetType().Name.Contains("HideoutGame")) && MatchmakerAcceptPatches.MatchingType != EMatchmakerType.Single)
+        //    //{
+        //    //    if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.GroupLeader)
+        //    //    {
+        //    //        // ------ As Host, Notify Central Server --------
+        //    //        await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/start", JsonConvert.SerializeObject(""));
+        //    //        await Task.Delay(500);
+        //    //    }
+        //    //    else
+        //    //    {
 
-                    await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/join", JsonConvert.SerializeObject(MatchmakerAcceptPatches.GetGroupId()));
-                    await Task.Delay(500);
-                }
-            }
-            ServerCommunication.OnDataReceived += ServerCommunication_PingPong;
-            ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
-        }
+        //    //        await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/join", JsonConvert.SerializeObject(MatchmakerAcceptPatches.GetGroupId()));
+        //    //        await Task.Delay(500);
+        //    //    }
+        //    //}
+        //    //ServerCommunication.OnDataReceived += ServerCommunication_PingPong;
+        //    //ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
+        //}
 
-        private static void ServerCommunication_OnDataArrayReceived(string[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                var @string = array[i];
-                if (@string.Length == 4 && @string == "Ping")
-                {
-                    ServerCommunication.SendDataDownWebSocket("Pong");
-                    return;
-                }
-            }
-        }
+        //private static void ServerCommunication_OnDataArrayReceived(string[] array)
+        //{
+        //    for (var i = 0; i < array.Length; i++)
+        //    {
+        //        var @string = array[i];
+        //        if (@string.Length == 4 && @string == "Ping")
+        //        {
+        //            ServerCommunication.SendDataDownWebSocket("Pong");
+        //            return;
+        //        }
+        //    }
+        //}
 
         private static void EchoGameServer_OnLog(string text)
         {
             Logger.LogInfo(text);
         }
 
-        private static void ServerCommunication_PingPong(byte[] buffer)
-        {
-            if (buffer.Length == 0)
-                return;
+        //private static void ServerCommunication_PingPong(byte[] buffer)
+        //{
+        //    if (buffer.Length == 0)
+        //        return;
 
 
-            //using (StreamReader streamReader = new StreamReader(new MemoryStream(buffer)))
-            {
-                {
-                    try
-                    {
-                        //string @string = streamReader.ReadToEnd();
-                        string @string = UTF8Encoding.UTF8.GetString(buffer);
+        //    //using (StreamReader streamReader = new StreamReader(new MemoryStream(buffer)))
+        //    {
+        //        {
+        //            try
+        //            {
+        //                //string @string = streamReader.ReadToEnd();
+        //                string @string = UTF8Encoding.UTF8.GetString(buffer);
 
-                        if (@string.Length == 4 && @string == "Ping")
-                        {
-                            //this.DataEnqueued.Enqueue(Encoding.ASCII.GetBytes("Pong"));
-                            ServerCommunication.SendDataDownWebSocket("Pong");
-                            return;
-                        }
-                        else
-                        {
-                            Task.Run(() =>
-                            {
-                                //Logger.LogInfo($"LocalGameStartingPatch:OnDataReceived:{buffer.Length}");
+        //                if (@string.Length == 4 && @string == "Ping")
+        //                {
+        //                    //this.DataEnqueued.Enqueue(Encoding.ASCII.GetBytes("Pong"));
+        //                    //ServerCommunication.SendDataDownWebSocket("Pong");
+        //                    return;
+        //                }
+        //                else
+        //                {
+        //                    Task.Run(() =>
+        //                    {
+        //                        //Logger.LogInfo($"LocalGameStartingPatch:OnDataReceived:{buffer.Length}");
 
-                                if (@string.Length > 0 && @string[0] == '{' && @string[@string.Length - 1] == '}')
-                                {
-                                    var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string);
+        //                        if (@string.Length > 0 && @string[0] == '{' && @string[@string.Length - 1] == '}')
+        //                        {
+        //                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string);
 
-                                    if (dictionary != null && dictionary.Count > 0)
-                                    {
-                                        if (!dictionary.ContainsKey("SERVER") && dictionary.ContainsKey("accountId"))
-                                        {
-                                            //var player = CoopGameComponent.GetPlayerByAccountId(dictionary["accountId"].ToString());
-                                            //if (player != null)
-                                            //{
-                                            //    player.GetOrAddComponent<PlayerReplicatedComponent>().QueuedPackets.Enqueue(dictionary);
-                                            //}
-                                        }
+        //                            if (dictionary != null && dictionary.Count > 0)
+        //                            {
+        //                                if (!dictionary.ContainsKey("SERVER") && dictionary.ContainsKey("accountId"))
+        //                                {
+        //                                    //var player = CoopGameComponent.GetPlayerByAccountId(dictionary["accountId"].ToString());
+        //                                    //if (player != null)
+        //                                    //{
+        //                                    //    player.GetOrAddComponent<PlayerReplicatedComponent>().QueuedPackets.Enqueue(dictionary);
+        //                                    //}
+        //                                }
                                        
-                                    }
-                                }
+        //                            }
+        //                        }
                                 
-                            });
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        return;
-                    }
-                }
-            }
-        }
+        //                    });
+        //                }
+        //            }
+        //            catch (Exception)
+        //            {
+        //                return;
+        //            }
+        //        }
+        //    }
+        //}
 
         private static void SetMatchmakerStatus(string status, float? progress = null)
         {

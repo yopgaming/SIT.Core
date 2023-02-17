@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using Diz.Jobs;
 using EFT;
+using EFT.Interactive;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,6 +22,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Match;
+using UnityEngine.Networking.NetworkSystem;
 
 namespace SIT.Coop.Core.LocalGame
 {
@@ -80,7 +82,10 @@ namespace SIT.Coop.Core.LocalGame
 
 		BepInEx.Logging.ManualLogSource Logger;
 
-		public static List<string> PeopleParityRequestedAccounts = new List<string>();
+        public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
+
+
+        public static List<string> PeopleParityRequestedAccounts = new List<string>();
 
 		public static Vector3? ClientSpawnLocation;
 
@@ -155,14 +160,18 @@ namespace SIT.Coop.Core.LocalGame
 
 			// ----------------------------------------------------
 			// Consume Data Received from ServerCommunication class
-			ServerCommunication.OnDataReceived += ServerCommunication_OnDataReceived;
-			ServerCommunication.OnDataStringReceived += ServerCommunication_OnDataStringReceived;
-			ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
+			//ServerCommunication.OnDataReceived += ServerCommunication_OnDataReceived;
+			//ServerCommunication.OnDataStringReceived += ServerCommunication_OnDataStringReceived;
+			//ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
 			// ----------------------------------------------------
 
-			StartCoroutine(ReadFromServer());
-			StartCoroutine(RunQueuedActions());
-			//StartCoroutine(UpdateClientSpawnPlayers());
+			StartCoroutine(ReadFromServerLastActions());
+			StartCoroutine(ReadFromServerLastMoves());
+            StartCoroutine(RunQueuedActions());
+            //StartCoroutine(UpdateClientSpawnPlayers());
+
+            ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
+            PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
         }
 
 		void FixedUpdate()
@@ -175,134 +184,178 @@ namespace SIT.Coop.Core.LocalGame
 			}
 		}
 
-        private IEnumerator ReadFromServer()
+
+		/// <summary>
+		/// Gets the Last Actions Dictionary from the Server. This should not be used for things like Moves. Just other stuff.
+		/// </summary>
+		/// <returns></returns>
+        private IEnumerator ReadFromServerLastActions()
         {
-			while (true)
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d.Add("serverId", GetServerId());
+			var jsonDataServerId = JsonConvert.SerializeObject(d);
+            while (true)
 			{
 				yield return new WaitForSeconds(0.33f);
 
 				if (RequestingObj == null)
 					RequestingObj = new SIT.Tarkov.Core.Request();
 
-				Dictionary<string, object> d = new Dictionary<string, object>();
-				d.Add("serverId", GetServerId());
-				Task.Run(async () =>
+				var actionsToValuesJson = RequestingObj.PostJson("/coop/server/read/lastActions", jsonDataServerId);
+				//Logger.LogInfo($"CoopGameComponent:ReadFromServerLastActions:{actionsToValuesJson}");
+				Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
+				var dictionaries = actionsToValues.Values.Select(x=> x.ToObject<Dictionary<string, object>>());
+				// go through all items apart from "Move"
+				foreach (var dictionary in dictionaries.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move"))
 				{
-					var resultOfRead = await RequestingObj.PostJsonAsync("/coop/server/read", JsonConvert.SerializeObject(d));
-					//Logger.LogInfo($"CoopGameComponent:ReadFromServer:{resultOfRead.Length} bytes received");
-					//await Task.Run(() => { 
+					if (dictionary != null && dictionary.Count > 0)
+					{
+						if (dictionary.ContainsKey("accountId"))
+						{
+							if (Players.ContainsKey(dictionary["accountId"].ToString()))
+							{
+								var prc = Players[dictionary["accountId"].ToString()].GetComponent<PlayerReplicatedComponent>();
+								if (prc == null)
+									continue;
 
-					ReadFromServerParseData(resultOfRead);
-
-                }).Wait();
-                //}
-                //catch
-                //{
-
-                //}
-                //ServerCommunication_OnDataReceived(UTF8Encoding.UTF8.GetBytes(resultOfRead));
-                ////});
-                //// Unlock this method
-                //IsReadingFromServer = false;
-
-                //Logger.LogInfo("CoopGameComponent:ReadFromServer:Complete");
+								prc.QueuedPackets.Enqueue(dictionary);
+							}
+						}
+					}
+				}
             }
         }
 
-		public void ReadFromServerParseData(string resultOfRead)
-		{
-            if (string.IsNullOrEmpty(resultOfRead))
-            {
-                return;
-            }
 
-            if (!resultOfRead.StartsWith("{\"") || !resultOfRead.EndsWith("}"))
+        /// <summary>
+        /// Gets the Last Moves Dictionary from the Server. This should be the last move action each account id (character) made
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator ReadFromServerLastMoves()
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d.Add("serverId", GetServerId());
+            var jsonDataServerId = JsonConvert.SerializeObject(d);
+            while (true)
             {
-                return;
-            }
-            //try
-            //{
-            Dictionary<string, object> rawDataFromServer = new Dictionary<string, object>();
-            JsonConvert.PopulateObject(resultOfRead, rawDataFromServer);
-            if (rawDataFromServer.ContainsKey("LastData"))
-            {
-                foreach (var item in rawDataFromServer.Select(x => JsonConvert.SerializeObject(x.Value)))
+                yield return new WaitForSeconds(0.33f);
+
+                if (RequestingObj == null)
+                    RequestingObj = new SIT.Tarkov.Core.Request();
+
+                var actionsToValuesJson = RequestingObj.PostJson("/coop/server/read/lastMoves", jsonDataServerId);
+                //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastMoves:{actionsToValuesJson}");
+                Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
+                var dictionaries = actionsToValues.Values.Select(x => x.ToObject<Dictionary<string, object>>());
+                foreach (var dictionary in dictionaries)
                 {
-                    if (string.IsNullOrEmpty(item))
-                        continue;
+                    if (dictionary != null && dictionary.Count > 0)
+                    {
+                        if (dictionary.ContainsKey("accountId"))
+                        {
 
-                    if (!resultOfRead.StartsWith("{") || !resultOfRead.EndsWith("}"))
-                        continue;
+                            if (Players.ContainsKey(dictionary["accountId"].ToString()))
+                            {
+                                var prc = Players[dictionary["accountId"].ToString()].GetComponent<PlayerReplicatedComponent>();
+                                if (prc == null)
+                                    continue;
 
-
-					if (resultOfRead.IndexOf("\":{\"") == -1)
-                        continue;
-
-                    //Logger.LogInfo(item);
-
-                    var lD = JsonConvert.DeserializeObject<Dictionary<string, object>>(item);
-                    var b = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(lD.Values));
-                    ServerCommunication_OnDataReceived(b);
+                                prc.QueuedPackets.Enqueue(dictionary);
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        public void ReadFromServerParseData(string resultOfRead)
+		{
+            if (string.IsNullOrEmpty(resultOfRead))
+                return;
+
+            if (!resultOfRead.StartsWith("{\"") || !resultOfRead.EndsWith("}"))
+                return;
+
+            if (resultOfRead.IndexOf("\":{\"") == -1)
+                return;
+
+            //try
+            //{
+            //Dictionary<string, object> rawDataFromServer = new Dictionary<string, object>();
+            //JsonConvert.PopulateObject(resultOfRead, rawDataFromServer);
+            //if (rawDataFromServer.ContainsKey("LastData"))
+            {
+                //foreach (var item in rawDataFromServer.Select(x => JsonConvert.SerializeObject(x.Value)))
+                //{
+                //    if (string.IsNullOrEmpty(item))
+                //        continue;
+
+                //    //Logger.LogInfo(item);
+
+                //    var lD = JsonConvert.DeserializeObject<Dictionary<string, object>>(item);
+                //    var b = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(lD.Values));
+                //    ServerCommunication_OnDataReceived(b);
+                //}
+                ServerCommunication_OnDataReceived(Encoding.UTF8.GetBytes(resultOfRead));
+            }
+        }
 		
-        private DateTime? LastReadFromServer { get; set; }
-        private bool IsReadingFromServer { get; set; }
+        //private DateTime? LastReadFromServer { get; set; }
+        //private bool IsReadingFromServer { get; set; }
 		private SIT.Tarkov.Core.Request RequestingObj { get; set; }
 
 
-        void Update()
-		{
-			//if (!doingclientwork)
-			{
-				//doingclientwork = true;
-				//UpdateParityCheck();
-				//UpdateAddPlayersToAICalc();
-				//RunQueuedActions();
+  //      void Update()
+		//{
+		//	//if (!doingclientwork)
+		//	//{
+		//		//doingclientwork = true;
+		//		//UpdateParityCheck();
+		//		//UpdateAddPlayersToAICalc();
+		//		//RunQueuedActions();
 
 
 
-				//doingclientwork = false;
-			}
-		}
+		//		//doingclientwork = false;
+		//	//}
+		//}
 
 		#endregion
 
-		private void ServerCommunication_OnDataArrayReceived(string[] array)
-		{
-			try
-			{
-				foreach (var item in array)
-				{
-					if (item.Length == 4)
-					{
-						return;
-					}
-					else
-					{
-						Task.Run(() =>
-						{
-							//Logger.LogInfo("received array: item: " + item);
-							var parsedItem = Json.Deserialize<Dictionary<string, object>>(item);
-							if (parsedItem != null)
-							{
-								QueuedPackets.Enqueue(parsedItem);
-							}
-						});
-					}
-				}
-			}
-			catch (Exception)
-			{
+		//private void ServerCommunication_OnDataArrayReceived(string[] array)
+		//{
+		//	try
+		//	{
+		//		foreach (var item in array)
+		//		{
+		//			if (item.Length == 4)
+		//			{
+		//				return;
+		//			}
+		//			else
+		//			{
+		//				Task.Run(() =>
+		//				{
+		//					//Logger.LogInfo("received array: item: " + item);
+		//					var parsedItem = Json.Deserialize<Dictionary<string, object>>(item);
+		//					if (parsedItem != null)
+		//					{
+		//						QueuedPackets.Enqueue(parsedItem);
+		//					}
+		//				});
+		//			}
+		//		}
+		//	}
+		//	catch (Exception)
+		//	{
 
-			}
-		}
+		//	}
+		//}
 
-		private void ServerCommunication_OnDataStringReceived(string @string)
-		{
+		//private void ServerCommunication_OnDataStringReceived(string @string)
+		//{
 
-		}
+		//}
 
 		private void ServerCommunication_OnDataReceived(byte[] buffer)
 		{
@@ -320,7 +373,7 @@ namespace SIT.Coop.Core.LocalGame
 				}
 				else
 				{
-					Task.Run(() =>
+					//Task.Run(() =>
 					{
 						if (@string.Length == 0)
 							return;
@@ -330,6 +383,7 @@ namespace SIT.Coop.Core.LocalGame
 
 						if (@string[0] == '{' && @string[@string.Length - 1] == '}')
 						{
+							//var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string)
 							var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string);
 
 							if (dictionary != null && dictionary.Count > 0)
@@ -358,6 +412,9 @@ namespace SIT.Coop.Core.LocalGame
 											if (prc == null)
 												return;
 
+											
+
+
 											prc.QueuedPackets.Enqueue(dictionary);
 										}
                                     }
@@ -377,7 +434,8 @@ namespace SIT.Coop.Core.LocalGame
 						{
                             Logger.LogInfo($"ServerCommunication_OnDataReceived:Unhandled:{@string}");
                         }
-                    });
+                    }
+					//);
 				}
 			}
 			catch (Exception)
@@ -387,7 +445,6 @@ namespace SIT.Coop.Core.LocalGame
 		}
 
 		private static DateTime LastPeopleParityCheck = DateTime.Now;
-
 
 		public static EFT.LocalPlayer GetPlayerByAccountId(string accountId)
 		{
@@ -407,19 +464,6 @@ namespace SIT.Coop.Core.LocalGame
 			{
 			}
 
-
-			//PatchConstants.Logger.LogInfo($"Failed to find Profile of {accountId} in Players list");
-			// -----------------------------------------------------------
-			// Unable to find profile. Ask Server to resend the data
-			//if (LastPeopleParityCheck < DateTime.Now.AddSeconds(-30))
-			//{
-			//if (!PeopleParityRequestedAccounts.Contains(accountId))
-			//{
-			//	PeopleParityRequestedAccounts.Add(accountId);
-			//	_ = ServerCommunication.SendDataDownWebSocket("PeopleParityRequest=" + accountId + "=" + LocalGamePatches.MyPlayerProfile.AccountId);
-			//}
-			//	LastPeopleParityCheck = DateTime.Now;
-			//}
 			return null;
 
 		}
@@ -811,7 +855,7 @@ namespace SIT.Coop.Core.LocalGame
 		}
 
 
-		private BepInEx.Logging.ManualLogSource logSource;
+		//private BepInEx.Logging.ManualLogSource logSource;
 
 		void QuickLog(string log)
 		{

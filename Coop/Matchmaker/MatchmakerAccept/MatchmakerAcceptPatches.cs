@@ -141,44 +141,44 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static bool CheckForMatch()
         {
-            if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
-            {
-                string json = new SIT.Tarkov.Core.Request().GetJson("/coop/get-invites");
-                if (!string.IsNullOrEmpty(json))
-                {
-                    var gClass = Activator.CreateInstance(MatchmakerAcceptPatches.InviteType);
-                    gClass = JsonConvert.DeserializeObject(json, MatchmakerAcceptPatches.InviteType);
-                    var from = Tarkov.Core.PatchConstants.GetFieldOrPropertyFromInstance<string>(gClass, "From");
-                    if (gClass != null && !string.IsNullOrEmpty(from))
-                    {
-                        PatchConstants.Logger.LogInfo($"Invite Popup! {gClass} {from}");
+            //if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
+            //{
+            //    string json = new SIT.Tarkov.Core.Request().GetJson("/coop/get-invites");
+            //    if (!string.IsNullOrEmpty(json))
+            //    {
+            //        var gClass = Activator.CreateInstance(MatchmakerAcceptPatches.InviteType);
+            //        gClass = JsonConvert.DeserializeObject(json, MatchmakerAcceptPatches.InviteType);
+            //        var from = Tarkov.Core.PatchConstants.GetFieldOrPropertyFromInstance<string>(gClass, "From");
+            //        if (gClass != null && !string.IsNullOrEmpty(from))
+            //        {
+            //            PatchConstants.Logger.LogInfo($"Invite Popup! {gClass} {from}");
 
-                        PatchConstants.Logger.LogInfo("GetMatchStatus");
-                        string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/read", JsonConvert.SerializeObject(from));
-                        if (!string.IsNullOrEmpty(text))
-                        {
-                            //PatchConstants.Logger.LogInfo("GetMatchStatus[1] ::" + text.Length);
-                            ServerStatus serverStatus = JsonConvert.DeserializeObject<ServerStatus>(text);
-                            PatchConstants.Logger.LogInfo("GetMatchStatus[2] ::" + serverStatus.status);
-                            if (serverStatus.status == "LOADING" || serverStatus.status == "INGAME")
-                            {
-                                PatchConstants.Logger.LogInfo("GetMatchStatus[3] :: Starting up");
-                                //MatchmakerAcceptPatches.SetGroupId(from);
-                                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                                MatchmakerAcceptPatches.SetGroupId(from);
-                                PatchConstants.DisplayMessageNotification("Server is running and waiting for you to join...");
-                                return true;
-                                //MatchmakerAcceptPatches.MatchmakerScreenController.GetType().GetMethod("ShowNextScreen", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.MatchmakerScreenController, new object[] { from, EFT.UI.Matchmaker.EMatchingType.GroupPlayer });
+            //            PatchConstants.Logger.LogInfo("GetMatchStatus");
+            //            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/read", JsonConvert.SerializeObject(from));
+            //            if (!string.IsNullOrEmpty(text))
+            //            {
+            //                //PatchConstants.Logger.LogInfo("GetMatchStatus[1] ::" + text.Length);
+            //                ServerStatus serverStatus = JsonConvert.DeserializeObject<ServerStatus>(text);
+            //                PatchConstants.Logger.LogInfo("GetMatchStatus[2] ::" + serverStatus.status);
+            //                if (serverStatus.status == "LOADING" || serverStatus.status == "INGAME")
+            //                {
+            //                    PatchConstants.Logger.LogInfo("GetMatchStatus[3] :: Starting up");
+            //                    //MatchmakerAcceptPatches.SetGroupId(from);
+            //                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+            //                    MatchmakerAcceptPatches.SetGroupId(from);
+            //                    PatchConstants.DisplayMessageNotification("Server is running and waiting for you to join...");
+            //                    return true;
+            //                    //MatchmakerAcceptPatches.MatchmakerScreenController.GetType().GetMethod("ShowNextScreen", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.MatchmakerScreenController, new object[] { from, EFT.UI.Matchmaker.EMatchingType.GroupPlayer });
 
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
-                    }
-                }
-            }
+            //                }
+            //            }
+            //        }
+            //        else
+            //        {
+            //            //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
+            //        }
+            //    }
+            //}
             return false;
         }
 
@@ -224,7 +224,7 @@ namespace SIT.Coop.Core.Matchmaker
 
             //string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(PatchConstants.GetPHPSESSID()));
             //string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", "{ i: \"" +  phpId + "\" }");
-            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(data));
+            string text = Request.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(data));
             if (!string.IsNullOrEmpty(text))
             {
                 //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;

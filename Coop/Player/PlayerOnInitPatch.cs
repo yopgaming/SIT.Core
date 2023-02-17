@@ -119,14 +119,39 @@ namespace SIT.Coop.Core.Player
             ServerCommunication.PostLocalPlayerData(player, dictionary2);
 
             CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
-            
-            //Logger.LogInfo($"PlayerOnInitPatch. Sent to Server!");
+        }
 
-            //if (Matchmaker.MatchmakerAcceptPatches.IsServer)
-            //    PatchConstants.DisplayMessageNotification($"{__instance.Profile.Nickname}:{__instance.Side}:{__instance.Profile.Info.Settings.Role} has spawned");
+        public static void SendOrReceiveSpawnPoint(EFT.Player player)
+        {
+            var position = player.Transform.position;
+            if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
+            {
+                Dictionary<string, object> value2 = new Dictionary<string, object>
+                {
+                    {
+                        "m",
+                        "SpawnPointForCoop"
+                    },
+                    {
+                        "playersSpawnPointx",
+                        position.x
+                    },
+                    {
+                        "playersSpawnPointy",
+                        position.y
+                    },
+                    {
+                        "playersSpawnPointz",
+                        position.z
+                    }
+                };
+                Logger.LogInfo("Setting Spawn Point to " + position);
+                ServerCommunication.PostLocalPlayerData(player, value2);
+            }
+            else
+            {
 
-
-            //Logger.LogInfo($"BotCreationMethod. [SUCCESS] Adding AI {profile.AccountId} to CoopGameComponent.Players list");
+            }
         }
     }
 }

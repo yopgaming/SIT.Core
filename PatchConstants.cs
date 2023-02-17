@@ -391,6 +391,7 @@ namespace SIT.Tarkov.Core
                     , new JsonSerializerSettings()
                     {
                         Converters = PatchConstants.JsonConverterDefault
+                        , ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                     }
                     );
         }

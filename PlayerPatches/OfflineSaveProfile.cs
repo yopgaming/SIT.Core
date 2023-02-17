@@ -115,7 +115,7 @@ namespace SIT.Tarkov.Core
             };
 
             var convertedJson = request.SITToJson();
-            new Request().PostJson("/raid/profile/save", convertedJson);
+            Request.Instance.PostJson("/raid/profile/save", convertedJson);
            
         }
 

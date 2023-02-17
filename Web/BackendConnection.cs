@@ -38,7 +38,7 @@ namespace SIT.Tarkov.Core.Web
             // Get backend url
             foreach (string arg in args)
             {
-                PatchConstants.Logger.LogInfo(arg);
+                //PatchConstants.Logger.LogInfo(arg);
 
                 if (arg.Contains("BackendUrl"))
                 {

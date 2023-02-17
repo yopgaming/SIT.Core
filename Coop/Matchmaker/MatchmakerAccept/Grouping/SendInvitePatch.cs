@@ -36,7 +36,7 @@ namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping
 
             MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
             
-            _ = ServerCommunication.SendDataDownWebSocket("Start=" + PatchConstants.GetPHPSESSID());
+            //_ = ServerCommunication.SendDataDownWebSocket("Start=" + PatchConstants.GetPHPSESSID());
 
         }
     }

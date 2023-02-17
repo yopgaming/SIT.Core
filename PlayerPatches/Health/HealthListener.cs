@@ -161,52 +161,52 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
 
         }
 
-        class Disposable : IDisposable
-        {
-            private readonly Action _onDispose;
+        //class Disposable : IDisposable
+        //{
+        //    private readonly Action _onDispose;
 
-            public Disposable(Action onDispose)
-            {
-                _onDispose = onDispose ?? throw new ArgumentNullException(nameof(onDispose));
-            }
+        //    public Disposable(Action onDispose)
+        //    {
+        //        _onDispose = onDispose ?? throw new ArgumentNullException(nameof(onDispose));
+        //    }
 
-            public void Dispose()
-            {
-                _onDispose();
-            }
-        }
+        //    public void Dispose()
+        //    {
+        //        _onDispose();
+        //    }
+        //}
 
-        class SimpleTimer : UnityEngine.MonoBehaviour
-        {
-            // tick each 5 seconds
-            float sleepTime = 5f;
-            float timer = 0f;
+        //class SimpleTimer : UnityEngine.MonoBehaviour
+        //{
+        //    // tick each 5 seconds
+        //    float sleepTime = 5f;
+        //    float timer = 0f;
 
-            public bool isSyncHealthEnabled = false;
-            public bool isHealthSynchronized = false;
-            public Func<Task> syncHealthAction;
+        //    public bool isSyncHealthEnabled = false;
+        //    public bool isHealthSynchronized = false;
+        //public Func<Task> syncHealthAction;
 
-            async void Update()
-            {
-                timer += UnityEngine.Time.deltaTime;
+        //    async void Update()
+        //    {
+        //        timer += UnityEngine.Time.deltaTime;
 
-                if (timer > sleepTime)
-                {
-                    timer -= sleepTime;
-                    await Tick();
-                }
-            }
+        //        if (timer > sleepTime)
+        //        {
+        //            timer -= sleepTime;
+        //            await Tick();
+        //        }
+        //    }
 
-            Task Tick()
-            {
-                if (isSyncHealthEnabled && !isHealthSynchronized)
-                {
-                    isHealthSynchronized = true;
-                    return syncHealthAction();
-                }
+        //    Task Tick()
+        //    {
+        //        if (isSyncHealthEnabled && !isHealthSynchronized)
+        //        {
+        //            isHealthSynchronized = true;
+        //            return syncHealthAction();
+        //        }
 
-                return Task.CompletedTask;
-            }
-        }
+        //        return Task.CompletedTask;
+        //    }
+        //}
     }
 }
