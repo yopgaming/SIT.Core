@@ -198,15 +198,31 @@ namespace SIT.Coop.Core.LocalGame
 			{
 				yield return new WaitForSeconds(0.33f);
 
-				if (RequestingObj == null)
+                if (Players == null)
+                    continue;
+
+
+                if (RequestingObj == null)
 					RequestingObj = new SIT.Tarkov.Core.Request();
 
 				var actionsToValuesJson = RequestingObj.PostJson("/coop/server/read/lastActions", jsonDataServerId);
-				//Logger.LogInfo($"CoopGameComponent:ReadFromServerLastActions:{actionsToValuesJson}");
-				Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-				var dictionaries = actionsToValues.Values.Select(x=> x.ToObject<Dictionary<string, object>>());
-				// go through all items apart from "Move"
-				foreach (var dictionary in dictionaries.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move"))
+                if (actionsToValuesJson == null)
+                    continue;
+
+                //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastActions:{actionsToValuesJson}");
+                Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
+                if (actionsToValues == null)
+                    continue;
+
+                var dictionaries = actionsToValues.Values
+                     .Where(x => x != null)
+                     .Where(x => x.Count > 0)
+                     .Select(x => x.ToObject<Dictionary<string, object>>());
+                if (dictionaries == null)
+                    continue;
+
+                // go through all items apart from "Move"
+                foreach (var dictionary in dictionaries.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move"))
 				{
 					if (dictionary != null && dictionary.Count > 0)
 					{
@@ -214,11 +230,16 @@ namespace SIT.Coop.Core.LocalGame
 						{
 							if (Players.ContainsKey(dictionary["accountId"].ToString()))
 							{
-								var prc = Players[dictionary["accountId"].ToString()].GetComponent<PlayerReplicatedComponent>();
-								if (prc == null)
-									continue;
+                                if (!Players[dictionary["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                                    continue;
 
-								prc.QueuedPackets.Enqueue(dictionary);
+                                if (prc == null)
+                                    continue;
+
+                                if (prc.QueuedPackets == null)
+                                    continue;
+
+                                prc.QueuedPackets.Enqueue(dictionary);
 							}
 						}
 					}
@@ -240,25 +261,47 @@ namespace SIT.Coop.Core.LocalGame
             {
                 yield return new WaitForSeconds(0.33f);
 
+                if (Players == null)
+                    continue;
+
                 if (RequestingObj == null)
                     RequestingObj = new SIT.Tarkov.Core.Request();
 
                 var actionsToValuesJson = RequestingObj.PostJson("/coop/server/read/lastMoves", jsonDataServerId);
+				if (actionsToValuesJson == null)
+					continue;
+
                 //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastMoves:{actionsToValuesJson}");
                 Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-                var dictionaries = actionsToValues.Values.Select(x => x.ToObject<Dictionary<string, object>>());
+				if (actionsToValues == null)
+					continue;
+
+                var dictionaries = actionsToValues.Values
+					.Where(x => x != null)
+					.Where(x => x.Count > 0)
+                    .Select(x =>  x.ToObject<Dictionary<string, object>>());
+				if (dictionaries == null)
+					continue;
+
                 foreach (var dictionary in dictionaries)
                 {
                     if (dictionary != null && dictionary.Count > 0)
                     {
                         if (dictionary.ContainsKey("accountId"))
                         {
+							if (Players == null)
+								continue;
 
                             if (Players.ContainsKey(dictionary["accountId"].ToString()))
                             {
-                                var prc = Players[dictionary["accountId"].ToString()].GetComponent<PlayerReplicatedComponent>();
+								if (!Players[dictionary["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
+									continue;
+
                                 if (prc == null)
                                     continue;
+
+								if (prc.QueuedPackets == null)
+									continue;
 
                                 prc.QueuedPackets.Enqueue(dictionary);
                             }
