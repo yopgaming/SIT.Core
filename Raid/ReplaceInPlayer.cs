@@ -4,6 +4,7 @@ using SIT.Tarkov.Core.PlayerPatches.Health;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using UnityEngine.Profiling;
 
 namespace SIT.Tarkov.SP
 {
@@ -13,7 +14,6 @@ namespace SIT.Tarkov.SP
 
         protected override MethodBase GetTargetMethod()
         {
-            //return typeof(Player).GetMethod("Init", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
             return PatchConstants.GetMethodForType(typeof(LocalPlayer), "Init");
         }
 
@@ -54,8 +54,8 @@ namespace SIT.Tarkov.SP
             {
                 return;
             }
-
-            var listener = HealthListener.Instance;
+           
+                var listener = HealthListener.Instance;
             var insthealthController = PatchConstants.GetFieldOrPropertyFromInstance<object>(__instance, "HealthController", false);
            
             if (healthController != null)

@@ -21,14 +21,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public Dictionary<string, bool> CallLocally
+        public static Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
 
 
         [PatchPrefix]
-        public bool PrePatch(EFT.Player.FirearmController __instance)
+        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
+            //var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return false;
 
@@ -39,8 +40,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return result;
         }
 
-        [PatchPrefix]
-        public void PostPatch(EFT.Player.FirearmController __instance)
+        [PatchPostfix]
+        public static void PostPatch(EFT.Player.FirearmController __instance)
         {
             var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
@@ -70,9 +71,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddMinutes(-5).Ticks);
                 return;
             }
+
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 CallLocally.Add(player.Profile.AccountId, true);
+                //Logger.LogInfo("FirearmControllerCheckAmmoPatch:Replicated:CheckAmmo");
                 firearmCont.CheckAmmo();
             }
         }

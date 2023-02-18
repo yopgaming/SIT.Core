@@ -86,7 +86,7 @@ namespace SIT.Coop.Core.Player
                             PlayerOnApplyCorpseImpulsePatch.Replicated(player, packet);
                             break;
                         case "Damage":
-                            PlayerOnDamagePatch.DamageReplicated(player, packet);
+                            //PlayerOnDamagePatch.DamageReplicated(player, packet);
                             break;
                         case "Dead":
                             PatchConstants.Logger.LogInfo("Dead");

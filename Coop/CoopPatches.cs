@@ -3,6 +3,7 @@ using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Player.Weapon;
+using SIT.Core.Coop.Player;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
@@ -39,7 +40,8 @@ namespace SIT.Core.Coop
             // ------ PLAYER -------------------------
             new PlayerOnInitPatch(config).Enable();
             //new PlayerOnApplyCorpseImpulsePatch().Enable();
-            new PlayerOnDamagePatch().Enable();
+            //new PlayerOnDamagePatch().Enable();
+            new Player_ApplyDamageInfo_Patch().Enable();
             //new PlayerOnDeadPatch(config).Enable();
             //new PlayerOnDropBackpackPatch().Enable();
             //new PlayerOnEnableSprintPatch().Enable();
@@ -60,8 +62,8 @@ namespace SIT.Core.Coop
 
             new FirearmControllerCheckAmmoPatch().Enable();
             new FirearmController_ReloadMag_Patch().Enable();
-            new FirearmController_SetTriggerPressed_Patch().Enable();
-            new ItemHandsControllerPickupPatch().Enable();  
+            //new FirearmController_SetTriggerPressed_Patch().Enable();
+            //new ItemHandsControllerPickupPatch().Enable();  
 
 
         }

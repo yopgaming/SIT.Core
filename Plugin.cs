@@ -134,7 +134,7 @@ namespace SIT.Core
 
             //// --------------------------------------
             //// Health stuff
-            new ReplaceInPlayer().Enable();
+            //new ReplaceInPlayer().Enable();
 
             new ChangeHealthPatch().Enable();
             new ChangeEnergyPatch().Enable();
