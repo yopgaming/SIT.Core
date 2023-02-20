@@ -9,11 +9,18 @@ using System.Threading.Tasks;
 using EFT.Interactive;
 using EFT;
 using SIT.Coop.Core.LocalGame;
+using SIT.Core.Coop;
+using static GClass1775;
 
 namespace SIT.Coop.Core.Player
 {
-    internal class PlayerOnInteractWithDoorPatch : ModulePatch
+    internal class PlayerOnInteractWithDoorPatch : ModuleReplicationPatch
     {
+        public override Type InstanceType => typeof(EFT.Player);
+
+        public override string MethodName => "Door";
+
+        public MethodInfo Method { get; set; } = null;
 
         /// <summary>
         /// Targetting vmethod_1
@@ -21,29 +28,35 @@ namespace SIT.Coop.Core.Player
         /// <returns></returns>
         protected override MethodBase GetTargetMethod()
         {
-            var t = SIT.Tarkov.Core.PatchConstants.EftTypes.FirstOrDefault(x => x.FullName == "EFT.Player");
-            if (t == null)
-                Logger.LogInfo($"OnInteractWithDoorPatch:Type is NULL");
-
-            var method = PatchConstants.GetAllMethodsForType(t)
+            Method = PatchConstants.GetAllMethodsForType(InstanceType)
                 .FirstOrDefault(x => x.GetParameters().Length == 2
                 && x.GetParameters()[0].Name == "door"
                 && x.GetParameters()[1].Name == "interactionResult"
                 );
 
-            Logger.LogInfo($"OnInteractWithDoorPatch:{t.Name}:{method.Name}");
-            return method;
+            //Logger.LogInfo($"OnInteractWithDoorPatch:{InstanceType.Name}:{method.Name}");
+            return Method;
         }
+
+        public static Dictionary<string, bool> CallLocally
+          = new Dictionary<string, bool>();
+
 
         [PatchPrefix]
         public static bool PrePatch(
-        //    )
-        //{
-        //    return Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
-        //}
+            EFT.Player __instance)
+        { 
+            var result = false;
+            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+                result = true;
 
-        //[PatchPostfix]
-        //public static void Patch(
+            //Logger.LogInfo("PlayerOnInteractWithDoorPatch:PrePatch");
+
+            return result;
+        }
+
+    [PatchPostfix]
+        public static void Patch(
             EFT.Player __instance,
             WorldInteractiveObject door
             , InteractionResult interactionResult
@@ -59,34 +72,47 @@ namespace SIT.Coop.Core.Player
             dictionary.Add("m", "Door");
             ServerCommunication.PostLocalPlayerData(__instance, dictionary);
             //Logger.LogInfo("OnInteractWithDoorPatch.PatchPostfix:Sent");
-
-            return false;
         }
 
+        private static List<long> ProcessedCalls = new List<long>();
 
-        public static void Replicated(
-            EFT.Player player,
-            Dictionary<string, object> packet)
+
+        public override void Replicated(EFT.Player player, Dictionary<string, object> packet)
         {
-            var comp = player.GetComponent<PlayerReplicatedComponent>();
-            if (comp == null)
+            var timestamp = long.Parse(packet["t"].ToString());
+            if ((DateTime.Now - new DateTime(timestamp)).TotalSeconds > 10)
                 return;
+
+            if (!ProcessedCalls.Contains(timestamp))
+                ProcessedCalls.Add(timestamp);
+            else
+            {
+                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+                return;
+            }
 
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
                 return;
 
-            Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType);
-
-            var foundDoor = coopGC.ListOfInteractiveObjects
-                .FirstOrDefault(
-                x => x.Id == packet["doorId"].ToString());
-            if (foundDoor == null)
+            try
             {
-                return;
-            }
+                Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType);
 
-            foundDoor.Interact(new InteractionResult(interactionType));
+                var foundDoor = coopGC.ListOfInteractiveObjects
+                    .FirstOrDefault(
+                    x => x.Id == packet["doorId"].ToString());
+                if (foundDoor == null)
+                    return;
+
+                CallLocally.Add(player.Profile.AccountId, true);
+                Logger.LogInfo("Replicated: Calling Door Opener");
+                Method.Invoke(player, new object[] { foundDoor, new InteractionResult(interactionType) });
+            }
+            catch(Exception)
+            {
+
+            }
 
         }
     }
