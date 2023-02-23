@@ -127,7 +127,7 @@ namespace SIT.Coop.Core.Matchmaker
                 return;
             }
             MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
-            //MatchmakerAcceptPatches.CheckForMatch();
+            MatchmakerAcceptPatches.CheckForMatch();
         }
 
         public static void GoToRaid()

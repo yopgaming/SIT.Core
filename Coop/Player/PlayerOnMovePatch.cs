@@ -11,6 +11,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using EFT;
 using SIT.Coop.Core.LocalGame;
+using SIT.Core.Coop;
 
 namespace SIT.Coop.Core.Player
 {
@@ -51,18 +52,7 @@ namespace SIT.Coop.Core.Player
         {
             if (__instance == null)
                 return false;
-            //direction.Normalize();
-            //direction.x = (float)Math.Round(direction.x, 2);
-            //direction.y = (float)Math.Round(direction.x, 2);
-        //    return false;// Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
-        //}
 
-
-        //[PatchPostfix]
-        //public static void PatchPostfix(
-        //    EFT.Player __instance,
-        //    Vector2 direction)
-        //{
             var accountId = __instance.Profile.AccountId;
             var nickname = __instance.Profile.Nickname;
 
@@ -70,47 +60,33 @@ namespace SIT.Coop.Core.Player
             direction.x = (float)Math.Round(direction.x, 2);
             direction.y = (float)Math.Round(direction.y, 2);
 
-            if(!__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            if (!__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                 return false;
 
-            if (prc == null)
-            {
-                Logger.LogInfo("PRC is NULL on " + nickname);
-                return true;
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+                return false;
+
+            if (!coopGC.Players.ContainsKey(accountId))
+            { 
+                coopGC.Players.TryAdd(accountId, (EFT.LocalPlayer)__instance);
             }
 
             if (!LastDirection.ContainsKey(accountId))
                 LastDirection.Add(accountId, null);
 
-            if (LastDirection[accountId] != direction)
+            if (LastDirection[accountId] != direction 
+                //&&
+                //    (!LastDirection[accountId].HasValue
+                //    || Vector3.Distance(LastDirection[accountId].Value, direction) > (accountId.StartsWith("pmc") ? 0.01 : 0.05)
+                //    )
+                )
             {
                 LastDirection[accountId] = direction;
 
-                //    var timeToWait = __instance.IsAI ? -(450 + RandomizerForAI.Next(-100, 100))  : -5;
-
-                //    if (!LastPacketSent.ContainsKey(accountId) || LastPacketSent[accountId] < DateTime.Now.AddMilliseconds(timeToWait))
-                //    {
-                //        if (!Sequence.ContainsKey(accountId))
-                //            Sequence.Add(accountId, 0);
-
-                //        Sequence[accountId]++;
-
-                //        //Logger.LogInfo(__instance.Profile.AccountId + " " + direction);
-                //        __instance.CurrentState.Move(direction);
-                //        __instance.InputDirection = direction;
-
-                //        if (!LastPacketSent.ContainsKey(accountId))
-                //            LastPacketSent.Add(accountId, DateTime.Now);
-
-                //        LastPacketSent[accountId] = DateTime.Now;
-
                 Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                //dictionary.Add("seq", Sequence[accountId]);
                 dictionary.Add("dX", Math.Round(direction.x, 2).ToString());
                 dictionary.Add("dY", Math.Round(direction.y, 2).ToString());
-                //dictionary.Add("pX", __instance.Position.x);
-                //dictionary.Add("pY", __instance.Position.y);
-                //dictionary.Add("pZ", __instance.Position.z);
                 dictionary.Add("rX", Math.Round(__instance.Rotation.x, 2).ToString());
                 dictionary.Add("rY", Math.Round(__instance.Rotation.y, 2).ToString());
                 dictionary.Add("m", "Move");

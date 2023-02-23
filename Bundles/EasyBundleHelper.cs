@@ -25,15 +25,18 @@ namespace SIT.Tarkov.Core
         private static readonly PropertyInfo _loadStateProperty;
         private static readonly MethodInfo _loadingCoroutineMethod;
         private readonly object _instance;
-        public static readonly Type Type;
+        public static Type Type 
+        { 
+            get
+            {
+                return PatchConstants.EftTypes.Single(x => !x.IsInterface && x.GetMethod("set_SameNameAsset", _flags) != null);
+            }
+        }
 
         static EasyBundleHelper()
         {
-            //_ = nameof(IBundleLock.IsLocked);
-            //_ = nameof(BindableState.Bind);
+            //PatchConstants.Logger.LogInfo("EasyBundleHelper:STATIC");
 
-            //Type = PatchConstants.EftTypes.Single(x => x.GetMethod("set_SameNameAsset", _flags) != null);
-            Type = PatchConstants.EftTypes.Single(x => !x.IsInterface && PatchConstants.GetPropertyFromType(x, "SameNameAsset") != null);
             _pathField = Type.GetField("string_1", _flags);
             _keyWithoutExtensionField = Type.GetField("string_0", _flags);
             _bundleLockField = Type.GetFields(_flags).FirstOrDefault(x => x.FieldType == BundleSetup.IBundleLockType);
@@ -41,6 +44,8 @@ namespace SIT.Tarkov.Core
             _keyProperty = Type.GetProperty("Key");
             _loadStateProperty = Type.GetProperty("LoadState");
             _loadingCoroutineMethod = Type.GetMethods(_flags).Single(x => x.GetParameters().Length == 0 && x.ReturnType == typeof(Task));
+
+            //PatchConstants.Logger.LogInfo("EasyBundleHelper:STATIC:COMPLETE");
         }
 
         public EasyBundleHelper(object easyBundle)

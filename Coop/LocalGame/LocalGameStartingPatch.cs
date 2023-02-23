@@ -17,6 +17,7 @@ using SIT.Coop.Core.Player;
 using Comfort.Common;
 using EFT;
 using UnityEngine;
+using SIT.Core.Coop;
 
 namespace SIT.Coop.Core.LocalGame
 {
@@ -61,44 +62,45 @@ namespace SIT.Coop.Core.LocalGame
             return method;
         }
 
-        [PatchPrefix]
-        public static async void PatchPrefix(
-            BaseLocalGame<GamePlayerOwner> __instance
-            , Task __result
-            )
-        {
-
-            //Logger.LogInfo($"LocalGameStartingPatch:PatchPrefix");
-            LocalGamePatches.LocalGameInstance = __instance;
-
-            //new LocalGameSpawnAICoroutinePatch(_config, __instance).Enable();
-            new WaveSpawnScenarioPatch(_config).Enable();
-            new NonWaveSpawnScenarioPatch(_config).Enable();
-            new LocalGameBotWaveSystemPatch().Enable();
-
-            //await StartAndConnectToServer(__instance);
-        }
-
         [PatchPostfix]
         public static async void PatchPostfix(
             BaseLocalGame<GamePlayerOwner> __instance
             , Task __result
             )
         {
+            await __result;
+
             LocalGamePatches.LocalGameInstance = __instance;
             var gameWorld = Singleton<GameWorld>.Instance;
+            if (gameWorld == null)
+            {
+                Logger.LogError("GameWorld is NULL");
+                return;
+            }
             if (gameWorld.TryGetComponent<CoopGameComponent>(out CoopGameComponent coopGameComponent))
             {
                 GameObject.Destroy(coopGameComponent);
             }
-            var coopGC = gameWorld.GetOrAddComponent<CoopGameComponent>();
 
+            // Hideout is SinglePlayer only. Do not create CoopGameComponent
+            if (__instance.GetType().Name.Contains("HideoutGame"))
+                return;
+
+            var coopGC = gameWorld.GetOrAddComponent<CoopGameComponent>();
             if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
                 coopGC.ServerId = MatchmakerAcceptPatches.GetGroupId();
             else
-                coopGC.ServerId = PatchConstants.GetPHPSESSID();
+            {
+                GameObject.Destroy(coopGameComponent);
+                coopGC = null;
+                Logger.LogInfo("No Server Id found, Deleting Coop Game Component");
+            }
+            //else
+            //    coopGC.ServerId = PatchConstants.GetPHPSESSID();
 
-            //await StartAndConnectToServer(__instance);
+            // Ensure other Replication patches are running
+            CoopPatches.EnableDisablePatches();
+            //__instance.AllPlayers.ForEach(p => { var prc = p.GetOrAddComponent<PlayerReplicatedComponent>(); prc.player = p as EFT.LocalPlayer; });
         }
 
         //public static async Task StartAndConnectToServer(object __instance)

@@ -2,6 +2,8 @@
 using EFT;
 using HarmonyLib;
 using Newtonsoft.Json;
+using SIT.Core;
+using SIT.Core.Coop;
 using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.PlayerPatches.Health;
 using System;
@@ -12,6 +14,8 @@ namespace SIT.Tarkov.Core
 {
     public class OfflineSaveProfile : ModulePatch
     {
+
+
         static OfflineSaveProfile()
         {
             // compile-time check
@@ -100,6 +104,14 @@ namespace SIT.Tarkov.Core
             //var beUrl = SIT.Tarkov.Core.PatchConstants.GetBackendUrl();
             var currentHealth = HealthListener.Instance.CurrentHealth;
             SaveProfileProgress(result.Value0, profile, currentHealth, ____raidSettings.IsScav);
+
+
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if(coopGC != null)
+            {
+                GameWorld.Destroy(coopGC);
+            }
+
             return true;
         }
 

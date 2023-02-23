@@ -16,6 +16,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "ReloadMag";
+        public override bool DisablePatch => true;
 
         protected override MethodBase GetTargetMethod()
         {
@@ -28,9 +29,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance)
+        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
+            //var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return false;
 
@@ -48,9 +50,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             EFT.Player.FirearmController __instance
             , MagazineClass magazine
             , GridItemAddress gridItemAddress
-            )
+            , EFT.Player ____player)
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
+            //var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return;
 
@@ -60,10 +63,33 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
+            var giadNewAddress_I_Think = new GridItemAddressDescriptor()
+            {
+                LocationInGrid = gridItemAddress.LocationInGrid,
+                Container = new ContainerDescriptor() 
+                { 
+                    ContainerId = gridItemAddress.Container.ID
+                    , ParentId = gridItemAddress.Container.ParentItem.Id
+                }
+            };
+
+            var giadOldAddress_I_Think = new GridItemAddressDescriptor()
+            {
+                LocationInGrid = gridItemAddress.LocationInGrid,
+                Container = new ContainerDescriptor()
+                {
+                    ContainerId = magazine.CurrentAddress.Container.ID
+                    ,
+                    ParentId = magazine.CurrentAddress.Container.ParentItem.Id
+                }
+            };
+
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("mg", JsonConvert.SerializeObject(magazine, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
-            dictionary.Add("a", JsonConvert.SerializeObject(gridItemAddress, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
+            dictionary.Add("mg.id", magazine.Id);
+            dictionary.Add("mg.tpl", magazine.Template);
+            dictionary.Add("a.old", giadOldAddress_I_Think.SITToJson());
+            dictionary.Add("a.new", giadNewAddress_I_Think.SITToJson());
             dictionary.Add("m", "ReloadMag");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
             Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
@@ -81,7 +107,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 ProcessedCalls.Add(timestamp);
             else
             {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddMinutes(-5).Ticks);
+                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
 
@@ -89,11 +115,29 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
-                    var magazine = JObject.FromObject(dict["mg"]).ToObject<MagazineClass>();
-                    var gridItemAddress = JObject.FromObject(dict["a"]).ToObject<GridItemAddress>();
+                    //player.ToUnloadMagOperation().
+                    
+                    // this is not working, maybe try and find it in the inventory instead???
+                    var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<GClass2222>());
+                    var gridItemAddressNewDesc = JObject.Parse(dict["a.new"].ToString()).ToObject<GridItemAddressDescriptor>();
+                    var gridItemAddressNew = new GridItemAddress(
+                            (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressNewDesc.Container.ContainerId, gridItemAddressNewDesc.Container.ParentId)
+                            , gridItemAddressNewDesc.LocationInGrid
+                            );
+
+                    var gridItemAddressOldDesc = JObject.Parse(dict["a.old"].ToString()).ToObject<GridItemAddressDescriptor>();
+                    var gridItemAddressOld = new GridItemAddress(
+                            (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressOldDesc.Container.ContainerId, gridItemAddressOldDesc.Container.ParentId)
+                            , gridItemAddressOldDesc.LocationInGrid
+                            );
+
+                    magazine.CurrentAddress = gridItemAddressOld;
                     CallLocally.Add(player.Profile.AccountId, true);
                     Logger.LogInfo("Replicated: Calling Reload Mag");
-                    firearmCont.ReloadMag(magazine, gridItemAddress, null);
+                    firearmCont.ReloadMag(magazine
+                        //, gridItemAddressNew
+                        , gridItemAddressOld
+                        , null);
                 }
                 catch(Exception e)
                 {

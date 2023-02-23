@@ -1,50 +1,45 @@
-﻿using SIT.Tarkov.Core;
-using System.Linq;
+﻿using EFT;
+using SIT.Tarkov.Core;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core.Menus
+/***
+ * Full Credit for this patch goes to SPT-Aki team
+ * Original Source is found here - https://dev.sp-tarkov.com/SPT-AKI/Modules
+ * Paulov. Made changes to have better reflection and less hardcoding
+ */
+namespace SIT.Core.Menus
 {
-    public class BringBackInsuranceScreen : ModulePatch
+    /// <summary>
+    /// Force ERaidMode to online to make interface show insurance page
+    /// </summary>
+    class InsuranceScreenPatch : ModulePatch
     {
-        public BringBackInsuranceScreen() { }
-
-        // don't forget 'ref'
-        [PatchPrefix]
-        static void PrefixPatch(ref bool local)
+        static InsuranceScreenPatch()
         {
-            local = false;
-        }
-
-        [PatchPostfix]
-        static void PostfixPatch(ref bool ___bool_0)
-        {
-            ___bool_0 = true;
+            _ = nameof(MainMenuController.InventoryController);
         }
 
         protected override MethodBase GetTargetMethod()
         {
-            // find method 
-            // private void method_53(bool local, GStruct73 weatherSettings, GStruct177 botsSettings, GStruct74 wavesSettings)
-            return Constants.Instance.MenuControllerType
-                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .FirstOrDefault(IsTargetMethod);    // controller contains 2 methods with same signature. Usually target method is first of them.
+            var desiredType = typeof(MainMenuController);
+            var desiredMethod = desiredType.GetMethod("method_62", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
+            Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
+
+            return desiredMethod;
         }
 
-        private static bool IsTargetMethod(MethodInfo mi)
+        [PatchPrefix]
+        private static void PrefixPatch(RaidSettings ___raidSettings_0)
         {
-            var parameters = mi.GetParameters();
+            ___raidSettings_0.RaidMode = ERaidMode.Online;
+        }
 
-            if (parameters.Length != 4
-            || parameters[0].ParameterType != typeof(bool)
-            || parameters[0].Name != "local"
-            || parameters[1].Name != "weatherSettings"
-            || parameters[2].Name != "botsSettings"
-            || parameters[3].Name != "wavesSettings")
-            {
-                return false;
-            }
-
-            return true;
+        [PatchPostfix]
+        private static void PostfixPatch(RaidSettings ___raidSettings_0)
+        {
+            ___raidSettings_0.RaidMode = ERaidMode.Local;
         }
     }
 }

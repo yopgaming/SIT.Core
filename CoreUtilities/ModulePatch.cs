@@ -119,7 +119,7 @@ namespace SIT.Tarkov.Core
 		            _harmony.Patch(target, ilmanipulator: ilmanipulator);
                 }
 
-                //Logger.LogInfo($"Enabled patch {_harmony.Id}");
+                Logger.LogDebug($"Enabled patch {_harmony.Id}");
             }
             catch (Exception ex)
             {
@@ -136,13 +136,13 @@ namespace SIT.Tarkov.Core
 
             if (target == null)
             {
-                throw new InvalidOperationException($"{_harmony.Id}: TargetMethod is null");
+                Logger.LogError($"{_harmony.Id}: TargetMethod is null");
             }
 
             try
             {
                 _harmony.Unpatch(target, HarmonyPatchType.All, _harmony.Id);
-                Logger.LogInfo($"Disabled patch {_harmony.Id}");
+                Logger.LogDebug($"Disabled patch {_harmony.Id}");
             }
             catch (Exception ex)
             {

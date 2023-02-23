@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static HBAO_Core;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -17,22 +18,33 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "SetTriggerPressed";
 
+        //public override bool DisablePatch => true;
+
         protected override MethodBase GetTargetMethod()
         {
             var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
             return method;
         }
 
-        public Dictionary<string, bool> CallLocally
+        public static Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
+
+        public static Dictionary<string, bool> LastPress = new Dictionary<string, bool>();  
 
 
         [PatchPrefix]
-        public bool PrePatch(EFT.Player.FirearmController __instance)
+        public static bool PrePatch(
+            EFT.Player.FirearmController __instance
+            , EFT.Player ____player
+            , bool pressed
+            )
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
             if (player == null)
                 return false;
+
+            if (LastPress.ContainsKey(player.Profile.AccountId) && LastPress[player.Profile.AccountId] == pressed)
+                return true;
 
             var result = false;
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
@@ -41,13 +53,14 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return result;
         }
 
-        [PatchPrefix]
-        public void PostPatch(
+        [PatchPostfix]
+        public static void PostPatch(
             EFT.Player.FirearmController __instance
             , bool pressed
+            , EFT.Player ____player
             )
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
             if (player == null)
                 return;
 
@@ -57,11 +70,24 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
+            var ticks = DateTime.Now.Ticks;
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
+            dictionary.Add("t", ticks);
             dictionary.Add("pr", pressed.ToString());
-            dictionary.Add("m", MethodName);
+            dictionary.Add("m", "SetTriggerPressed");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
+
+            if (!LastPress.ContainsKey(player.Profile.AccountId))
+                LastPress.Add(player.Profile.AccountId, pressed);
+
+            LastPress[player.Profile.AccountId] = pressed;
+
+            var timestamp = ticks;
+            if (!ProcessedCalls.Contains(timestamp))
+                ProcessedCalls.Add(timestamp);
+            // then instantly trigger? otherwise we are waiting for the return trip?
+            CallLocally.Add(player.Profile.AccountId, true);
+            __instance.SetTriggerPressed(pressed);
         }
 
         private static List<long> ProcessedCalls = new List<long>();
@@ -73,15 +99,16 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 ProcessedCalls.Add(timestamp);
             else
             {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddMinutes(-5).Ticks);
+                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
+
+            bool pressed = bool.Parse(dict["pr"].ToString());
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 try
                 {
-                    bool pressed = bool.Parse(dict["pr"].ToString());
                     CallLocally.Add(player.Profile.AccountId, true);
                     firearmCont.SetTriggerPressed(pressed);
                 }

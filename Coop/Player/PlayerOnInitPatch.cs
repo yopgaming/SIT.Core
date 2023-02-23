@@ -2,8 +2,8 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
-using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -39,22 +39,37 @@ namespace SIT.Coop.Core.Player
         //    return result;
         //}
 
+        //[PatchPostfix]
+        //public static
+        //    async
+        //    void
+        //    PatchPostfix(Task __result, EFT.LocalPlayer __instance)
+        //{
+
         [PatchPostfix]
-        public static
-            async
-            void
-            PatchPostfix(EFT.LocalPlayer __instance)
+        public static void PatchPostfix(EFT.LocalPlayer __instance)
         {
             var player = __instance;
             var accountId = player.Profile.AccountId;
 
+            //await __result;
+            Logger.LogInfo($"Init. {accountId}");
+
+
+           
+
             var gameWorld = Singleton<GameWorld>.Instance;
             var coopGC = gameWorld.GetComponent<CoopGameComponent>();
             if (coopGC == null)
+            {
+                Logger.LogError("Cannot add player to Coop Game Component because its NULL");
                 return;
+            }
 
-            if (coopGC.Players != null && !coopGC.Players.ContainsKey(accountId))
-                coopGC.Players.TryAdd(player.Profile.AccountId, player);
+            if (!coopGC.Players.ContainsKey(accountId))
+            {
+                coopGC.Players.TryAdd(accountId, player);
+            }
 
 
             Dictionary<string, object> dictionary2 = new Dictionary<string, object>

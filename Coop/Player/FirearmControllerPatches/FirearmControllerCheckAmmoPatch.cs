@@ -26,7 +26,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
+        public static bool PrePatch(
+            EFT.Player.FirearmController __instance
+            , EFT.Player ____player)
         {
             var player = ____player;
             //var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
@@ -68,7 +70,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 ProcessedCalls.Add(timestamp);
             else
             {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddMinutes(-5).Ticks);
+                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
 

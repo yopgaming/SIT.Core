@@ -53,8 +53,7 @@ namespace SIT.Coop.Core.Matchmaker
             }
         }
         //public static string GroupId { get; set; }
-        public static EMatchmakerType MatchingType { get; set; } = EMatchmakerType.Single;
-        public static bool ForcedMatchingType { get; set; }
+     
         //public static ScreenController ScreenController { get; set; }
         public static Profile Profile { get; set; }
 
@@ -183,6 +182,8 @@ namespace SIT.Coop.Core.Matchmaker
         }
 
         //public static string GroupingPropertyName { get { return "gclass2434_0"; } }
+        public static EMatchmakerType MatchingType { get; set; } = EMatchmakerType.Single;
+        public static bool ForcedMatchingType { get; set; }
 
         public static bool IsServer => MatchingType == EMatchmakerType.GroupLeader;
 
@@ -222,8 +223,6 @@ namespace SIT.Coop.Core.Matchmaker
             Dictionary<string, string> data = new Dictionary<string, string>();
             data.Add("serverId", phpId);
 
-            //string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", JsonConvert.SerializeObject(PatchConstants.GetPHPSESSID()));
-            //string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/create", "{ i: \"" +  phpId + "\" }");
             string text = Request.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(data));
             if (!string.IsNullOrEmpty(text))
             {

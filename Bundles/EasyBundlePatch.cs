@@ -6,6 +6,7 @@ using System.Reflection;
 using System;
 using SIT.Tarkov.Core.Bundles;
 using UnityEngine;
+using SIT.Tarkov.Core;
 
 /***
  * Full Credit for this patch goes to SPT-Aki team
@@ -19,9 +20,9 @@ namespace SIT.Tarkov.Core
     {
         static EasyBundlePatch()
         {
-            //_ = nameof(IEasyBundle.SameNameAsset);
-            //_ = nameof(IBundleLock.IsLocked);
-            //_ = nameof(BindableState<ELoadState>.Bind);
+            _ = nameof(IEasyBundle.SameNameAsset);
+            _ = nameof(IBundleLock.IsLocked);
+            _ = nameof(BindableState<ELoadState>.Bind);
         }
 
         protected override MethodBase GetTargetMethod()
@@ -30,15 +31,10 @@ namespace SIT.Tarkov.Core
         }
 
         [PatchPostfix]
-        private static void PatchPostfix(object __instance, string key, string rootPath, CompatibilityAssetBundleManifest manifest, object bundleLock)
+        private static void PatchPostfix(object __instance, string key, string rootPath, CompatibilityAssetBundleManifest manifest, IBundleLock bundleLock)
         {
-
             var path = rootPath + key;
             var dependencyKeys = manifest.GetDirectDependencies(key) ?? new string[0];
-            //if (path.Contains("qhb") || path.Contains("l85a2"))
-            //{
-            //    Logger.LogInfo("EasyBundlePatch:PatchPostfix:Initial Path:" + path);
-            //}
 
             if (BundleManager.Bundles.TryGetValue(key, out BundleInfo bundle))
             {
@@ -46,21 +42,13 @@ namespace SIT.Tarkov.Core
                 path = bundle.Path;
             }
 
-            //if (path.Contains("qhb") || path.Contains("l85a2"))
-            //{
-            //    Logger.LogInfo("EasyBundlePatch:PatchPostfix:Actual Path:" + path);
-            //}
-
-            Type[] typeArgs = { typeof(ELoadState) };
-            Type constructed = BundleSetup.BindableStateType.MakeGenericType(typeArgs);
             _ = new EasyBundleHelper(__instance)
             {
                 Key = key,
                 Path = path,
                 KeyWithoutExtension = Path.GetFileNameWithoutExtension(key),
                 DependencyKeys = dependencyKeys,
-                //LoadState = new BindableState<ELoadState>(ELoadState.Unloaded, null),
-                LoadState = Activator.CreateInstance(constructed, ELoadState.Unloaded, null),
+                LoadState = new BindableState<ELoadState>(ELoadState.Unloaded, null),
                 BundleLock = bundleLock
             };
         }

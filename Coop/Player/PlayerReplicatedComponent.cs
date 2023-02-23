@@ -1,7 +1,6 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 using EFT.Interactive;
 using SIT.Coop.Core.LocalGame;
-using SIT.Coop.Core.Player.Weapon;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
@@ -38,37 +37,59 @@ namespace SIT.Coop.Core.Player
         public Vector2 LastMovementDirection { get; private set; } = Vector2.zero;
         public bool IsMyPlayer { get; internal set; }
 
-        private NetworkConnection _connection { get; } = new NetworkConnection();
-        private System.Random RandomConnectionIds { get; } = new System.Random();
+        //private NetworkConnection _connection { get; } = new NetworkConnection();
+        //private System.Random RandomConnectionIds { get; } = new System.Random();
 
-        private NetworkClient _client { get; set; }
+        //private NetworkClient _client { get; set; }
 
         void Awake()
         {
-            //PatchConstants.Logger.LogInfo("PlayerReplicatedComponent:Awake");
+            PatchConstants.Logger.LogInfo("PlayerReplicatedComponent:Awake");
         }
 
         void Start()
         {
+            PatchConstants.Logger.LogInfo($"PlayerReplicatedComponent:Start");
+
             StartCoroutine(HandleQueuedPackets());
-            //Task.Run(HandleQueuedPackets);
         }
 
         private IEnumerator HandleQueuedPackets()
-        //private void HandleQueuedPackets()
         {
+            var waitSeconds = new WaitForSeconds(1f);
+            var waitEndOfFrame = new WaitForEndOfFrame();
+
             while (true)
             {
-                yield return new WaitForSeconds(0.001f);
+                var coopGC = CoopGameComponent.GetCoopGameComponent();
+                if (coopGC == null)
+                    continue;
+
+                if (player == null)
+                {
+                    PatchConstants.Logger.LogInfo($"Player is NULL for Component {this}");
+                    yield return waitSeconds;
+                    continue;
+                }
+
+                if (!coopGC.Players.ContainsKey(player.Profile.AccountId))
+                {
+                    coopGC.Players.TryAdd(player.Profile.AccountId, player);
+                    yield return waitSeconds;
+                    continue;
+                }
 
                 if (!QueuedPackets.Any())
+                {
+                    yield return waitSeconds;
                     continue;
+                }
+
+                //PatchConstants.Logger.LogInfo($"{player.Profile.AccountId} has {QueuedPackets.Count} QueuedPackets");
 
                 if (QueuedPackets.TryDequeue(out Dictionary<string, object> packet))
                 {
                     var method = packet["m"].ToString();
-                    if (packet["accountId"].ToString() != player.Profile.AccountId)
-                        continue;
 
                     foreach(var patch in ModuleReplicationPatch.Patches)
                     {
@@ -82,27 +103,6 @@ namespace SIT.Coop.Core.Player
                     switch (method)
                     {
 
-                        case "ApplyCorpseImpulse":
-                            PlayerOnApplyCorpseImpulsePatch.Replicated(player, packet);
-                            break;
-                        case "Damage":
-                            //PlayerOnDamagePatch.DamageReplicated(player, packet);
-                            break;
-                        case "Dead":
-                            PatchConstants.Logger.LogInfo("Dead");
-                            break;
-                        case "Door":
-                            PlayerOnInteractWithDoorPatch.Replicated(player, packet);
-                            break;
-                        case "DropBackpack":
-                            PlayerOnDropBackpackPatch.Replicated(player, packet);
-                            break;
-                        case "EnableSprint":
-                            PlayerOnEnableSprintPatch.Replicated(player, packet);
-                            break;
-                        case "Gesture":
-                            PlayerOnGesturePatch.Replicated(player, packet);
-                            break;
                         case "HostDied":
                             PatchConstants.Logger.LogInfo("Host Died");
                             LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
@@ -111,10 +111,7 @@ namespace SIT.Coop.Core.Player
                             PlayerOnJumpPatch.Replicated(player, packet);
                             break;
                         case "Move":
-                            //if (LastMovementPacket == null
-                            //    //|| int.Parse(packet["seq"].ToString()) > int.Parse(LastMovementPacket["seq"].ToString())
-                            //    )
-                                LastMovementPacket = packet;
+                            LastMovementPacket = packet;
                             break;
                         case "Position":
                             if (!IsMyPlayer)
@@ -126,10 +123,6 @@ namespace SIT.Coop.Core.Player
                                 //ReceivedPacketPostion = newPos;
                             }
                             break;
-                        //case "ReloadMag":
-                        //    //WeaponOnReloadMagPatch.Replicated(player, packet);
-                        //    //ModuleReplicationPatch.Replicate(typeof(FirearmController_ReloadMag_Patch), player, packet);
-                        //    break;
                         case "Rotation":
                             if (!IsMyPlayer)
                             {
@@ -138,43 +131,16 @@ namespace SIT.Coop.Core.Player
                                 //ReceivedPacketRotation = new Vector2(rotationX, rotationY);
                             }
                             break;
-                        case "Say":
-                            PlayerOnSayPatch.SayReplicated(player, packet);
-                            break;
-                        //case "SetTriggerPressed":
-                        //    //PatchConstants.Logger.LogInfo("SetTriggerPressed");
-                        //    //WeaponOnTriggerPressedPatch.Replicated(player, packet);
-                        //    break;
-                        case "SetItemInHands":
-                            //PlayerOnSetItemInHandsPatch.SetItemInHandsReplicated(player, packet);
-                            break;
-                        case "InventoryOpened":
-                            //PlayerOnInventoryOpenedPatch.Replicated(player, packet);
-                            break;
                         case "Tilt":
                             PlayerOnTiltPatch.TiltReplicated(player, packet);
                             break;
-                        case "Proceed":
-                            switch (packet["pType"].ToString())
-                            {
-                                case "Weapon":
-                                    //PlayerOnProceedWeaponPatch.ProceedWeaponReplicated(player, packet);
-                                    break;
-                                case "Knife":
-                                    //PlayerOnProceedKnifePatch.ProceedWeaponReplicated(player, packet);
-                                    break;
-                                case "Meds":
-                                    break;
-                                case "Food":
-                                    break;
-                            }
-                            break;
-                        case "CheckAmmo":
-                            //FirearmControllerCheckAmmoPatch.Replicated(player, packet);
-                            break;
+                       
 
                     }
                 }
+
+                //yield return waitSeconds;
+                yield return waitEndOfFrame;
             }
         }
 
@@ -183,12 +149,12 @@ namespace SIT.Coop.Core.Player
         //private Vector2 ReceivedPacketRotation = Vector2.zero;
 
 
-        void FixedUpdate()
-        {
+        //void FixedUpdate()
+        //{
 
-        }
+        //}
 
-        //bool handlingPackets = false;
+        ////bool handlingPackets = false;
 
         void Update()
         {
@@ -207,78 +173,48 @@ namespace SIT.Coop.Core.Player
                || (Matchmaker.MatchmakerAcceptPatches.IsServer && isMyPlayer);
         }
 
-        private Vector3? LastSentPosition;
+        //private Vector3? LastSentPosition;
 
-        private void UpdateMovement()
+        private IEnumerator UpdateMovement()
         {
-            if (player == null)
-                return;
+            var waitSeconds = new WaitForSeconds(0.01f);
+            var waitEndOfFrame = new WaitForEndOfFrame();
 
-
-            //if (ShouldReplicate(player, IsMyPlayer))
-            //{
-            if (player.MovementContext != null)
+            while (true)
             {
-                if (this.LastTiltLevel != player.MovementContext.Tilt
-                    && (this.LastTiltLevel - player.MovementContext.Tilt > 0.05f || this.LastTiltLevel - player.MovementContext.Tilt < -0.05f)
-                    )
+                if (player == null)
+                    continue;
+
+                //yield return waitEndOfFrame;
+
+                if (player.MovementContext != null)
                 {
-                    this.LastTiltLevel = player.MovementContext.Tilt;
-                    Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                    dictionary.Add("tilt", LastTiltLevel);
-                    dictionary.Add("m", "Tilt");
-                    ServerCommunication.PostLocalPlayerData(player, dictionary);
+                    if (this.LastTiltLevel != player.MovementContext.Tilt
+                        && (this.LastTiltLevel - player.MovementContext.Tilt > 0.05f || this.LastTiltLevel - player.MovementContext.Tilt < -0.05f)
+                        )
+                    {
+                        this.LastTiltLevel = player.MovementContext.Tilt;
+                        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+                        dictionary.Add("tilt", LastTiltLevel);
+                        dictionary.Add("m", "Tilt");
+                        ServerCommunication.PostLocalPlayerData(player, dictionary);
+                    }
+
                 }
 
-                //        //if (!LastRotation.HasValue)
-                //        //    LastRotation = player.MovementContext.TransformRotation;
+                //if (!IsMyPlayer && ReceivedPacketRotation != Vector2.zero)
+                //{
+                //    player.MovementContext.Rotation = Vector2.Lerp(player.MovementContext.Rotation, ReceivedPacketRotation, 2f * Time.deltaTime);
+                //}
 
-                //        //var rotationAngle = Quaternion.Angle(player.MovementContext.TransformRotation, LastRotation.Value);
+                if (LastMovementPacket == null)
+                    continue;
 
-                //        //if (player.MovementContext.TransformRotation != this.LastRotation && rotationAngle > 15)
-                //        //{
-                //        //    this.LastRotation = player.MovementContext.TransformRotation;
-                //        //    Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                //        //    dictionary.Add("rX", player.MovementContext.Rotation.x);
-                //        //    dictionary.Add("rY", player.MovementContext.Rotation.y);
-                //        //    dictionary.Add("m", "Rotation");
-                //        //    ServerCommunication.PostLocalPlayerData(player, dictionary);
-                //        //}
+                PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
 
-                //        //if (!LastSentPosition.HasValue || Vector3.Distance(LastSentPosition.Value, player.Position) > 0.9f)
-                //        //{
-                //        //    Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                //        //    dictionary.Add("x", player.Position.x);
-                //        //    dictionary.Add("y", player.Position.y);
-                //        //    dictionary.Add("z", player.Position.z);
-                //        //    dictionary.Add("m", "Position");
-                //        //    ServerCommunication.PostLocalPlayerData(player, dictionary);
-                //        //    LastSentPosition = player.Position;
-                //        //}
+                yield return waitEndOfFrame;
 
-                //    }
             }
-
-            //if (!IsMyPlayer && ReceivedPacketPostion != Vector3.zero)
-            //{
-            //    if (ReceivedPacketPostion != Vector3.zero)
-            //    {
-            //        if (Vector3.Distance(player.Transform.position, ReceivedPacketPostion) < 2f)
-            //            player.Transform.position = Vector3.Lerp(player.Transform.position, ReceivedPacketPostion, 2f * Time.deltaTime);
-            //        else
-            //            player.Transform.position = ReceivedPacketPostion;
-            //    }
-            //}
-
-            //if (!IsMyPlayer && ReceivedPacketRotation != Vector2.zero)
-            //{
-            //    player.MovementContext.Rotation = Vector2.Lerp(player.MovementContext.Rotation, ReceivedPacketRotation, 2f * Time.deltaTime);
-            //}
-
-            if (LastMovementPacket == null)
-                return;
-
-            PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
         }
     }
 }

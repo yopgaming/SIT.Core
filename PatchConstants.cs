@@ -13,6 +13,10 @@ using Newtonsoft.Json;
 using SIT.Tarkov.Core.Web;
 using SIT.Tarkov.Core.AI;
 using UnityEngine;
+using static EFT.SpeedTree.TreeWind;
+using System.Globalization;
+using HarmonyLib;
+using static SIT.Core.Misc.PaulovJsonConverters;
 
 namespace SIT.Tarkov.Core
 {
@@ -385,15 +389,69 @@ namespace SIT.Tarkov.Core
             }
         }
 
+        public static JsonConverter[] GetJsonConvertersBSG()
+        {
+            return JsonConverterDefault;
+        }
+
+        public static List<JsonConverter> GetJsonConvertersPaulov()
+        {
+            var converters = new List<JsonConverter>();
+            converters.Add(new DateTimeOffsetJsonConverter());
+            converters.Add(new SimpleCharacterControllerJsonConverter());
+            converters.Add(new CollisionFlagsJsonConverter());
+            converters.Add(new PlayerJsonConverter());
+            return converters;
+        }
+
+        public static JsonSerializerSettings GetJsonSerializerSettings()
+        {
+            var converters = JsonConverterDefault;
+            converters.AddItem(new DateTimeOffsetJsonConverter());
+            converters.AddItem(new SimpleCharacterControllerJsonConverter());
+            converters.AddItem(new CollisionFlagsJsonConverter());
+            //converters.AddItem(new PlayerJsonConverter());
+            var paulovconverters = GetJsonConvertersPaulov();
+            converters.AddRangeToArray(paulovconverters.ToArray());
+
+            return new JsonSerializerSettings()
+            {
+                Converters = converters,
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                ObjectCreationHandling = ObjectCreationHandling.Replace,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Error = (serializer, err) =>
+                {
+                    Logger.LogError(err.ErrorContext.Error.ToString());
+                }
+            };
+        }
+        public static JsonSerializerSettings GetJsonSerializerSettingsWithoutBSG()
+        {
+            var converters = GetJsonConvertersPaulov();
+
+            return new JsonSerializerSettings()
+            {
+                Converters = converters,
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                ObjectCreationHandling = ObjectCreationHandling.Replace,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Error = (serializer, err) =>
+                {
+                    Logger.LogError(err.ErrorContext.Error.ToString());
+                }
+            };
+        }
+
         public static string SITToJson(this object o)
         {
+
+
             return JsonConvert.SerializeObject(o
-                    , new JsonSerializerSettings()
-                    {
-                        Converters = PatchConstants.JsonConverterDefault
-                        , ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                    }
-                    );
+                    , GetJsonSerializerSettings()
+                ) ;
         }
 
         public static async Task<string> SITToJsonAsync(this object o)
@@ -514,14 +572,15 @@ namespace SIT.Tarkov.Core
                 Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():MessageNotificationType:Not Found");
             }
             GroupingType = EftTypes.Single(x => x.GetMethods(BindingFlags.Public | BindingFlags.Static).Select(y => y.Name).Contains("CreateRaidPlayer"));
-            if (GroupingType != null)
-            {
-                Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():Found GroupingType:" + GroupingType.FullName);
-            }
+            //if (GroupingType != null)
+            //{
+            //  Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():Found GroupingType:" + GroupingType.FullName);
+            //}
 
             JsonConverterType = typeof(AbstractGame).Assembly.GetTypes()
                .First(t => t.GetField("Converters", BindingFlags.Static | BindingFlags.Public) != null);
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];
+            //Logger.LogInfo($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
 
             StartWithTokenType = PatchConstants.EftTypes.Single(x => GetAllMethodsForType(x).Count(y => y.Name == "StartWithToken") == 1);
 

@@ -5,9 +5,7 @@ using System.Text;
 using UnityEngine;
 using ComponentAce.Compression.Libs.zlib;
 using System.Threading.Tasks;
-using System.Security.Policy;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
 
 namespace SIT.Tarkov.Core
 {
@@ -156,7 +154,8 @@ namespace SIT.Tarkov.Core
             if (method != "GET" && !string.IsNullOrEmpty(data))
             {
                 // set request body
-                byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_COMPRESSION) : Encoding.UTF8.GetBytes(data);
+                //byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_COMPRESSION) : Encoding.UTF8.GetBytes(data);
+                byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_SPEED) : Encoding.UTF8.GetBytes(data);
                 data = null;
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;
@@ -248,7 +247,7 @@ namespace SIT.Tarkov.Core
 
         public async Task<string> PostJsonAsync(string url, string data, bool compress = true)
         {
-            return await Task.Run(() => { return PostJson(url, data, compress); });
+            return await Task.FromResult(PostJson(url, data, compress));
         }
 
         public Texture2D GetImage(string url, bool compress = true)

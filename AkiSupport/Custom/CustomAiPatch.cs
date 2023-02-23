@@ -8,6 +8,11 @@ using System.Linq;
 using System.Reflection;
 using Random = System.Random;
 
+/***
+ * Full Credit for this patch goes to SPT-Aki team
+ * Original Source is found here - https://dev.sp-tarkov.com/SPT-AKI/Modules
+ * Paulov. Made changes to have better reflection and less hardcoding
+ */
 namespace SIT.Core.AkiSupport.Custom
 {
     public class CustomAiPatch : ModulePatch

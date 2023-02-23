@@ -2,16 +2,17 @@
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Player.Weapon;
 using SIT.Core.Coop.Player;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using static GClass1643;
+using UnityEngine.Analytics;
+using UnityEngine.SceneManagement;
 
 namespace SIT.Core.Coop
 {
@@ -19,8 +20,12 @@ namespace SIT.Core.Coop
     {
         public static ManualLogSource Logger { get; private set; }
 
+        private static BepInEx.Configuration.ConfigFile m_Config;
+
         public static void Run(BepInEx.Configuration.ConfigFile config)
         {
+            m_Config = config;
+
             if (Logger == null)
                 Logger = BepInEx.Logging.Logger.CreateLogSource("Coop");
 
@@ -31,41 +36,87 @@ namespace SIT.Core.Coop
                 return;
             }
 
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
+
             new LocalGameStartingPatch(config).Enable();
             //new LocalGamePlayerSpawn().Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
 
+            
+
+            // Tests
+            //_ = new EFT.Player().SITToJson();
+
+
+        }
+
+        private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        {
+            EnableDisablePatches();   
+        }
+
+        public static void EnableDisablePatches()
+        {
+            var enablePatches = true;
+
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+            {
+                Logger.LogInfo($"CoopPatches:CoopGameComponent is null, Patches wont be Applied");
+                enablePatches = false;
+            }
+
+            if (coopGC != null && !coopGC.enabled)
+            {
+                Logger.LogInfo($"CoopPatches:CoopGameComponent is not enabled, Patches wont be Applied");
+                enablePatches = false;
+            }
+
+            if (string.IsNullOrEmpty(CoopGameComponent.GetServerId()))
+            {
+                Logger.LogInfo($"CoopPatches:CoopGameComponent ServerId is not set, Patches wont be Applied");
+                enablePatches = false;
+            }
+
             // ------ PLAYER -------------------------
-            new PlayerOnInitPatch(config).Enable();
-            //new PlayerOnApplyCorpseImpulsePatch().Enable();
-            //new PlayerOnDamagePatch().Enable();
-            new Player_ApplyDamageInfo_Patch().Enable();
-            //new PlayerOnDeadPatch(config).Enable();
-            //new PlayerOnDropBackpackPatch().Enable();
-            //new PlayerOnEnableSprintPatch().Enable();
-            //new PlayerOnGesturePatch().Enable();
-            //new PlayerOnHealPatch().Enable();
-            new PlayerOnInteractWithDoorPatch().Enable();
-            new PlayerOnInventoryOpenedPatch().Enable();
-            new PlayerOnJumpPatch().Enable();
-            new PlayerOnMovePatch().Enable();
-            //new PlayerOnSayPatch().Enable();
-            //new PlayerOnSetItemInHandsPatch().Enable();
-            //new PlayerOnTryProceedPatch().Enable();
 
-            // ------ WEAPON -------------------------
-            //new WeaponOnDropPatch().Enable();
-            //new WeaponOnTriggerPressedPatch().Enable();
-            //new WeaponOnReloadMagPatch().Enable();
-
-            new FirearmControllerCheckAmmoPatch().Enable();
-            new FirearmController_ReloadMag_Patch().Enable();
-            //new FirearmController_SetTriggerPressed_Patch().Enable();
-            //new ItemHandsControllerPickupPatch().Enable();  
+            if(enablePatches)
+            {
+                new PlayerOnInitPatch(m_Config).Enable();
+                //new PlayerOnMovePatch().Enable();
+            }
 
 
+            var moduleReplicationPatches = Assembly.GetAssembly(typeof(ModuleReplicationPatch)).GetTypes().Where(x => x.GetInterface("IModuleReplicationPatch") != null);
+            //Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");
+            foreach (var module in moduleReplicationPatches)
+            {
+                if (module.IsAbstract
+                    || module == typeof(ModuleReplicationPatch)
+                    || module.Name.Contains(typeof(ModuleReplicationPatch).Name)
+                    )
+                    continue;
+
+                ModuleReplicationPatch mrp = null;
+                if (!ModuleReplicationPatch.Patches.Any(x=>x.GetType() == module))
+                    mrp = (ModuleReplicationPatch)Activator.CreateInstance(module);
+                else
+                    mrp = ModuleReplicationPatch.Patches.SingleOrDefault(x => x.GetType() == module);
+
+                if (mrp == null)
+                    continue;
+
+                if (!mrp.DisablePatch && enablePatches)
+                {
+                    Logger.LogInfo($"Enabled {mrp.GetType()}");
+                    mrp.Enable();
+                }
+                else
+                    mrp.Disable();
+            }
         }
     }
 }
