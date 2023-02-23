@@ -25,29 +25,17 @@ Including but not limited to:
 - Lots more
 
 ## How to compile? 
-1. Deobfuscate latest Assembly-CSharp via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher)
-2. All the following assembly references must be placed in Tarkov.References in the parent folder of this project. You can copy-paste from your Tarkov Install.
-- Assembly-CSharp (deobfuscated via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher))
-- bsg.componentace.compression.libs.zlib
-- com.unity.multiplayer-hlapi.Runtime
-- Comfort
-- Comfort.Unity
-- DissonanceVoip
-- FilesChecker
-- Sirenix.Serialization.Config
-- Sirenix.Serialization
-- Sirenix.Utilities
-- Unity.ScriptableBuildPipeline
-- UnityEngine.AssetBundleModule
-- UnityEngine.CoreModule
-- UnityEngine
-- UnityEngine.UI
-3. You will need BepInEx Nuget Feed installed on your PC by running the following command in a terminal. 
+1. Create Working Directory for all Tarkov Modding {EFT_WORK}
+2. Clone this {SIT_CORE} to a {SIT_CORE} directory inside {EFT_WORK}
+3. Copy your Live Tarkov Directory somewhere else {EFT_OFFLINE}
+4. Deobfuscate latest Assembly-CSharp in {EFT_OFFLINE} via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher). Ensure to close and restart Launcher after Deobfuscation.
+5. Copy all of {EFT_OFFLINE}\EscapeFromTarkov_Data\Managed assemblies to Tarkov.References {TARKOV.REF} in the parent folder of this project {EFT_WORK}
+6. You will need BepInEx Nuget Feed installed on your PC by running the following command in a terminal. 
 ```
 dotnet new -i BepInEx.Templates --nuget-source https://nuget.bepinex.dev/v3/index.json
 ```
-4. Open the .sln with Visual Studio 2022
-5. Rebuild Solution (This should download and install all nuget packages on compilation)
+7. Open the .sln with Visual Studio 2022
+8. Rebuild Solution (This should download and install all nuget packages on compilation)
 
 ## Which version of BepInEx is this built for?
 Version 5
@@ -86,10 +74,23 @@ No. BSG server code is hidden from the client for obvious reasons. So BSG's impl
 1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
 2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data. Initial movement tests work extremely well!
 
+## SPT-Aki
+
+### Are Aki Modules supported?
+The following Aki Modules are supported.
+- aki-core
+- Aki.Reflection
+- 95% of mods
+
+### Why don't you use Aki Module DLLs?
+SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.
+So I ported many of SPT-Aki features into this module. My end-goal would be to rely on SPT-Aki and for this to be solely focused on SIT only features.
+
 ## Thanks List
 - SPT-Aki team
 - MTGA team
 
 ## License
 
-Some of the original core functionality completed by SPT-Aki teams. There may be licenses pertaining to them within this source.
+- 95% of the original core and single-player functionality completed by SPT-Aki teams. There may be licenses pertaining to them within this source.
+- None of my own work is Licensed. This is solely a just for fun project. I don't care what you do with it.
