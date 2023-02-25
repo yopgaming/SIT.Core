@@ -90,22 +90,23 @@
 //                    LocalGamePatches.MyPlayer = p;
 //                }
 
-//                if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
-//                    return;
+//                //if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
+//                //    return;
 
 //                //gameWorld = Singleton<GameWorld>.Instance;
 //                //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
-//                if (Singleton<GameWorld>.Instance.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
-//                {
+//                var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+//                //if (Singleton<GameWorld>.Instance.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
+//                //{
 
-//                    Logger.LogInfo("LocalGamePlayerSpawn CoopGameComponent Found!");
+//                //    Logger.LogInfo("LocalGamePlayerSpawn CoopGameComponent Found!");
 
-//                }
+//                //}
 
 //                // Player spawns before Bots. This must occur here to clear out previous session.
-//                CoopGameComponent.Players.Clear();
+//                //CoopGameComponent.Players.Clear();
 //                // TODO: Shouldnt this be a member variable, not static?
-//                CoopGameComponent.Players.TryAdd(PatchConstants.GetPlayerProfileAccountId(profile), p);
+//                //CoopGameComponent.Players.TryAdd(PatchConstants.GetPlayerProfileAccountId(profile), p);
 //                var prc = p.GetOrAddComponent<PlayerReplicatedComponent>();
 //                prc.player = p;
 //                prc.IsMyPlayer = true;
@@ -158,7 +159,7 @@
 //                ////new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 //                //ServerCommunication.PostLocalPlayerData(p, dictionary2);
 
-//                if (Matchmaker.MatchmakerAcceptPatches.IsServer)
+//                if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
 //                {
 //                    Dictionary<string, object> value2 = new Dictionary<string, object>
 //                    {
@@ -184,11 +185,11 @@
 //                        }
 //                    };
 //                    Logger.LogInfo("Setting Spawn Point to " + position);
-//                    new SIT.Tarkov.Core.Request().PostJson("/client/match/group/server/setPlayersSpawnPoint", JsonConvert.SerializeObject(value2));
+//                    //new SIT.Tarkov.Core.Request().PostJson("/client/match/group/server/setPlayersSpawnPoint", JsonConvert.SerializeObject(value2));
 //                    ServerCommunication.SendDataDownWebSocket(value2);
 
 //                }
-//                else if (Matchmaker.MatchmakerAcceptPatches.IsClient)
+//                else
 //                {
 //                    int attemptsToReceiveSpawn = 60;
 //                    var spawnPointPosition = Vector3.zero;

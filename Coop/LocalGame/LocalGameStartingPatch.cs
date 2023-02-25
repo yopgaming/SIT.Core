@@ -10,13 +10,14 @@
 //using System.Reflection;
 //using System.Text;
 //using System.Threading.Tasks;
-//using CoopTarkovGameServer;
+////using CoopTarkovGameServer;
 //using System.Collections.Concurrent;
 //using BepInEx.Configuration;
 //using SIT.Coop.Core.Player;
 //using Comfort.Common;
 //using EFT;
 //using UnityEngine;
+//using SIT.Core.Coop;
 
 //namespace SIT.Coop.Core.LocalGame
 //{
@@ -42,11 +43,15 @@
 //            //{
 //            //    Logger.LogInfo($"LocalGameStartingPatch:{ty}");
 //            //}
-//            var t = SIT.Tarkov.Core.PatchConstants.EftTypes.FirstOrDefault(x => x.FullName.StartsWith("EFT.LocalGame"));
+//            _ = typeof(EFT.BaseLocalGame<GamePlayerOwner>);
+
+//            //var t = SIT.Tarkov.Core.PatchConstants.EftTypes.FirstOrDefault(x => x.FullName.StartsWith("EFT.LocalGame"));
+//            var t = typeof(EFT.LocalGame);
+//            //var t = typeof(EFT.BaseLocalGame<GamePlayerOwner>);
 //            if (t == null)
 //                Logger.LogInfo($"LocalGameStartingPatch:Type is NULL");
 
-//            var method = PatchConstants.GetAllMethodsForType(t)
+//            var method = PatchConstants.GetAllMethodsForType(t, false)
 //                .FirstOrDefault(x => x.GetParameters().Length >= 3
 //                && x.GetParameters().Any(x => x.Name.Contains("botsSettings"))
 //                && x.GetParameters().Any(x => x.Name.Contains("backendUrl"))
@@ -57,212 +62,140 @@
 //            return method;
 //        }
 
-//        [PatchPrefix]
-//        public static async void PatchPrefix(
-//            BaseLocalGame<GamePlayerOwner> __instance
-//            , Task __result
-//            )
-//        {
-
-//            Logger.LogInfo($"LocalGameStartingPatch:PatchPrefix");
-//            LocalGamePatches.LocalGameInstance = __instance;
-
-//            new LocalGameSpawnAICoroutinePatch(_config, __instance).Enable();
-//            new WaveSpawnScenarioPatch(_config).Enable();
-//            new NonWaveSpawnScenarioPatch(_config).Enable();
-//            new LocalGameBotWaveSystemPatch().Enable();
-
-//            await StartAndConnectToServer(__instance);
-//        }
-
 //        [PatchPostfix]
 //        public static async void PatchPostfix(
 //            BaseLocalGame<GamePlayerOwner> __instance
 //            , Task __result
 //            )
 //        {
-//            //Logger.LogInfo($"LocalGameStartingPatch:PatchPostfix");
+//            await __result;
+
 //            LocalGamePatches.LocalGameInstance = __instance;
 //            var gameWorld = Singleton<GameWorld>.Instance;
+//            if (gameWorld == null)
+//            {
+//                Logger.LogError("GameWorld is NULL");
+//                return;
+//            }
 //            if (gameWorld.TryGetComponent<CoopGameComponent>(out CoopGameComponent coopGameComponent))
 //            {
 //                GameObject.Destroy(coopGameComponent);
 //            }
-//            gameWorld.GetOrAddComponent<CoopGameComponent>();
 
-//            //Logger.LogInfo($"LocalGameStartingPatch:PatchPostfix:Connecting to Echo Server");
-//            await StartAndConnectToServer(__instance);
-//        }
+//            // Hideout is SinglePlayer only. Do not create CoopGameComponent
+//            if (__instance.GetType().Name.Contains("HideoutGame"))
+//                return;
 
-//        public static async Task StartAndConnectToServer(object __instance)
-//        {
-//            //Logger.LogInfo("LocalGameStartingPatch.StartAndConnectToServer : Matchmaker Matching type is " + Matchmaker.MatchmakerAcceptPatches.MatchingType);
-//            if (!(__instance.GetType().Name.Contains("HideoutGame")) && MatchmakerAcceptPatches.MatchingType != EMatchmakerType.Single)
+//            var coopGC = gameWorld.GetOrAddComponent<CoopGameComponent>();
+//            if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
+//                coopGC.ServerId = MatchmakerAcceptPatches.GetGroupId();
+//            else
 //            {
-//                if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.GroupLeader)
-//                {
-//                    // ------ As Host, Create Echo Server --------
-//                    //if (gameServer != null)
-//                    //{
-//                    //    Logger.LogInfo("Destroying Echo Server");
-//                    //    gameServer.OnLog -= EchoGameServer_OnLog;
-//                    //    gameServer.Dispose();
-//                    //    gameServer = null;
-//                    //    GC.Collect();
-//                    //    GC.WaitForPendingFinalizers();
-//                    //    Logger.LogInfo("Destroyed Echo Server");
-//                    //}
-
-//                    //if (gameServer == null)
-//                    //{
-//                    //    Logger.LogInfo("Starting Echo Server");
-//                    //    gameServer = new EchoGameServer();
-//                    //    gameServer.OnLog += EchoGameServer_OnLog;
-//                    //    gameServer.CreateListenersAndStart();
-//                    //    Logger.LogInfo("Echo Server started");
-//                    //}
-
-//                    //Logger.LogInfo("LocalGameStartingPatch.StartAndConnectToServer : Telling Central to Create Server");
-
-//                    //string myExternalAddress = ServerCommunication.GetMyExternalAddress();
-
-//                    // ------ As Host, Notify Central Server --------
-//                    await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/start", JsonConvert.SerializeObject(""));
-//                    //await ServerCommunication.SendDataDownWebSocket("Start=" + PatchConstants.GetPHPSESSID());
-//                    await Task.Delay(500);
-//                }
-//                else
-//                {
-//                    //Logger.LogInfo("LocalGameStartingPatch.StartAndConnectToServer : Joining Server");
-
-//                    await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/join", JsonConvert.SerializeObject(MatchmakerAcceptPatches.GetGroupId()));
-//                    await Task.Delay(500);
-//                }
+//                GameObject.Destroy(coopGameComponent);
+//                coopGC = null;
+//                Logger.LogInfo("No Server Id found, Deleting Coop Game Component");
 //            }
-//            ServerCommunication.OnDataReceived += ServerCommunication_PingPong;
-//            ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
+//            //else
+//            //    coopGC.ServerId = PatchConstants.GetPHPSESSID();
+
+//            // Ensure other Replication patches are running
+//            CoopPatches.EnableDisablePatches();
+//            //__instance.AllPlayers.ForEach(p => { var prc = p.GetOrAddComponent<PlayerReplicatedComponent>(); prc.player = p as EFT.LocalPlayer; });
 //        }
 
-//        private static void ServerCommunication_OnDataArrayReceived(string[] array)
-//        {
-//            for(var i = 0; i < array.Length; i++)
-//            {
-//                var @string = array[i];
-//                if (@string.Length == 4 && @string == "Ping")
-//                {
-//                    //this.DataEnqueued.Enqueue(Encoding.ASCII.GetBytes("Pong"));
-//                    ServerCommunication.SendDataDownWebSocket("Pong");
-//                    return;
-//                }
-//            }
-//        }
+//        //public static async Task StartAndConnectToServer(object __instance)
+//        //{
+//        //    //if (!(__instance.GetType().Name.Contains("HideoutGame")) && MatchmakerAcceptPatches.MatchingType != EMatchmakerType.Single)
+//        //    //{
+//        //    //    if (MatchmakerAcceptPatches.MatchingType == EMatchmakerType.GroupLeader)
+//        //    //    {
+//        //    //        // ------ As Host, Notify Central Server --------
+//        //    //        await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/start", JsonConvert.SerializeObject(""));
+//        //    //        await Task.Delay(500);
+//        //    //    }
+//        //    //    else
+//        //    //    {
+
+//        //    //        await new SIT.Tarkov.Core.Request().PostJsonAsync("/client/match/group/server/join", JsonConvert.SerializeObject(MatchmakerAcceptPatches.GetGroupId()));
+//        //    //        await Task.Delay(500);
+//        //    //    }
+//        //    //}
+//        //    //ServerCommunication.OnDataReceived += ServerCommunication_PingPong;
+//        //    //ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
+//        //}
+
+//        //private static void ServerCommunication_OnDataArrayReceived(string[] array)
+//        //{
+//        //    for (var i = 0; i < array.Length; i++)
+//        //    {
+//        //        var @string = array[i];
+//        //        if (@string.Length == 4 && @string == "Ping")
+//        //        {
+//        //            ServerCommunication.SendDataDownWebSocket("Pong");
+//        //            return;
+//        //        }
+//        //    }
+//        //}
 
 //        private static void EchoGameServer_OnLog(string text)
 //        {
 //            Logger.LogInfo(text);
 //        }
 
-//        private static void ServerCommunication_PingPong(byte[] buffer)
-//        {
-//            if (buffer.Length == 0)
-//                return;
+//        //private static void ServerCommunication_PingPong(byte[] buffer)
+//        //{
+//        //    if (buffer.Length == 0)
+//        //        return;
 
 
-//            //using (StreamReader streamReader = new StreamReader(new MemoryStream(buffer)))
-//            {
-//                {
-//                    try
-//                    {
-//                        //string @string = streamReader.ReadToEnd();
-//                        string @string = UTF8Encoding.UTF8.GetString(buffer);
+//        //    //using (StreamReader streamReader = new StreamReader(new MemoryStream(buffer)))
+//        //    {
+//        //        {
+//        //            try
+//        //            {
+//        //                //string @string = streamReader.ReadToEnd();
+//        //                string @string = UTF8Encoding.UTF8.GetString(buffer);
 
-//                        if (@string.Length == 4 && @string == "Ping")
-//                        {
-//                            //this.DataEnqueued.Enqueue(Encoding.ASCII.GetBytes("Pong"));
-//                            ServerCommunication.SendDataDownWebSocket("Pong");
-//                            return;
-//                        }
-//                        else
-//                        {
-//                            Task.Run(() =>
-//                            {
-//                                //Logger.LogInfo($"LocalGameStartingPatch:OnDataReceived:{buffer.Length}");
+//        //                if (@string.Length == 4 && @string == "Ping")
+//        //                {
+//        //                    //this.DataEnqueued.Enqueue(Encoding.ASCII.GetBytes("Pong"));
+//        //                    //ServerCommunication.SendDataDownWebSocket("Pong");
+//        //                    return;
+//        //                }
+//        //                else
+//        //                {
+//        //                    Task.Run(() =>
+//        //                    {
+//        //                        //Logger.LogInfo($"LocalGameStartingPatch:OnDataReceived:{buffer.Length}");
 
-//                                if (@string.Length > 0 && @string[0] == '{' && @string[@string.Length - 1] == '}')
-//                                {
-//                                    var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string);
+//        //                        if (@string.Length > 0 && @string[0] == '{' && @string[@string.Length - 1] == '}')
+//        //                        {
+//        //                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(@string);
 
-//                                    if (dictionary != null && dictionary.Count > 0)
-//                                    {
-//                                        //if (dictionary.ContainsKey("SERVER"))
-//                                        //{
-//                                        //    Logger.LogInfo($"LocalGameStartingPatch:OnDataReceived:SERVER:{buffer.Length}");
-//                                        //    CoopGameComponent.QueuedPackets.Enqueue(dictionary);
-//                                        //}
-//                                        //else
-//                                        if (!dictionary.ContainsKey("SERVER") && dictionary.ContainsKey("accountId"))
-//                                        {
-//                                            var player = CoopGameComponent.GetPlayerByAccountId(dictionary["accountId"].ToString());
-//                                            if (player != null)
-//                                            {
-//                                                player.GetOrAddComponent<PlayerReplicatedComponent>().QueuedPackets.Enqueue(dictionary);
-//                                            }
-//                                        }
-                                        
-
-//                                        //if (dictionary.ContainsKey("m") && !dictionary.ContainsKey("method"))
-//                                        //    dictionary.Add("method", dictionary["m"]);
-
-//                                        //var method = dictionary["method"].ToString();
-
-//                                        ////Logger.LogInfo($"LocalGameStartingPatch:OnDataReceived:{method}");
-
-//                                        //CoopGameComponent.ClientQueuedActions.TryAdd(method, new ConcurrentQueue<Dictionary<string, object>>());
-//                                        //CoopGameComponent.ClientQueuedActions[method].Enqueue(dictionary);
-//                                    }
-//                                }
-//                                //if (@string.IndexOf('[') == 0 && @string.EndsWith("]"))
-//                                //{
-//                                //    var deserialized = JsonConvert.DeserializeObject<object[]>(@string);
-//                                //    foreach (var item in deserialized)
-//                                //    {
-//                                //        if (item.ToString() == "Ping")
-//                                //        {
-//                                //            ServerCommunication.SendDataDownWebSocket("Pong");
-//                                //        }
-//                                //        else
-//                                //        {
-//                                //            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(item.ToString());
-//                                //            if (dictionary != null && dictionary.Count > 0 && dictionary.ContainsKey("accountId"))
-//                                //            {
-//                                //                if (dictionary.ContainsKey("m") && !dictionary.ContainsKey("method"))
-//                                //                {
-//                                //                    dictionary.Add("method", dictionary["m"]);
-//                                //                }
-
-//                                //                if (!dictionary.ContainsKey("method"))
-//                                //                    continue;
-
-//                                //                var method = dictionary["method"].ToString();
-
-//                                //                //this.ClientQueuedActions.TryAdd(method, new Queue<Dictionary<string, object>>());
-//                                //                //this.ClientQueuedActions[method].Enqueue(dictionary);
-//                                //            }
-//                                //        }
-//                                //    }
-//                                //    deserialized = null;
-//                                //}
-//                            });
-//                            //}
-//                        }
-//                    }
-//                    catch (Exception ex2)
-//                    {
-//                        return;
-//                    }
-//                }
-//            }
-//        }
+//        //                            if (dictionary != null && dictionary.Count > 0)
+//        //                            {
+//        //                                if (!dictionary.ContainsKey("SERVER") && dictionary.ContainsKey("accountId"))
+//        //                                {
+//        //                                    //var player = CoopGameComponent.GetPlayerByAccountId(dictionary["accountId"].ToString());
+//        //                                    //if (player != null)
+//        //                                    //{
+//        //                                    //    player.GetOrAddComponent<PlayerReplicatedComponent>().QueuedPackets.Enqueue(dictionary);
+//        //                                    //}
+//        //                                }
+                                       
+//        //                            }
+//        //                        }
+                                
+//        //                    });
+//        //                }
+//        //            }
+//        //            catch (Exception)
+//        //            {
+//        //                return;
+//        //            }
+//        //        }
+//        //    }
+//        //}
 
 //        private static void SetMatchmakerStatus(string status, float? progress = null)
 //        {
@@ -270,11 +203,11 @@
 //                return;
 
 //            var method = PatchConstants.GetAllMethodsForType(LocalGamePatches.LocalGameInstance.GetType()).First(x => x.Name == "SetMatchmakerStatus");
-//            if(method != null)
+//            if (method != null)
 //            {
 //                method.Invoke(LocalGamePatches.LocalGameInstance, new object[] { status, progress });
 //            }
-            
+
 //        }
 //    }
 //}

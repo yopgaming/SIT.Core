@@ -15,6 +15,7 @@ using UnityEngine.UIElements;
 using EFT;
 using HarmonyLib;
 using UnityEngine.Events;
+using System.Text.RegularExpressions;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -35,9 +36,9 @@ namespace SIT.Coop.Core.Matchmaker
 		public static Type GetThisType()
 		{
             return Tarkov.Core.PatchConstants.EftTypes
-                 //.Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
-                 .Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
-		}
+                 .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
+            //.Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
+        }
 
         protected override MethodBase GetTargetMethod()
         {
@@ -51,7 +52,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         private static object screenController;
 
-        private static object grouping => MatchmakerAcceptPatches.GetGrouping();
+        //private static object grouping => MatchmakerAcceptPatches.GetGrouping();
 
         private static Button _updateListButton;
 
@@ -64,46 +65,47 @@ namespace SIT.Coop.Core.Matchmaker
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
             ref DefaultUIButton ____backButton,
             ref DefaultUIButton ____acceptButton,
-            ref DefaultUIButton ____updateListButton,
+            //ref Button ____updateListButton,
+            //ref DefaultUIButton ____findOtherPlayersButton,
             ref Profile ___profile_0,
             ref CanvasGroup ____canvasGroup,
-            ref object ___UI,
-            ref ERaidMode ___eraidMode_0
+            ref ERaidMode ___eraidMode_0,
+            object ___MatchmakerPlayersController,
+            object ___ScreenController
             )
         {
-            //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
-
+            Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
+            //MatchmakerAcceptPatches.Profile = ___profile_0;
+            //Logger.LogInfo(___profile_0.AccountId);
+            
             // ----------------------------------------------------
             // Reset number of players for next Raid
             MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
 
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             screenController = MatchmakerAcceptPatches.MatchmakerScreenController;
-            ___eraidMode_0 = ERaidMode.Online;
-            //var screenControllerFieldInfo = __instance.GetType().GetField("ScreenController", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-            //if(screenControllerFieldInfo != null)
-            //{
-            //    //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix.Found ScreenController FieldInfo");
-            //    screenController = screenControllerFieldInfo.GetValue(__instance);
-            //    if(screenController != null)
-            //    {
+            //___eraidMode_0 = ERaidMode.Online;
+            ___eraidMode_0 = ERaidMode.Local;
+            var profile = ___profile_0;
+            ____acceptButton.OnClick.RemoveAllListeners();
+            ____acceptButton.OnClick.AddListener(() => 
+            {
+                //if (___MatchmakerPlayersController.GroupPlayers.Count == 0)
+                //{
+                //    Logger.LogInfo("___MatchmakerPlayersController.GroupPlayers is Empty??");
+                //}
+                //___MatchmakerPlayersController.GroupPlayers.Add(___MatchmakerPlayersController.CurrentPlayer);
 
-            //    }
-            //}
-            //var GotoNextScreenMethod = __instance.GetType().GetMethod("method_15", privateFlags);
-            //var BackOutScreenMethod = __instance.GetType().GetMethod("method_20", privateFlags);
-            //var UpdateListScreenMethod = __instance.GetType().GetMethod("method_22", privateFlags);
-            ____acceptButton.OnClick.AddListener(() => { GoToRaid();});
-            ____backButton.OnClick.AddListener(() => { BackOut(); });
-            ____updateListButton.OnClick.AddListener(() => 
-            { 
+                //GoToRaid(); 
+                PatchConstants.GetMethodForType(___ScreenController.GetType(), "ShowNextScreen")
+                .Invoke(___ScreenController, new object[] { string.Empty, EMatchingType.Single });
 
-                MatchmakerAcceptPatches.CheckForMatch(); 
-            
+
             });
+            ____backButton.OnClick.AddListener(() => { BackOut(); });
 
-            //_canvasGroup = ____canvasGroup;
-            //_canvasGroup.interactable = true;
+            _canvasGroup = ____canvasGroup;
+            _canvasGroup.interactable = true;
 
             //DefaultUIButton startServerButton = GameObject.Instantiate<DefaultUIButton>(____acceptButton);
             //RectTransform acceptBtnRectTransform = ____acceptButton.GetComponent<RectTransform>();
@@ -112,18 +114,28 @@ namespace SIT.Coop.Core.Matchmaker
             //startServerButton.SetRawText("CUNT!", 18);
 
             profile = ___profile_0;
-            //return false; // dont do anything, think for ourselves?
             return true; // run the original
 
         }
 
-        [PatchPostfix]
-        private static void PatchPostfix(
-            ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
-            ref ERaidMode ___eraidMode_0
-            )
+        //[PatchPostfix]
+        //private static void PatchPostfix(
+        //    ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
+        //    ref ERaidMode ___eraidMode_0
+        //    )
+        //{
+        //    //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPostfix");
+        //}
+
+        public static void DoCreateAndCheck()
         {
-            //Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPostfix");
+            if(MatchmakerAcceptPatches.Profile == null)
+            {
+                Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
+                return;
+            }
+            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
+            MatchmakerAcceptPatches.CheckForMatch();
         }
 
         public static void GoToRaid()

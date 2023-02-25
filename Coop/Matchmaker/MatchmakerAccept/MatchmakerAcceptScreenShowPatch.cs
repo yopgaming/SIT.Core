@@ -45,15 +45,17 @@ namespace SIT.Coop.Core.Matchmaker
 
         [PatchPrefix]
         private static bool PatchPrefix(
-            //ref object session, ref ESideType side, ref object selectedDateTime, ref object location, ref bool local, ref string keyId,
-            ref object session, ref RaidSettings raidSettings,
+            ref ISession session, 
+            ref RaidSettings raidSettings,
             ref EFT.ERaidMode ___eraidMode_0,
             ref EFT.RaidSettings ___raidSettings_0,
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
             //ref ScreenController ___ScreenController, 
             ref DefaultUIButton ____updateListButton,
-            ref Profile ___profile_0
-			)
+            ref Profile ___profile_0,
+            ref DefaultUIButton ____findOtherPlayersButton
+
+            )
         {
 			Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
 			//_updateListButton = ____updateListButton;
@@ -78,12 +80,15 @@ namespace SIT.Coop.Core.Matchmaker
 			ref Profile ___profile_0,
             ref DefaultUIButton ____acceptButton,
             ref DefaultUIButton ____playersRaidReadyPanel,
-			ref DefaultUIButton ____groupPreview
+			ref DefaultUIButton ____groupPreview,
+            ref DefaultUIButton ____findOtherPlayersButton
             )
         {
 
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
-            Logger.LogInfo(___profile_0.AccountId);
+            MatchmakerAcceptPatches.Profile = ___profile_0;
+            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
+            //Logger.LogInfo(___profile_0.AccountId);
+
 
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
 
@@ -92,6 +97,8 @@ namespace SIT.Coop.Core.Matchmaker
             ____acceptButton.gameObject.SetActive(true);
             ____playersRaidReadyPanel.ShowGameObject();
             ____playersRaidReadyPanel.gameObject.SetActive(true);
+
+            ____findOtherPlayersButton.SetHeaderText("Start a Server / Check for Match", 16);
         }
 
 

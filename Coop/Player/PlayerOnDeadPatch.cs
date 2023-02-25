@@ -30,7 +30,8 @@ namespace SIT.Coop.Core.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("m", "Dead");
-            var generatedDict = ServerCommunication.PostLocalPlayerData(__instance, dictionary);
+            ServerCommunication.PostLocalPlayerData(__instance, dictionary, out string returnedData, out var generatedDict);
+
         }
     }
 }

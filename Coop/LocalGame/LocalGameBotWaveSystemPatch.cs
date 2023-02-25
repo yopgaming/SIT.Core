@@ -1,4 +1,5 @@
 ﻿using EFT;
+using EFT.Bots;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -13,27 +14,24 @@ namespace SIT.Coop.Core.LocalGame
     {
         protected override MethodBase GetTargetMethod()
         {
-            var t = LocalGamePatches.LocalGameInstance.GetType().BaseType;
+            var t = typeof(EFT.LocalGame);
             //var t = LocalGamePatches.LocalGameInstance.GetType();
 
             var method = PatchConstants.GetAllMethodsForType(t)
-                .FirstOrDefault(x => x.GetParameters().Length == 2
-                && x.GetParameters()[0].Name.Contains("wavesSettings")
-                && x.GetParameters()[1].Name.Contains("waves")
+                .FirstOrDefault(x => x.GetParameters().Length >= 2
+                && x.GetParameters()[0].Name.Contains("botsSettings")
+                && x.GetParameters()[1].Name.Contains("spawnSystem")
                 );
             return method;
         }
 
         [PatchPrefix]
-        public static bool PatchPrefix(object wavesSettings, WildSpawnWave[] waves, ref WildSpawnWave[] __result)
+        public static void PatchPrefix(BotControllerSettings botsSettings, ISpawnSystem spawnSystem)
         {
-            return true;
-            //if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
-            //    return true;
-
-            //__result = new WildSpawnWave[0];
-
-            //return false;
+            if (Matchmaker.MatchmakerAcceptPatches.IsClient)
+            {
+                botsSettings.BotAmount = EBotAmount.NoBots;
+            }
         }
     }
 }

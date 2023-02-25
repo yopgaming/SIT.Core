@@ -18,7 +18,7 @@ namespace SIT.Tarkov.Core.LocalGame
         public static event Action LocalGameStarted;
         protected override MethodBase GetTargetMethod()
         {
-            var t = SIT.Tarkov.Core.PatchConstants.EftTypes.FirstOrDefault(x => x.FullName.StartsWith("EFT.LocalGame"));
+            var t = typeof(EFT.LocalGame);
             if (t == null)
                 Logger.LogInfo($"LocalGameStartingPatch:Type is NULL");
 
@@ -39,6 +39,8 @@ namespace SIT.Tarkov.Core.LocalGame
             , Task __result
             )
         {
+            await __result;
+
             Logger.LogInfo($"LocalGameStartingPatch:PatchPrefix");
             LocalGameInstance = __instance;
             if (LocalGameStarted != null)

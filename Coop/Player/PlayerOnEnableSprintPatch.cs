@@ -27,23 +27,15 @@ namespace SIT.Coop.Core.Player
         }
 
         [PatchPrefix]
-        public static bool PrePatch()
-        {
-            return Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer;
-        }
-
-        [PatchPostfix]
-        public static void Patch(EFT.Player __instance, bool enable)
-        {
-            if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
-                return;
+        public static bool PrePatch(EFT.Player __instance, bool enable)
+        { 
 
             Dictionary<string, object> args = new Dictionary<string, object>();
             args.Add("enable", enable.ToString());
             args.Add("m", "EnableSprint");
 
             ServerCommunication.PostLocalPlayerData(__instance, args);
-
+            return false;
         }
 
         public static void Replicated(EFT.Player player, Dictionary<string, object> packet)

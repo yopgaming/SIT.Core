@@ -20,7 +20,7 @@ namespace SIT.Coop.Core.Player
         {
             var t = SIT.Tarkov.Core.PatchConstants.EftTypes.FirstOrDefault(x => x.FullName == "EFT.Player");
             if (t == null)
-                Logger.LogInfo($"OnGesturePatch:Type is NULL");
+                Logger.LogInfo($"PlayerOnSayPatch:Type is NULL");
 
             var method = PatchConstants.GetAllMethodsForType(t)
                 .FirstOrDefault(x => 
@@ -34,16 +34,19 @@ namespace SIT.Coop.Core.Player
             return method;
         }
 
-        //[PatchPrefix]
-        //public static void PatchPrefix(object gesture)
+        [PatchPrefix]
+        public static bool PatchPrefix(
+        //    object gesture
+        //    )
         //{
         //    Logger.LogInfo("OnGesturePatch.PatchPrefix");
         //}
 
-        [PatchPostfix]
-        public static void PatchPostfix(
-            object __instance,
-            object @event)
+        //[PatchPostfix]
+        //public static void PatchPostfix(
+            EFT.Player __instance,
+            object @event
+            )
         {
             //Logger.LogInfo("PlayerOnSayPatch.PatchPostfix");
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
@@ -51,12 +54,12 @@ namespace SIT.Coop.Core.Player
             dictionary.Add("m", "Say");
             ServerCommunication.PostLocalPlayerData(__instance, dictionary);
             //Logger.LogInfo("PlayerOnSayPatch.PatchPostfix:Sent");
-
+            return false;
         }
 
         public static void SayReplicated(EFT.Player player, Dictionary<string, object> packet)
         {
-
+            player.Say((EPhraseTrigger)Enum.Parse(typeof(EPhraseTrigger), packet["event"].ToString()));
         }
     }
 }
