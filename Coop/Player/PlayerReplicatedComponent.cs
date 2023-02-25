@@ -14,7 +14,7 @@ namespace SIT.Coop.Core.Player
     internal class PlayerReplicatedComponent : NetworkBehaviour
     {
         internal const int PacketTimeoutInSeconds = 1;
-        internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new ();
+        internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
         internal Dictionary<string, object> LastMovementPacket { get; set; }
         internal EFT.LocalPlayer player { private get; set; }
         public float LastTiltLevel { get; private set; }
@@ -163,15 +163,16 @@ namespace SIT.Coop.Core.Player
                             { "m", "Tilt" }
                         });
                     }
- 
 
-                if (LastMovementPacket == null)
-                    continue;
 
-                PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
+                    if (LastMovementPacket == null)
+                        continue;
 
-                yield return waitEndOfFrame;
+                    PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
 
+                    yield return waitEndOfFrame;
+
+                }
             }
         }
     }
