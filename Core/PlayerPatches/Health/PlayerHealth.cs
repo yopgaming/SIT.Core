@@ -4,8 +4,8 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
 {
     public class PlayerHealth
     {
-        private readonly Dictionary<EBodyPart, BodyPartHealth> _health = new Dictionary<EBodyPart, BodyPartHealth>() {
-            //{ EBodyPart.Common, new BodyPartHealth() },
+        private readonly Dictionary<EBodyPart, BodyPartHealth> _health = new() 
+        {
             { EBodyPart.Head, new BodyPartHealth() },
             { EBodyPart.Chest, new BodyPartHealth() },
             { EBodyPart.Stomach, new BodyPartHealth() },

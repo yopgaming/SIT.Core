@@ -2,7 +2,6 @@
 using EFT;
 using UnityEngine;
 
-
 namespace SIT.Tarkov.Core.Spawners.Grenades
 {
     public class GrenadeSpawner : MonoBehaviour
@@ -26,19 +25,19 @@ namespace SIT.Tarkov.Core.Spawners.Grenades
             this.bullet = ShotFactory.GetBullet(TemplateId);
             this.player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find((Player p) => p.IsYourPlayer);
             ShotFactory.Init(this.player);
-            ((MonoBehaviour)this).InvokeRepeating("Tick", ExplosiveGrenadeSpawner.delay, ExplosiveGrenadeSpawner.rate);
+            ((MonoBehaviour)this).InvokeRepeating("Tick", delay, rate);
         }
 
         private void Tick()
         {
             Vector3 position = ((Component)this).transform.position;
-            position.x += UnityEngine.Random.Range(0f - ExplosiveGrenadeSpawner.range, ExplosiveGrenadeSpawner.range);
-            position.z += UnityEngine.Random.Range(0f - ExplosiveGrenadeSpawner.range, ExplosiveGrenadeSpawner.range);
+            position.x += Random.Range(0f - range, range);
+            position.z += Random.Range(0f - range, range);
             position.y += 300f;
             ShotFactory.MakeShot(this.bullet, position, Vector3.down, 1f);
             if (--this.Count <= 0)
             {
-                UnityEngine.Object.Destroy(this);
+                Destroy(this);
             }
         }
     }

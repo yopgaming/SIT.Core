@@ -34,12 +34,9 @@ namespace SIT.Tarkov.Core
         [PatchPrefix]
         private static bool PatchPrefix(ref GStruct22 legacyParams)
         {
-            //Logger.LogInfo($"Original url {legacyParams.Url}");
-            //Console.WriteLine($"Original url {legacyParams.Url}");
             legacyParams.Url = legacyParams.Url
                 .Replace("https://", "")
                 .Replace("http://", "");
-            //Console.WriteLine($"Edited url {legacyParams.Url}");
             return true; // do original method after
         }
 
@@ -80,12 +77,6 @@ namespace SIT.Tarkov.Core
                 => !t.IsInterface
                 && PatchConstants.GetAllMethodsForType(t).Any(x => x.Name == "SetUri")
                 ), "SetUri", true);
-
-            //return PatchConstants.GetMethodForType(Class
-            //   => !t.IsInterface
-            //   && PatchConstants.GetAllMethodsForType(t).Any(x => x.Name == "SetUri")
-            //   ), "SetUri", true);
-            //return null;
         }
 
         [PatchPrefix]

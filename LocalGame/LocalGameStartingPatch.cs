@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.LocalGame
 {
-    // <summary>
-    /// Target that smethod_3 like
-    /// </summary>
     public class LocalGameStartingPatch : ModulePatch
     {
         public static object LocalGameInstance;

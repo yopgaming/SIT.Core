@@ -28,8 +28,7 @@ namespace SIT.Core.Coop
 
         public virtual bool DisablePatch { get; } = false;
 
-        protected static ConcurrentDictionary<Type, Dictionary<string, object>> LastSent
-            = new ConcurrentDictionary<Type, Dictionary<string, object>>();
+        protected static ConcurrentDictionary<Type, Dictionary<string, object>> LastSent = new();
 
 
         public static string SerializeObject(object o)
@@ -57,21 +56,6 @@ namespace SIT.Core.Coop
             }
             return default(T);
         }
-
-        //public override List<HarmonyMethod> GetPatchMethods(Type attributeType)
-        //{
-        //    var methods = base.GetPatchMethods(attributeType);
-
-        //    foreach (var method in GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
-        //    {
-        //        if (method.GetCustomAttribute(attributeType) != null)
-        //        {
-        //            methods.Add(new HarmonyMethod(method));
-        //        }
-        //    }
-
-        //    return methods;
-        //}
 
         public virtual void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {

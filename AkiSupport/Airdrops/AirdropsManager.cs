@@ -11,9 +11,8 @@ namespace SIT.Core.AkiSupport.Airdrops
         private AirdropPlane airdropPlane;
         private AirdropBox airdropBox;
         private ItemFactoryUtil factory;
-
-        public bool isFlareDrop;
         private AirdropParametersModel airdropParameters;
+        public bool isFlareDrop;
 
         public async void Start()
         {

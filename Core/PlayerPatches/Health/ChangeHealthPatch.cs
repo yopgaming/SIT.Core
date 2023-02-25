@@ -29,16 +29,9 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
             , float value
             , object damageInfo)
         {
-            //if (HealthListener.Instance.MyHealthController == null)
-            //{
-            //    Logger.LogInfo("ChangeHealthPatch:MyHealthController is NULL");
-            //}
-
             if (__instance == HealthListener.Instance.MyHealthController)
             {
-                //Logger.LogInfo("ChangeHealthPatch:PatchPostfix:Change on my Health Controller: " + value);
                 HealthListener.Instance.CurrentHealth.Health[bodyPart].ChangeHealth(value);
-                //Logger.LogInfo("ChangeHealthPatch:PatchPostfix:Type:" + __instance.GetType());
             }
         }
     }

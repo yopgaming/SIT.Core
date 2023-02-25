@@ -1,7 +1,6 @@
 using Comfort.Common;
 using EFT;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SIT.Core.AkiSupport.Singleplayer.Models
@@ -27,7 +26,7 @@ namespace SIT.Core.AkiSupport.Singleplayer.Models
                 Profile.GetAllPrefabPaths(false).ToArray(),
                 JobPriority.General,
                 null,
-                default(CancellationToken));
+                default);
 
             return loadTask.ContinueWith(GetProfile, TaskScheduler);
         }

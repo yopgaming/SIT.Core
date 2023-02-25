@@ -7,13 +7,9 @@ using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.FileChecker
 {
+    // Not Used, can be removed? - slejm
     public class FileCheckerMainApplicationPatch : ModulePatch
     {
-        public FileCheckerMainApplicationPatch()
-        {
-
-        }
-
         protected override MethodBase GetTargetMethod() => PatchConstants.GetAllMethodsForType(typeof(TarkovApplication))
             .Single(x => x.GetParameters().Length >= 2
                 && x.GetParameters()[0].Name == "ordinaryFileEnsuranceMode"

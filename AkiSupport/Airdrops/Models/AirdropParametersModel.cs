@@ -5,13 +5,12 @@
         public AirdropConfigModel Config;
 
         public bool AirdropAvailable;
+        public bool PlaneSpawned;
+        public bool BoxSpawned;
         public float DistanceTraveled;
         public float DistanceToTravel;
         public float DistanceToDrop;
         public float Timer;
-        public bool PlaneSpawned;
-        public bool BoxSpawned;
-
         public int DropHeight;
         public int TimeToStart;
 

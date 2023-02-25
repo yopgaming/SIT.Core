@@ -54,7 +54,7 @@ namespace SIT.Tarkov.Core.Menus
             )
         {
             var warningPanel = GameObject.Find("Warning Panel");
-            UnityEngine.Object.Destroy(warningPanel);
+            Object.Destroy(warningPanel);
             RemoveBlockers(__instance
              , profileInfo
              , raidSettings

@@ -49,7 +49,7 @@ namespace SIT.Tarkov.Core
         }
 
         #region Binding flags
-        // if you find any better naming for those variables jsut rename it using VS
+        // if you find any better naming for those variables just rename it using VS
         public BindingFlags DefaultBindingFlags;
         public BindingFlags PublicInstanceFlag;
         public BindingFlags NonPublicInstanceFlag;
@@ -74,11 +74,6 @@ namespace SIT.Tarkov.Core
         public Type FenceTraderInfoType;
         public Type FirearmControllerType;
         public string WeaponControllerFieldName;
-
-        //public static Type PreloaderUIType = TargetAssembly.GetTypes().Single(x => x.Name == "PreloaderUI");
-        //public static Type BaseLocalGameType = TargetAssembly.GetTypes().Single(x => x.Name.ToLower().Contains("baselocalgame"));
-        //public static Type MatchmakerOfflineRaidType = TargetAssembly.GetTypes().Single(x => x.Name == "MatchmakerOfflineRaid");
-        //public static Type MenuControllerType = TargetAssembly.GetTypes().Single(x => x.GetProperty("QuestController") != null);
 
         public ConstructorInfo[] MainApplicationConstructorInfo
         {

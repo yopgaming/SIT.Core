@@ -33,9 +33,6 @@ namespace SIT.Core.Misc
             {
                 _versionLabel = string.Empty;
                 _versionLabel = "SIT Powered by Aki";
-                //var json = new Request().GetJson("/singleplayer/settings/version");
-                //_versionLabel = Json.Deserialize<VersionResponse>(json).Version;
-                //Logger.LogInfo($"Server version: {_versionLabel}");
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");

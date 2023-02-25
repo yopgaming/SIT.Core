@@ -6,10 +6,9 @@ using System.Collections.Generic;
 
 namespace SIT.Coop.Core.Web
 {
-
     public static class ServerCommunication
     {
-
+        #region Not Used
         /// <summary>
         /// The User Profile of the Local Player. I usually set this as soon as we load MatchMakerAcceptScreen (probably could be done a lot sooner and globally)
         /// </summary>
@@ -180,7 +179,7 @@ namespace SIT.Coop.Core.Web
         //       return string.Empty;
         //   }
 
-
+        #endregion
         public delegate void PostLocalPlayerDataHandler(object player, Dictionary<string, object> data);
         public static event PostLocalPlayerDataHandler OnPostLocalPlayerData;
 
@@ -203,9 +202,7 @@ namespace SIT.Coop.Core.Web
             object player
             , Dictionary<string, object> data
             , out string returnedData
-            , out Dictionary<string, object> generatedData
-            , bool useReliable = false
-            )
+            , out Dictionary<string, object> generatedData)
         {
             //if (!data.ContainsKey("groupId"))
             //{
@@ -245,118 +242,5 @@ namespace SIT.Coop.Core.Web
             //}
             generatedData = data;
         }
-
-        /// <summary>
-        /// Posts the data to the Udp Socket and returns the changed Dictionary for any extra use
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="data"></param>
-        /// <param name="useReliable"></param>
-        /// <returns></returns>
-        //public static async Task<Dictionary<string, object>> PostLocalPlayerDataAsync(
-        //          object player
-        //          , Dictionary<string, object> data
-        //          , out string returnedData
-        //          , out Dictionary<string, object> generatedData
-        //          , bool useReliable = false
-        //          )
-        //      {
-        //	return await Task.Run(() => { return PostLocalPlayerData(player, data, useReliable); });
-        //}
-
-        //static bool lockedWS = false;
-        //static object lockedWSObject = new object();
-
-        //public static async Task SendDataDownWebSocketCSV(string method, string dataCSV)
-        //{
-        //	StringBuilder stringBuilder = new StringBuilder();
-        //	stringBuilder.Append("m=").Append(method);
-        //	stringBuilder.Append(";").Append(dataCSV);
-        //	await SendDataDownWebSocket(stringBuilder.ToString(), false);
-        //}
-
-        //public static async Task SendDataDownWebSocket(object data, bool reliable = false)
-        //{
-        //	if(CommunicationError)
-        //          {
-        //		LoggingCoopImplementation.QuickLog("SendDataDownWebSocket::Communication Error is preventing you sending shit!");
-        //		return;
-        //          }
-        //	if (MatchmakerAcceptPatches.IsSinglePlayer )
-        //		return;
-
-        //	int attemptCountdown = 30;
-        //	while (lockedWS && attemptCountdown-- > 0)
-        //	{
-        //		await Task.Delay(2);
-        //	}
-        //	if (attemptCountdown == 0)
-        //		return;
-
-        //	lockedWS = true;
-
-        //	string text = string.Empty;
-        //	try
-        //	{
-        //		text = ((data is string) ? ((string)data) : data.SITToJson());
-        //	}
-        //	catch (Exception ex)
-        //	{
-        //		LoggingCoopImplementation.QuickLog("SendDataDownWebSocket::" + ex.ToString());
-        //	}
-        //	if (string.IsNullOrEmpty(text))
-        //	{
-        //		return;
-        //	}
-        //	try
-        //	{
-        //		byte[] bytes = Encoding.ASCII.GetBytes(text);
-        //		if (GetUdpClient(reliable).Send(bytes, bytes.Length) == 0)
-        //		{
-        //			LoggingCoopImplementation.QuickLog("SendDataDownWebSocket::socketClient::Sent no bytes!");
-        //		}
-        //		await Task.Delay(1);
-
-        //	}
-        //	catch (Exception ex2)
-        //	{
-        //		LoggingCoopImplementation.QuickLog("SendDataDownWebSocket::Socket::" + ex2.ToString());
-        //		ServerCommunication.CommunicationError = true;
-        //	}
-        //	lockedWS = false;
-        //}
-
-
-        //public static string GetMyExternalAddress()
-        //{
-        //	try
-        //	{
-        //		return new StreamReader(WebRequest.Create("http://checkip.dyndns.org").GetResponse().GetResponseStream()).ReadToEnd().Trim().Split(':')[1].Substring(1).Split('<')[0];
-        //	}
-        //	catch (Exception ex)
-        //	{
-        //		LoggingCoopImplementation.QuickLog(ex.ToString());
-        //	}
-        //	return "";
-        //}
-
     }
-
-    //public static class LoggingCoopImplementation
-    //{
-    //	public static void QuickLog(string logString)
-    //	{
-    //		if (!string.IsNullOrEmpty(logString))
-    //		{
-    //			string text = (MatchmakerAcceptPatches.IsServer ? "SERVER-> " : "CLIENT-> ");
-    //			if (MatchmakerAcceptPatches.IsSinglePlayer)
-    //			{
-    //				text = "SP-> ";
-    //			}
-    //			text += logString;
-    //			UnityEngine.Debug.LogError(text);
-    //			PatchConstants.Logger.LogInfo(text);
-    //		}
-    //	}
-    //}
 }

@@ -8,18 +8,18 @@ namespace SIT.Tarkov.Core.PlayerPatches
 {
     internal class PlayerInitPatch : ModulePatch
     {
-        public static event Action<EFT.LocalPlayer> OnPlayerInit;
+        public static event Action<LocalPlayer> OnPlayerInit;
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
+            return PatchConstants.GetMethodForType(typeof(LocalPlayer), "Init");
         }
 
         [PatchPostfix]
         public static
             async
             void
-            PatchPostfix(Task __result, EFT.LocalPlayer __instance, Profile profile)
+            PatchPostfix(Task __result, LocalPlayer __instance, Profile profile)
         {
             if (OnPlayerInit != null)
                 OnPlayerInit(__instance);
@@ -41,11 +41,5 @@ namespace SIT.Tarkov.Core.PlayerPatches
             PatchConstants.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 
         }
-
-        //if (__instance.IsAI)
-        //{
-        //    BotSystemHelpers.AddActivePlayer(__instance);
-        //}
-
     }
 }

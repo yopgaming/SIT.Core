@@ -4,14 +4,9 @@ using System.Reflection;
 
 namespace SIT.Tarkov.Core.PlayerPatches
 {
+    // Not Used, can be removed? - slejm
     internal class OfflineDisplayProgressPatch : ModulePatch
     {
-        static OfflineDisplayProgressPatch()
-        {
-            _ = nameof(TarkovApplication);
-            _ = nameof(EFT.RaidSettings);
-        }
-
         protected override MethodBase GetTargetMethod()
         {
             foreach (var method in PatchConstants.GetAllMethodsForType(PatchConstants.EftTypes.Single(x => x.Name == "MainApplication")))

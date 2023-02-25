@@ -12,7 +12,7 @@ namespace SIT.Core
         }
 
         [PatchPrefix]
-        public static async void Prefix(TarkovApplication __instance)
+        public static void Prefix(TarkovApplication __instance)
         {
             Logger.LogInfo("TarkovApplicationInternalStartGamePatch.Prefix");
         }
@@ -27,7 +27,7 @@ namespace SIT.Core
         }
 
         [PatchPrefix]
-        public static async void Prefix(TarkovApplication __instance, RaidSettings ____raidSettings)
+        public static void Prefix(TarkovApplication __instance, RaidSettings ____raidSettings)
         {
             Logger.LogInfo("TarkovApplicationOtherStartGamePatch.Prefix");
             ____raidSettings.RaidMode = ERaidMode.Local;

@@ -1,6 +1,4 @@
 ﻿using EFT;
-//using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
-//using Grouping = GClass2434;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;

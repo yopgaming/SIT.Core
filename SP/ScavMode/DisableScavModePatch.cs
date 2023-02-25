@@ -14,12 +14,6 @@ namespace SIT.Core.SP.ScavMode
     /// </summary>
     public class DisableScavModePatch : ModulePatch
     {
-        //static Vector3 PMCs_NewPosition = new Vector3(732.3394f, 540f, 0f); // position of PMC box inside UI (global position)
-
-        static DisableScavModePatch() { }
-
-        public DisableScavModePatch() { }
-
         protected override MethodBase GetTargetMethod()
         {
             return typeof(EFT.UI.Matchmaker.MatchMakerSideSelectionScreen).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);

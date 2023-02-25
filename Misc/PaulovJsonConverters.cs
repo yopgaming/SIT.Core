@@ -60,28 +60,6 @@ namespace SIT.Core.Misc
             }
         }
 
-        //internal class PlayerJsonConverter : JsonConverter<EFT.Player>
-        //{
-        //    public override bool CanRead => true;
-        //    public override bool CanWrite => true;
-
-        //    public override EFT.Player ReadJson(JsonReader reader, Type objectType, EFT.Player existingValue, bool hasExistingValue, JsonSerializer serializer)
-        //    {
-        //        return null;
-        //    }
-
-        //    public override void WriteJson(JsonWriter writer, EFT.Player value, JsonSerializer serializer)
-        //    {
-        //        foreach (var p in value.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
-        //        {
-        //            if (p.CanRead && p.CanWrite && p.GetMethod != null && p.SetMethod != null)
-        //            {
-        //                writer.WriteValue(value.ToString());
-        //            }
-        //        }
-        //    }
-        //}
-
         public class PlayerJsonConverter : JsonConverter
         {
             public override bool CanConvert(Type objectType)

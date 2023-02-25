@@ -13,33 +13,33 @@ namespace SIT.Tarkov.Core.Spawners
 
         private static MethodBase methodCreateItem;
 
-        private static Dictionary<string, ItemTemplate> dict = new Dictionary<string, ItemTemplate>();
+        private static Dictionary<string, ItemTemplate> dict = new();
 
         public static void Init()
         {
             Type type = PatchConstants.EftTypes.Single((Type x) => x.GetMethod("LogErrors") != null);
             Type type2 = typeof(Singleton<>).MakeGenericType(type);
-            ItemFactory.instance = type2.GetProperty("Instance").GetValue(type2);
-            ItemFactory.methodCreateItem = type.GetMethod("CreateItem");
-            ItemFactory.dict = (Dictionary<string, ItemTemplate>)type.GetField("ItemTemplates").GetValue(ItemFactory.instance);
+            instance = type2.GetProperty("Instance").GetValue(type2);
+            methodCreateItem = type.GetMethod("CreateItem");
+            dict = (Dictionary<string, ItemTemplate>)type.GetField("ItemTemplates").GetValue(instance);
         }
 
         public static Item CreateItem(string id, string tpid)
         {
-            if (null == ItemFactory.methodCreateItem)
+            if (methodCreateItem == null)
             {
-                ItemFactory.Init();
+                Init();
             }
-            return (Item)ItemFactory.methodCreateItem.Invoke(ItemFactory.instance, new object[3] { id, tpid, null });
+            return (Item)methodCreateItem.Invoke(instance, new object[3] { id, tpid, null });
         }
 
         public static ItemTemplate GetItemTemplateById(string id)
         {
-            if (null == ItemFactory.methodCreateItem)
+            if (methodCreateItem == null)
             {
-                ItemFactory.Init();
+                Init();
             }
-            return ItemFactory.dict[id];
+            return dict[id];
         }
     }
 

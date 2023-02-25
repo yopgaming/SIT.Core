@@ -1,4 +1,5 @@
-﻿//using EFT;
+﻿#region OLD
+//using EFT;
 //using Newtonsoft.Json;
 ////using SIT.Coop.Core.HelpfulStructs;
 //using SIT.Tarkov.Core;
@@ -334,7 +335,7 @@
 //    }
 //}
 
-
+#endregion
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -349,21 +350,16 @@ namespace SIT.Core.Coop.Player
 {
     public class Player_ApplyDamageInfo_Patch : ModuleReplicationPatch
     {
+        private static List<long> ProcessedCalls = new();
+        public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ApplyDamageInfo";
         //public override bool DisablePatch => true;
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
-            //Logger.LogInfo($"Player_ApplyDamageInfo_Patch:{InstanceType.Name}:{method.Name}");
-
-            return method;
+            return PatchConstants.GetMethodForType(InstanceType, MethodName);
         }
-
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
-
 
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
@@ -441,7 +437,7 @@ namespace SIT.Core.Coop.Player
             ServerCommunication.PostLocalPlayerData(player, dictionary);
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
+
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {

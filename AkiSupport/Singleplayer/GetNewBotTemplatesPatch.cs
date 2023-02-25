@@ -11,14 +11,6 @@ namespace SIT.Core.AkiSupport.Singleplayer
     {
         private static MethodInfo _getNewProfileMethod;
 
-        static GetNewBotTemplatesPatch()
-        {
-            _ = nameof(IBotData.PrepareToLoadBackend);
-            _ = nameof(BotsPresets.GetNewProfile);
-            _ = nameof(PoolManager.LoadBundlesAndCreatePools);
-            _ = nameof(JobPriority.General);
-        }
-
         public GetNewBotTemplatesPatch()
         {
             _getNewProfileMethod = typeof(BotsPresets)

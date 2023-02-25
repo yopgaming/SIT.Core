@@ -8,6 +8,9 @@ namespace SIT.Core.Coop.Player
 {
     public class Player_ChangeSpeed_Patch : ModuleReplicationPatch
     {
+        private static Dictionary<string, float> LastSpeedDelta = new();
+        private static List<long> ProcessedCalls = new();
+        public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ChangeSpeed";
         public override bool DisablePatch => true;
@@ -20,14 +23,7 @@ namespace SIT.Core.Coop.Player
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
 
-        private static List<long> ProcessedCalls
-            = new List<long>();
-
-        private static Dictionary<string, float> LastSpeedDelta
-           = new Dictionary<string, float>();
 
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
