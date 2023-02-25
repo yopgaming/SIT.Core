@@ -1,18 +1,11 @@
 ﻿using Comfort.Common;
-using Diz.Jobs;
 using EFT;
 using EFT.Interactive;
-using EFT.InventoryLogic;
-using MonoMod.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.LocalGame;
-using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 //using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
-using SIT.Tarkov.Core.AI;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -20,12 +13,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.Networking.Match;
-using UnityEngine.Networking.NetworkSystem;
 
 namespace SIT.Core.Coop
 {
@@ -144,7 +133,7 @@ namespace SIT.Core.Coop
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
             Players = new ConcurrentDictionary<string, LocalPlayer>();
-           
+
 
             // ----------------------------------------------------
             // Consume Data Received from ServerCommunication class

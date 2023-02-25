@@ -1,10 +1,6 @@
 ﻿using Comfort.Common;
 using EFT;
-using HarmonyLib;
-using Newtonsoft.Json;
-using SIT.Core;
 using SIT.Core.Coop;
-using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.PlayerPatches.Health;
 using System;
 using System.Linq;
@@ -37,7 +33,7 @@ namespace SIT.Tarkov.Core
                     method.GetParameters()[1].Name == "savageProfile" &&
                     method.GetParameters()[2].Name == "location" &&
                     method.GetParameters().Any(x => x.Name == "result") &&
-                    method.GetParameters()[method.GetParameters().Length-1].Name == "timeHasComeScreenController"
+                    method.GetParameters()[method.GetParameters().Length - 1].Name == "timeHasComeScreenController"
                     )
                 {
                     //Logger.Log(BepInEx.Logging.LogLevel.Info, method.Name);
@@ -54,10 +50,10 @@ namespace SIT.Tarkov.Core
             //ref EFT.RaidSettings ____raidSettings
             //, ref Result<EFT.ExitStatus, TimeSpan, object> result
             //)
-        //    [PatchPostfix]
-        //public static void PatchPostfix(ref ESideType ___esideType_0, ref object result)
-        //{
-        //    Logger.LogInfo("OfflineSaveProfile::PatchPrefix");
+            //    [PatchPostfix]
+            //public static void PatchPostfix(ref ESideType ___esideType_0, ref object result)
+            //{
+            //    Logger.LogInfo("OfflineSaveProfile::PatchPrefix");
             // isLocal = false;
             //____raidSettings.RaidMode = ERaidMode.Online;
 
@@ -85,7 +81,7 @@ namespace SIT.Tarkov.Core
 
             //return true;
 
-            string profileId, RaidSettings ____raidSettings, TarkovApplication __instance, Result< ExitStatus, TimeSpan, object > result)
+            string profileId, RaidSettings ____raidSettings, TarkovApplication __instance, Result<ExitStatus, TimeSpan, object> result)
         {
             // Get scav or pmc profile based on IsScav value
             var profile = (____raidSettings.IsScav)
@@ -107,7 +103,7 @@ namespace SIT.Tarkov.Core
 
 
             var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if(coopGC != null)
+            if (coopGC != null)
             {
                 GameWorld.Destroy(coopGC);
             }
@@ -128,7 +124,7 @@ namespace SIT.Tarkov.Core
 
             var convertedJson = request.SITToJson();
             Request.Instance.PostJson("/raid/profile/save", convertedJson);
-           
+
         }
 
         public class SaveProfileRequest

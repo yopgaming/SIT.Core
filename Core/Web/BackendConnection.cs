@@ -1,10 +1,5 @@
 ﻿using Newtonsoft.Json;
-using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.Web
 {
@@ -29,7 +24,7 @@ namespace SIT.Tarkov.Core.Web
             //    return Instance;
 
             string[] args = Environment.GetCommandLineArgs();
-            if(args == null)
+            if (args == null)
                 return null;
 
             var beUrl = string.Empty;

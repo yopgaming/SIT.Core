@@ -1,12 +1,11 @@
 using EFT;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace SIT.Tarkov.Core
-{ 
+{
     public class RemoveUsedBotProfilePatch : ModulePatch
     {
         private static BindingFlags _flags;

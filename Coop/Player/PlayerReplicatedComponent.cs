@@ -1,21 +1,14 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
-using EFT.Interactive;
-using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
-using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.Networking.Match;
 
 namespace SIT.Coop.Core.Player
 {

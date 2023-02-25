@@ -1,21 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
 using EFT.Communications;
 using FilesChecker;
-using Newtonsoft.Json;
-using SIT.Tarkov.Core.Web;
-using SIT.Tarkov.Core.AI;
-using UnityEngine;
-using static EFT.SpeedTree.TreeWind;
-using System.Globalization;
 using HarmonyLib;
+using Newtonsoft.Json;
+using SIT.Tarkov.Core.AI;
+using SIT.Tarkov.Core.Web;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using static SIT.Core.Misc.PaulovJsonConverters;
 
 namespace SIT.Tarkov.Core
@@ -25,17 +21,17 @@ namespace SIT.Tarkov.Core
         public static BindingFlags PrivateFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
         private static Type[] _eftTypes;
-        public static Type[] EftTypes 
-        { 
-            get 
-            { 
-                if( _eftTypes == null)
+        public static Type[] EftTypes
+        {
+            get
+            {
+                if (_eftTypes == null)
                 {
                     _eftTypes = typeof(AbstractGame).Assembly.GetTypes().OrderBy(t => t.Name).ToArray();
                 }
 
-                return _eftTypes; 
-            } 
+                return _eftTypes;
+            }
         }
         public static Type[] FilesCheckerTypes { get; private set; }
         public static Type LocalGameType { get; private set; }
@@ -140,7 +136,7 @@ namespace SIT.Tarkov.Core
 
             var o = MessageNotificationType.GetMethod("DisplayMessageNotification", BindingFlags.Static | BindingFlags.Public);
             if (o != null)
-            { 
+            {
                 o.Invoke("DisplayMessageNotification", new object[] { message, ENotificationDurationType.Default, ENotificationIconType.Default, null });
             }
 
@@ -194,8 +190,8 @@ namespace SIT.Tarkov.Core
         public static FieldInfo GetFieldFromType(Type t, string name)
         {
             var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            return fields.FirstOrDefault(x => x.Name.ToLower() == name.ToLower());    
-          
+            return fields.FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+
         }
 
         public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType)
@@ -227,7 +223,7 @@ namespace SIT.Tarkov.Core
                 Logger.LogError("GetMethodForType. t is NULL");
                 return null;
             }
-            return GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower()); 
+            return GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower());
         }
 
         public static async Task<MethodInfo> GetMethodForTypeAsync(Type t, string methodName, bool debug = false)
@@ -253,7 +249,7 @@ namespace SIT.Tarkov.Core
                 yield return m;
             }
 
-            if(t.BaseType != null)
+            if (t.BaseType != null)
             {
                 foreach (var m in t.BaseType.GetMethods(
                 BindingFlags.NonPublic
@@ -274,7 +270,7 @@ namespace SIT.Tarkov.Core
 
         public static IEnumerable<MethodInfo> GetAllMethodsForObject(object ob)
         {
-            return GetAllMethodsForType(ob.GetType());  
+            return GetAllMethodsForType(ob.GetType());
         }
 
         public static IEnumerable<PropertyInfo> GetAllPropertiesForObject(object o)
@@ -323,22 +319,22 @@ namespace SIT.Tarkov.Core
         public static T GetFieldOrPropertyFromInstance<T>(object o, string name, bool safeConvert = true)
         {
             PropertyInfo property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if(property != null)
+            if (property != null)
             {
                 if (safeConvert)
                     return Tarkov.Core.PatchConstants.DoSafeConversion<T>(property.GetValue(o));
-                else 
+                else
                     return (T)property.GetValue(o);
             }
             FieldInfo field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if(field != null)
+            if (field != null)
             {
                 if (safeConvert)
                     return Tarkov.Core.PatchConstants.DoSafeConversion<T>(field.GetValue(o));
                 else
                     return (T)field.GetValue(o);
             }
-            
+
             return default(T);
         }
 
@@ -363,7 +359,7 @@ namespace SIT.Tarkov.Core
 
         public static void SetFieldOrPropertyFromInstance<T>(object o, string name, T v)
         {
-            var field = GetAllFieldsForObject(o).FirstOrDefault(x=>x.Name.ToLower() == (name.ToLower()));
+            var field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == (name.ToLower()));
             if (field != null)
                 field.SetValue(o, v);
 
@@ -451,7 +447,7 @@ namespace SIT.Tarkov.Core
 
             return JsonConvert.SerializeObject(o
                     , GetJsonSerializerSettings()
-                ) ;
+                );
         }
 
         public static async Task<string> SITToJsonAsync(this object o)
@@ -468,9 +464,10 @@ namespace SIT.Tarkov.Core
                     , new JsonSerializerSettings()
                     {
                         Converters = PatchConstants.JsonConverterDefault
-                        , ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                        ,
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
                     }
-                    ) ;
+                    );
         }
 
         public static object GetPlayerProfile(object __instance)
@@ -489,7 +486,7 @@ namespace SIT.Tarkov.Core
         {
             var instanceAccountProp = instanceProfile.GetType().GetField("AccountId"
                 , BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-          
+
             if (instanceAccountProp == null)
             {
                 Logger.LogInfo($"ReplaceInPlayer:PatchPostfix: instanceAccountProp not found");
@@ -501,7 +498,7 @@ namespace SIT.Tarkov.Core
 
         public static IDisposable StartWithToken(string name)
         {
-            return GetAllMethodsForType(StartWithTokenType).Single(x=>x.Name == "StartWithToken").Invoke(null, new object[] { name }) as IDisposable;
+            return GetAllMethodsForType(StartWithTokenType).Single(x => x.Name == "StartWithToken").Invoke(null, new object[] { name }) as IDisposable;
         }
 
         public static async Task InvokeAsyncStaticByReflection(MethodInfo methodInfo, object rModel, params object[] p)

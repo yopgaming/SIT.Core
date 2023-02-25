@@ -23,7 +23,7 @@ namespace SIT.Core.Misc
                 Logger.LogInfo($"VersionLabelPatch failed {e.Message} {e.StackTrace} {e.InnerException.StackTrace}");
                 throw;
             }
-            
+
         }
 
         [PatchPostfix]

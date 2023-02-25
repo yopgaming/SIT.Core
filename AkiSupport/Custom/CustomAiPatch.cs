@@ -73,7 +73,7 @@ namespace SIT.Core.AkiSupport.Custom
                 Console.WriteLine($"Error processing log: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
-            
+
             return true; // Do original 
         }
 

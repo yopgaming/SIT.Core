@@ -4,10 +4,7 @@ using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {
@@ -60,7 +57,7 @@ namespace SIT.Core.Coop.Player
             {
                 dictionary.Add("nCI", SerializeObject(nextControllerItem));
                 var iaD = new SlotItemAddressDescriptor()
-                { 
+                {
                     Container = new ContainerDescriptor()
                     {
                         ContainerId = nextControllerItem.CurrentAddress.Container.ID

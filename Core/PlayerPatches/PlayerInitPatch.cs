@@ -1,12 +1,7 @@
 ﻿using EFT;
-using SIT.Tarkov.Core;
-using SIT.Tarkov.Core.AI;
 using SIT.Tarkov.Core.PlayerPatches.Health;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.PlayerPatches
@@ -21,12 +16,12 @@ namespace SIT.Tarkov.Core.PlayerPatches
         }
 
         [PatchPostfix]
-        public static 
+        public static
             async
-            void 
+            void
             PatchPostfix(Task __result, EFT.LocalPlayer __instance, Profile profile)
         {
-            if(OnPlayerInit != null)
+            if (OnPlayerInit != null)
                 OnPlayerInit(__instance);
 
             await __result;

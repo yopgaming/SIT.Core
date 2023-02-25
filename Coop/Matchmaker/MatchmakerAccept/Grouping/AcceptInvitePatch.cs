@@ -1,12 +1,7 @@
 ﻿using EFT.UI.Matchmaker;
-using SIT.Coop.Core.Matchmaker;
 using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept
 {

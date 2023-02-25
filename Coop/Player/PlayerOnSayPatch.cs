@@ -1,11 +1,9 @@
-﻿using SIT.Tarkov.Core;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.Player
 {
@@ -23,7 +21,7 @@ namespace SIT.Coop.Core.Player
                 Logger.LogInfo($"PlayerOnSayPatch:Type is NULL");
 
             var method = PatchConstants.GetAllMethodsForType(t)
-                .FirstOrDefault(x => 
+                .FirstOrDefault(x =>
                 x.GetParameters().Length >= 3
                 && x.GetParameters()[0].Name.Contains("event")
                 && x.GetParameters()[1].Name.Contains("demand")

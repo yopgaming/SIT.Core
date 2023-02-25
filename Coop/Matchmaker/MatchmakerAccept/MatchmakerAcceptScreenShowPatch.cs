@@ -1,25 +1,18 @@
-﻿using EFT.UI.Matchmaker;
-using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using EFT;
 //using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
 //using Grouping = GClass2434;
 using EFT.UI;
+using SIT.Tarkov.Core;
+using System;
+using System.Linq;
+using System.Reflection;
 using UnityEngine.UIElements;
-using EFT;
-using HarmonyLib;
 
 namespace SIT.Coop.Core.Matchmaker
 {
     public class MatchmakerAcceptScreenShowPatch : ModulePatch
     {
-        
+
 
         static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
 
@@ -41,11 +34,11 @@ namespace SIT.Coop.Core.Matchmaker
 
         private static Button _updateListButton;
 
-        
+
 
         [PatchPrefix]
         private static bool PatchPrefix(
-            ref ISession session, 
+            ref ISession session,
             ref RaidSettings raidSettings,
             ref EFT.ERaidMode ___eraidMode_0,
             ref EFT.RaidSettings ___raidSettings_0,
@@ -57,9 +50,9 @@ namespace SIT.Coop.Core.Matchmaker
 
             )
         {
-			Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
-			//_updateListButton = ____updateListButton;
-			MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
+            //_updateListButton = ____updateListButton;
+            MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
 
             raidSettings.RaidMode = ERaidMode.Online;
             //eraidMode_0 = ERaidMode.Online;
@@ -77,10 +70,10 @@ namespace SIT.Coop.Core.Matchmaker
         private static void PatchPostfix(
             ref object session, ref RaidSettings raidSettings,
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
-			ref Profile ___profile_0,
+            ref Profile ___profile_0,
             ref DefaultUIButton ____acceptButton,
             ref DefaultUIButton ____playersRaidReadyPanel,
-			ref DefaultUIButton ____groupPreview,
+            ref DefaultUIButton ____groupPreview,
             ref DefaultUIButton ____findOtherPlayersButton
             )
         {
@@ -213,5 +206,5 @@ namespace SIT.Coop.Core.Matchmaker
 
     }
 
-	
+
 }

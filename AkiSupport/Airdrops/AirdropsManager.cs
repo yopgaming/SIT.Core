@@ -18,9 +18,9 @@ namespace SIT.Core.AkiSupport.Airdrops
         public async void Start()
         {
             var gameWorld = Singleton<GameWorld>.Instance;
-            
+
             if (gameWorld == null) Destroy(this);
-            
+
             airdropParameters = AirdropUtil.InitAirdropParams(gameWorld, isFlareDrop);
 
             if (!airdropParameters.AirdropAvailable)
@@ -31,7 +31,7 @@ namespace SIT.Core.AkiSupport.Airdrops
 
             try
             {
-                airdropPlane = await AirdropPlane.Init(airdropParameters.RandomAirdropPoint, 
+                airdropPlane = await AirdropPlane.Init(airdropParameters.RandomAirdropPoint,
                     airdropParameters.DropHeight, airdropParameters.Config.PlaneVolume, airdropParameters.Config.PlaneSpeed);
                 airdropBox = await AirdropBox.Init(airdropParameters.Config.CrateFallSpeed);
                 factory = new ItemFactoryUtil();
@@ -56,13 +56,13 @@ namespace SIT.Core.AkiSupport.Airdrops
             }
 
             if (!airdropParameters.PlaneSpawned) return;
-            
+
             if (airdropParameters.DistanceTraveled >= airdropParameters.DistanceToDrop && !airdropParameters.BoxSpawned)
             {
                 StartBox();
                 BuildLootContainer();
             }
-            
+
             if (airdropParameters.DistanceTraveled < airdropParameters.DistanceToTravel)
             {
                 airdropParameters.DistanceTraveled += Time.deltaTime * airdropParameters.Config.PlaneSpeed;
@@ -100,7 +100,7 @@ namespace SIT.Core.AkiSupport.Airdrops
         private void SetDistanceToDrop()
         {
             airdropParameters.DistanceToDrop = Vector3.Distance(
-                new Vector3(airdropParameters.RandomAirdropPoint.x, airdropParameters.DropHeight, airdropParameters.RandomAirdropPoint.z), 
+                new Vector3(airdropParameters.RandomAirdropPoint.x, airdropParameters.DropHeight, airdropParameters.RandomAirdropPoint.z),
                 airdropPlane.transform.position);
         }
     }

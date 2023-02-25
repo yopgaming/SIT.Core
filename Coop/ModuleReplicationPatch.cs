@@ -1,13 +1,9 @@
-﻿using HarmonyLib;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop
 {
@@ -15,9 +11,9 @@ namespace SIT.Core.Coop
     {
         public static List<ModuleReplicationPatch> Patches { get; } = new List<ModuleReplicationPatch>();
 
-        public ModuleReplicationPatch() 
-        { 
-            if(Patches.Any(x=>x.GetType() == this.GetType()))
+        public ModuleReplicationPatch()
+        {
+            if (Patches.Any(x => x.GetType() == this.GetType()))
             {
                 Logger.LogError($"Attempted to recreate {this.GetType()} Patch");
                 return;
@@ -32,7 +28,7 @@ namespace SIT.Core.Coop
 
         public virtual bool DisablePatch { get; } = false;
 
-        protected static ConcurrentDictionary<Type, Dictionary<string, object>> LastSent 
+        protected static ConcurrentDictionary<Type, Dictionary<string, object>> LastSent
             = new ConcurrentDictionary<Type, Dictionary<string, object>>();
 
 
@@ -42,7 +38,7 @@ namespace SIT.Core.Coop
             {
                 return o.SITToJson();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.LogError(e.ToString());
             }

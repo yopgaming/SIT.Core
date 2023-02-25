@@ -1,15 +1,12 @@
-﻿using SIT.Tarkov.Core;
+﻿using EFT;
+using EFT.Interactive;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using EFT.Interactive;
-using EFT;
-using SIT.Core.Coop;
-using static GClass1775;
 
 namespace SIT.Coop.Core.Player
 {
@@ -44,7 +41,7 @@ namespace SIT.Coop.Core.Player
         [PatchPrefix]
         public static bool PrePatch(
             EFT.Player __instance)
-        { 
+        {
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
@@ -54,12 +51,12 @@ namespace SIT.Coop.Core.Player
             return result;
         }
 
-    [PatchPostfix]
+        [PatchPostfix]
         public static void Patch(
-            EFT.Player __instance,
-            WorldInteractiveObject door
-            , InteractionResult interactionResult
-            )
+                EFT.Player __instance,
+                WorldInteractiveObject door
+                , InteractionResult interactionResult
+                )
         {
             //if (Matchmaker.MatchmakerAcceptPatches.IsSinglePlayer)
             //    return;
@@ -114,7 +111,7 @@ namespace SIT.Coop.Core.Player
                 //Logger.LogInfo("Replicated: Calling Door Opener");
                 Method.Invoke(player, new object[] { foundDoor, new InteractionResult(interactionType) });
             }
-            catch(Exception)
+            catch (Exception)
             {
 
             }

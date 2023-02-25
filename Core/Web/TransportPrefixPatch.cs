@@ -1,9 +1,9 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using HarmonyLib;
 
 namespace SIT.Tarkov.Core
 {
@@ -13,7 +13,7 @@ namespace SIT.Tarkov.Core
         {
             try
             {
-                var type = PatchConstants.EftTypes.Where(x=> PatchConstants.GetMethodForType(x, "SaveResponseToCache") != null).Single();
+                var type = PatchConstants.EftTypes.Where(x => PatchConstants.GetMethodForType(x, "SaveResponseToCache") != null).Single();
                 var value = Traverse.Create(type).Field("TransportPrefixes").GetValue<Dictionary<ETransportProtocolType, string>>();
                 value[ETransportProtocolType.HTTPS] = "http://";
                 value[ETransportProtocolType.WSS] = "ws://";
@@ -93,7 +93,7 @@ namespace SIT.Tarkov.Core
         {
             uri
                 .Replace("https://", "http://");
-            return true; 
+            return true;
         }
     }
 }

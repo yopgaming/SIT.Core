@@ -1,12 +1,8 @@
 ﻿using EFT;
 using Newtonsoft.Json;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.PlayerPatches.Health
 {
@@ -21,7 +17,7 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
             if (enableDeathMessage != null && enableDeathMessage.Value == true)
             {
                 DisplayDeathMessage = enableDeathMessage.Value;
-                
+
                 //DisplayDeathMessage = JsonConvert.DeserializeObject<bool>();
             }
 
@@ -41,7 +37,7 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
             if (deadPlayer == null)
                 return;
 
-            if(OnPersonKilled != null)
+            if (OnPersonKilled != null)
             {
                 OnPersonKilled(__instance, damageType);
             }
@@ -67,15 +63,15 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
             if (__instance.Profile.Info != null)
             {
                 map.Add("diedFaction", __instance.Side);
-                if(__instance.Profile.Info.Settings != null)
+                if (__instance.Profile.Info.Settings != null)
                     map.Add("diedWST", __instance.Profile.Info.Settings.Role);
             }
-            if (killedBy != null) 
+            if (killedBy != null)
             {
                 map.Add("killedByAID", killedBy.Profile.AccountId);
                 map.Add("killerFaction", killedBy.Side);
             }
-            if(killedByLastAggressor != null)
+            if (killedByLastAggressor != null)
             {
                 map.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
             }

@@ -1,8 +1,6 @@
-﻿using EFT;
-using Comfort.Common;
-using System.Reflection;
+﻿using SIT.Tarkov.Core;
 using System.Collections;
-using SIT.Tarkov.Core;
+using System.Reflection;
 
 namespace SIT.Core.AkiSupport.Custom
 {

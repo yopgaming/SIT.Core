@@ -1,17 +1,11 @@
-﻿using SIT.Coop.Core.Matchmaker;
+﻿using SIT.Coop.Core.Web;
+using SIT.Core.Coop;
 using SIT.Tarkov.Core;
-using SIT.Coop.Core.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using Newtonsoft.Json;
-using EFT;
-using SIT.Coop.Core.LocalGame;
-using SIT.Core.Coop;
 
 namespace SIT.Coop.Core.Player
 {
@@ -40,7 +34,7 @@ namespace SIT.Coop.Core.Player
         public static Dictionary<string, Vector2?> LastDirection { get; } = new Dictionary<string, Vector2?>();
 
         public static Dictionary<string, bool> ClientIsMoving { get; } = new Dictionary<string, bool>();
-        
+
         public static System.Random RandomizerForAI = new System.Random();
 
         //public static bool IsMyPlayer(EFT.Player player) { return player == (LocalGamePatches.MyPlayer as EFT.Player); }
@@ -68,14 +62,14 @@ namespace SIT.Coop.Core.Player
                 return false;
 
             if (!coopGC.Players.ContainsKey(accountId))
-            { 
+            {
                 coopGC.Players.TryAdd(accountId, (EFT.LocalPlayer)__instance);
             }
 
             if (!LastDirection.ContainsKey(accountId))
                 LastDirection.Add(accountId, null);
 
-            if (LastDirection[accountId] != direction 
+            if (LastDirection[accountId] != direction
                 //&&
                 //    (!LastDirection[accountId].HasValue
                 //    || Vector3.Distance(LastDirection[accountId].Value, direction) > (accountId.StartsWith("pmc") ? 0.01 : 0.05)
@@ -127,19 +121,19 @@ namespace SIT.Coop.Core.Player
             // Is first packet OR is after the last packet received. This copes with unordered received packets
             //if ((!LastPacketReceived.ContainsKey(accountId) || LastPacketReceived[accountId] <= packetTime))
             //{
-                player.CurrentState.Move(direction);
-                player.InputDirection = direction;
+            player.CurrentState.Move(direction);
+            player.InputDirection = direction;
 
-                if (newRot.HasValue)
-                {
-                    //player.CurrentState.Rotate(newRot.Value);
-                }
-                //Logger.LogInfo(accountId + ": move replicated");
+            if (newRot.HasValue)
+            {
+                //player.CurrentState.Rotate(newRot.Value);
+            }
+            //Logger.LogInfo(accountId + ": move replicated");
 
-                if (!LastPacketReceived.ContainsKey(accountId))
-                    LastPacketReceived.Add(accountId, packetTime);
+            if (!LastPacketReceived.ContainsKey(accountId))
+                LastPacketReceived.Add(accountId, packetTime);
 
-                LastPacketReceived[accountId] = packetTime;
+            LastPacketReceived[accountId] = packetTime;
 
             //}
 

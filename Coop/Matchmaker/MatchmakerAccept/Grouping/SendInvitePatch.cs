@@ -1,12 +1,6 @@
-﻿using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.Web;
-using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
+﻿using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping
 {
@@ -29,13 +23,13 @@ namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping
             //Logger.LogInfo("SendInvitePatch.PatchPostfix");
             MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
 
-            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers == 0) 
+            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers == 0)
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
 
             MatchmakerAcceptPatches.HostExpectedNumberOfPlayers++;
 
             MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
-            
+
             //_ = ServerCommunication.SendDataDownWebSocket("Start=" + PatchConstants.GetPHPSESSID());
 
         }

@@ -1,40 +1,34 @@
-﻿using EFT.UI.Matchmaker;
-using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using EFT;
 //using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
 //using Grouping = GClass2434;
 using EFT.UI;
+using EFT.UI.Matchmaker;
+using Newtonsoft.Json;
+using SIT.Tarkov.Core;
+using System;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
 using UnityEngine.UIElements;
-using EFT;
-using HarmonyLib;
-using UnityEngine.Events;
-using System.Text.RegularExpressions;
 
 namespace SIT.Coop.Core.Matchmaker
 {
     public class MatchmakerAcceptScreenAwakePatch : ModulePatch
     {
-		[Serializable]
-		private class ServerStatus
-		{
-			[JsonProperty("ip")]
-			public string ip { get; set; }
+        [Serializable]
+        private class ServerStatus
+        {
+            [JsonProperty("ip")]
+            public string ip { get; set; }
 
-			[JsonProperty("status")]
-			public string status { get; set; }
-		}
+            [JsonProperty("status")]
+            public string status { get; set; }
+        }
 
-		static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+        static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
 
-		public static Type GetThisType()
-		{
+        public static Type GetThisType()
+        {
             return Tarkov.Core.PatchConstants.EftTypes
                  .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
             //.Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
@@ -45,7 +39,7 @@ namespace SIT.Coop.Core.Matchmaker
 
             var methodName = "Awake";
 
-            return GetThisType().GetMethods(privateFlags).First(x=>x.Name == methodName);
+            return GetThisType().GetMethods(privateFlags).First(x => x.Name == methodName);
 
         }
 
@@ -60,7 +54,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         private static Profile profile;
 
-		[PatchPrefix]
+        [PatchPrefix]
         private static bool PatchPrefix(
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
             ref DefaultUIButton ____backButton,
@@ -77,7 +71,7 @@ namespace SIT.Coop.Core.Matchmaker
             Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
             //MatchmakerAcceptPatches.Profile = ___profile_0;
             //Logger.LogInfo(___profile_0.AccountId);
-            
+
             // ----------------------------------------------------
             // Reset number of players for next Raid
             MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
@@ -88,7 +82,7 @@ namespace SIT.Coop.Core.Matchmaker
             ___eraidMode_0 = ERaidMode.Local;
             var profile = ___profile_0;
             ____acceptButton.OnClick.RemoveAllListeners();
-            ____acceptButton.OnClick.AddListener(() => 
+            ____acceptButton.OnClick.AddListener(() =>
             {
                 //if (___MatchmakerPlayersController.GroupPlayers.Count == 0)
                 //{
@@ -129,7 +123,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static void DoCreateAndCheck()
         {
-            if(MatchmakerAcceptPatches.Profile == null)
+            if (MatchmakerAcceptPatches.Profile == null)
             {
                 Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
                 return;
@@ -163,7 +157,7 @@ namespace SIT.Coop.Core.Matchmaker
         public static void BackOut()
         {
             //Logger.LogInfo("BackOut!");
-            if (screenController != null) 
+            if (screenController != null)
             {
                 Logger.LogInfo("screenController.GetType():" + screenController.GetType().FullName);
                 //if (MatchmakerAcceptPatches.Grouping != null)
@@ -197,11 +191,11 @@ namespace SIT.Coop.Core.Matchmaker
                 //screenController = null;
                 //_canvasGroup = null;
             }
-            
+
         }
 
 
     }
 
-	
+
 }

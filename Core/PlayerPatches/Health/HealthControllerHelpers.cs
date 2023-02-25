@@ -1,13 +1,9 @@
 ﻿using EFT;
-using Newtonsoft.Json;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace SIT.Core.PlayerPatches.Health
 {
@@ -26,7 +22,7 @@ namespace SIT.Core.PlayerPatches.Health
         public static DamageInfo CreateDamageInfoTypeFromDict(Dictionary<string, object> dict)
         {
             ReadyMadeDamageInstance = new DamageInfo();
-            
+
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "Damage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["damage"].ToString()));
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DamageType").SetValue(ReadyMadeDamageInstance, Enum.Parse(typeof(EDamageType), dict["damageType"].ToString()));
             //PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "SourceId").SetValue(ReadyMadeDamageInstance, dict["sourceId"].ToString());

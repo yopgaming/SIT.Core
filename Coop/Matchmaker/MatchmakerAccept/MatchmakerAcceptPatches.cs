@@ -1,18 +1,10 @@
 ﻿using EFT;
-using EFT.UI.Matchmaker;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static EFT.UI.Matchmaker.MatchMakerAcceptScreen;
 //using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
 //using Grouping = GClass2434;
-using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
-using System.Reflection;
 using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
 using SIT.Tarkov.Core;
+using System;
+using System.Collections.Generic;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -53,7 +45,7 @@ namespace SIT.Coop.Core.Matchmaker
             }
         }
         //public static string GroupId { get; set; }
-     
+
         //public static ScreenController ScreenController { get; set; }
         public static Profile Profile { get; set; }
 

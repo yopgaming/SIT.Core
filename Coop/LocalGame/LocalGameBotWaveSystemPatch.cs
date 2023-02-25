@@ -1,12 +1,7 @@
-﻿using EFT;
-using EFT.Bots;
+﻿using EFT.Bots;
 using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.LocalGame
 {

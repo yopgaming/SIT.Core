@@ -59,7 +59,7 @@
 //            //if(item != null)
 //            //{
 //            //    PatchConstants.Logger.LogInfo($"SetItemInHandsReplicated: Attempting to set item of tpl {packet["item.tpl"].ToString()}");
-               
+
 //            //    if (item is EFT.InventoryLogic.Weapon weapon)
 //            //        player.Proceed(weapon, null, false);
 
