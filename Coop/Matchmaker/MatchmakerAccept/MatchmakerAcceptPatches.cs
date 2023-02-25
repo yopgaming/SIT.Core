@@ -61,62 +61,62 @@ namespace SIT.Coop.Core.Matchmaker
         /// <summary>
         /// The Grouping object - you must reflect to get its properties and methods
         /// </summary>
-        public static object Grouping { get { return GetGrouping(); } set { _grouping = value; } }
+        //public static object Grouping { get { return GetGrouping(); } set { _grouping = value; } }
 
-        public static object GetGrouping()
-        {
-            if (MatchMakerAcceptScreenInstance == null)
-                return null;
+        //public static object GetGrouping()
+        //{
+        //    if (MatchMakerAcceptScreenInstance == null)
+        //        return null;
 
-            var typeOfInstance = MatchMakerAcceptScreenInstance.GetType();
-            //PatchConstants.Logger.LogInfo(typeOfInstance.Name);
-            //PatchConstants.Logger.LogInfo(SIT.Tarkov.Core.PatchConstants.GroupingType.Name);
+        //    var typeOfInstance = MatchMakerAcceptScreenInstance.GetType();
+        //    //PatchConstants.Logger.LogInfo(typeOfInstance.Name);
+        //    //PatchConstants.Logger.LogInfo(SIT.Tarkov.Core.PatchConstants.GroupingType.Name);
 
-            //foreach(var f in Tarkov.Core.PatchConstants.GetAllFieldsForObject(MatchMakerAcceptScreenInstance))
-            //{
-            //    PatchConstants.Logger.LogInfo($"{f}");
-            //}
+        //    //foreach(var f in Tarkov.Core.PatchConstants.GetAllFieldsForObject(MatchMakerAcceptScreenInstance))
+        //    //{
+        //    //    PatchConstants.Logger.LogInfo($"{f}");
+        //    //}
 
-            //foreach (var p in Tarkov.Core.PatchConstants.GetAllPropertiesForObject(MatchMakerAcceptScreenInstance))
-            //{
-            //    PatchConstants.Logger.LogInfo($"{p}");
-            //}
+        //    //foreach (var p in Tarkov.Core.PatchConstants.GetAllPropertiesForObject(MatchMakerAcceptScreenInstance))
+        //    //{
+        //    //    PatchConstants.Logger.LogInfo($"{p}");
+        //    //}
 
-            var property = Tarkov.Core.PatchConstants.GetAllFieldsForObject(MatchMakerAcceptScreenInstance)
-                .Single(x => x.Name.ToLower().Contains(SIT.Tarkov.Core.PatchConstants.GroupingType.Name.ToLower()));
-            _grouping = property.GetValue(MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance);
-            //PatchConstants.Logger.LogInfo($"MatchmakerAcceptScreenShow.PatchPostfix:Found {property.Name} and assigned to Grouping");
-            return _grouping;
-        }
+        //    var property = Tarkov.Core.PatchConstants.GetAllFieldsForObject(MatchMakerAcceptScreenInstance)
+        //        .Single(x => x.Name.ToLower().Contains(SIT.Tarkov.Core.PatchConstants.GroupingType.Name.ToLower()));
+        //    _grouping = property.GetValue(MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance);
+        //    //PatchConstants.Logger.LogInfo($"MatchmakerAcceptScreenShow.PatchPostfix:Found {property.Name} and assigned to Grouping");
+        //    return _grouping;
+        //}
 
-        public static IList<object> GetGroupPlayers()
-        {
-            if (Grouping == null)
-                return null;
-            //return new List<object>();
+        //public static IList<object> GetGroupPlayers()
+        //{
+        //    if (Grouping == null)
+        //        return null;
+        //    //return new List<object>();
 
-            var properties = Grouping.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            foreach (PropertyInfo property in properties)
-            {
-                if (property.Name.Contains("GroupPlayers"))
-                {
-                    // Log test
-                    // SIT.Tarkov.Core.PatchConstants.Logger.LogInfo("Found GroupPlayers");
-                    // Do a bit of serialization magic to stop a crash occurring due to change of enumerable type (we don't want to know its type, its a GClass)
-                    return JsonConvert.DeserializeObject<IList<object>>(JsonConvert.SerializeObject(property.GetValue(Grouping)));
-                }
-            }
+        //    var properties = Grouping.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        //    foreach (PropertyInfo property in properties)
+        //    {
+        //        if (property.Name.Contains("GroupPlayers"))
+        //        {
+        //            // Log test
+        //            // SIT.Tarkov.Core.PatchConstants.Logger.LogInfo("Found GroupPlayers");
+        //            // Do a bit of serialization magic to stop a crash occurring due to change of enumerable type (we don't want to know its type, its a GClass)
+        //            return JsonConvert.DeserializeObject<IList<object>>(JsonConvert.SerializeObject(property.GetValue(Grouping)));
+        //        }
+        //    }
 
-            return new List<object>();
-        }
+        //    return new List<object>();
+        //}
 
-        public static bool IsGroupOwner()
-        {
-            if (Grouping == null)
-                return false;
+        //public static bool IsGroupOwner()
+        //{
+        //    if (Grouping == null)
+        //        return false;
 
-            return Tarkov.Core.PatchConstants.GetFieldOrPropertyFromInstance<bool>(Grouping, "IsOwner", true);
-        }
+        //    return Tarkov.Core.PatchConstants.GetFieldOrPropertyFromInstance<bool>(Grouping, "IsOwner", true);
+        //}
 
         private static string groupId;
 
@@ -192,28 +192,28 @@ namespace SIT.Coop.Core.Matchmaker
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
         public static int HostExpectedNumberOfPlayers { get; set; }
 
-        public static Type InviteType { get; } = PatchConstants.EftTypes.Single(x =>
-            (PatchConstants.GetPropertyFromType(x, "Id") != null
-            || PatchConstants.GetFieldFromType(x, "Id") != null)
-            && (PatchConstants.GetPropertyFromType(x, "From") != null
-            || PatchConstants.GetFieldFromType(x, "From") != null)
-            && (PatchConstants.GetPropertyFromType(x, "To") != null
-            || PatchConstants.GetFieldFromType(x, "To") != null)
-            && (PatchConstants.GetPropertyFromType(x, "GroupId") != null
-            || PatchConstants.GetFieldFromType(x, "GroupId") != null)
-            && (PatchConstants.GetPropertyFromType(x, "FromProfile") != null
-            || PatchConstants.GetFieldFromType(x, "FromProfile") != null)
-        );
+        //public static Type InviteType { get; } = PatchConstants.EftTypes.Single(x =>
+        //    (PatchConstants.GetPropertyFromType(x, "Id") != null
+        //    || PatchConstants.GetFieldFromType(x, "Id") != null)
+        //    && (PatchConstants.GetPropertyFromType(x, "From") != null
+        //    || PatchConstants.GetFieldFromType(x, "From") != null)
+        //    && (PatchConstants.GetPropertyFromType(x, "To") != null
+        //    || PatchConstants.GetFieldFromType(x, "To") != null)
+        //    && (PatchConstants.GetPropertyFromType(x, "GroupId") != null
+        //    || PatchConstants.GetFieldFromType(x, "GroupId") != null)
+        //    && (PatchConstants.GetPropertyFromType(x, "FromProfile") != null
+        //    || PatchConstants.GetFieldFromType(x, "FromProfile") != null)
+        //);
 
-        public static MethodInfo InvitePopupMethod { get; } = PatchConstants.GetAllMethodsForType(typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen))
-            .First(x => x.GetParameters().Length >= 1 && x.GetParameters()[0].ParameterType == InviteType && x.GetParameters()[0].Name == "invite");
+        //public static MethodInfo InvitePopupMethod { get; } = PatchConstants.GetAllMethodsForType(typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen))
+        //    .First(x => x.GetParameters().Length >= 1 && x.GetParameters()[0].ParameterType == InviteType && x.GetParameters()[0].Name == "invite");
 
         public static void Run()
         {
-            new MatchmakerAcceptScreenAwakePatch().Enable();
-            new MatchmakerAcceptScreenShowPatch().Enable();
-            new AcceptInvitePatch().Enable();
-            new SendInvitePatch().Enable();
+            //new MatchmakerAcceptScreenAwakePatch().Enable();
+            //new MatchmakerAcceptScreenShowPatch().Enable();
+            //new AcceptInvitePatch().Enable();
+            //new SendInvitePatch().Enable();
         }
 
         internal static void CreateMatch(string accountId)

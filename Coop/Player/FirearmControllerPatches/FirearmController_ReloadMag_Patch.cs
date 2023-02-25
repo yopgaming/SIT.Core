@@ -118,7 +118,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     //player.ToUnloadMagOperation().
                     
                     // this is not working, maybe try and find it in the inventory instead???
-                    var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<GClass2222>());
+                    var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
                     var gridItemAddressNewDesc = JObject.Parse(dict["a.new"].ToString()).ToObject<GridItemAddressDescriptor>();
                     var gridItemAddressNew = new GridItemAddress(
                             (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressNewDesc.Container.ContainerId, gridItemAddressNewDesc.Container.ParentId)

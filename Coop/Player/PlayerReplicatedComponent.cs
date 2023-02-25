@@ -72,12 +72,12 @@ namespace SIT.Coop.Core.Player
                     continue;
                 }
 
-                if (!coopGC.Players.ContainsKey(player.Profile.AccountId))
-                {
-                    coopGC.Players.TryAdd(player.Profile.AccountId, player);
-                    yield return waitSeconds;
-                    continue;
-                }
+                //if (!coopGC.Players.ContainsKey(player.Profile.AccountId))
+                //{
+                //    coopGC.Players.TryAdd(player.Profile.AccountId, player);
+                //    yield return waitSeconds;
+                //    continue;
+                //}
 
                 if (!QueuedPackets.Any())
                 {
@@ -87,60 +87,67 @@ namespace SIT.Coop.Core.Player
 
                 //PatchConstants.Logger.LogInfo($"{player.Profile.AccountId} has {QueuedPackets.Count} QueuedPackets");
 
+                // Concurrent Queue may be breaking. CoopGameComponent is fighting with this thread and seems to win in most cases. 
+                // Maybe move all logic to run directly from CoopGameComponent?
                 if (QueuedPackets.TryDequeue(out Dictionary<string, object> packet))
                 {
-                    var method = packet["m"].ToString();
-
-                    foreach(var patch in ModuleReplicationPatch.Patches)
-                    {
-                        if(patch.MethodName == method)
-                        {
-                            patch.Replicated(player, packet);
-                            break;
-                        }
-                    }
-
-                    switch (method)
-                    {
-
-                        case "HostDied":
-                            PatchConstants.Logger.LogInfo("Host Died");
-                            LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
-                            break;
-                        case "Jump":
-                            PlayerOnJumpPatch.Replicated(player, packet);
-                            break;
-                        case "Move":
-                            LastMovementPacket = packet;
-                            break;
-                        case "Position":
-                            if (!IsMyPlayer)
-                            {
-                                Vector3 newPos = Vector3.zero;
-                                newPos.x = float.Parse(packet["x"].ToString());
-                                newPos.y = float.Parse(packet["y"].ToString());
-                                newPos.z = float.Parse(packet["z"].ToString());
-                                //ReceivedPacketPostion = newPos;
-                            }
-                            break;
-                        case "Rotation":
-                            if (!IsMyPlayer)
-                            {
-                                var rotationX = float.Parse(packet["rX"].ToString());
-                                var rotationY = float.Parse(packet["rY"].ToString());
-                                //ReceivedPacketRotation = new Vector2(rotationX, rotationY);
-                            }
-                            break;
-                        case "Tilt":
-                            PlayerOnTiltPatch.TiltReplicated(player, packet);
-                            break;
-                       
-
-                    }
+                    HandlePacket(packet);
                 }
 
                 //yield return waitSeconds;
                 yield return waitEndOfFrame;
+            }
+        }
+
+        public void HandlePacket(Dictionary<string, object> packet)
+        {
+            var method = packet["m"].ToString();
+
+            foreach (var patch in ModuleReplicationPatch.Patches)
+            {
+                if (patch.MethodName == method)
+                {
+                    patch.Replicated(player, packet);
+                    break;
+                }
+            }
+
+            switch (method)
+            {
+
+                case "HostDied":
+                    PatchConstants.Logger.LogInfo("Host Died");
+                    //LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
+                    break;
+                case "Jump":
+                    PlayerOnJumpPatch.Replicated(player, packet);
+                    break;
+                case "Move":
+                    LastMovementPacket = packet;
+                    break;
+                case "Position":
+                    if (!IsMyPlayer)
+                    {
+                        Vector3 newPos = Vector3.zero;
+                        newPos.x = float.Parse(packet["x"].ToString());
+                        newPos.y = float.Parse(packet["y"].ToString());
+                        newPos.z = float.Parse(packet["z"].ToString());
+                        //ReceivedPacketPostion = newPos;
+                    }
+                    break;
+                case "Rotation":
+                    if (!IsMyPlayer)
+                    {
+                        var rotationX = float.Parse(packet["rX"].ToString());
+                        var rotationY = float.Parse(packet["rY"].ToString());
+                        //ReceivedPacketRotation = new Vector2(rotationX, rotationY);
+                    }
+                    break;
+                case "Tilt":
+                    PlayerOnTiltPatch.TiltReplicated(player, packet);
+                    break;
+
+
             }
         }
 

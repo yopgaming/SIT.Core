@@ -15,6 +15,7 @@ using UnityEngine.UIElements;
 using EFT;
 using HarmonyLib;
 using UnityEngine.Events;
+using System.Text.RegularExpressions;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -51,7 +52,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         private static object screenController;
 
-        private static object grouping => MatchmakerAcceptPatches.GetGrouping();
+        //private static object grouping => MatchmakerAcceptPatches.GetGrouping();
 
         private static Button _updateListButton;
 
@@ -64,37 +65,44 @@ namespace SIT.Coop.Core.Matchmaker
             ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
             ref DefaultUIButton ____backButton,
             ref DefaultUIButton ____acceptButton,
-            ref Button ____updateListButton,
-            ref DefaultUIButton ____findOtherPlayersButton,
+            //ref Button ____updateListButton,
+            //ref DefaultUIButton ____findOtherPlayersButton,
             ref Profile ___profile_0,
             ref CanvasGroup ____canvasGroup,
-            ref ERaidMode ___eraidMode_0
+            ref ERaidMode ___eraidMode_0,
+            object ___MatchmakerPlayersController,
+            object ___ScreenController
             )
         {
             Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
             //MatchmakerAcceptPatches.Profile = ___profile_0;
             //Logger.LogInfo(___profile_0.AccountId);
-
+            
             // ----------------------------------------------------
             // Reset number of players for next Raid
             MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
 
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             screenController = MatchmakerAcceptPatches.MatchmakerScreenController;
-            ___eraidMode_0 = ERaidMode.Online;
-            
-            ____acceptButton.OnClick.AddListener(() => { GoToRaid(); });
+            //___eraidMode_0 = ERaidMode.Online;
+            ___eraidMode_0 = ERaidMode.Local;
+            var profile = ___profile_0;
+            ____acceptButton.OnClick.RemoveAllListeners();
+            ____acceptButton.OnClick.AddListener(() => 
+            {
+                //if (___MatchmakerPlayersController.GroupPlayers.Count == 0)
+                //{
+                //    Logger.LogInfo("___MatchmakerPlayersController.GroupPlayers is Empty??");
+                //}
+                //___MatchmakerPlayersController.GroupPlayers.Add(___MatchmakerPlayersController.CurrentPlayer);
+
+                //GoToRaid(); 
+                PatchConstants.GetMethodForType(___ScreenController.GetType(), "ShowNextScreen")
+                .Invoke(___ScreenController, new object[] { string.Empty, EMatchingType.Single });
+
+
+            });
             ____backButton.OnClick.AddListener(() => { BackOut(); });
-            //____updateListButton.OnClick.AddListener(() =>
-            //{
-
-            //    MatchmakerAcceptPatches.CheckForMatch();
-
-            //});
-            ____findOtherPlayersButton.OnClick.AddListener(() => 
-                {
-                    DoCreateAndCheck();
-                });
 
             _canvasGroup = ____canvasGroup;
             _canvasGroup.interactable = true;

@@ -43,7 +43,7 @@ namespace SIT.Coop.Core.Player
         
         public static System.Random RandomizerForAI = new System.Random();
 
-        public static bool IsMyPlayer(EFT.Player player) { return player == (LocalGamePatches.MyPlayer as EFT.Player); }
+        //public static bool IsMyPlayer(EFT.Player player) { return player == (LocalGamePatches.MyPlayer as EFT.Player); }
 
         [PatchPrefix]
         public static bool PrePatch(

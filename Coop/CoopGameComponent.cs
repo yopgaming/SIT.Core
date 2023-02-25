@@ -96,7 +96,7 @@ namespace SIT.Core.Coop
 
         public static Vector3? ClientSpawnLocation;
 
-        private readonly ConcurrentDictionary<string, (Profile, Vector3, ESpawnState)> PlayersToSpawn = new ConcurrentDictionary<string, (Profile, Vector3, ESpawnState)>();
+        //private readonly ConcurrentDictionary<string, (Profile, Vector3, ESpawnState)> PlayersToSpawn = new ConcurrentDictionary<string, (Profile, Vector3, ESpawnState)>();
 
         /// <summary>
         /// Player, Time spawned -> Handled by UpdateAddPlayersToAICalc
@@ -270,7 +270,7 @@ namespace SIT.Core.Coop
             if (GetServerId() == null)
                 yield return waitEndOfFrame;
 
-            var waitSeconds = new WaitForSeconds(0.066f);
+            var waitSeconds = new WaitForSeconds(0.5f);
 
             Dictionary<string, object> d = new Dictionary<string, object>();
             d.Add("serverId", GetServerId());
@@ -278,7 +278,7 @@ namespace SIT.Core.Coop
             var jsonDataServerId = JsonConvert.SerializeObject(d);
             while (true)
             {
-                //yield return waitSeconds;
+                yield return waitSeconds;
 
                 swDebugPerformance.Reset();
                 swDebugPerformance.Start();
@@ -310,8 +310,8 @@ namespace SIT.Core.Coop
 
                 swRequests.Stop();
                 //Logger.LogInfo($"CoopGameComponent.ReadFromServerLastActions took {swRequests.ElapsedMilliseconds}ms");
-                yield return waitSeconds;
-                //yield return waitEndOfFrame;
+                //yield return waitSeconds;
+                yield return waitEndOfFrame;
 
             }
         }
@@ -332,20 +332,20 @@ namespace SIT.Core.Coop
 
             }
 
-            var dictionaries = actionsToValues.Values
+            var packets = actionsToValues.Values
                  .Where(x => x != null)
                  .Where(x => x.Count > 0)
                  .Select(x => x.ToObject<Dictionary<string, object>>());
             //.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move")
             //.Where(x => x.ContainsKey("accountId"));
-            if (dictionaries == null)
+            if (packets == null)
             {
                 //PatchConstants.Logger.LogInfo("CoopGameComponent:No Data Returned from Last Actions!");
                 return;
 
             }
 
-            if (!dictionaries.Any())
+            if (!packets.Any())
             {
                 //PatchConstants.Logger.LogInfo("CoopGameComponent:No Data Returned from Last Actions!");
                 return;
@@ -353,11 +353,11 @@ namespace SIT.Core.Coop
             }
 
             //// go through all items apart from "Move"
-            foreach (var dictionary in dictionaries.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move"))
+            foreach (var packet in packets.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move"))
             {
-                if (dictionary != null && dictionary.Count > 0)
+                if (packet != null && packet.Count > 0)
                 {
-                    var accountId = dictionary["accountId"].ToString();
+                    var accountId = packet["accountId"].ToString();
                     //if (dictionary.ContainsKey("accountId"))
                     {
                         if (!Players.ContainsKey(accountId))
@@ -375,7 +375,7 @@ namespace SIT.Core.Coop
                             continue;
                         }
 
-                        if (!Players[dictionary["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                        if (!Players[packet["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
                         {
                             PatchConstants.Logger.LogInfo($"CoopGameComponent:{accountId} does not have a PlayerReplicatedComponent");
                             continue;
@@ -384,10 +384,12 @@ namespace SIT.Core.Coop
                         if (prc == null)
                             continue;
 
-                        if (prc.QueuedPackets == null)
-                            continue;
+                        //if (prc.QueuedPackets == null)
+                        //    continue;
 
-                        prc.QueuedPackets.Enqueue(dictionary);
+                        //prc.QueuedPackets.Enqueue(dictionary);
+
+                        prc.HandlePacket(packet);
                     }
                 }
             }
@@ -576,8 +578,8 @@ namespace SIT.Core.Coop
                                     if (dictionary["m"].ToString() == "HostDied")
                                     {
                                         Logger.LogInfo("Host Died");
-                                        if (MatchmakerAcceptPatches.IsClient)
-                                            LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, ExitStatus.Survived, "", 0);
+                                        //if (MatchmakerAcceptPatches.IsClient)
+                                        //    LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, ExitStatus.Survived, "", 0);
                                     }
 
                                     if (dictionary.ContainsKey("accountId"))
@@ -624,185 +626,185 @@ namespace SIT.Core.Coop
 
         private static DateTime LastPeopleParityCheck = DateTime.Now;
 
-        public static LocalPlayer GetPlayerByAccountId(string accountId)
-        {
-            try
-            {
-                if (LocalGamePatches.MyPlayerProfile != null && LocalGamePatches.MyPlayerProfile.AccountId == accountId)
-                    return LocalGamePatches.MyPlayer as LocalPlayer;
+        //public static LocalPlayer GetPlayerByAccountId(string accountId)
+        //{
+        //    try
+        //    {
+        //        if (LocalGamePatches.MyPlayerProfile != null && LocalGamePatches.MyPlayerProfile.AccountId == accountId)
+        //            return LocalGamePatches.MyPlayer as LocalPlayer;
 
-                var gameWorld = Singleton<GameWorld>.Instance;
-                var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+        //        var gameWorld = Singleton<GameWorld>.Instance;
+        //        var coopGC = gameWorld.GetComponent<CoopGameComponent>();
 
-                if (coopGC.Players != null && coopGC.Players.ContainsKey(accountId))
-                    return coopGC.Players[accountId];
+        //        if (coopGC.Players != null && coopGC.Players.ContainsKey(accountId))
+        //            return coopGC.Players[accountId];
 
-            }
-            catch (Exception)
-            {
-            }
+        //    }
+        //    catch (Exception)
+        //    {
+        //    }
 
-            return null;
+        //    return null;
 
-        }
-
-
-
-        private void DataReceivedClient_PlayerBotSpawn(Dictionary<string, object> parsedDict, string accountId, string profileId, Vector3 newPosition, bool isBot)
-        {
-            //Logger.LogInfo("DataReceivedClient_PlayerBotSpawn");
-
-            if (LocalGamePatches.MyPlayerProfile == null)
-            {
-                Logger.LogInfo("LocalGamePatches.MyPlayerProfile is NULL");
-                return;
-            }
-
-            if (
-                !Players.ContainsKey(accountId) && LocalGamePatches.MyPlayerProfile.AccountId != accountId
-                &&
-                !PlayersToSpawn.ContainsKey(accountId)
-                )
-            {
-                try
-                {
-
-                    Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Adding " + accountId + " to spawner list");
-                    AccountsLoading.TryAdd(accountId, null);
-                    Profile profile = LocalGamePatches.MyPlayerProfile.Clone();
-                    profile.AccountId = accountId;
-                    profile.Id = accountId;
-                    profile.Info.Nickname = "Dickhead " + Players.Count;
-                    profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
-                    if (parsedDict.ContainsKey("p.info"))
-                    {
-                        Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converting Profile data");
-                        //profile.Info = parsedDict["p.info"].ToString().ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
-                        //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
-                        //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
-                        Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
-                    }
-                    if (parsedDict.ContainsKey("p.cust"))
-                    {
-                        var parsedCust = parsedDict["p.cust"].ToString().ParseJsonTo<Dictionary<EBodyModelPart, string>>(Array.Empty<JsonConverter>());
-                        if (parsedCust != null && parsedCust.Any())
-                        {
-                            PatchConstants.SetFieldOrPropertyFromInstance(
-                                profile
-                                , "Customization"
-                                , Activator.CreateInstance(PatchConstants.TypeDictionary["Profile.Customization"], parsedCust)
-                                );
-                            Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
-
-                        }
-                    }
-                    if (parsedDict.ContainsKey("p.equip"))
-                    {
-                        var pEquip = parsedDict["p.equip"].ToString();
-                        //var equipment = parsedDict["p.equip"].ToString().ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
-                        var equipment = parsedDict["p.equip"].ToString().SITParseJson<Equipment>();//.ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
-                        profile.Inventory.Equipment = equipment;
-                        Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
-
-                    }
-                    if (parsedDict.ContainsKey("isHost"))
-                    {
-                    }
-
-                    PlayersToSpawn.TryAdd(accountId, (profile, newPosition, ESpawnState.NotLoaded));
-                }
-                catch (Exception ex)
-                {
-                    QuickLog($"DataReceivedClient_PlayerBotSpawn::ERROR::" + ex.Message);
-                }
-            }
-
-        }
+        //}
 
 
 
-        private async Task<LocalPlayer> CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
-        {
-            try
-            {
-                EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
-                EFT.Player.EUpdateMode bodyUpdateMode = EFT.Player.EUpdateMode.Auto;
-                //var updateQueue = PatchConstants.GetFieldOrPropertyFromInstance<EUpdateQueue>(LocalGamePatches.LocalGameInstance, "UpdateQueue", false);
+        //private void DataReceivedClient_PlayerBotSpawn(Dictionary<string, object> parsedDict, string accountId, string profileId, Vector3 newPosition, bool isBot)
+        //{
+        //    //Logger.LogInfo("DataReceivedClient_PlayerBotSpawn");
 
-                //if (!base.Status.IsRunned())
-                //{
-                //	return null;
-                //}
-                //int playerId = int.Parse(InvokeLocalGameInstanceMethod("method_13").ToString());
-                if (Players == null)
-                {
-                    QuickLog("Players is NULL wtf!");
-                    return null;
-                }
+        //    if (LocalGamePatches.MyPlayerProfile == null)
+        //    {
+        //        Logger.LogInfo("LocalGamePatches.MyPlayerProfile is NULL");
+        //        return;
+        //    }
 
-                if (Players.ContainsKey(profile.AccountId))
-                {
-                    QuickLog("Profile already exists. ignoring.");
-                    var newPlayerToSpawn = PlayersToSpawn[profile.AccountId];
-                    newPlayerToSpawn.Item3 = ESpawnState.Spawned;
-                    PlayersToSpawn[profile.AccountId] = newPlayerToSpawn;
-                    return null;
-                }
+        //    if (
+        //        !Players.ContainsKey(accountId) && LocalGamePatches.MyPlayerProfile.AccountId != accountId
+        //        &&
+        //        !PlayersToSpawn.ContainsKey(accountId)
+        //        )
+        //    {
+        //        try
+        //        {
 
-                int playerId = Players.Count + 1;
-                if (profile == null)
-                {
-                    QuickLog("CreatePhysicalOtherPlayerOrBot profile is NULL wtf!");
-                    return null;
-                }
+        //            Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Adding " + accountId + " to spawner list");
+        //            AccountsLoading.TryAdd(accountId, null);
+        //            Profile profile = LocalGamePatches.MyPlayerProfile.Clone();
+        //            profile.AccountId = accountId;
+        //            profile.Id = accountId;
+        //            profile.Info.Nickname = "Dickhead " + Players.Count;
+        //            profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
+        //            if (parsedDict.ContainsKey("p.info"))
+        //            {
+        //                Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converting Profile data");
+        //                //profile.Info = parsedDict["p.info"].ToString().ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+        //                //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+        //                //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+        //                Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
+        //            }
+        //            if (parsedDict.ContainsKey("p.cust"))
+        //            {
+        //                var parsedCust = parsedDict["p.cust"].ToString().ParseJsonTo<Dictionary<EBodyModelPart, string>>(Array.Empty<JsonConverter>());
+        //                if (parsedCust != null && parsedCust.Any())
+        //                {
+        //                    PatchConstants.SetFieldOrPropertyFromInstance(
+        //                        profile
+        //                        , "Customization"
+        //                        , Activator.CreateInstance(PatchConstants.TypeDictionary["Profile.Customization"], parsedCust)
+        //                        );
+        //                    Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
 
-                if (PatchConstants.TypeDictionary["StatisticsSession"] == null)
-                {
-                    QuickLog("StatisticsSession is NULL wtf!");
-                    return null;
-                }
+        //                }
+        //            }
+        //            if (parsedDict.ContainsKey("p.equip"))
+        //            {
+        //                var pEquip = parsedDict["p.equip"].ToString();
+        //                //var equipment = parsedDict["p.equip"].ToString().ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
+        //                var equipment = parsedDict["p.equip"].ToString().SITParseJson<Equipment>();//.ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
+        //                profile.Inventory.Equipment = equipment;
+        //                Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
 
-                if (PatchConstants.CharacterControllerSettings.ClientPlayerMode == null)
-                {
-                    QuickLog("PatchConstants.CharacterControllerSettings.ClientPlayerMode is NULL wtf!");
-                    return null;
-                }
+        //            }
+        //            if (parsedDict.ContainsKey("isHost"))
+        //            {
+        //            }
 
-                profile.SetSpawnedInSession(true);
+        //            PlayersToSpawn.TryAdd(accountId, (profile, newPosition, ESpawnState.NotLoaded));
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            QuickLog($"DataReceivedClient_PlayerBotSpawn::ERROR::" + ex.Message);
+        //        }
+        //    }
 
-                QuickLog("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
+        //}
 
-                LocalPlayer localPlayer = await LocalPlayer.Create(
-                        playerId
-                        , position
-                        , Quaternion.identity
-                        , "Player"
-                        , ""
-                        , EPointOfView.ThirdPerson
-                        , profile
-                        , false
-                        , EUpdateQueue.Update
-                        , armsUpdateMode
-                        , bodyUpdateMode
-                        , PatchConstants.CharacterControllerSettings.ClientPlayerMode
-                        , () => 1f
-                        , () => 1f
-                        , (IStatisticsSession)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
-                        , FilterCustomization1.Default
-                        , null
-                        , false
-                    );
-                localPlayer.Transform.position = position;
 
-                return localPlayer;
-            }
-            catch (Exception ex)
-            {
-                QuickLog(ex.ToString());
-            }
 
-            return null;
-        }
+        //private async Task<LocalPlayer> CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        //{
+        //    try
+        //    {
+        //        EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
+        //        EFT.Player.EUpdateMode bodyUpdateMode = EFT.Player.EUpdateMode.Auto;
+        //        //var updateQueue = PatchConstants.GetFieldOrPropertyFromInstance<EUpdateQueue>(LocalGamePatches.LocalGameInstance, "UpdateQueue", false);
+
+        //        //if (!base.Status.IsRunned())
+        //        //{
+        //        //	return null;
+        //        //}
+        //        //int playerId = int.Parse(InvokeLocalGameInstanceMethod("method_13").ToString());
+        //        if (Players == null)
+        //        {
+        //            QuickLog("Players is NULL wtf!");
+        //            return null;
+        //        }
+
+        //        if (Players.ContainsKey(profile.AccountId))
+        //        {
+        //            QuickLog("Profile already exists. ignoring.");
+        //            var newPlayerToSpawn = PlayersToSpawn[profile.AccountId];
+        //            newPlayerToSpawn.Item3 = ESpawnState.Spawned;
+        //            PlayersToSpawn[profile.AccountId] = newPlayerToSpawn;
+        //            return null;
+        //        }
+
+        //        int playerId = Players.Count + 1;
+        //        if (profile == null)
+        //        {
+        //            QuickLog("CreatePhysicalOtherPlayerOrBot profile is NULL wtf!");
+        //            return null;
+        //        }
+
+        //        if (PatchConstants.TypeDictionary["StatisticsSession"] == null)
+        //        {
+        //            QuickLog("StatisticsSession is NULL wtf!");
+        //            return null;
+        //        }
+
+        //        if (PatchConstants.CharacterControllerSettings.ClientPlayerMode == null)
+        //        {
+        //            QuickLog("PatchConstants.CharacterControllerSettings.ClientPlayerMode is NULL wtf!");
+        //            return null;
+        //        }
+
+        //        profile.SetSpawnedInSession(true);
+
+        //        QuickLog("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
+
+        //        LocalPlayer localPlayer = await LocalPlayer.Create(
+        //                playerId
+        //                , position
+        //                , Quaternion.identity
+        //                , "Player"
+        //                , ""
+        //                , EPointOfView.ThirdPerson
+        //                , profile
+        //                , false
+        //                , EUpdateQueue.Update
+        //                , armsUpdateMode
+        //                , bodyUpdateMode
+        //                , PatchConstants.CharacterControllerSettings.ClientPlayerMode
+        //                , () => 1f
+        //                , () => 1f
+        //                , (IStatisticsSession)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
+        //                , FilterCustomization1.Default
+        //                , null
+        //                , false
+        //            );
+        //        localPlayer.Transform.position = position;
+
+        //        return localPlayer;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        QuickLog(ex.ToString());
+        //    }
+
+        //    return null;
+        //}
 
 
         public ConcurrentDictionary<string, LocalPlayer> Players { get; private set; } = new ConcurrentDictionary<string, LocalPlayer>();
@@ -846,7 +848,7 @@ namespace SIT.Core.Coop
 
                                                 //QuickLog("New Position found for Spawning Player");
                                             }
-                                            DataReceivedClient_PlayerBotSpawn(queuedPacket, accountId, queuedPacket["profileId"].ToString(), newPosition, false);
+                                            //DataReceivedClient_PlayerBotSpawn(queuedPacket, accountId, queuedPacket["profileId"].ToString(), newPosition, false);
                                         }
                                         else
                                         {
@@ -856,8 +858,8 @@ namespace SIT.Core.Coop
                                     case "HostDied":
                                         {
                                             Logger.LogInfo("Host Died");
-                                            if (MatchmakerAcceptPatches.IsClient)
-                                                LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, ExitStatus.Survived, "", 0);
+                                            //if (MatchmakerAcceptPatches.IsClient)
+                                            //    LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, ExitStatus.Survived, "", 0);
                                         }
                                         break;
                                 }
@@ -868,149 +870,149 @@ namespace SIT.Core.Coop
             }
         }
 
-        private async Task UpdateClientSpawnPlayers()
-        //private va UpdateClientSpawnPlayers()
-        {
-            try
-            {
-                if (!PlayersToSpawn.Any())
-                    return;
+        //private async Task UpdateClientSpawnPlayers()
+        ////private va UpdateClientSpawnPlayers()
+        //{
+        //    try
+        //    {
+        //        if (!PlayersToSpawn.Any())
+        //            return;
 
 
-                var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+        //        var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
-                var accountId = PlayersToSpawn.Keys.First();
-                if (Players.ContainsKey(accountId))
-                    // if this keeps occuring then something is stuck underneath!
-                    return;
+        //        var accountId = PlayersToSpawn.Keys.First();
+        //        if (Players.ContainsKey(accountId))
+        //            // if this keeps occuring then something is stuck underneath!
+        //            return;
 
-                var newPlayerToSpawn = PlayersToSpawn[accountId];
+        //        var newPlayerToSpawn = PlayersToSpawn[accountId];
 
-                switch (newPlayerToSpawn.Item3)
-                {
-                    case ESpawnState.NotLoaded:
-                        newPlayerToSpawn.Item3 = ESpawnState.Loading;
-                        PlayersToSpawn[accountId] = newPlayerToSpawn;
+        //        switch (newPlayerToSpawn.Item3)
+        //        {
+        //            case ESpawnState.NotLoaded:
+        //                newPlayerToSpawn.Item3 = ESpawnState.Loading;
+        //                PlayersToSpawn[accountId] = newPlayerToSpawn;
 
-                        QuickLog("Update::Loading a new Player " + newPlayerToSpawn.Item1.Nickname);
-                        IEnumerable<ResourceKey> allPrefabPaths = newPlayerToSpawn.Item1.GetAllPrefabPaths(false);
-                        if (allPrefabPaths.Count() > 0)
-                        {
-                            Singleton<JobScheduler>.Instance.SetForceMode(enable: true);
-                            Task loadBundle = Singleton<PoolManager>
-                                .Instance
-                                .LoadBundlesAndCreatePools(
-                                PoolManager.PoolsCategory.Raid
-                                , PoolManager.AssemblyType.Local
-                                , allPrefabPaths.ToArray()
-                                , JobPriority.General
-                                //	, new GProgress<SProgress>(delegate (SProgress p)
-                                //{
-                                //	//this.QuickLog($"Update::Loading a new Player {newPlayerToSpawn.Item1.Nickname}:{p.Stage}:{p.Progress}");
-                                //}));
-                                , null);
-                            await loadBundle;
-                            newPlayerToSpawn.Item3 = ESpawnState.Loaded;
-                            await loadBundle.ContinueWith((t) =>
-                            {
-                                newPlayerToSpawn.Item3 = ESpawnState.Loaded;
-                            });
-                        }
-                        else
-                        {
-                            QuickLog("Update::New Player has no PrefabPaths. Deleting.");
-                            PlayersToSpawn.TryRemove(accountId, out _);
-                        }
-                        break;
-                    case ESpawnState.Loaded:
-                        newPlayerToSpawn.Item3 = ESpawnState.Spawning;
-                        PlayersToSpawn[accountId] = newPlayerToSpawn;
+        //                QuickLog("Update::Loading a new Player " + newPlayerToSpawn.Item1.Nickname);
+        //                IEnumerable<ResourceKey> allPrefabPaths = newPlayerToSpawn.Item1.GetAllPrefabPaths(false);
+        //                if (allPrefabPaths.Count() > 0)
+        //                {
+        //                    Singleton<JobScheduler>.Instance.SetForceMode(enable: true);
+        //                    Task loadBundle = Singleton<PoolManager>
+        //                        .Instance
+        //                        .LoadBundlesAndCreatePools(
+        //                        PoolManager.PoolsCategory.Raid
+        //                        , PoolManager.AssemblyType.Local
+        //                        , allPrefabPaths.ToArray()
+        //                        , JobPriority.General
+        //                        //	, new GProgress<SProgress>(delegate (SProgress p)
+        //                        //{
+        //                        //	//this.QuickLog($"Update::Loading a new Player {newPlayerToSpawn.Item1.Nickname}:{p.Stage}:{p.Progress}");
+        //                        //}));
+        //                        , null);
+        //                    await loadBundle;
+        //                    newPlayerToSpawn.Item3 = ESpawnState.Loaded;
+        //                    await loadBundle.ContinueWith((t) =>
+        //                    {
+        //                        newPlayerToSpawn.Item3 = ESpawnState.Loaded;
+        //                    });
+        //                }
+        //                else
+        //                {
+        //                    QuickLog("Update::New Player has no PrefabPaths. Deleting.");
+        //                    PlayersToSpawn.TryRemove(accountId, out _);
+        //                }
+        //                break;
+        //            case ESpawnState.Loaded:
+        //                newPlayerToSpawn.Item3 = ESpawnState.Spawning;
+        //                PlayersToSpawn[accountId] = newPlayerToSpawn;
 
-                        QuickLog("Update::Spawning a new >> Loaded << Player " + newPlayerToSpawn.Item1.AccountId);
-                        newPlayerToSpawn.Item1.SetSpawnedInSession(true);
-                        Vector3 spawnPosition = newPlayerToSpawn.Item2;
-                        try
-                        {
-                            var result = CreatePhysicalOtherPlayerOrBot(newPlayerToSpawn.Item1, spawnPosition).Result;
-                            if (result != null)
-                            {
-                                newPlayerToSpawn.Item3 = ESpawnState.Spawned;
-                                //this.SetWeaponInHandsOfNewPlayer(result);
+        //                QuickLog("Update::Spawning a new >> Loaded << Player " + newPlayerToSpawn.Item1.AccountId);
+        //                newPlayerToSpawn.Item1.SetSpawnedInSession(true);
+        //                Vector3 spawnPosition = newPlayerToSpawn.Item2;
+        //                try
+        //                {
+        //                    var result = CreatePhysicalOtherPlayerOrBot(newPlayerToSpawn.Item1, spawnPosition).Result;
+        //                    if (result != null)
+        //                    {
+        //                        newPlayerToSpawn.Item3 = ESpawnState.Spawned;
+        //                        //this.SetWeaponInHandsOfNewPlayer(result);
 
-                                if (Players.TryAdd(newPlayerToSpawn.Item1.AccountId, result))
-                                {
-                                    QuickLog($"Added new Player {newPlayerToSpawn.Item1.AccountId} to Players");
-                                    //var prc = result.GetOrAddComponent<PlayerReplicatedComponent>();
-                                    //prc.player = result;
-                                    //PlayersToAddActivePlayerToAI.Add((result, DateTime.Now));
-                                    //PlayersToSpawn.TryRemove(accountId, out _);
-                                    //result.Teleport(spawnPosition, true);
+        //                        if (Players.TryAdd(newPlayerToSpawn.Item1.AccountId, result))
+        //                        {
+        //                            QuickLog($"Added new Player {newPlayerToSpawn.Item1.AccountId} to Players");
+        //                            //var prc = result.GetOrAddComponent<PlayerReplicatedComponent>();
+        //                            //prc.player = result;
+        //                            //PlayersToAddActivePlayerToAI.Add((result, DateTime.Now));
+        //                            //PlayersToSpawn.TryRemove(accountId, out _);
+        //                            //result.Teleport(spawnPosition, true);
 
-                                }
-                                else
-                                {
-                                    QuickLog("Unable to Add new Player to Players Collection");
-                                }
-                            }
-                            else
-                            {
-                                QuickLog("Failed to create & spawn the player " + newPlayerToSpawn.Item1.AccountId);
-                                newPlayerToSpawn.Item3 = ESpawnState.Loaded;
-                            }
-                        }
-                        catch
-                        {
-                            newPlayerToSpawn.Item3 = ESpawnState.Loaded;
-                        }
-                        break;
-                }
+        //                        }
+        //                        else
+        //                        {
+        //                            QuickLog("Unable to Add new Player to Players Collection");
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        QuickLog("Failed to create & spawn the player " + newPlayerToSpawn.Item1.AccountId);
+        //                        newPlayerToSpawn.Item3 = ESpawnState.Loaded;
+        //                    }
+        //                }
+        //                catch
+        //                {
+        //                    newPlayerToSpawn.Item3 = ESpawnState.Loaded;
+        //                }
+        //                break;
+        //        }
 
-                PlayersToSpawn[accountId] = newPlayerToSpawn;
+        //        PlayersToSpawn[accountId] = newPlayerToSpawn;
 
 
-            }
-            catch (Exception ex)
-            {
-                QuickLog(ex.ToString());
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        QuickLog(ex.ToString());
+        //    }
+        //}
 
-        private void SetWeaponInHandsOfNewPlayer(LocalPlayer person)
-        {
-            Equipment equipment = person.Profile.Inventory.Equipment;
-            if (equipment == null)
-            {
-                return;
-            }
-            Item item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
-            if (item == null)
-            {
-                QuickLog("SetWeaponInHandsOfNewPlayer:FirstPrimaryWeapon is NULL");
-                item = equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem;
-            }
-            if (item == null)
-            {
-                QuickLog("SetWeaponInHandsOfNewPlayer:SecondPrimaryWeapon is NULL");
-                item = equipment.GetSlot(EquipmentSlot.Holster).ContainedItem;
-            }
-            if (item == null)
-            {
-                QuickLog("SetWeaponInHandsOfNewPlayer:Holster is NULL");
-                item = equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
-            }
-            if (item == null)
-            {
-                return;
-            }
-            //person.SetItemInHands(item, null);
+        //private void SetWeaponInHandsOfNewPlayer(LocalPlayer person)
+        //{
+        //    Equipment equipment = person.Profile.Inventory.Equipment;
+        //    if (equipment == null)
+        //    {
+        //        return;
+        //    }
+        //    Item item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
+        //    if (item == null)
+        //    {
+        //        QuickLog("SetWeaponInHandsOfNewPlayer:FirstPrimaryWeapon is NULL");
+        //        item = equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem;
+        //    }
+        //    if (item == null)
+        //    {
+        //        QuickLog("SetWeaponInHandsOfNewPlayer:SecondPrimaryWeapon is NULL");
+        //        item = equipment.GetSlot(EquipmentSlot.Holster).ContainedItem;
+        //    }
+        //    if (item == null)
+        //    {
+        //        QuickLog("SetWeaponInHandsOfNewPlayer:Holster is NULL");
+        //        item = equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
+        //    }
+        //    if (item == null)
+        //    {
+        //        return;
+        //    }
+        //    //person.SetItemInHands(item, null);
 
-            SetItemInHandsOfPlayer(person, item);
-        }
+        //    SetItemInHandsOfPlayer(person, item);
+        //}
 
-        public static void SetItemInHandsOfPlayer(LocalPlayer person, Item item)
-        {
-            person.SetItemInHands(item, null);
-        }
+        //public static void SetItemInHandsOfPlayer(LocalPlayer person, Item item)
+        //{
+        //    person.SetItemInHands(item, null);
+        //}
 
 
 

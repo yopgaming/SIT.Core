@@ -2,7 +2,6 @@
 using Comfort.Common;
 using EFT;
 using Microsoft.Win32;
-using SIT.Tarkov.Core.Hideout;
 using SIT.Tarkov.Core.Menus;
 using SIT.Tarkov.Core.PlayerPatches;
 using SIT.Tarkov.Core.SP;
@@ -10,7 +9,6 @@ using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.AI;
 using SIT.Tarkov.Core.Bundles;
 using SIT.Tarkov.Core.PlayerPatches.Health;
-using SIT.Tarkov.Core.SP.ScavMode;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,9 +27,13 @@ using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
 using SIT.Core.Coop;
-using static GClass1643;
 using SIT.Core.Menus;
 using SIT.Core.AkiSupport.Airdrops;
+using SIT.Core.SP.ScavMode;
+using Aki.Custom.Patches;
+using SIT.Core.AkiSupport.SITFixes;
+using SIT.Core.AkiSupport.Singleplayer;
+using UnityEngine.Assertions.Must;
 
 namespace SIT.Core
 {
@@ -54,86 +56,6 @@ namespace SIT.Core
             Instance = this;
         }
 
-        
-
-        private void EnableSPPatches()
-        {
-            var enabled = Config.Bind<bool>("SIT SP Patches", "Enable", true);
-            if (!enabled.Value) // if it is disabled. stop all SIT SP Patches.
-            {
-                Logger.LogInfo("SIT SP Patches has been disabled! Ignoring Patches.");
-                return;
-            }
-
-            //// --------- PMC Dogtags -------------------
-            new UpdateDogtagPatch().Enable();
-
-            //// --------- On Dead -----------------------
-            new OnDeadPatch(Config).Enable();
-
-            //// --------- Player Init -------------------
-            new PlayerInitPatch().Enable();
-            new ChangeHealthPatch().Enable();
-            new ChangeHydrationPatch().Enable();
-            new ChangeEnergyPatch().Enable();
-
-            //// --------- SCAV MODE ---------------------
-            new DisableScavModePatch().Enable();
-
-            //// --------- Airdrop -----------------------
-            new AirdropPatch().Enable();
-
-            //// --------- AI -----------------------
-            new BotSelfEnemyPatch().Enable();
-            new IsPlayerEnemyByRolePatch().Enable();
-
-            //// --------- Matchmaker ----------------
-            new AutoSetOfflineMatch().Enable();
-            new DisableReadyButtonOnFirstScreen().Enable();
-
-            //// -------------------------------------
-            //// Progression
-            new OfflineSaveProfile().Enable();
-            new ExperienceGainFix().Enable();
-
-          
-
-            //// -------------------------------------
-            //// Quests
-            //new ItemDroppedAtPlace_Beacon().Enable();
-
-            //// --------------------------------------
-            // Bots
-            new AddSptBotSettingsPatch().Enable();
-            new RemoveUsedBotProfilePatch().Enable();
-
-            //new IsBossOrFollowerFixPatch().Enable();
-
-            new VersionLabelPatch().Enable();
-
-            new QTEPatch().Enable();
-            new TinnitusFixPatch().Enable();
-
-
-            new InsuranceScreenPatch().Enable();
-
-            try
-            {
-                BundleManager.GetBundles();
-                //new EasyAssetsPatch().Enable();
-                //new EasyBundlePatch().Enable();
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError("// --- ERROR -----------------------------------------------");
-                Logger.LogError("Bundle System Failed!!");
-                Logger.LogError(ex.ToString());
-                Logger.LogError("// --- ERROR -----------------------------------------------");
-
-            }
-
-        }
-
         private void EnableCorePatches()
         {
             var enabled = Config.Bind<bool>("SIT Core Patches", "Enable", true);
@@ -150,6 +72,89 @@ namespace SIT.Core
             new UnityWebRequestPatch().Enable();
             new TransportPrefixPatch().Enable();
             new WebSocketPatch().Enable();
+        }
+
+        private void EnableSPPatches()
+        {
+            var enabled = Config.Bind<bool>("SIT SP Patches", "Enable", true);
+            if (!enabled.Value) // if it is disabled. stop all SIT SP Patches.
+            {
+                Logger.LogInfo("SIT SP Patches has been disabled! Ignoring Patches.");
+                return;
+            }
+
+           
+
+            //// --------- PMC Dogtags -------------------
+            //new UpdateDogtagPatch().Enable();
+
+            //// --------- On Dead -----------------------
+            //new OnDeadPatch(Config).Enable();
+
+            //// --------- Player Init -------------------
+            //new PlayerInitPatch().Enable();
+            //new ChangeHealthPatch().Enable();
+            //new ChangeHydrationPatch().Enable();
+            //new ChangeEnergyPatch().Enable();
+
+            //// --------- SCAV MODE ---------------------
+            //new DisableScavModePatch().Enable();
+
+            //// --------- Airdrop -----------------------
+            new AirdropPatch().Enable();
+
+            //// --------- Matchmaker ----------------
+            new TarkovApplicationOtherStartGamePatch().Enable();
+            new TarkovApplicationInternalStartGamePatch().Enable();
+            new OfflineRaidMenuPatch().Enable();
+            new AutoSetOfflineMatch2().Enable();
+
+            //// -------------------------------------
+            // Progression
+            new OfflineSaveProfile().Enable();
+            new ExperienceGainFix().Enable();
+
+
+
+            //// -------------------------------------
+            //// Quests
+            //new ItemDroppedAtPlace_Beacon().Enable();
+
+            //// --------------------------------------
+            // Bots
+            EnableSPPatches_Bots();
+
+            //new QTEPatch().Enable();
+            //new TinnitusFixPatch().Enable();
+            //new VersionLabelPatch().Enable();
+
+            //new InsuranceScreenPatch().Enable();
+
+            //try
+            //{
+            //    BundleManager.GetBundles();
+            //    //new EasyAssetsPatch().Enable();
+            //    //new EasyBundlePatch().Enable();
+            //}
+            //catch(Exception ex)
+            //{
+            //    Logger.LogError("// --- ERROR -----------------------------------------------");
+            //    Logger.LogError("Bundle System Failed!!");
+            //    Logger.LogError(ex.ToString());
+            //    Logger.LogError("// --- ERROR -----------------------------------------------");
+
+            //}
+
+        }
+
+        private static void EnableSPPatches_Bots()
+        {
+            new BotDifficultyPatch().Enable();
+            new GetNewBotTemplatesPatch().Enable();
+            new BotSettingsRepoClassIsFollowerFixPatch().Enable();
+            new BotEnemyTargetPatch().Enable();
+            new Aki.Custom.Patches.BotSelfEnemyPatch().Enable();
+            new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
         }
 
         private void EnableCoopPatches()

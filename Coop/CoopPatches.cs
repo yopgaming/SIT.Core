@@ -39,13 +39,13 @@ namespace SIT.Core.Coop
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
 
-            new LocalGameStartingPatch(config).Enable();
+            //new LocalGameStartingPatch(config).Enable();
             //new LocalGamePlayerSpawn().Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
 
-            
+
 
             // Tests
             //_ = new EFT.Player().SITToJson();
@@ -65,19 +65,19 @@ namespace SIT.Core.Coop
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
             {
-                Logger.LogInfo($"CoopPatches:CoopGameComponent is null, Patches wont be Applied");
+                Logger.LogDebug($"CoopPatches:CoopGameComponent is null, Patches wont be Applied");
                 enablePatches = false;
             }
 
             if (coopGC != null && !coopGC.enabled)
             {
-                Logger.LogInfo($"CoopPatches:CoopGameComponent is not enabled, Patches wont be Applied");
+                Logger.LogDebug($"CoopPatches:CoopGameComponent is not enabled, Patches wont be Applied");
                 enablePatches = false;
             }
 
             if (string.IsNullOrEmpty(CoopGameComponent.GetServerId()))
             {
-                Logger.LogInfo($"CoopPatches:CoopGameComponent ServerId is not set, Patches wont be Applied");
+                Logger.LogDebug($"CoopPatches:CoopGameComponent ServerId is not set, Patches wont be Applied");
                 enablePatches = false;
             }
 
