@@ -83,19 +83,19 @@ namespace SIT.Core
                 return;
             }
 
-           
+
 
             //// --------- PMC Dogtags -------------------
-            //new UpdateDogtagPatch().Enable();
+            new UpdateDogtagPatch().Enable();
 
             //// --------- On Dead -----------------------
-            //new OnDeadPatch(Config).Enable();
+            new OnDeadPatch(Config).Enable();
 
             //// --------- Player Init -------------------
-            //new PlayerInitPatch().Enable();
-            //new ChangeHealthPatch().Enable();
-            //new ChangeHydrationPatch().Enable();
-            //new ChangeEnergyPatch().Enable();
+            new PlayerInitPatch().Enable();
+            new ChangeHealthPatch().Enable();
+            new ChangeHydrationPatch().Enable();
+            new ChangeEnergyPatch().Enable();
 
             //// --------- SCAV MODE ---------------------
             //new DisableScavModePatch().Enable();
@@ -114,8 +114,6 @@ namespace SIT.Core
             new OfflineSaveProfile().Enable();
             new ExperienceGainFix().Enable();
 
-
-
             //// -------------------------------------
             //// Quests
             //new ItemDroppedAtPlace_Beacon().Enable();
@@ -124,26 +122,26 @@ namespace SIT.Core
             // Bots
             EnableSPPatches_Bots();
 
-            //new QTEPatch().Enable();
-            //new TinnitusFixPatch().Enable();
-            //new VersionLabelPatch().Enable();
+            new QTEPatch().Enable();
+            new TinnitusFixPatch().Enable();
+            new VersionLabelPatch().Enable();
 
-            //new InsuranceScreenPatch().Enable();
+            new InsuranceScreenPatch().Enable();
 
-            //try
-            //{
-            //    BundleManager.GetBundles();
-            //    //new EasyAssetsPatch().Enable();
-            //    //new EasyBundlePatch().Enable();
-            //}
-            //catch(Exception ex)
-            //{
-            //    Logger.LogError("// --- ERROR -----------------------------------------------");
-            //    Logger.LogError("Bundle System Failed!!");
-            //    Logger.LogError(ex.ToString());
-            //    Logger.LogError("// --- ERROR -----------------------------------------------");
+            try
+            {
+                BundleManager.GetBundles();
+                //new EasyAssetsPatch().Enable();
+                //new EasyBundlePatch().Enable();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("// --- ERROR -----------------------------------------------");
+                Logger.LogError("Bundle System Failed!!");
+                Logger.LogError(ex.ToString());
+                Logger.LogError("// --- ERROR -----------------------------------------------");
 
-            //}
+            }
 
         }
 
