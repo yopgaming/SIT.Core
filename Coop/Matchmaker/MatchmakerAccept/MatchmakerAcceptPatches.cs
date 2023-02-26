@@ -13,6 +13,8 @@ using System.Reflection;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
 using SIT.Tarkov.Core;
+using UnityEngine;
+using SIT.Core.Coop.Matchmaker;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -140,44 +142,64 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static bool CheckForMatch()
         {
-            //if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
-            //{
-            //    string json = new SIT.Tarkov.Core.Request().GetJson("/coop/get-invites");
-            //    if (!string.IsNullOrEmpty(json))
-            //    {
-            //        var gClass = Activator.CreateInstance(MatchmakerAcceptPatches.InviteType);
-            //        gClass = JsonConvert.DeserializeObject(json, MatchmakerAcceptPatches.InviteType);
-            //        var from = Tarkov.Core.PatchConstants.GetFieldOrPropertyFromInstance<string>(gClass, "From");
-            //        if (gClass != null && !string.IsNullOrEmpty(from))
-            //        {
-            //            PatchConstants.Logger.LogInfo($"Invite Popup! {gClass} {from}");
+            PatchConstants.Logger.LogInfo("CheckForMatch");
 
-            //            PatchConstants.Logger.LogInfo("GetMatchStatus");
-            //            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/read", JsonConvert.SerializeObject(from));
-            //            if (!string.IsNullOrEmpty(text))
-            //            {
-            //                //PatchConstants.Logger.LogInfo("GetMatchStatus[1] ::" + text.Length);
-            //                ServerStatus serverStatus = JsonConvert.DeserializeObject<ServerStatus>(text);
-            //                PatchConstants.Logger.LogInfo("GetMatchStatus[2] ::" + serverStatus.status);
-            //                if (serverStatus.status == "LOADING" || serverStatus.status == "INGAME")
-            //                {
-            //                    PatchConstants.Logger.LogInfo("GetMatchStatus[3] :: Starting up");
-            //                    //MatchmakerAcceptPatches.SetGroupId(from);
-            //                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-            //                    MatchmakerAcceptPatches.SetGroupId(from);
-            //                    PatchConstants.DisplayMessageNotification("Server is running and waiting for you to join...");
-            //                    return true;
-            //                    //MatchmakerAcceptPatches.MatchmakerScreenController.GetType().GetMethod("ShowNextScreen", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.MatchmakerScreenController, new object[] { from, EFT.UI.Matchmaker.EMatchingType.GroupPlayer });
+            if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
+            {
+                string json = new SIT.Tarkov.Core.Request().GetJson("/coop/server/exist");
+                PatchConstants.Logger.LogInfo(json);
 
-            //                }
-            //            }
-            //        }
-            //        else
-            //        {
-            //            //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
-            //        }
-            //    }
-            //}
+                if (!string.IsNullOrEmpty(json))
+                {
+                    bool serverExists = false;
+                    if (json.Equals("null", StringComparison.OrdinalIgnoreCase))
+                    {
+                        serverExists = false;
+                    }
+                    else
+                    {
+                        serverExists = true;
+                    }
+                    PatchConstants.Logger.LogInfo($"CheckForMatch:Server Exists?:{serverExists}");
+
+                    return serverExists;
+                }
+                //    string json = new SIT.Tarkov.Core.Request().GetJson("/coop/get-invites");
+                //    if (!string.IsNullOrEmpty(json))
+                //    {
+                //        var gClass = Activator.CreateInstance(MatchmakerAcceptPatches.InviteType);
+                //        gClass = JsonConvert.DeserializeObject(json, MatchmakerAcceptPatches.InviteType);
+                //        var from = Tarkov.Core.PatchConstants.GetFieldOrPropertyFromInstance<string>(gClass, "From");
+                //        if (gClass != null && !string.IsNullOrEmpty(from))
+                //        {
+                //            PatchConstants.Logger.LogInfo($"Invite Popup! {gClass} {from}");
+
+                    //            PatchConstants.Logger.LogInfo("GetMatchStatus");
+                    //            string text = new SIT.Tarkov.Core.Request().PostJson("/coop/server/read", JsonConvert.SerializeObject(from));
+                    //            if (!string.IsNullOrEmpty(text))
+                    //            {
+                    //                //PatchConstants.Logger.LogInfo("GetMatchStatus[1] ::" + text.Length);
+                    //                ServerStatus serverStatus = JsonConvert.DeserializeObject<ServerStatus>(text);
+                    //                PatchConstants.Logger.LogInfo("GetMatchStatus[2] ::" + serverStatus.status);
+                    //                if (serverStatus.status == "LOADING" || serverStatus.status == "INGAME")
+                    //                {
+                    //                    PatchConstants.Logger.LogInfo("GetMatchStatus[3] :: Starting up");
+                    //                    //MatchmakerAcceptPatches.SetGroupId(from);
+                    //                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                    //                    MatchmakerAcceptPatches.SetGroupId(from);
+                    //                    PatchConstants.DisplayMessageNotification("Server is running and waiting for you to join...");
+                    //                    return true;
+                    //                    //MatchmakerAcceptPatches.MatchmakerScreenController.GetType().GetMethod("ShowNextScreen", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.MatchmakerScreenController, new object[] { from, EFT.UI.Matchmaker.EMatchingType.GroupPlayer });
+
+                    //                }
+                    //            }
+                    //        }
+                    //        else
+                    //        {
+                    //            //MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
+                    //        }
+                    //    }
+            }
             return false;
         }
 
@@ -191,6 +213,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
         public static int HostExpectedNumberOfPlayers { get; set; }
+        public static GameObject EnvironmentUIRoot { get; internal set; }
 
         //public static Type InviteType { get; } = PatchConstants.EftTypes.Single(x =>
         //    (PatchConstants.GetPropertyFromType(x, "Id") != null
@@ -210,8 +233,9 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static void Run()
         {
-            //new MatchmakerAcceptScreenAwakePatch().Enable();
-            //new MatchmakerAcceptScreenShowPatch().Enable();
+            new EnvironmentUIRootPatch().Enable();
+            new MatchmakerAcceptScreenAwakePatch().Enable();
+            new MatchmakerAcceptScreenShowPatch().Enable();
             //new AcceptInvitePatch().Enable();
             //new SendInvitePatch().Enable();
         }

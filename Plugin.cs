@@ -104,7 +104,7 @@ namespace SIT.Core
             new AirdropPatch().Enable();
 
             //// --------- Matchmaker ----------------
-            new TarkovApplicationOtherStartGamePatch().Enable();
+            //new TarkovApplicationOtherStartGamePatch().Enable();
             new TarkovApplicationInternalStartGamePatch().Enable();
             new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
@@ -157,12 +157,7 @@ namespace SIT.Core
 
         private void EnableCoopPatches()
         {
-            //new LocalGameStartingPatch(Config).Enable();
-            //new LocalGameBotWaveSystemPatch().Enable();
-            //new MatchmakerAcceptScreenAwakePatch().Enable();
-            //new MatchmakerAcceptScreenShowPatch().Enable();
-            //new SendInvitePatch().Enable();
-            //new AcceptInvitePatch().Enable();
+            Logger.LogInfo("Enabling Coop Patches");
             CoopPatches.Run(Config);
         }
 

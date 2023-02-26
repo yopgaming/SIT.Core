@@ -67,7 +67,7 @@ namespace SIT.Tarkov.Core.Menus
              , ____changeSettingsButton
              , ____onlineBlocker);
 
-            Logger.LogInfo("AutoSetOfflineMatch2.Postfix");
+            //Logger.LogInfo("AutoSetOfflineMatch2.Postfix");
 
         }
 
@@ -89,7 +89,7 @@ namespace SIT.Tarkov.Core.Menus
             raidSettings.Side = ESideType.Pmc;
             ____changeSettingsButton.Interactable = true;
             ____changeSettingsButton.enabled = true;
-            Logger.LogInfo("AutoSetOfflineMatch2.RemoveBlockers");
+            //Logger.LogInfo("AutoSetOfflineMatch2.RemoveBlockers");
         }
     }
 

@@ -23,19 +23,19 @@ namespace SIT.Core
         }
     }
 
-    internal class TarkovApplicationOtherStartGamePatch : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
+    //internal class TarkovApplicationOtherStartGamePatch : ModulePatch
+    //{
+    //    protected override MethodBase GetTargetMethod()
+    //    {
 
-            return typeof(TarkovApplication).GetMethod("method_29", BindingFlags.Instance | BindingFlags.NonPublic);
-        }
+    //        return typeof(TarkovApplication).GetMethod("method_29", BindingFlags.Instance | BindingFlags.NonPublic);
+    //    }
 
-        [PatchPrefix]
-        public static async void Prefix(TarkovApplication __instance, RaidSettings ____raidSettings)
-        {
-            Logger.LogInfo("TarkovApplicationOtherStartGamePatch.Prefix");
-            ____raidSettings.RaidMode = ERaidMode.Local;
-        }
-    }
+    //    [PatchPrefix]
+    //    public static async void Prefix(TarkovApplication __instance, RaidSettings ____raidSettings)
+    //    {
+    //        Logger.LogInfo("TarkovApplicationOtherStartGamePatch.Prefix");
+    //        ____raidSettings.RaidMode = ERaidMode.Local;
+    //    }
+    //}
 }
