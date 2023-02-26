@@ -4,7 +4,7 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
 {
     public class BodyPartHealth
     {
-        private Dictionary<BodyPartEffect, float> _effects = new Dictionary<BodyPartEffect, float>();
+        private Dictionary<BodyPartEffect, float> _effects = new();
 
         public float Maximum { get; private set; }
         public float Current { get; private set; }

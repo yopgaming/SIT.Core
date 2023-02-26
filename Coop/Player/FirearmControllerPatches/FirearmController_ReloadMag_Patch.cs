@@ -1,14 +1,9 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -66,10 +61,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             var giadNewAddress_I_Think = new GridItemAddressDescriptor()
             {
                 LocationInGrid = gridItemAddress.LocationInGrid,
-                Container = new ContainerDescriptor() 
-                { 
+                Container = new ContainerDescriptor()
+                {
                     ContainerId = gridItemAddress.Container.ID
-                    , ParentId = gridItemAddress.Container.ParentItem.Id
+                    ,
+                    ParentId = gridItemAddress.Container.ParentItem.Id
                 }
             };
 
@@ -116,7 +112,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 try
                 {
                     //player.ToUnloadMagOperation().
-                    
+
                     // this is not working, maybe try and find it in the inventory instead???
                     var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
                     var gridItemAddressNewDesc = JObject.Parse(dict["a.new"].ToString()).ToObject<GridItemAddressDescriptor>();
@@ -139,7 +135,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         , gridItemAddressOld
                         , null);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Logger.LogInfo(e);
                 }

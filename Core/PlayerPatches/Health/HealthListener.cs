@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.PlayerPatches.Health
 {
@@ -10,14 +7,9 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
     {
         private static object _lock = new object();
         private static HealthListener _instance = null;
-
-        //private IHealthController _healthController;
-        public object MyHealthController { get; private set; }
         private bool _inRaid;
-        //private bool _runCheck;
-        //private IDisposable _disposable = null;
         private readonly Request _request;
-        //private readonly SimpleTimer _simpleTimer;
+        public object MyHealthController { get; private set; }
 
         public PlayerHealth CurrentHealth { get; } = new PlayerHealth();
 
@@ -43,10 +35,7 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
         // ctor
         private HealthListener()
         {
-            _request = new SIT.Tarkov.Core.Request(); // new Request(PatchConstants.GetPHPSESSID(), SIT.Tarkov.Core.PatchConstants.GetBackendUrl());
-            //_simpleTimer = JET.Mono.JET_Instance.Instance.GetOrAddComponent<SimpleTimer>();
-            //_simpleTimer = Plugin.Instance.GetOrAddComponent<SimpleTimer>();
-            //_simpleTimer.syncHealthAction = () => Task.Run(() => _request.PostJson("/player/health/sync", CurrentHealth.SITToJson()));
+            _request = new Request();
         }
 
         /// <summary>
@@ -60,13 +49,6 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
         {
             if (healthController != null && healthController == MyHealthController)
                 return;
-
-            //PatchConstants.Logger.LogInfo("HealthListener:Init");
-
-            // cleanup
-            //if (_disposable != null)
-            //    _disposable.Dispose();
-
 
             // init dependencies
             MyHealthController = healthController;
@@ -96,7 +78,7 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
         {
             //PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
 
-            if (PatchConstants.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v)) 
+            if (PatchConstants.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v))
             {
                 var valuestruct = PatchConstants.GetAllPropertiesForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
                 if (valuestruct == null)
@@ -146,67 +128,11 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
             //PatchConstants.Logger.LogInfo("GetBodyPartHealth found!");
 
             var bodyPartHealth = getbodyparthealthmethod.Invoke(healthController, new object[] { bodyPart, false });
-            //PatchConstants.Logger.LogInfo(bodyPart);
-            //PatchConstants.Logger.LogInfo(bodyPartHealth);
-            //var bodyPartHealth = healthController.GetBodyPartHealth(bodyPart);
-
-            //var current = PatchConstants.GetFieldOrPropertyFromInstance<float>(bodyPartHealth, "Current", true);
-            //var maximum = PatchConstants.GetFieldOrPropertyFromInstance<float>(bodyPartHealth, "Maximum", true);
             var current = PatchConstants.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Current").GetValue(bodyPartHealth).ToString();
             var maximum = PatchConstants.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Maximum").GetValue(bodyPartHealth).ToString();
-            //var maximum = PatchConstants.GetFieldOrPropertyFromInstance<float>(bodyPartHealth, "Maximum", true);
 
-            //PatchConstants.Logger.LogInfo($"HealthListener:GetBodyPartHealth:{current}/{maximum}");
             dictionary[bodyPart].Initialize(float.Parse(current), float.Parse(maximum));
 
         }
-
-        //class Disposable : IDisposable
-        //{
-        //    private readonly Action _onDispose;
-
-        //    public Disposable(Action onDispose)
-        //    {
-        //        _onDispose = onDispose ?? throw new ArgumentNullException(nameof(onDispose));
-        //    }
-
-        //    public void Dispose()
-        //    {
-        //        _onDispose();
-        //    }
-        //}
-
-        //class SimpleTimer : UnityEngine.MonoBehaviour
-        //{
-        //    // tick each 5 seconds
-        //    float sleepTime = 5f;
-        //    float timer = 0f;
-
-        //    public bool isSyncHealthEnabled = false;
-        //    public bool isHealthSynchronized = false;
-        //public Func<Task> syncHealthAction;
-
-        //    async void Update()
-        //    {
-        //        timer += UnityEngine.Time.deltaTime;
-
-        //        if (timer > sleepTime)
-        //        {
-        //            timer -= sleepTime;
-        //            await Tick();
-        //        }
-        //    }
-
-        //    Task Tick()
-        //    {
-        //        if (isSyncHealthEnabled && !isHealthSynchronized)
-        //        {
-        //            isHealthSynchronized = true;
-        //            return syncHealthAction();
-        //        }
-
-        //        return Task.CompletedTask;
-        //    }
-        //}
     }
 }

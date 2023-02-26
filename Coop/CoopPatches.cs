@@ -1,17 +1,9 @@
 ﻿using BepInEx.Logging;
-using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
-using SIT.Core.Coop.Player;
-using SIT.Core.Coop.Player.FirearmControllerPatches;
-using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
 
 namespace SIT.Core.Coop
@@ -30,7 +22,7 @@ namespace SIT.Core.Coop
                 Logger = BepInEx.Logging.Logger.CreateLogSource("Coop");
 
             var enabled = config.Bind<bool>("Coop", "Enable", true);
-            if(!enabled.Value) // if it is disabled. stop all Coop stuff.
+            if (!enabled.Value) // if it is disabled. stop all Coop stuff.
             {
                 Logger.LogInfo("Coop has been disabled! Ignoring Patches.");
                 return;
@@ -55,7 +47,7 @@ namespace SIT.Core.Coop
 
         private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            EnableDisablePatches();   
+            EnableDisablePatches();
         }
 
         public static void EnableDisablePatches()
@@ -83,7 +75,7 @@ namespace SIT.Core.Coop
 
             // ------ PLAYER -------------------------
 
-            if(enablePatches)
+            if (enablePatches)
             {
                 new PlayerOnInitPatch(m_Config).Enable();
                 //new PlayerOnMovePatch().Enable();
@@ -101,7 +93,7 @@ namespace SIT.Core.Coop
                     continue;
 
                 ModuleReplicationPatch mrp = null;
-                if (!ModuleReplicationPatch.Patches.Any(x=>x.GetType() == module))
+                if (!ModuleReplicationPatch.Patches.Any(x => x.GetType() == module))
                     mrp = (ModuleReplicationPatch)Activator.CreateInstance(module);
                 else
                     mrp = ModuleReplicationPatch.Patches.SingleOrDefault(x => x.GetType() == module);

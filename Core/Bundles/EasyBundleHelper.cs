@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using UnityEngine;
 //using BindableState = BindableState<Diz.DependencyManager.ELoadState>;
 
 /***
@@ -25,8 +24,8 @@ namespace SIT.Tarkov.Core
         private static readonly PropertyInfo _loadStateProperty;
         private static readonly MethodInfo _loadingCoroutineMethod;
         private readonly object _instance;
-        public static Type Type 
-        { 
+        public static Type Type
+        {
             get
             {
                 return PatchConstants.EftTypes.Single(x => !x.IsInterface && x.GetMethod("set_SameNameAsset", _flags) != null);

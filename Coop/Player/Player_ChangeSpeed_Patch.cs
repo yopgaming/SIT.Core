@@ -1,20 +1,16 @@
-﻿using EFT.InventoryLogic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {
     public class Player_ChangeSpeed_Patch : ModuleReplicationPatch
     {
+        private static Dictionary<string, float> LastSpeedDelta = new();
+        private static List<long> ProcessedCalls = new();
+        public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ChangeSpeed";
         public override bool DisablePatch => true;
@@ -27,14 +23,7 @@ namespace SIT.Core.Coop.Player
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
 
-        private static List<long> ProcessedCalls
-            = new List<long>();
-
-        private static Dictionary<string, float> LastSpeedDelta
-           = new Dictionary<string, float>();
 
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
@@ -91,7 +80,7 @@ namespace SIT.Core.Coop.Player
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
-            
+
             try
             {
                 var speedDelta = float.Parse(dict["d"].ToString());

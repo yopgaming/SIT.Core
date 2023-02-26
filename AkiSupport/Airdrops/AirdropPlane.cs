@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Threading.Tasks;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
-using EFT.Airdrop;
 using EFT.SynchronizableObjects;
+using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.AkiSupport.Airdrops
@@ -23,7 +22,7 @@ namespace SIT.Core.AkiSupport.Airdrops
         public static async Task<AirdropPlane> Init(Vector3 airdropPoint, int dropHeight, float planeVolume, float speed)
         {
             var instance = (await LoadPlane()).AddComponent<AirdropPlane>();
-            
+
             instance.airplaneSync = instance.GetComponent<AirplaneSynchronizableObject>();
             instance.airplaneSync.SetLogic(new AirplaneLogicClass());
 
@@ -66,8 +65,8 @@ namespace SIT.Core.AkiSupport.Airdrops
         private void SetPosition(int dropHeight, Vector3 airdropPoint)
         {
             var pointOnCircle = Random.insideUnitCircle.normalized * RADIUS_TO_PICK_RANDOM_POINT;
-            
-            transform.position = new Vector3(pointOnCircle.x, dropHeight, pointOnCircle.y); 
+
+            transform.position = new Vector3(pointOnCircle.x, dropHeight, pointOnCircle.y);
             transform.LookAt(new Vector3(airdropPoint.x, dropHeight, airdropPoint.z));
         }
 
@@ -78,7 +77,7 @@ namespace SIT.Core.AkiSupport.Airdrops
             UpdateFlaresLogic();
 
             if (distance - 200f > 0f || headingChanged) return;
-            
+
             StartCoroutine(ChangeHeading());
             headingChanged = true;
         }
@@ -86,13 +85,13 @@ namespace SIT.Core.AkiSupport.Airdrops
         private void UpdateFlaresLogic()
         {
             if (flaresDeployed) return;
-            
+
             if (distanceToDrop > 0f && flaresCooldown <= Time.unscaledTime)
             {
                 flaresCooldown = Time.unscaledTime + 4f;
                 StartCoroutine(DeployFlares(Random.Range(0.2f, 0.4f)));
             }
-            
+
             if (distanceToDrop > 0f) return;
 
             flaresDeployed = true;
@@ -107,10 +106,10 @@ namespace SIT.Core.AkiSupport.Airdrops
             var endTime = Time.unscaledTime + emissionTime;
             Singleton<GameWorld>.Instance.SynchronizableObjectLogicProcessor.AirdropManager.AddProjectile(projectile,
                 endTime + flares[0].main.duration + flares[0].main.startLifetime.Evaluate(1f));
-            
+
             while (endTime > Time.unscaledTime)
                 yield return null;
-            
+
             projectile.transform.parent = null;
             foreach (var particleSystem in flares)
                 particleSystem.Stop();
@@ -129,7 +128,7 @@ namespace SIT.Core.AkiSupport.Airdrops
                 yield return null;
             }
         }
-        
+
         private float EasingSmoothSquared(float x)
         {
             return x < 0.5 ? x * x * 2 : (1 - (1 - x) * (1 - x) * 2);

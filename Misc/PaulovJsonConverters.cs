@@ -2,12 +2,8 @@
 using Newtonsoft.Json.Linq;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Misc
@@ -41,7 +37,7 @@ namespace SIT.Core.Misc
 
             public override void WriteJson(JsonWriter writer, SimpleCharacterController value, JsonSerializer serializer)
             {
-                
+
             }
         }
 
@@ -52,7 +48,7 @@ namespace SIT.Core.Misc
 
             public override CollisionFlags ReadJson(JsonReader reader, Type objectType, CollisionFlags existingValue, bool hasExistingValue, JsonSerializer serializer)
             {
-                if(Enum.TryParse<CollisionFlags>(reader.ReadAsString(), out var collisionFlags))
+                if (Enum.TryParse<CollisionFlags>(reader.ReadAsString(), out var collisionFlags))
                     return collisionFlags;
 
                 return CollisionFlags.None;
@@ -63,28 +59,6 @@ namespace SIT.Core.Misc
                 writer.WriteValue(value.ToString());
             }
         }
-
-        //internal class PlayerJsonConverter : JsonConverter<EFT.Player>
-        //{
-        //    public override bool CanRead => true;
-        //    public override bool CanWrite => true;
-
-        //    public override EFT.Player ReadJson(JsonReader reader, Type objectType, EFT.Player existingValue, bool hasExistingValue, JsonSerializer serializer)
-        //    {
-        //        return null;
-        //    }
-
-        //    public override void WriteJson(JsonWriter writer, EFT.Player value, JsonSerializer serializer)
-        //    {
-        //        foreach (var p in value.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
-        //        {
-        //            if (p.CanRead && p.CanWrite && p.GetMethod != null && p.SetMethod != null)
-        //            {
-        //                writer.WriteValue(value.ToString());
-        //            }
-        //        }
-        //    }
-        //}
 
         public class PlayerJsonConverter : JsonConverter
         {

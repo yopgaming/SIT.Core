@@ -1,4 +1,5 @@
-﻿//using EFT;
+﻿#region OLD
+//using EFT;
 //using Newtonsoft.Json;
 ////using SIT.Coop.Core.HelpfulStructs;
 //using SIT.Tarkov.Core;
@@ -334,42 +335,31 @@
 //    }
 //}
 
-
-using EFT;
+#endregion
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace SIT.Core.Coop.Player
 {
     public class Player_ApplyDamageInfo_Patch : ModuleReplicationPatch
     {
+        private static List<long> ProcessedCalls = new();
+        public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ApplyDamageInfo";
         //public override bool DisablePatch => true;
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
-            //Logger.LogInfo($"Player_ApplyDamageInfo_Patch:{InstanceType.Name}:{method.Name}");
-
-            return method;
+            return PatchConstants.GetMethodForType(InstanceType, MethodName);
         }
-
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
-
 
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
@@ -447,14 +437,14 @@ namespace SIT.Core.Coop.Player
             ServerCommunication.PostLocalPlayerData(player, dictionary);
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
+
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             if (player == null)
                 return;
 
-            if (dict == null) 
+            if (dict == null)
                 return;
 
             var timestamp = long.Parse(dict["t"].ToString());
@@ -468,7 +458,7 @@ namespace SIT.Core.Coop.Player
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
-            
+
             try
             {
                 //DamageInfo damageInfo = new DamageInfo();

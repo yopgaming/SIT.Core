@@ -1,15 +1,8 @@
-﻿using EFT.InventoryLogic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {
@@ -73,7 +66,7 @@ namespace SIT.Core.Coop.Player
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
-            
+
             try
             {
                 CallLocally.Add(player.Profile.AccountId, true);

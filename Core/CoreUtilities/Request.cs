@@ -1,11 +1,11 @@
-﻿using System;
+﻿using ComponentAce.Compression.Libs.zlib;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using UnityEngine;
-using ComponentAce.Compression.Libs.zlib;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace SIT.Tarkov.Core
 {
@@ -15,9 +15,9 @@ namespace SIT.Tarkov.Core
 
         public string Session
         {
-            get 
-            { 
-                return m_Session; 
+            get
+            {
+                return m_Session;
             }
             set { m_Session = value; }
         }
@@ -28,13 +28,13 @@ namespace SIT.Tarkov.Core
 
         public string RemoteEndPoint
         {
-            get 
+            get
             {
                 if (string.IsNullOrEmpty(m_RemoteEndPoint))
                     m_RemoteEndPoint = PatchConstants.GetBackendUrl();
 
                 return m_RemoteEndPoint;
-            
+
             }
             set { m_RemoteEndPoint = value; }
         }
@@ -72,26 +72,26 @@ namespace SIT.Tarkov.Core
         {
             //if (string.IsNullOrEmpty(Session) || m_RequestHeaders == null)
             //{
-                string[] args = Environment.GetCommandLineArgs();
+            string[] args = Environment.GetCommandLineArgs();
 
-                foreach (string arg in args)
+            foreach (string arg in args)
+            {
+                //if (arg.Contains("BackendUrl"))
+                //{
+                //    string json = arg.Replace("-config=", string.Empty);
+                //    _host = Json.Deserialize<ServerConfig>(json).BackendUrl;
+                //}
+
+                if (arg.Contains("-token="))
                 {
-                    //if (arg.Contains("BackendUrl"))
-                    //{
-                    //    string json = arg.Replace("-config=", string.Empty);
-                    //    _host = Json.Deserialize<ServerConfig>(json).BackendUrl;
-                    //}
-
-                    if (arg.Contains("-token="))
-                    {
-                        Session = arg.Replace("-token=", string.Empty);
-                        m_RequestHeaders = new Dictionary<string, string>()
+                    Session = arg.Replace("-token=", string.Empty);
+                    m_RequestHeaders = new Dictionary<string, string>()
                         {
                             { "Cookie", $"PHPSESSID={Session}" },
                             { "SessionId", Session }
                         };
-                    }
                 }
+            }
             //}
             return m_RequestHeaders;
         }
@@ -141,7 +141,7 @@ namespace SIT.Tarkov.Core
             //    request.Headers.Add("Cookie", $"PHPSESSID={Session}");
             //    request.Headers.Add("SessionId", Session);
             //}
-            foreach(var item in GetHeaders())
+            foreach (var item in GetHeaders())
             {
                 request.Headers.Add(item.Key, item.Value);
             }

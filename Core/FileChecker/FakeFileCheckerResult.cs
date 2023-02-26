@@ -1,5 +1,5 @@
-﻿using System;
-using FilesChecker;
+﻿using FilesChecker;
+using System;
 
 namespace SIT.Tarkov.Core
 {

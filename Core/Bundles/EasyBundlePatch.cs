@@ -1,12 +1,8 @@
 ﻿using Diz.DependencyManager;
-using UnityEngine.Build.Pipeline;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System;
-using SIT.Tarkov.Core.Bundles;
-using UnityEngine;
-using SIT.Tarkov.Core;
+using UnityEngine.Build.Pipeline;
 
 /***
  * Full Credit for this patch goes to SPT-Aki team

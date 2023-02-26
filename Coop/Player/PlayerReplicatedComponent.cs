@@ -1,46 +1,24 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
-using EFT.Interactive;
-using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
-using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.Networking.Match;
 
 namespace SIT.Coop.Core.Player
 {
     internal class PlayerReplicatedComponent : NetworkBehaviour
     {
         internal const int PacketTimeoutInSeconds = 1;
-        internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; }
-            = new ConcurrentQueue<Dictionary<string, object>>();
-
+        internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
         internal Dictionary<string, object> LastMovementPacket { get; set; }
-        internal Dictionary<string, object> LastRotationPacket { get; set; }
-        internal DateTime? LastRotationPacketPostTime { get; set; }
         internal EFT.LocalPlayer player { private get; set; }
-
-        internal List<Vector2> ClientListRotationsToSend { get; } = new List<Vector2>();
-        internal ConcurrentQueue<Vector2> ReceivedRotationPackets { get; } = new ConcurrentQueue<Vector2>();
         public float LastTiltLevel { get; private set; }
-        public Quaternion? LastRotation { get; private set; }
-        public Vector2 LastMovementDirection { get; private set; } = Vector2.zero;
         public bool IsMyPlayer { get; internal set; }
-
-        //private NetworkConnection _connection { get; } = new NetworkConnection();
-        //private System.Random RandomConnectionIds { get; } = new System.Random();
-
-        //private NetworkClient _client { get; set; }
 
         void Awake()
         {
@@ -151,18 +129,6 @@ namespace SIT.Coop.Core.Player
             }
         }
 
-
-        //private Vector3 ReceivedPacketPostion = Vector3.zero;
-        //private Vector2 ReceivedPacketRotation = Vector2.zero;
-
-
-        //void FixedUpdate()
-        //{
-
-        //}
-
-        ////bool handlingPackets = false;
-
         void Update()
         {
             if (player == null)
@@ -171,16 +137,6 @@ namespace SIT.Coop.Core.Player
             UpdateMovement();
 
         }
-
-
-        public static bool ShouldReplicate(EFT.Player player, bool isMyPlayer)
-        {
-            return (Matchmaker.MatchmakerAcceptPatches.IsClient && isMyPlayer)
-               || (Matchmaker.MatchmakerAcceptPatches.IsServer && player.IsAI)
-               || (Matchmaker.MatchmakerAcceptPatches.IsServer && isMyPlayer);
-        }
-
-        //private Vector3? LastSentPosition;
 
         private IEnumerator UpdateMovement()
         {
@@ -201,26 +157,22 @@ namespace SIT.Coop.Core.Player
                         )
                     {
                         this.LastTiltLevel = player.MovementContext.Tilt;
-                        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                        dictionary.Add("tilt", LastTiltLevel);
-                        dictionary.Add("m", "Tilt");
-                        ServerCommunication.PostLocalPlayerData(player, dictionary);
+                        ServerCommunication.PostLocalPlayerData(player, new Dictionary<string, object>
+                        {
+                            { "tilt", LastTiltLevel },
+                            { "m", "Tilt" }
+                        });
                     }
 
+
+                    if (LastMovementPacket == null)
+                        continue;
+
+                    PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
+
+                    yield return waitEndOfFrame;
+
                 }
-
-                //if (!IsMyPlayer && ReceivedPacketRotation != Vector2.zero)
-                //{
-                //    player.MovementContext.Rotation = Vector2.Lerp(player.MovementContext.Rotation, ReceivedPacketRotation, 2f * Time.deltaTime);
-                //}
-
-                if (LastMovementPacket == null)
-                    continue;
-
-                PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
-
-                yield return waitEndOfFrame;
-
             }
         }
     }

@@ -1,15 +1,9 @@
 ﻿using EFT.InventoryLogic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
@@ -98,11 +92,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     CallLocally.Add(player.Profile.AccountId, true);
                     //if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
                     //{
-                        Logger.LogInfo("Replicated: Calling Change LightAndSoundShot");
-                        //Method.Invoke(firearmCont, new object[] { foundDoor, new InteractionResult(interactionType) });
+                    Logger.LogInfo("Replicated: Calling Change LightAndSoundShot");
+                    //Method.Invoke(firearmCont, new object[] { foundDoor, new InteractionResult(interactionType) });
                     //}
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Logger.LogInfo(e);
                 }

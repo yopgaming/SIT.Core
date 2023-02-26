@@ -1,8 +1,6 @@
-﻿using EFT;
-using Comfort.Common;
-using System.Reflection;
+﻿using SIT.Tarkov.Core;
 using System.Collections;
-using SIT.Tarkov.Core;
+using System.Reflection;
 
 namespace SIT.Core.AkiSupport.Custom
 {
@@ -17,17 +15,8 @@ namespace SIT.Core.AkiSupport.Custom
         [PatchPrefix]
         static bool PatchPrefix()
         {
-            //bool shouldInvoke = typeof(ActiveHealthControllerClass)
-            //    .GetMethod("FindActiveEffect", BindingFlags.Instance | BindingFlags.Public)
-            //    .MakeGenericMethod(typeof(ActiveHealthControllerClass)
-            //    .GetNestedType("Stun", BindingFlags.Instance | BindingFlags.NonPublic))
-            //    .Invoke(Singleton<GameWorld>.Instance.AllPlayers[0].ActiveHealthController, new object[] { EBodyPart.Common }) != null;
-
-            //return shouldInvoke;
             return false;
         }
-
-        // prevent null coroutine exceptions
         static IEnumerator CoroutinePassthrough()
         {
             yield return null;

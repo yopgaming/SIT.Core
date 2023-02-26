@@ -1,15 +1,10 @@
 ﻿using EFT;
-using EFT.Bots;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using GPUInstancer;
 using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using System;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using static UnityEngine.Experimental.Rendering.RayTracingAccelerationStructure;
 
 namespace SIT.Tarkov.Core.Menus
 {
@@ -59,7 +54,7 @@ namespace SIT.Tarkov.Core.Menus
             )
         {
             var warningPanel = GameObject.Find("Warning Panel");
-            UnityEngine.Object.Destroy(warningPanel);
+            Object.Destroy(warningPanel);
             RemoveBlockers(__instance
              , profileInfo
              , raidSettings

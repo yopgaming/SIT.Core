@@ -1,14 +1,7 @@
-﻿using Comfort.Common;
-using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace SIT.Coop.Core.Player
 {
@@ -28,7 +21,7 @@ namespace SIT.Coop.Core.Player
 
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance, bool enable)
-        { 
+        {
 
             Dictionary<string, object> args = new Dictionary<string, object>();
             args.Add("enable", enable.ToString());

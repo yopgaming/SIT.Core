@@ -1,12 +1,9 @@
 ﻿using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -38,7 +35,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             var result = false;
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
                 result = true;
-           
+
             return result;
         }
 

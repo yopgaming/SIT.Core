@@ -5,12 +5,8 @@ using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.Player
 {
@@ -56,7 +52,7 @@ namespace SIT.Coop.Core.Player
             Logger.LogInfo($"Init. {accountId}");
 
 
-           
+
 
             var gameWorld = Singleton<GameWorld>.Instance;
             var coopGC = gameWorld.GetComponent<CoopGameComponent>();

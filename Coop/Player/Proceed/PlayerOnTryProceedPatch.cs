@@ -1,16 +1,11 @@
-﻿using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
+﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.Player
 {
@@ -91,7 +86,8 @@ namespace SIT.Coop.Core.Player
             {
                 Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated:Found Item");
                 CallLocally.Add(player.Profile.AccountId, true);
-                player.TryProceed(item, (IResult) => { 
+                player.TryProceed(item, (IResult) =>
+                {
                     Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated:Try Proceed:{IResult.Succeed}");
                 }, bool.Parse(dict["s"].ToString()));
             }
