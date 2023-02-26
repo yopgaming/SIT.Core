@@ -1,10 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT.Airdrop;
 using EFT.Interactive;
 using EFT.SynchronizableObjects;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.AkiSupport.Airdrops
@@ -15,7 +15,7 @@ namespace SIT.Core.AkiSupport.Airdrops
         private const string AIRDROP_SOUNDS_PATH = "assets/content/audio/prefabs/airdrop/airdropsounds.bundle";
         private readonly int CROSSFADE = Shader.PropertyToID("_Crossfade");
         private readonly int COLLISION = Animator.StringToHash("collision");
-        
+
         public LootableContainer container;
         private float fallSpeed;
         private AirdropSynchronizableObject boxSync;
@@ -31,7 +31,7 @@ namespace SIT.Core.AkiSupport.Airdrops
             get
             {
                 if (audioSource != null) return audioSource;
-            
+
                 audioSource = Singleton<BetterAudio>.Instance.GetSource(BetterAudio.AudioSourceGroupType.Environment, false);
                 audioSource.transform.parent = transform;
                 audioSource.transform.localPosition = Vector3.up;
@@ -44,7 +44,7 @@ namespace SIT.Core.AkiSupport.Airdrops
         {
             var instance = (await LoadCrate()).AddComponent<AirdropBox>();
             instance.soundsDictionary = await LoadSounds();
-            
+
             instance.container = instance.GetComponentInChildren<LootableContainer>();
 
             instance.boxSync = instance.GetComponent<AirdropSynchronizableObject>();
@@ -71,7 +71,7 @@ namespace SIT.Core.AkiSupport.Airdrops
         {
             var easyAssets = Singleton<PoolManager>.Instance.EasyAssets;
             await easyAssets.Retain(AIRDROP_SOUNDS_PATH, null, null).LoadingJob;
-            
+
             var soundsDictionary = new Dictionary<BaseBallistic.ESurfaceSound, AirdropSurfaceSet>();
             var sets = easyAssets.GetAsset<AirdropSounds>(AIRDROP_SOUNDS_PATH).Sets;
             foreach (var set in sets)
@@ -95,12 +95,12 @@ namespace SIT.Core.AkiSupport.Airdrops
             SetLandingSound();
             boxSync.Init(1, position, Vector3.zero);
             PlayAudioClip(boxSync.SqueakClip, true);
-            
-            if(hitInfo.distance < 155f)
+
+            if (hitInfo.distance < 155f)
             {
                 for (float i = 0; i < 1; i += Time.deltaTime / 6f)
                 {
-                    transform.position = Vector3.Lerp(position, hitInfo.point, i*i);
+                    transform.position = Vector3.Lerp(position, hitInfo.point, i * i);
                     yield return null;
                 }
 
@@ -149,17 +149,17 @@ namespace SIT.Core.AkiSupport.Airdrops
         {
             return RaycastBoxDistance(layerMask, out hitInfo, transform.position);
         }
-        
+
         private bool RaycastBoxDistance(LayerMask layerMask, out RaycastHit hitInfo, Vector3 origin)
         {
             var ray = new Ray(origin, Vector3.down);
 
             var raycast = Physics.Raycast(ray, out hitInfo, Mathf.Infinity, layerMask);
             if (!raycast) return false;
-            
+
             return hitInfo.distance > 0.05f;
         }
-        
+
         private void SetLandingSound()
         {
             if (!RaycastBoxDistance(LayerMaskClass.AudioControllerStepLayerMask, out var raycast))
@@ -182,7 +182,7 @@ namespace SIT.Core.AkiSupport.Airdrops
                 surfaceSet = soundsDictionary[BaseBallistic.ESurfaceSound.Concrete];
             }
         }
-        
+
         private void PlayAudioClip(TaggedClip clip, bool looped = false)
         {
             var volume = clip.Volume;
@@ -192,9 +192,9 @@ namespace SIT.Core.AkiSupport.Airdrops
             AudioSource.source1.spatialBlend = 1f;
             AudioSource.SetRolloff(clip.Falloff);
             AudioSource.source1.volume = volume;
-            
+
             if (AudioSource.source1.isPlaying) return;
-            
+
             AudioSource.source1.clip = clip.Clip;
             AudioSource.source1.loop = looped;
             AudioSource.source1.Play();
@@ -218,7 +218,7 @@ namespace SIT.Core.AkiSupport.Airdrops
             var curFadeValue = paraMaterial.GetFloat(CROSSFADE);
             for (float i = 0; i < 1; i += Time.deltaTime / 2f)
             {
-                paraMaterial.SetFloat(CROSSFADE, Mathf.Lerp(curFadeValue, targetFadeValue, i*i));
+                paraMaterial.SetFloat(CROSSFADE, Mathf.Lerp(curFadeValue, targetFadeValue, i * i));
                 yield return null;
             }
             paraMaterial.SetFloat(CROSSFADE, targetFadeValue);
@@ -228,11 +228,11 @@ namespace SIT.Core.AkiSupport.Airdrops
                 boxSync.Parachute.SetActive(false);
             }
         }
-        
+
         private void ReleaseAudioSource()
         {
             if (audioSource == null) return;
-            
+
             audioSource.transform.parent = null;
             audioSource.Release();
             audioSource = null;

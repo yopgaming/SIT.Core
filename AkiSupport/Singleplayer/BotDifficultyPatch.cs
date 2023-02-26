@@ -10,9 +10,9 @@ namespace SIT.Core.AkiSupport.Singleplayer
         protected override MethodBase GetTargetMethod()
         {
             var methodName = "LoadDifficultyStringInternal";
-			var flags = BindingFlags.Public | BindingFlags.Static;
+            var flags = BindingFlags.Public | BindingFlags.Static;
 
-			return PatchConstants.EftTypes.Single(x => x.GetMethod(methodName, flags) != null)
+            return PatchConstants.EftTypes.Single(x => x.GetMethod(methodName, flags) != null)
                 .GetMethod(methodName, flags);
         }
 

@@ -1,13 +1,9 @@
 ﻿using EFT;
-using Newtonsoft.Json;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace SIT.Core.PlayerPatches.Health
 {
@@ -26,18 +22,11 @@ namespace SIT.Core.PlayerPatches.Health
         public static DamageInfo CreateDamageInfoTypeFromDict(Dictionary<string, object> dict)
         {
             ReadyMadeDamageInstance = new DamageInfo();
-            
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "Damage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["damage"].ToString()));
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DamageType").SetValue(ReadyMadeDamageInstance, Enum.Parse(typeof(EDamageType), dict["damageType"].ToString()));
-            //PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "SourceId").SetValue(ReadyMadeDamageInstance, dict["sourceId"].ToString());
-
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "ArmorDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["armorDamage"].ToString()));
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DidArmorDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["didArmorDamage"].ToString()));
             PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DidBodyDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["didBodyDamage"].ToString()));
-            //PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "HitPoint").SetValue(ReadyMadeDamageInstance, JsonConvert.DeserializeObject<Vector3>(dict["hitPoint"].ToString()));
-
-
-
             return ReadyMadeDamageInstance;
         }
 
@@ -73,10 +62,10 @@ namespace SIT.Core.PlayerPatches.Health
         public static EFT.HealthSystem.ValueStruct GetBodyPartHealth(object healthController, EBodyPart bodyPart)
         {
             var getbodyparthealthmethod = healthController.GetType().GetMethod("GetBodyPartHealth"
-                , System.Reflection.BindingFlags.Instance
-                | System.Reflection.BindingFlags.Public
-                | System.Reflection.BindingFlags.NonPublic
-                | System.Reflection.BindingFlags.FlattenHierarchy
+                , BindingFlags.Instance
+                | BindingFlags.Public
+                | BindingFlags.NonPublic
+                | BindingFlags.FlattenHierarchy
                 );
             if (getbodyparthealthmethod == null)
             {

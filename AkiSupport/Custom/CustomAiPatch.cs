@@ -17,9 +17,9 @@ namespace SIT.Core.AkiSupport.Custom
 {
     public class CustomAiPatch : ModulePatch
     {
-        private static readonly Random random = new Random();
-        private static Dictionary<WildSpawnType, Dictionary<string, Dictionary<string, int>>> botTypeCache = new Dictionary<WildSpawnType, Dictionary<string, Dictionary<string, int>>>();
-        private static DateTime cacheDate = new DateTime();
+        private static readonly Random random = new();
+        private static Dictionary<WildSpawnType, Dictionary<string, Dictionary<string, int>>> botTypeCache = new();
+        private static DateTime cacheDate = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -73,7 +73,7 @@ namespace SIT.Core.AkiSupport.Custom
                 Console.WriteLine($"Error processing log: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
-            
+
             return true; // Do original 
         }
 

@@ -1,20 +1,16 @@
-﻿using SIT.Tarkov.Core;
-using SIT.Coop.Core.Web;
-using System;
+﻿using SIT.Coop.Core.Web;
+using SIT.Tarkov.Core;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Concurrent;
-using EFT;
 
 namespace SIT.Coop.Core.Player
 {
     internal class PlayerOnJumpPatch : ModulePatch
     {
 
-        public static ConcurrentBag<(string, long)> LastJumps = new ConcurrentBag<(string, long)> ();
+        public static ConcurrentBag<(string, long)> LastJumps = new ConcurrentBag<(string, long)>();
 
         protected override MethodBase GetTargetMethod()
         {

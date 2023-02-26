@@ -1,40 +1,32 @@
-﻿using EFT.UI.Matchmaker;
+﻿using EFT;
+using EFT.UI;
+using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-//using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
-//using Grouping = GClass2434;
-using EFT.UI;
 using UnityEngine.UIElements;
-using EFT;
-using HarmonyLib;
-using UnityEngine.Events;
-using System.Text.RegularExpressions;
 
 namespace SIT.Coop.Core.Matchmaker
 {
     public class MatchmakerAcceptScreenAwakePatch : ModulePatch
     {
-		[Serializable]
-		private class ServerStatus
-		{
-			[JsonProperty("ip")]
-			public string ip { get; set; }
+        [Serializable]
+        private class ServerStatus
+        {
+            [JsonProperty("ip")]
+            public string ip { get; set; }
 
-			[JsonProperty("status")]
-			public string status { get; set; }
-		}
+            [JsonProperty("status")]
+            public string status { get; set; }
+        }
 
-		static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+        static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
 
-		public static Type GetThisType()
-		{
+        public static Type GetThisType()
+        {
             return Tarkov.Core.PatchConstants.EftTypes
                  .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
             //.Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
@@ -45,7 +37,7 @@ namespace SIT.Coop.Core.Matchmaker
 
             var methodName = "Awake";
 
-            return GetThisType().GetMethods(privateFlags).First(x=>x.Name == methodName);
+            return GetThisType().GetMethods(privateFlags).First(x => x.Name == methodName);
 
         }
 
@@ -65,40 +57,26 @@ namespace SIT.Coop.Core.Matchmaker
             )
         {
             Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
-
-            // ------------------------------------------
-            // Keep an instance for other patches to work
-            MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
-            // ------------------------------------------
-
-
-            //var newButton = GameObject.Instantiate<DefaultUIButton>(____acceptButton);
-            //GameObject.DontDestroyOnLoad(newButton);
-            //newButton.RectTransform().position = ____acceptButton.RectTransform().position;
-            //newButton.RectTransform().sizeDelta = ____acceptButton.RectTransform().sizeDelta;
-            //newButton.SetHeaderText("Start Match Other");
-            //newButton.gameObject.SetActive(true);
-
+            //MatchmakerAcceptPatches.Profile = ___profile_0;
+            //Logger.LogInfo(___profile_0.AccountId);
             
-
-
-
             // ----------------------------------------------------
             // Reset number of players for next Raid
             //MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
 
-            //screenController = MatchmakerAcceptPatches.MatchmakerScreenController;
-            ////___eraidMode_0 = ERaidMode.Online;
-            //___eraidMode_0 = ERaidMode.Local;
-            //var profile = ___profile_0;
-            //____acceptButton.OnClick.RemoveAllListeners();
-            //____acceptButton.OnClick.AddListener(() => 
-            //{
-            //    //if (___MatchmakerPlayersController.GroupPlayers.Count == 0)
-            //    //{
-            //    //    Logger.LogInfo("___MatchmakerPlayersController.GroupPlayers is Empty??");
-            //    //}
-            //    //___MatchmakerPlayersController.GroupPlayers.Add(___MatchmakerPlayersController.CurrentPlayer);
+            MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
+            screenController = MatchmakerAcceptPatches.MatchmakerScreenController;
+            //___eraidMode_0 = ERaidMode.Online;
+            ___eraidMode_0 = ERaidMode.Local;
+            var profile = ___profile_0;
+            ____acceptButton.OnClick.RemoveAllListeners();
+            ____acceptButton.OnClick.AddListener(() => 
+            {
+                //if (___MatchmakerPlayersController.GroupPlayers.Count == 0)
+                //{
+                //    Logger.LogInfo("___MatchmakerPlayersController.GroupPlayers is Empty??");
+                //}
+                //___MatchmakerPlayersController.GroupPlayers.Add(___MatchmakerPlayersController.CurrentPlayer);
 
             //    //GoToRaid(); 
             //    PatchConstants.GetMethodForType(___ScreenController.GetType(), "ShowNextScreen")
@@ -126,7 +104,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static void DoCreateAndCheck()
         {
-            if(MatchmakerAcceptPatches.Profile == null)
+            if (MatchmakerAcceptPatches.Profile == null)
             {
                 Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
                 return;
@@ -160,24 +138,24 @@ namespace SIT.Coop.Core.Matchmaker
         public static void BackOut()
         {
             //Logger.LogInfo("BackOut!");
-            //if (screenController != null) 
-            //{
-            //    Logger.LogInfo("screenController.GetType():" + screenController.GetType().FullName);
-            //    //if (MatchmakerAcceptPatches.Grouping != null)
-            //    //{
-            //    //    if (MatchmakerAcceptPatches.IsGroupOwner())
-            //    //    {
-            //    //        // Invoke Disband Group
-            //    //        MatchmakerAcceptPatches.Grouping
-            //    //            .GetType()
-            //    //            .GetMethod("DisbandGroup", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.Grouping, new object[] { null });
-            //    //    }
-            //    //    else
-            //    //    {
-            //    //        MatchmakerAcceptPatches.Grouping
-            //    //            .GetType()
-            //    //            .GetMethod("LeaveGroup", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.Grouping, new object[] { null });
-            //    //    }
+            if (screenController != null) 
+            {
+                Logger.LogInfo("screenController.GetType():" + screenController.GetType().FullName);
+                //if (MatchmakerAcceptPatches.Grouping != null)
+                //{
+                //    if (MatchmakerAcceptPatches.IsGroupOwner())
+                //    {
+                //        // Invoke Disband Group
+                //        MatchmakerAcceptPatches.Grouping
+                //            .GetType()
+                //            .GetMethod("DisbandGroup", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.Grouping, new object[] { null });
+                //    }
+                //    else
+                //    {
+                //        MatchmakerAcceptPatches.Grouping
+                //            .GetType()
+                //            .GetMethod("LeaveGroup", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.Grouping, new object[] { null });
+                //    }
 
             //    //    MatchmakerAcceptPatches.Grouping
             //    //            .GetType()
@@ -187,18 +165,18 @@ namespace SIT.Coop.Core.Matchmaker
             //    //            .GetType()
             //    //            .GetMethod("ExitFromMatchMaker", BindingFlags.Public | BindingFlags.Instance).Invoke(MatchmakerAcceptPatches.Grouping, new object[] { });
 
-            //    //    MatchmakerAcceptPatches.Grouping = null;
-            //    //}
-            //    //_canvasGroup.interactable = false;
-            //    //screenController.GetType().GetMethod("CloseScreen", BindingFlags.Public | BindingFlags.Instance).Invoke(screenController, new object[] { });
-            //    //screenController = null;
-            //    //_canvasGroup = null;
-            //}
+                //    MatchmakerAcceptPatches.Grouping = null;
+                //}
+                //_canvasGroup.interactable = false;
+                //screenController.GetType().GetMethod("CloseScreen", BindingFlags.Public | BindingFlags.Instance).Invoke(screenController, new object[] { });
+                //screenController = null;
+                //_canvasGroup = null;
+            }
             
         }
 
 
     }
 
-	
+
 }

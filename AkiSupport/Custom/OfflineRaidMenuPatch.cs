@@ -1,11 +1,10 @@
+using Aki.Custom.Models;
+using EFT;
 using EFT.UI;
 using EFT.UI.Matchmaker;
+using SIT.Tarkov.Core;
 using System.Reflection;
 using UnityEngine;
-using EFT;
-using static EFT.UI.Matchmaker.MatchmakerOfflineRaidScreen;
-using SIT.Tarkov.Core;
-using Aki.Custom.Models;
 
 namespace Aki.Custom.Patches
 {

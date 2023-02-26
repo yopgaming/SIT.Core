@@ -1,18 +1,14 @@
 ﻿using EFT;
 using Newtonsoft.Json;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.PlayerPatches.Health
 {
     public class OnDeadPatch : ModulePatch
     {
-        public static event Action<EFT.Player, EDamageType> OnPersonKilled;
+        public static event Action<Player, EDamageType> OnPersonKilled;
         public static bool DisplayDeathMessage = true;
 
         public OnDeadPatch(BepInEx.Configuration.ConfigFile config)
@@ -21,27 +17,20 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
             if (enableDeathMessage != null && enableDeathMessage.Value == true)
             {
                 DisplayDeathMessage = enableDeathMessage.Value;
-                
-                //DisplayDeathMessage = JsonConvert.DeserializeObject<bool>();
-            }
 
-            //if(bool.TryParse(new Request().PostJson("/client/raid/person/killed/showMessage", null, true), out bool serverDecision))
-            //{
-            //    Logger.LogInfo("OnDeadPatch:Server Decision:" + serverDecision);
-            //    DisplayDeathMessage = serverDecision;
-            //}
+            }
         }
 
         protected override MethodBase GetTargetMethod() => PatchConstants.GetMethodForType(typeof(Player), "OnDead");
 
         [PatchPostfix]
-        public static void PatchPostfix(EFT.Player __instance, EDamageType damageType)
+        public static void PatchPostfix(Player __instance, EDamageType damageType)
         {
             Player deadPlayer = __instance;
             if (deadPlayer == null)
                 return;
 
-            if(OnPersonKilled != null)
+            if (OnPersonKilled != null)
             {
                 OnPersonKilled(__instance, damageType);
             }
@@ -62,20 +51,22 @@ namespace SIT.Tarkov.Core.PlayerPatches.Health
                     PatchConstants.DisplayMessageNotification($"{deadPlayer.Profile.Nickname} has died by {damageType}");
             }
 
-            Dictionary<string, object> map = new Dictionary<string, object>();
-            map.Add("diedAID", __instance.Profile.AccountId);
+            Dictionary<string, object> map = new Dictionary<string, object>
+            {
+                { "diedAID", __instance.Profile.AccountId }
+            };
             if (__instance.Profile.Info != null)
             {
                 map.Add("diedFaction", __instance.Side);
-                if(__instance.Profile.Info.Settings != null)
+                if (__instance.Profile.Info.Settings != null)
                     map.Add("diedWST", __instance.Profile.Info.Settings.Role);
             }
-            if (killedBy != null) 
+            if (killedBy != null)
             {
                 map.Add("killedByAID", killedBy.Profile.AccountId);
                 map.Add("killerFaction", killedBy.Side);
             }
-            if(killedByLastAggressor != null)
+            if (killedByLastAggressor != null)
             {
                 map.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
             }

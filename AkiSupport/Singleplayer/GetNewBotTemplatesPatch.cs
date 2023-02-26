@@ -1,23 +1,15 @@
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using EFT;
 using SIT.Core.AkiSupport.Singleplayer.Models;
 using SIT.Tarkov.Core;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace SIT.Core.AkiSupport.Singleplayer
 {
     public class GetNewBotTemplatesPatch : ModulePatch
     {
         private static MethodInfo _getNewProfileMethod;
-
-        static GetNewBotTemplatesPatch()
-        {
-            _ = nameof(IBotData.PrepareToLoadBackend);
-            _ = nameof(BotsPresets.GetNewProfile);
-            _ = nameof(PoolManager.LoadBundlesAndCreatePools);
-            _ = nameof(JobPriority.General);
-        }
 
         public GetNewBotTemplatesPatch()
         {

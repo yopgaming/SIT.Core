@@ -2,16 +2,15 @@
 using Diz.Resources;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using UnityEngine;
-using UnityEngine.Build.Pipeline;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Build.Pipeline;
 using DependencyGraph = DependencyGraph<IEasyBundle>;
-using SIT.Tarkov.Core;
 
 namespace SIT.Tarkov.Core
 {

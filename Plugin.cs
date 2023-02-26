@@ -1,39 +1,25 @@
-﻿using BepInEx;
+﻿using Aki.Custom.Patches;
+using BepInEx;
 using Comfort.Common;
 using EFT;
-using Microsoft.Win32;
-using SIT.Tarkov.Core.Menus;
-using SIT.Tarkov.Core.PlayerPatches;
-using SIT.Tarkov.Core.SP;
-using SIT.Tarkov.Core;
-using SIT.Tarkov.Core.AI;
-using SIT.Tarkov.Core.Bundles;
-using SIT.Tarkov.Core.PlayerPatches.Health;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using SIT.Core.AkiSupport;
-using SIT.Core.Misc;
+using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
-using SIT.Coop.Core.Matchmaker;
-using SIT.Coop.Core.LocalGame;
-using SIT.Coop.Core.Matchmaker.MatchmakerAccept.Grouping;
-using SIT.Coop.Core.Matchmaker.MatchmakerAccept;
+using SIT.Core.AkiSupport.Singleplayer;
+using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Coop;
 using SIT.Core.Menus;
-using SIT.Core.AkiSupport.Airdrops;
-using SIT.Core.SP.ScavMode;
-using Aki.Custom.Patches;
-using SIT.Core.AkiSupport.SITFixes;
-using SIT.Core.AkiSupport.Singleplayer;
-using UnityEngine.Assertions.Must;
+using SIT.Core.Misc;
+using SIT.Tarkov.Core;
+using SIT.Tarkov.Core.Menus;
+using SIT.Tarkov.Core.PlayerPatches;
+using SIT.Tarkov.Core.PlayerPatches.Health;
+using SIT.Tarkov.Core.SP;
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace SIT.Core
 {
@@ -45,8 +31,6 @@ namespace SIT.Core
 
         private void Awake()
         {
-            //PatchConstants.GetBackendUrl();
-
             EnableCorePatches();
             EnableSPPatches();
             EnableCoopPatches();
@@ -151,7 +135,7 @@ namespace SIT.Core
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
             new BotEnemyTargetPatch().Enable();
-            new Aki.Custom.Patches.BotSelfEnemyPatch().Enable();
+            new BotSelfEnemyPatch().Enable();
             new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
         }
 
@@ -179,49 +163,6 @@ namespace SIT.Core
             //EnableCoopPatches();
 
         }
-
-        //public void SetupMoreGraphicsMenuOptions()
-        //{
-        //    Logger.LogInfo("Adjusting sliders for Overall Visibility and LOD Quality");
-        //    var TypeOfGraphicsSettingsTab = typeof(EFT.UI.Settings.GraphicsSettingsTab);
-
-        //    var readOnlyCollection_0 = TypeOfGraphicsSettingsTab.GetField(
-        //        "readOnlyCollection_0",
-        //        BindingFlags.Static |
-        //        BindingFlags.NonPublic
-        //        );
-
-        //    var readOnlyCollection_3 = TypeOfGraphicsSettingsTab.GetField(
-        //        "readOnlyCollection_3",
-        //        BindingFlags.Static |
-        //        BindingFlags.NonPublic
-        //        );
-
-        //    List<float> overallVisibility = new();
-        //    for (int i = 0; i <= 11; i++)
-        //    {
-        //        overallVisibility.Add(400 + (i * 50));
-        //    }
-
-        //    for (int i = 0; i <= 4; i++)
-        //    {
-        //        overallVisibility.Add(1000 + (i * 500));
-        //    }
-
-
-        //    List<float> lodQuality = new();
-        //    for (int i = 0; i <= 9; i++)
-        //    {
-        //        lodQuality.Add((float)(2 + (i * 0.25)));
-        //    }
-
-        //    var Collection_0 = Array.AsReadOnly<float>(overallVisibility.ToArray());
-        //    var Collection_3 = Array.AsReadOnly<float>(lodQuality.ToArray());
-
-        //    readOnlyCollection_0.SetValue(null, Collection_0);
-        //    readOnlyCollection_3.SetValue(null, Collection_3);
-        //    Logger.LogInfo("Adjusted sliders for Overall Visibility and LOD Quality");
-        //}
 
         private void GetBackendConfigurationInstance()
         {
@@ -258,25 +199,14 @@ namespace SIT.Core
 
         }
 
-
-
         private void GetPoolManager()
         {
             if (PatchConstants.PoolManagerType == null)
             {
                 PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
-                //Logger.LogInfo($"Loading PoolManagerType:{ PatchConstants.PoolManagerType.FullName}");
-
-                //Logger.LogInfo($"Getting PoolManager Instance");
-                Type generic = typeof(Comfort.Common.Singleton<>);
+                Type generic = typeof(Singleton<>);
                 Type[] typeArgs = { PatchConstants.PoolManagerType };
                 ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
-                //Logger.LogInfo(PatchConstants.PoolManagerType.FullName);
-                //Logger.LogInfo(ConstructedBundleAndPoolManagerSingletonType.FullName);
-
-                //new LoadBotTemplatesPatch().Enable();
-                //new RemoveUsedBotProfile().Enable();
-                //new CreateFriendlyAIPatch().Enable();
             }
         }
 
@@ -287,27 +217,6 @@ namespace SIT.Core
         public static Type assemblyTypeType { get; set; }
 
         public static MethodInfo LoadBundlesAndCreatePoolsMethod { get; set; }
-
-        public static async void LoadBundlesAndCreatePoolsAsync(ResourceKey[] resources)
-        {
-            try
-            {
-                if (BundleAndPoolManager == null)
-                {
-                    PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: BundleAndPoolManager is missing");
-                    return;
-                }
-
-                await Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(
-                    PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, resources, JobPriority.General, null, CancellationToken.None);
-
-            }
-            catch (Exception ex)
-            {
-                PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools -- ERROR ->>>");
-                PatchConstants.Logger.LogInfo(ex.ToString());
-            }
-        }
 
         public static Task LoadBundlesAndCreatePools(ResourceKey[] resources)
         {
@@ -339,26 +248,6 @@ namespace SIT.Core
                     , (object o) => { PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: Progressing!"); }
                     , default(CancellationToken)
                     );
-
-                //Task task = LoadBundlesAndCreatePoolsMethod.Invoke(BundleAndPoolManager,
-                //    new object[] {
-                //    Enum.Parse(poolsCategoryType, "Raid")
-                //    , Enum.Parse(assemblyTypeType, "Local")
-                //    , resources
-                //    , PatchConstants.GetPropertyFromType(PatchConstants.JobPriorityType, "General").GetValue(null, null)
-                //    , null
-                //    , default(CancellationToken)
-                //    }
-                //    ) as Task;
-                ////PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: task is " + task.GetType());
-
-                //if (task != null) // && task.GetType() == typeof(Task))
-                //{
-                //    task.ContinueWith(t => { PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools loaded"); });
-                //    //var t = task as Task;
-                //    PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: task is " + task.GetType());
-                //    return task;
-                //}
             }
             catch (Exception ex)
             {

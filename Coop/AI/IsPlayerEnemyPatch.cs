@@ -1,12 +1,5 @@
-﻿using EFT;
-using SIT.Tarkov.Core;
-using SIT.Tarkov.Core.PlayerPatches.Health;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.AI
 {

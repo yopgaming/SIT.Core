@@ -1,15 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static HBAO_Core;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -29,7 +22,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public static Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
 
-        public static Dictionary<string, bool> LastPress = new Dictionary<string, bool>();  
+        public static Dictionary<string, bool> LastPress = new Dictionary<string, bool>();
 
 
         [PatchPrefix]
@@ -49,7 +42,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             var result = false;
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
                 result = true;
-           
+
             return result;
         }
 
@@ -112,7 +105,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     CallLocally.Add(player.Profile.AccountId, true);
                     firearmCont.SetTriggerPressed(pressed);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Logger.LogInfo(e);
                 }
