@@ -37,23 +37,13 @@ namespace SIT.Coop.Core.Matchmaker
         }
 
 
-        private static object screenController;
-
-        //private static object grouping => MatchmakerAcceptPatches.GetGrouping();
-
-        private static Button _updateListButton;
-
-        private static CanvasGroup _canvasGroup;
-
-        private static Profile profile;
-
 		[PatchPrefix]
         private static bool PatchPrefix(
-            ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance
+            EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance
             )
         {
-            Logger.LogInfo("MatchmakerAcceptScreenAwakePatch.PatchPrefix");
-            return true; // run the original
+            Logger.LogInfo("MatchmakerAcceptScreenClosePatch.PatchPrefix");
+            return true; 
 
         }
 

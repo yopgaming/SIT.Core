@@ -9,6 +9,7 @@ using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Coop;
 using SIT.Core.Menus;
 using SIT.Core.Misc;
+using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
 using SIT.Tarkov.Core.Menus;
 using SIT.Tarkov.Core.PlayerPatches;
@@ -67,40 +68,34 @@ namespace SIT.Core
                 return;
             }
 
-
-
             //// --------- PMC Dogtags -------------------
             new UpdateDogtagPatch().Enable();
 
             //// --------- On Dead -----------------------
             new OnDeadPatch(Config).Enable();
 
-            //// --------- Player Init -------------------
+            //// --------- Player Init & Health -------------------
             new PlayerInitPatch().Enable();
             new ChangeHealthPatch().Enable();
             new ChangeHydrationPatch().Enable();
             new ChangeEnergyPatch().Enable();
 
             //// --------- SCAV MODE ---------------------
-            //new DisableScavModePatch().Enable();
+            new DisableScavModePatch().Enable();
 
             //// --------- Airdrop -----------------------
             new AirdropPatch().Enable();
 
-            //// --------- Matchmaker ----------------
-            //new TarkovApplicationOtherStartGamePatch().Enable();
+            //// --------- Screens ----------------
             new TarkovApplicationInternalStartGamePatch().Enable();
             new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
+            new InsuranceScreenPatch().Enable();
+            new VersionLabelPatch().Enable();
 
-            //// -------------------------------------
-            // Progression
+            //// --------- Progression -----------------------
             new OfflineSaveProfile().Enable();
             new ExperienceGainFix().Enable();
-
-            //// -------------------------------------
-            //// Quests
-            //new ItemDroppedAtPlace_Beacon().Enable();
 
             //// --------------------------------------
             // Bots
@@ -108,9 +103,6 @@ namespace SIT.Core
 
             new QTEPatch().Enable();
             new TinnitusFixPatch().Enable();
-            new VersionLabelPatch().Enable();
-
-            new InsuranceScreenPatch().Enable();
 
             try
             {

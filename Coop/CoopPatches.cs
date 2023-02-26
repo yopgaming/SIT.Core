@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using System;
@@ -31,7 +32,7 @@ namespace SIT.Core.Coop
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
 
-            //new LocalGameStartingPatch(config).Enable();
+            new LocalGameStartingPatch(m_Config).Enable();
             //new LocalGamePlayerSpawn().Enable();
 
             // ------ MATCHMAKER -------------------------

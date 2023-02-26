@@ -16,8 +16,6 @@ using UnityEngine;
 
 namespace SIT.Core.Coop
 {
-#pragma warning disable CS0618 // Type or member is obsolete
-    //public class CoopGameComponent : NetworkBehaviour
     public class CoopGameComponent : MonoBehaviour
     {
         #region Fields/Properties        
@@ -31,6 +29,7 @@ namespace SIT.Core.Coop
         public static Vector3? ClientSpawnLocation;
         private long ReadFromServerLastActionsLastTime = -1;
         #endregion
+
         #region Public Voids
         public static CoopGameComponent GetCoopGameComponent()
         {
@@ -50,6 +49,7 @@ namespace SIT.Core.Coop
             return coopGC.ServerId;
         }
         #endregion
+
         #region Unity Component Methods
 
         void Awake()

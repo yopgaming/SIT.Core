@@ -2,6 +2,7 @@
 //using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
 //using Grouping = GClass2434;
 using EFT.UI;
+using EFT.UI.Matchmaker;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
@@ -35,6 +36,21 @@ namespace SIT.Coop.Core.Matchmaker
 
         //private static Button _updateListButton;
 
+        [PatchPrefix]
+        private static void Pre(
+            ref ISession session,
+            ref RaidSettings raidSettings,
+            Profile ___profile_0,
+            MatchMakerAcceptScreen __instance,
+            DefaultUIButton ____acceptButton
+            )
+        {
+            ____acceptButton.OnClick.AddListener(() =>
+            {
+                Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
+            });
+        }
 
 
         [PatchPostfix]
@@ -46,14 +62,14 @@ namespace SIT.Coop.Core.Matchmaker
             DefaultUIButton ____acceptButton
             )
         {
-			Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
+			Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
 
             // ------------------------------------------
             // Keep an instance for other patches to work
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             // ------------------------------------------
             MatchmakerAcceptPatches.Profile = ___profile_0;
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix:" + ___profile_0.AccountId);
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
 
             if (MatchmakerAcceptPatches.CheckForMatch())
             {
@@ -63,11 +79,6 @@ namespace SIT.Coop.Core.Matchmaker
             {
                 ____acceptButton.SetHeaderText("Start Match");
             }
-
-            ____acceptButton.OnClick.AddListener(() =>
-            {
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
-            });
 
         }
     }
