@@ -7,14 +7,13 @@ using SIT.Core.AkiSupport.Custom;
 using SIT.Core.AkiSupport.Singleplayer;
 using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Coop;
-using SIT.Core.Menus;
 using SIT.Core.Misc;
+using SIT.Core.SP.Menus;
+using SIT.Core.SP.PlayerPatches;
+using SIT.Core.SP.PlayerPatches.Health;
+using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
-using SIT.Tarkov.Core.Menus;
-using SIT.Tarkov.Core.PlayerPatches;
-using SIT.Tarkov.Core.PlayerPatches.Health;
-using SIT.Tarkov.Core.SP;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -26,6 +25,7 @@ namespace SIT.Core
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     //[BepInDependency()] // Should probably be dependant on Aki right?
+    [BepInProcess("EscapeFromTarkov.exe")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance;
@@ -87,7 +87,6 @@ namespace SIT.Core
             new AirdropPatch().Enable();
 
             //// --------- Screens ----------------
-            new TarkovApplicationInternalStartGamePatch().Enable();
             new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
             new InsuranceScreenPatch().Enable();

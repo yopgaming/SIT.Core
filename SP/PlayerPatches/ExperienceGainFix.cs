@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using SIT.Tarkov.Core;
 
-namespace SIT.Tarkov.Core
+namespace SIT.Core.SP.PlayerPatches
 {
     public class ExperienceGainFix : ModulePatch
     {
@@ -25,7 +26,7 @@ namespace SIT.Tarkov.Core
                  x.FullName.StartsWith(typeof(EFT.UI.SessionEnd.SessionResultExperienceCount).FullName)
                  && PatchConstants.GetPropertyFromType(x, "KeyScreen") != null
                  );
-            return returnedType.GetConstructor((new Type[] { typeof(EFT.Profile), typeof(bool), typeof(EFT.ExitStatus) }));
+            return returnedType.GetConstructor(new Type[] { typeof(EFT.Profile), typeof(bool), typeof(EFT.ExitStatus) });
         }
     }
 }

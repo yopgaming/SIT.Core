@@ -1,12 +1,13 @@
 ﻿using Comfort.Common;
 using EFT;
 using SIT.Core.Coop;
-using SIT.Tarkov.Core.PlayerPatches.Health;
+using SIT.Core.SP.PlayerPatches.Health;
+using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core
+namespace SIT.Core.SP.PlayerPatches
 {
     public class OfflineSaveProfile : ModulePatch
     {
@@ -36,7 +37,7 @@ namespace SIT.Tarkov.Core
         public static bool PatchPrefix(string profileId, RaidSettings ____raidSettings, TarkovApplication __instance, Result<ExitStatus, TimeSpan, object> result)
         {
             // Get scav or pmc profile based on IsScav value
-            var profile = (____raidSettings.IsScav)
+            var profile = ____raidSettings.IsScav
                 ? __instance.GetClientBackEndSession().ProfileOfPet
                 : __instance.GetClientBackEndSession().Profile;
 
@@ -47,7 +48,7 @@ namespace SIT.Tarkov.Core
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC != null)
             {
-                GameWorld.Destroy(coopGC);
+                UnityEngine.Object.Destroy(coopGC);
             }
 
             return true;

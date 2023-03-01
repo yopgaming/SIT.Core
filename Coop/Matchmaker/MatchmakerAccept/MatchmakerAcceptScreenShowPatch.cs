@@ -7,7 +7,6 @@ using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
-using UnityEngine.UIElements;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -62,7 +61,7 @@ namespace SIT.Coop.Core.Matchmaker
             DefaultUIButton ____acceptButton
             )
         {
-			Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
 
             // ------------------------------------------
             // Keep an instance for other patches to work

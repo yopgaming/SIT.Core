@@ -9,6 +9,7 @@ namespace SIT.Tarkov.Core
     public abstract class ModulePatch
     {
         private readonly Harmony _harmony;
+        //private static Harmony _harmony;
         private readonly List<HarmonyMethod> _prefixList;
         private readonly List<HarmonyMethod> _postfixList;
         private readonly List<HarmonyMethod> _transpilerList;
@@ -34,6 +35,8 @@ namespace SIT.Tarkov.Core
         protected ModulePatch(string name = null)
         {
             //Tarkov.Core.Plugin.LegalityCheck();
+            //if(_harmony == null)
+            //_harmony = new Harmony("StayInTarkov");
             _harmony = new Harmony(name ?? GetType().Name);
             _prefixList = GetPatchMethods(typeof(PatchPrefixAttribute));
             _postfixList = GetPatchMethods(typeof(PatchPostfixAttribute));
@@ -87,8 +90,7 @@ namespace SIT.Tarkov.Core
 
             if (target == null)
             {
-                //throw new InvalidOperationException($"{_harmony.Id}: TargetMethod is null");
-                Logger.LogError($"{_harmony.Id}: TargetMethod is null");
+                Logger.LogError($"{GetType().Name}: TargetMethod is null");
                 return;
             }
 
@@ -119,11 +121,11 @@ namespace SIT.Tarkov.Core
                     _harmony.Patch(target, ilmanipulator: ilmanipulator);
                 }
 
-                Logger.LogDebug($"Enabled patch {_harmony.Id}");
+                Logger.LogDebug($"Enabled patch {GetType().Name}");
             }
             catch (Exception ex)
             {
-                throw new Exception($"{_harmony.Id}:", ex);
+                throw new Exception($"{GetType().Name}:", ex);
             }
         }
 
@@ -136,17 +138,17 @@ namespace SIT.Tarkov.Core
 
             if (target == null)
             {
-                Logger.LogError($"{_harmony.Id}: TargetMethod is null");
+                Logger.LogError($"{GetType().Name}: TargetMethod is null");
             }
 
             try
             {
                 _harmony.Unpatch(target, HarmonyPatchType.All, _harmony.Id);
-                Logger.LogDebug($"Disabled patch {_harmony.Id}");
+                Logger.LogDebug($"Disabled patch {GetType().Name}");
             }
             catch (Exception ex)
             {
-                throw new Exception($"{_harmony.Id}:", ex);
+                throw new Exception($"{GetType().Name}:", ex);
             }
         }
     }

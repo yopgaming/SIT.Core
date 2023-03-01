@@ -4,25 +4,43 @@
 
 ## Disclaimer
 
-This is by no means designed for cheats or illegally downloading the game. This is purely for educational and game modification purposes. You must buy the game to use this. 
-You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com)
+This is by no means designed for cheats or illegally downloading the game. This is purely for educational purposes. You must buy the game to use this. 
+You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 
-## SPT-AKI
-Stay in Tarkov requires the latest AKI Server to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
+## SPT-AKI Requirement
+Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
 
 ## Summary
 
-The Stay in Tarkov handles almost everything to create the Single Player experience of Escape from Tarkov.
-Including but not limited to:
-- Turning off BattlEye
-- Turning off FileChecker (this is BSG's own checker, this needs to be turned off to allow us to mod the game) - See FileChecker
-- Setting up Auto Singleplayer mode
-- Fixing bots / AI to shoot each other
-- Fixing bots / AI to become "PMC"
-- Fixing "offline" mode to use only the designated online spawn points
-- Fixing "offline" mode to save Progression of the character
-- Fixing "offline" mode to save Health of the character
-- Lots more
+The Stay in Tarkov was born due to Battlestate Games' reluctance to create the pure PvE version of Escape from Tarkov that was outlined in its early cycle. 
+The project's aim is simple, create a Cooperation PvE experience that retains progression without the issues of Desync, Cheaters and dealing with other issues surrounding the live game right now.
+
+## Coop
+
+### Highlight - BE AWARE
+Coop is in very early stages of redevelopment. Nothing works.
+
+### PREREQUISITE
+You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
+
+### Can Coop use BSG code?
+No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
+
+### How it will work and reason
+1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
+2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data. Initial movement tests work extremely well!
+
+## SPT-Aki
+
+### Are Aki Modules supported?
+The following Aki Modules are supported.
+- aki-core
+- Aki.Reflection
+- 95% of mods
+
+### Why don't you use Aki Module DLLs?
+SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.
+So I ported many of SPT-Aki features into this module. My end-goal would be to rely on SPT-Aki and for this to be solely focused on SIT only features.
 
 ## How to compile? 
 1. Create Working Directory for all Tarkov Modding {EFT_WORK}
@@ -59,32 +77,6 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=AID062158106353313252ruc -
 ```
 - If BepInEx is working a console should open and display the module "plugin" as started
 
-## Coop
-
-### Highlight - BE AWARE
-Coop is in very early stages of redevelopment. Nothing works.
-
-### PREREQUISITE
-You must have the SPT-Aki mod installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
-
-### Can Coop use BSG code?
-No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
-
-### How it will work and reason
-1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
-2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data. Initial movement tests work extremely well!
-
-## SPT-Aki
-
-### Are Aki Modules supported?
-The following Aki Modules are supported.
-- aki-core
-- Aki.Reflection
-- 95% of mods
-
-### Why don't you use Aki Module DLLs?
-SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.
-So I ported many of SPT-Aki features into this module. My end-goal would be to rely on SPT-Aki and for this to be solely focused on SIT only features.
 
 ## Thanks List
 - SPT-Aki team

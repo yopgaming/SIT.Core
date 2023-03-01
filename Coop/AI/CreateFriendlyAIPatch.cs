@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.AI
@@ -11,7 +10,7 @@ namespace SIT.Tarkov.Core.AI
     {
         public static bool? ShouldFriendlyAI = null;
         public static int? NumberOfFriendlies = 0;
-        public static int? MaxNumberOfFriendlies = 4;
+        public static int? MaxNumberOfFriendlies = 1;
 
         public static EFT.LocalPlayer MyPlayer;
         protected override MethodBase GetTargetMethod()

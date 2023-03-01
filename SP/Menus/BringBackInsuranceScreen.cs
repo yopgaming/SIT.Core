@@ -7,7 +7,7 @@ using System.Reflection;
  * Original Source is found here - https://dev.sp-tarkov.com/SPT-AKI/Modules
  * Paulov. Made changes to have better reflection and less hardcoding
  */
-namespace SIT.Core.Menus
+namespace SIT.Core.SP.Menus
 {
     /// <summary>
     /// Force ERaidMode to online to make interface show insurance page
@@ -24,8 +24,8 @@ namespace SIT.Core.Menus
             var desiredType = typeof(MainMenuController);
             var desiredMethod = desiredType.GetMethod("method_62", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
-            Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
+            Logger.LogDebug($"{GetType().Name} Type: {desiredType?.Name}");
+            Logger.LogDebug($"{GetType().Name} Method: {desiredMethod?.Name}");
 
             return desiredMethod;
         }

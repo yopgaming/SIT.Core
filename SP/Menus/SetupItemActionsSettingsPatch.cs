@@ -1,10 +1,11 @@
 ﻿using HarmonyLib;
+using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SIT.Tarkov.Core.Menus
+namespace SIT.Core.SP.Menus
 {
     internal class SetupItemActionsSettingsPatch : ModulePatch
     {

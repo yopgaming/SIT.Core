@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SIT.Tarkov.Core;
 
-namespace SIT.Tarkov.Core.PlayerPatches.Health
+namespace SIT.Core.SP.PlayerPatches.Health
 {
     public class HealthListener
     {

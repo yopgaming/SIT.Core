@@ -15,7 +15,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "LightAndSoundShot";
-        //public override bool DisablePatch => true;
         public MethodInfo Method { get; set; } = null;
 
         protected override MethodBase GetTargetMethod()
@@ -31,6 +30,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
+            Logger.LogInfo("FirearmController_LightAndSoundShot_Patch:PrePatch");
+
             return true;
             //var player = ____player;
             //if (player == null)

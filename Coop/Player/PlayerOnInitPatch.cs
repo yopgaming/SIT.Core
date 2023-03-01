@@ -49,13 +49,11 @@ namespace SIT.Coop.Core.Player
             var accountId = player.Profile.AccountId;
 
             //await __result;
-            Logger.LogInfo($"Init. {accountId}");
+            Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
 
-
-
-
-            var gameWorld = Singleton<GameWorld>.Instance;
-            var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+            //var gameWorld = Singleton<GameWorld>.Instance;
+            //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
             {
                 Logger.LogError("Cannot add player to Coop Game Component because its NULL");
@@ -70,10 +68,6 @@ namespace SIT.Coop.Core.Player
 
             Dictionary<string, object> dictionary2 = new Dictionary<string, object>
                     {
-                        {
-                            "SERVER",
-                            "SERVER"
-                        },
                         {
                             "serverId",
                             coopGC.ServerId
@@ -119,17 +113,16 @@ namespace SIT.Coop.Core.Player
                         },
                         {
                             "p.equip",
-                            //player.Profile.Inventory.Equipment.CloneItem().ToJson()
                             player.Profile.Inventory.Equipment.SITToJson()
                         }
                     };
             //new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 
+            CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             ServerCommunication.PostLocalPlayerData(player, dictionary2);
 
-            CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
         }
 
         public static void SendOrReceiveSpawnPoint(EFT.Player player)

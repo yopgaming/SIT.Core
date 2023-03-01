@@ -2,7 +2,9 @@
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Tarkov.Core;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.SceneManagement;
@@ -51,6 +53,8 @@ namespace SIT.Core.Coop
             EnableDisablePatches();
         }
 
+        private static List<ModulePatch> NoMRPPatches = new List<ModulePatch>();
+
         public static void EnableDisablePatches()
         {
             var enablePatches = true;
@@ -75,13 +79,20 @@ namespace SIT.Core.Coop
             }
 
             // ------ PLAYER -------------------------
-
-            if (enablePatches)
+            if (!NoMRPPatches.Any())
             {
-                new PlayerOnInitPatch(m_Config).Enable();
-                //new PlayerOnMovePatch().Enable();
+                NoMRPPatches.Add(new PlayerOnInitPatch(m_Config));
+                //NoMRPPatches.Add(new PlayerOnMovePatch());
             }
 
+            //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
+            foreach (var patch in NoMRPPatches)
+            {
+                if (enablePatches)
+                    patch.Enable();
+                else
+                    patch.Disable();
+            }
 
             var moduleReplicationPatches = Assembly.GetAssembly(typeof(ModuleReplicationPatch)).GetTypes().Where(x => x.GetInterface("IModuleReplicationPatch") != null);
             //Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");

@@ -1,10 +1,11 @@
 ﻿using EFT;
-using SIT.Tarkov.Core.PlayerPatches.Health;
+using SIT.Core.SP.PlayerPatches.Health;
+using SIT.Tarkov.Core;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SIT.Tarkov.Core.PlayerPatches
+namespace SIT.Core.SP.PlayerPatches
 {
     internal class PlayerInitPatch : ModulePatch
     {

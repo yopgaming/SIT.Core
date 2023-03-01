@@ -1,8 +1,10 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using EFT.UI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Tarkov.Core;
 using System;
@@ -12,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop
@@ -24,10 +27,15 @@ namespace SIT.Core.Coop
         public string ServerId { get; set; } = null;
         public ConcurrentDictionary<string, LocalPlayer> Players { get; private set; } = new();
         public ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
-        public static List<string> PeopleParityRequestedAccounts = new();
-        BepInEx.Logging.ManualLogSource Logger;
-        public static Vector3? ClientSpawnLocation;
-        private long ReadFromServerLastActionsLastTime = -1;
+
+        BepInEx.Logging.ManualLogSource Logger { get; set; }
+
+        public static Vector3? ClientSpawnLocation { get; set; }
+
+        private long ReadFromServerLastActionsLastTime { get; set; } = -1;
+
+        public ConcurrentDictionary<string, (LocalPlayer, string, ESpawnState)> PlayersToSpawn { get; private set; } = new();
+
         #endregion
 
         #region Public Voids
@@ -69,26 +77,16 @@ namespace SIT.Core.Coop
             // Always clear "Players" when creating a new CoopGameComponent
             Players = new ConcurrentDictionary<string, LocalPlayer>();
 
-
-            // ----------------------------------------------------
-            // Consume Data Received from ServerCommunication class
-            //ServerCommunication.OnDataReceived += ServerCommunication_OnDataReceived;
-            //ServerCommunication.OnDataStringReceived += ServerCommunication_OnDataStringReceived;
-            //ServerCommunication.OnDataArrayReceived += ServerCommunication_OnDataArrayReceived;
-            // ----------------------------------------------------
-
             StartCoroutine(ReadFromServerLastActions());
             StartCoroutine(ReadFromServerLastMoves());
             StartCoroutine(ReadFromServerCharacters());
 
-            //StartCoroutine(RunQueuedActions());
-            //StartCoroutine(UpdateClientSpawnPlayers());
-
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
-            //StartCoroutine(DiscoverMissingPlayers());
         }
+
+        #endregion
 
         private IEnumerator ReadFromServerCharacters()
         {
@@ -97,11 +95,11 @@ namespace SIT.Core.Coop
             if (GetServerId() == null)
                 yield return waitEndOfFrame;
 
-            var waitSeconds = new WaitForSeconds(3f);
+            var waitSeconds = new WaitForSeconds(10f);
 
             Dictionary<string, object> d = new Dictionary<string, object>();
             d.Add("serverId", GetServerId());
-            var jsonDataServerId = JsonConvert.SerializeObject(d);
+            d.Add("currentPlayerList", null);
             while (true)
             {
                 yield return waitSeconds;
@@ -109,51 +107,225 @@ namespace SIT.Core.Coop
                 if (Players == null)
                     continue;
 
+                d["currentPlayerList"] = Players.Keys.ToArray();
+                var jsonDataToSend = d.ToJson();
 
                 if (RequestingObj == null)
                     RequestingObj = new Request();
 
-                var actionsToValuesJson = RequestingObj.PostJson("/coop/server/read/players", jsonDataServerId);
+                var actionsToValuesJson = RequestingObj.PostJson("/coop/server/read/players", jsonDataToSend);
                 if (actionsToValuesJson == null)
                     continue;
 
-                //Logger.LogInfo("CoopGameComponent.ReadFromServerCharacters:");
-                //Logger.LogInfo(actionsToValuesJson);
+                //Logger.LogDebug("CoopGameComponent.ReadFromServerCharacters:");
+                //Logger.LogDebug(actionsToValuesJson);
                 try
                 {
                     Dictionary<string, object>[] actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(actionsToValuesJson);
                     if (actionsToValues == null)
                         continue;
 
-                    var dictionaries = actionsToValues
+                    var packets = actionsToValues
                          .Where(x => x != null)
                          .Select(x => x);
-                    if (dictionaries == null)
+                    if (packets == null)
                         continue;
 
-                    foreach (var dictionary in dictionaries)
+                    foreach (var queuedPacket in packets)
                     {
-                        if (dictionary != null && dictionary.Count > 0)
+                        if (queuedPacket != null && queuedPacket.Count > 0)
                         {
-                            if (dictionary.ContainsKey("accountId"))
+                            if (queuedPacket != null)
                             {
-                                QueuedPackets.Enqueue(dictionary);
+                                if (queuedPacket.ContainsKey("m"))
+                                {
+                                    var method = queuedPacket["m"].ToString();
+                                    if (method != "PlayerSpawn")
+                                        continue;
+                                   
+                                    string accountId = queuedPacket["accountId"].ToString();
+                                    // TODO: Put this back in after testing in Creation functions
+                                    //if (Players == null || Players.ContainsKey(accountId))
+                                    //{
+                                    //    Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
+                                    //    continue;
+                                    //}
+
+                                    Vector3 newPosition = Players.First().Value.Position;
+                                    if (queuedPacket.ContainsKey("sPx")
+                                        && queuedPacket.ContainsKey("sPy")
+                                        && queuedPacket.ContainsKey("sPz"))
+                                    {
+                                        string npxString = queuedPacket["sPx"].ToString();
+                                        newPosition.x = float.Parse(npxString);
+                                        string npyString = queuedPacket["sPy"].ToString();
+                                        newPosition.y = float.Parse(npyString);
+                                        string npzString = queuedPacket["sPz"].ToString();
+                                        newPosition.z = float.Parse(npzString) + 0.5f;
+
+                                        //QuickLog("New Position found for Spawning Player");
+                                    }
+                                    DataReceivedClient_PlayerBotSpawn(queuedPacket, accountId, queuedPacket["profileId"].ToString(), newPosition, false);
+
+
+                                }
                             }
                         }
                     }
+                }
+                catch(Exception ex) 
+                {
+
+                    Logger.LogError(ex.ToString());
+                
                 }
                 finally
                 {
 
                 }
 
-                yield return waitEndOfFrame;
-
+                actionsToValuesJson = null;
             }
         }
 
+        private void DataReceivedClient_PlayerBotSpawn(Dictionary<string, object> parsedDict, string accountId, string profileId, Vector3 newPosition, bool isBot)
+        {
+            //Logger.LogInfo("DataReceivedClient_PlayerBotSpawn");
+            if (Players.ContainsKey(accountId))
+                return;
 
-        
+            try
+            {
+                Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Adding " + accountId + " to spawner list");
+                Profile profile = MatchmakerAcceptPatches.Profile.Clone();
+                profile.AccountId = accountId;
+                profile.Id = accountId;
+                profile.Info.Nickname = "Nikita " + Players.Count;
+                profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
+                if (parsedDict.ContainsKey("p.info"))
+                {
+                    Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converting Profile data");
+                    profile.Info = parsedDict["p.info"].ToString().ParseJsonTo<ProfileInfo>(Array.Empty<JsonConverter>());
+                    //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+                    //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
+                    Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
+                }
+                if (parsedDict.ContainsKey("p.cust"))
+                {
+                    var parsedCust = parsedDict["p.cust"].ToString().ParseJsonTo<Dictionary<EBodyModelPart, string>>(Array.Empty<JsonConverter>());
+                    if (parsedCust != null && parsedCust.Any())
+                    {
+                        PatchConstants.SetFieldOrPropertyFromInstance(
+                            profile
+                            , "Customization"
+                            , Activator.CreateInstance(PatchConstants.TypeDictionary["Profile.Customization"], parsedCust)
+                            );
+                        Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
+
+                    }
+                }
+                if (parsedDict.ContainsKey("p.equip"))
+                {
+                    var pEquip = parsedDict["p.equip"].ToString();
+                    //var equipment = parsedDict["p.equip"].ToString().ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
+                    var equipment = parsedDict["p.equip"].ToString().SITParseJson<Equipment>();//.ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
+                    profile.Inventory.Equipment = equipment;
+                    Logger.LogInfo("DataReceivedClient_PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
+
+                }
+                if (parsedDict.ContainsKey("isHost"))
+                {
+                }
+
+                var newPlayer = CreatePhysicalOtherPlayerOrBot(profile, newPosition).Result;
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"DataReceivedClient_PlayerBotSpawn::ERROR::" + ex.Message);
+            }
+
+        }
+
+        private async Task<LocalPlayer> CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        {
+            try
+            {
+                EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
+                EFT.Player.EUpdateMode bodyUpdateMode = EFT.Player.EUpdateMode.Auto;
+                
+                if (Players == null)
+                {
+                    Logger.LogError("Players is NULL!");
+                    return null;
+                }
+
+                if (Players.ContainsKey(profile.AccountId))
+                {
+                    Logger.LogDebug($"Profile {profile.AccountId} already exists. ignoring.");
+                    var newPlayerToSpawn = PlayersToSpawn[profile.AccountId];
+                    newPlayerToSpawn.Item3 = ESpawnState.Spawned;
+                    PlayersToSpawn[profile.AccountId] = newPlayerToSpawn;
+                    return null;
+                }
+
+                int playerId = Players.Count + 1;
+                if (profile == null)
+                {
+                    Logger.LogError("CreatePhysicalOtherPlayerOrBot profile is NULL wtf!");
+                    return null;
+                }
+
+                if (PatchConstants.TypeDictionary["StatisticsSession"] == null)
+                {
+                    Logger.LogError("StatisticsSession is NULL wtf!");
+                    return null;
+                }
+
+                if (PatchConstants.CharacterControllerSettings.ClientPlayerMode == null)
+                {
+                    Logger.LogError("PatchConstants.CharacterControllerSettings.ClientPlayerMode is NULL wtf!");
+                    return null;
+                }
+
+                profile.SetSpawnedInSession(true);
+
+                Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
+
+                LocalPlayer localPlayer = await LocalPlayer.Create(
+                        playerId
+                        , position
+                        , Quaternion.identity
+                        , "Player"
+                        , ""
+                        , EPointOfView.ThirdPerson
+                        , profile
+                        , false
+                        , EUpdateQueue.Update
+                        , armsUpdateMode
+                        , bodyUpdateMode
+                        , PatchConstants.CharacterControllerSettings.ClientPlayerMode
+                        , () => 1f
+                        , () => 1f
+                        , (IStatisticsManager)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
+                        , default(GInterface82)
+                        , null
+                        , false
+                    );
+                localPlayer.Transform.position = position;
+
+                return localPlayer;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+            }
+
+            return null;
+        }
+
+        private TMP_FPSCounter fpsCounter { get; set; }
+
         /// <summary>
         /// Gets the Last Actions Dictionary from the Server. This should not be used for things like Moves. Just other stuff.
         /// </summary>
@@ -170,15 +342,25 @@ namespace SIT.Core.Coop
 
             var waitSeconds = new WaitForSeconds(0.5f);
 
-            var jsonDataServerId = JsonConvert.SerializeObject(new Dictionary<string, object>
+            var jsonDataServerId = new Dictionary<string, object>
             {
                 { "serverId", GetServerId() },
                 { "t", ReadFromServerLastActionsLastTime }
-            });
+            };
             while (true)
             {
                 yield return waitSeconds;
 
+                jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
+                //if (fpsCounter == null)
+                //{
+                //    fpsCounter = GameObject.FindObjectOfType<TMP_FPSCounter>();
+                //    if (fpsCounter != null)
+                //    {
+                //        //GameObject.DontDestroyOnLoad(fpsCounter);
+                //        PatchConstants.Logger.LogInfo("CoopGameComponent:Found FPS Counter");
+                //    }
+                //}
                 swDebugPerformance.Reset();
                 swDebugPerformance.Start();
                 if (Players == null)
@@ -197,8 +379,9 @@ namespace SIT.Core.Coop
                     {
                         swRequests.Reset();
                         swRequests.Start();
-                        var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastActions", jsonDataServerId).Result;
+                        var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastActions", jsonDataServerId.ToJson()).Result;
                         ReadFromServerLastActionsParseData(actionsToValuesJson);
+                        actionsToValuesJson = null;
                     }
                     //);
                 }
@@ -209,8 +392,10 @@ namespace SIT.Core.Coop
 
                 swRequests.Stop();
                 //Logger.LogInfo($"CoopGameComponent.ReadFromServerLastActions took {swRequests.ElapsedMilliseconds}ms");
-                //yield return waitSeconds;
-                yield return waitEndOfFrame;
+                if (fpsCounter != null)
+                {
+
+                }
 
             }
         }
@@ -320,10 +505,16 @@ namespace SIT.Core.Coop
                 if (RequestingObj == null)
                     RequestingObj = new Request();
 
-                var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastMoves", jsonDataServerId).Result;
-                ReadFromServerLastMoves_ParseData(actionsToValuesJson);
-
-                yield return waitEndOfFrame;
+                try
+                {
+                    var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastMoves", jsonDataServerId).Result;
+                    ReadFromServerLastMoves_ParseData(actionsToValuesJson);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex.ToString());
+                }
+                //yield return waitEndOfFrame;
 
             }
         }
@@ -340,39 +531,33 @@ namespace SIT.Core.Coop
                 if (actionsToValues == null)
                     return;
 
-                var dictionaries = actionsToValues.Values
+                var packets = actionsToValues.Values
                     .Where(x => x != null)
                     .Where(x => x.Count > 0)
                     .Select(x => x.ToObject<Dictionary<string, object>>());
-                if (dictionaries == null)
+                if (packets == null)
                     return;
 
-                foreach (var dictionary in dictionaries)
+                foreach (var packet in packets)
                 {
-                    if (dictionary != null && dictionary.Count > 0)
+                    if (packet != null && packet.Count > 0)
                     {
-                        if (dictionary.ContainsKey("accountId"))
-                        {
-                            if (Players == null)
-                                continue;
+                        if (!packet.ContainsKey("accountId"))
+                            continue;
 
-                            if (Players.ContainsKey(dictionary["accountId"].ToString()))
-                            {
-                                if (!Players[dictionary["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                                    continue;
+                        if (Players == null)
+                            continue;
 
-                                if (prc == null)
-                                    continue;
+                        if (!Players.ContainsKey(packet["accountId"].ToString()))
+                            continue;
 
-                                if (prc.QueuedPackets == null)
-                                    continue;
+                        if (!Players[packet["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                            continue;
 
-                                if (prc.QueuedPackets.Any(x => x["m"].ToString() == "Move"))
-                                    continue;
+                        if (prc == null)
+                            continue;
 
-                                prc.QueuedPackets.Enqueue(dictionary);
-                            }
-                        }
+                        PlayerOnMovePatch.MoveReplicated(prc.player, packet);
                     }
                 }
             }
@@ -381,7 +566,6 @@ namespace SIT.Core.Coop
 
             }
         }
-        #endregion
 
         private void ServerCommunication_OnDataReceived(byte[] buffer)
         {
@@ -441,7 +625,7 @@ namespace SIT.Core.Coop
 
 
 
-                                            prc.QueuedPackets.Enqueue(dictionary);
+                                            //prc.QueuedPackets.Enqueue(dictionary);
                                         }
                                     }
                                 }
@@ -470,67 +654,12 @@ namespace SIT.Core.Coop
             }
         }
 
-        // no longer used
-        IEnumerator RunQueuedActions()
-        {
-            while (true)
-            {
-                yield return new WaitForSeconds(1);
-
-                if (QueuedPackets.Any())
-                {
-                    if (QueuedPackets.TryDequeue(out var queuedPacket))
-                    {
-                        if (queuedPacket != null)
-                        {
-                            if (queuedPacket.ContainsKey("m"))
-                            {
-                                var method = queuedPacket["m"];
-                                //PatchConstants.Logger.LogInfo("CoopGameComponent.RunQueuedActions:method:" + method);
-                                switch (method)
-                                {
-                                    case "PlayerSpawn":
-                                        string accountId = queuedPacket["accountId"].ToString();
-                                        if (Players != null && !Players.ContainsKey(accountId))
-                                        {
-
-                                            Vector3 newPosition = Players.First().Value.Position;
-                                            if (queuedPacket.ContainsKey("sPx")
-                                                && queuedPacket.ContainsKey("sPy")
-                                                && queuedPacket.ContainsKey("sPz"))
-                                            {
-                                                string npxString = queuedPacket["sPx"].ToString();
-                                                newPosition.x = float.Parse(npxString);
-                                                string npyString = queuedPacket["sPy"].ToString();
-                                                newPosition.y = float.Parse(npyString);
-                                                string npzString = queuedPacket["sPz"].ToString();
-                                                newPosition.z = float.Parse(npzString) + 0.5f;
-
-                                                //QuickLog("New Position found for Spawning Player");
-                                            }
-                                            //DataReceivedClient_PlayerBotSpawn(queuedPacket, accountId, queuedPacket["profileId"].ToString(), newPosition, false);
-                                        }
-                                        else
-                                        {
-                                            Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
-                                        }
-                                        break;
-                                    case "HostDied":
-                                        {
-                                            Logger.LogInfo("Host Died");
-                                            //if (MatchmakerAcceptPatches.IsClient)
-                                            //    LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, ExitStatus.Survived, "", 0);
-                                        }
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
     }
 
-
+    public enum ESpawnState
+    {
+        None = 0,
+        Spawning = 1,
+        Spawned = 2,
+    }
 }

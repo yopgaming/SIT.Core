@@ -1,13 +1,8 @@
-﻿using EFT;
-using EFT.UI;
-using EFT.UI.Matchmaker;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -87,10 +82,10 @@ namespace SIT.Coop.Core.Matchmaker
 }
 
 
-        
 
 
-    
+
+
 
 
 

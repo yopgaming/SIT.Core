@@ -109,7 +109,7 @@ namespace SIT.Tarkov.Core
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private Stream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 300)
+        private MemoryStream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
         {
             // disable SSL encryption
             ServicePointManager.Expect100Continue = true;
@@ -174,40 +174,43 @@ namespace SIT.Tarkov.Core
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(e);
+                    PatchConstants.Logger.LogError(e);
                 }
             }
 
             // get response stream
+            //WebResponse response = null;
             try
             {
-                WebResponse response = request.GetResponse();
-                return response.GetResponseStream();
+                var ms = new MemoryStream();
+                using (var response = request.GetResponse())
+                {
+                    using (var responseStream = response.GetResponseStream())
+                        responseStream.CopyTo(ms);
+                }
+                return ms;
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                //Debug.LogError(e);
+                PatchConstants.Logger.LogError(e);
             }
             finally
             {
-                //fullUri = null;
-                //request = null;
-                //uri = null;
+                fullUri = null;
+                request = null;
+                uri = null;
+                //response.Close();
+                //response.Dispose();
+                //response = null;
             }
             return null;
         }
 
         public byte[] GetData(string url, bool hasHost = false)
         {
-            var ms = new MemoryStream();
-            var dataStream = Send(url, "GET");
-            if (dataStream != null)
-            {
-                dataStream.CopyTo(ms);
-
-                return ms.ToArray();
-            }
-            return null;
+            using (var dataStream = Send(url, "GET"))
+                return dataStream.ToArray();
         }
 
         public void PutJson(string url, string data, bool compress = true)
@@ -217,31 +220,43 @@ namespace SIT.Tarkov.Core
 
         public string GetJson(string url, bool compress = true)
         {
-            using (Stream stream = Send(url, "GET", null, compress))
+            using (MemoryStream stream = Send(url, "GET", null, compress))
             {
-                using (MemoryStream ms = new MemoryStream())
+                if (stream == null)
+                    return "";
+                var bytes = stream.ToArray();
+                var result = SimpleZlib.Decompress(bytes, null);
+                bytes = null;
+                countOfCalls++;
+                if (countOfCalls >= 50)
                 {
-                    if (stream == null)
-                        return "";
-                    stream.CopyTo(ms);
-                    return SimpleZlib.Decompress(ms.ToArray(), null);
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    countOfCalls = 0;
                 }
+                return result;
             }
         }
 
+        private int countOfCalls = 0;
+
         public string PostJson(string url, string data, bool compress = true)
         {
-            using (Stream stream = Send(url, "POST", data, compress))
+            using (MemoryStream stream = Send(url, "POST", data, compress))
             {
-                data = null;
-
-                using (MemoryStream ms = new MemoryStream())
+                if (stream == null)
+                    return "";
+                var bytes = stream.ToArray();
+                var result = SimpleZlib.Decompress(bytes, null);
+                bytes = null;
+                countOfCalls++;
+                if(countOfCalls >= 50)
                 {
-                    if (stream == null)
-                        return "";
-                    stream.CopyTo(ms);
-                    return SimpleZlib.Decompress(ms.ToArray(), null);
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    countOfCalls = 0;
                 }
+                return result;
             }
         }
 

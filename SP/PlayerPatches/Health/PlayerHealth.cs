@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace SIT.Tarkov.Core.PlayerPatches.Health
+namespace SIT.Core.SP.PlayerPatches.Health
 {
     public class PlayerHealth
     {
-        private readonly Dictionary<EBodyPart, BodyPartHealth> _health = new() 
+        private readonly Dictionary<EBodyPart, BodyPartHealth> _health = new()
         {
             { EBodyPart.Head, new BodyPartHealth() },
             { EBodyPart.Chest, new BodyPartHealth() },

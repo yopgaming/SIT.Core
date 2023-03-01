@@ -1,8 +1,9 @@
 ﻿using EFT;
+using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core.PlayerPatches
+namespace SIT.Core.SP.PlayerPatches
 {
     // Not Used, can be removed? - slejm
     internal class OfflineDisplayProgressPatch : ModulePatch
@@ -31,7 +32,7 @@ namespace SIT.Tarkov.Core.PlayerPatches
 
         [PatchPrefix]
         public static bool PatchPrefix(
-            ref EFT.RaidSettings ____raidSettings
+            ref RaidSettings ____raidSettings
             )
         {
             ____raidSettings.RaidMode = ERaidMode.Online;
@@ -40,7 +41,7 @@ namespace SIT.Tarkov.Core.PlayerPatches
 
         [PatchPostfix]
         public static void PatchPostfix(
-            ref EFT.RaidSettings ____raidSettings
+            ref RaidSettings ____raidSettings
             )
         {
             ____raidSettings.RaidMode = ERaidMode.Online;

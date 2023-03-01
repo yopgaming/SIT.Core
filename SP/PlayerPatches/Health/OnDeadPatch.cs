@@ -1,10 +1,11 @@
 ﻿using EFT;
 using Newtonsoft.Json;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core.PlayerPatches.Health
+namespace SIT.Core.SP.PlayerPatches.Health
 {
     public class OnDeadPatch : ModulePatch
     {

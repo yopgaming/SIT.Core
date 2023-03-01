@@ -1,10 +1,11 @@
 using EFT;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Tarkov.Core
+namespace SIT.Core.SP.Raid
 {
     public class RemoveUsedBotProfilePatch : ModulePatch
     {

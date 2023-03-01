@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SIT.Tarkov.Core.PlayerPatches.Health
+namespace SIT.Core.SP.PlayerPatches.Health
 {
     public class BodyPartHealth
     {

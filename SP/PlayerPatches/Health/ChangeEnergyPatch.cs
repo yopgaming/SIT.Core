@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using System.Reflection;
+using SIT.Tarkov.Core;
 
-namespace SIT.Tarkov.Core.PlayerPatches.Health
+namespace SIT.Core.SP.PlayerPatches.Health
 {
     internal class ChangeEnergyPatch : ModulePatch
     {

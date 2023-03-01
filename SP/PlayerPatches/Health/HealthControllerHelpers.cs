@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.PlayerPatches.Health
+namespace SIT.Core.SP.PlayerPatches.Health
 {
     public class HealthControllerHelpers
     {

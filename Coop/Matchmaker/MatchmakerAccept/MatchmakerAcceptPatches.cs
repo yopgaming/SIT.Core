@@ -1,11 +1,10 @@
 ﻿using EFT;
 using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using UnityEngine;
 using SIT.Core.Coop.Matchmaker;
-using System.Collections.Generic;
+using SIT.Tarkov.Core;
 using System;
-using EFT.UI;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -101,8 +100,8 @@ namespace SIT.Coop.Core.Matchmaker
             new MatchmakerAcceptScreenShowPatch().Enable();
         }
 
-        public static void CreateMatch(string accountId) 
-        {  
+        public static void CreateMatch(string accountId)
+        {
 
             string text = Request.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 new Dictionary<string, string>

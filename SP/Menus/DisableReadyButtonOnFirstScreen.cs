@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
+using SIT.Tarkov.Core;
 
-namespace SIT.Tarkov.Core.Menus
+namespace SIT.Core.SP.Menus
 {
     /// <summary>
     /// This Patch Disables the Ready button after you select the location so you will not be jumping to online match by default
