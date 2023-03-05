@@ -14,6 +14,9 @@ using UnityEngine.Networking;
 
 namespace SIT.Coop.Core.Player
 {
+    /// <summary>
+    /// Player Replicated Component is the Player/AI direct communication to the Server
+    /// </summary>
     internal class PlayerReplicatedComponent : NetworkBehaviour
     {
         internal const int PacketTimeoutInSeconds = 1;
@@ -173,7 +176,8 @@ namespace SIT.Coop.Core.Player
             if (player == null)
                 return;
 
-            _ = UpdateMovementSend();
+            
+            UpdateMovementSend();
             //    UpdateMovement();
 
             //    if (player.IsAI)
@@ -208,7 +212,7 @@ namespace SIT.Coop.Core.Player
         };
 
         private bool IsUpdatingMovementSend = false;
-        private async Task UpdateMovementSend()
+        private void UpdateMovementSend()
         {
             if(IsUpdatingMovementSend) 
                 return;
@@ -220,33 +224,41 @@ namespace SIT.Coop.Core.Player
                 return;
 
             IsUpdatingMovementSend = true;
-
-            if (
-                (LastDirection != player.InputDirection
-                && Vector2.Dot(LastDirection, player.InputDirection) < 0.51)
-                || Vector2.Dot(LastRotator, player.Rotation) < 0
-                )
+            try
             {
-                PreMadeMoveDataPacket["dX"] = Math.Round(player.InputDirection.x, 2).ToString();
-                PreMadeMoveDataPacket["dY"] = Math.Round(player.InputDirection.y, 2).ToString();
-                PreMadeMoveDataPacket["rX"] = Math.Round(player.Rotation.x, 2).ToString();
-                PreMadeMoveDataPacket["rY"] = Math.Round(player.Rotation.y, 2).ToString();
-                ServerCommunication.PostLocalPlayerData(player, PreMadeMoveDataPacket);
-                LastDirection = player.InputDirection;
-                LastRotator = player.Rotation;
-            }
 
-            if (this.LastTiltLevel != player.MovementContext.Tilt
-                && (this.LastTiltLevel - player.MovementContext.Tilt > 0.05f || this.LastTiltLevel - player.MovementContext.Tilt < -0.05f)
-                )
+                if (
+                    (LastDirection != player.InputDirection
+                    && Vector2.Dot(LastDirection, player.InputDirection) < 0.95)
+                    || Vector2.Dot(LastRotator, player.Rotation) < 0.95
+                    )
+                {
+                    PreMadeMoveDataPacket["dX"] = Math.Round(player.InputDirection.x, 2).ToString();
+                    PreMadeMoveDataPacket["dY"] = Math.Round(player.InputDirection.y, 2).ToString();
+                    PreMadeMoveDataPacket["rX"] = Math.Round(player.Rotation.x, 2).ToString();
+                    PreMadeMoveDataPacket["rY"] = Math.Round(player.Rotation.y, 2).ToString();
+                    PreMadeMoveDataPacket["pX"] = Math.Round(player.Position.x, 2).ToString();
+                    PreMadeMoveDataPacket["pY"] = Math.Round(player.Position.y, 2).ToString();
+                    PreMadeMoveDataPacket["pZ"] = Math.Round(player.Position.z, 2).ToString();
+                    PreMadeMoveDataPacket["t"] = DateTime.Now.Ticks;
+                    ServerCommunication.PostLocalPlayerData(player, PreMadeMoveDataPacket);
+                    LastDirection = player.InputDirection;
+                    LastRotator = player.Rotation;
+                }
+
+                //if (this.LastTiltLevel != player.MovementContext.Tilt
+                //    && (this.LastTiltLevel - player.MovementContext.Tilt > 0.05f || this.LastTiltLevel - player.MovementContext.Tilt < -0.05f)
+                //    )
+                //{
+                //    this.LastTiltLevel = player.MovementContext.Tilt;
+                //    PreMadeTiltDataPacket["tilt"] = LastTiltLevel;
+                //    ServerCommunication.PostLocalPlayerData(player, PreMadeTiltDataPacket);
+                //}
+            }
+            finally
             {
-                this.LastTiltLevel = player.MovementContext.Tilt;
-                PreMadeTiltDataPacket["tilt"] = LastTiltLevel;
-                ServerCommunication.PostLocalPlayerData(player, PreMadeTiltDataPacket);
+                IsUpdatingMovementSend = false;
             }
-
-            IsUpdatingMovementSend = false;
-
         }
     }
 }

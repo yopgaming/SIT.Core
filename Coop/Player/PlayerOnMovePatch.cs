@@ -147,6 +147,16 @@ namespace SIT.Coop.Core.Player
                 player.CurrentState.Rotate(newRot.Value);
             }
 
+            if (dict.ContainsKey("pX"))
+            {
+                float px = float.Parse(dict["pX"].ToString());
+                float py = float.Parse(dict["pY"].ToString());
+                float pz = float.Parse(dict["pZ"].ToString());
+                var newP = new Vector3(px, py, pz);
+                if (Vector3.Distance(player.Position, newP) > 1)
+                    player.Teleport(newP);
+            }
+
             PatchConstants.Logger.LogDebug(accountId + ": move replicated");
 
 

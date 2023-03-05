@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using EFT.InventoryLogic;
 using EFT.UI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,9 +17,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace SIT.Core.Coop
 {
+    /// <summary>
+    /// Coop Game Component is the User 1-2-1 communication to the Server
+    /// </summary>
     public class CoopGameComponent : MonoBehaviour
     {
         #region Fields/Properties        
@@ -117,13 +122,14 @@ namespace SIT.Core.Coop
                 if (actionsToValuesJson == null)
                     continue;
 
-                //Logger.LogDebug("CoopGameComponent.ReadFromServerCharacters:");
                 //Logger.LogDebug(actionsToValuesJson);
                 try
                 {
                     Dictionary<string, object>[] actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(actionsToValuesJson);
                     if (actionsToValues == null)
                         continue;
+
+                    Logger.LogDebug($"CoopGameComponent.ReadFromServerCharacters:{actionsToValues.Length}");
 
                     var packets = actionsToValues
                          .Where(x => x != null)
@@ -185,14 +191,20 @@ namespace SIT.Core.Coop
                 }
 
                 actionsToValuesJson = null;
+                yield return waitEndOfFrame;
+
             }
         }
 
         private void DataReceivedClient_PlayerBotSpawn(Dictionary<string, object> parsedDict, string accountId, string profileId, Vector3 newPosition, bool isBot)
         {
             //Logger.LogInfo("DataReceivedClient_PlayerBotSpawn");
-            if (Players.ContainsKey(accountId))
+            //if (Players.ContainsKey(accountId))
+            //    return;
+
+            if (PlayersToSpawn.ContainsKey(accountId))
                 return;
+
 
             try
             {
@@ -237,7 +249,11 @@ namespace SIT.Core.Coop
                 {
                 }
 
-                var newPlayer = CreatePhysicalOtherPlayerOrBot(profile, newPosition).Result;
+                var newPlayer = CreatePhysicalOtherPlayerOrBot(profile, newPosition);
+                if (newPlayer != null)
+                {
+                    Logger.LogInfo($"DataReceivedClient_PlayerBotSpawn::Spawned:: {profile.Info.Nickname}");
+                }
 
             }
             catch (Exception ex)
@@ -247,7 +263,7 @@ namespace SIT.Core.Coop
 
         }
 
-        private async Task<LocalPlayer> CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        private LocalPlayer CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
         {
             try
             {
@@ -260,12 +276,14 @@ namespace SIT.Core.Coop
                     return null;
                 }
 
+                if (PlayersToSpawn.ContainsKey(profile.AccountId))
+                    return null;
+
+                PlayersToSpawn.TryAdd(profile.AccountId, (null, null, ESpawnState.Spawning));
+
                 if (Players.ContainsKey(profile.AccountId))
                 {
                     Logger.LogDebug($"Profile {profile.AccountId} already exists. ignoring.");
-                    var newPlayerToSpawn = PlayersToSpawn[profile.AccountId];
-                    newPlayerToSpawn.Item3 = ESpawnState.Spawned;
-                    PlayersToSpawn[profile.AccountId] = newPlayerToSpawn;
                     return null;
                 }
 
@@ -291,29 +309,39 @@ namespace SIT.Core.Coop
                 profile.SetSpawnedInSession(true);
 
                 Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
-
-                LocalPlayer localPlayer = await LocalPlayer.Create(
-                        playerId
-                        , position
-                        , Quaternion.identity
-                        , "Player"
-                        , ""
-                        , EPointOfView.ThirdPerson
-                        , profile
-                        , false
-                        , EUpdateQueue.Update
-                        , armsUpdateMode
-                        , bodyUpdateMode
-                        , PatchConstants.CharacterControllerSettings.ClientPlayerMode
-                        , () => 1f
-                        , () => 1f
-                        , (IStatisticsManager)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
-                        , default(GInterface82)
-                        , null
-                        , false
-                    );
-                localPlayer.Transform.position = position;
-
+                LocalPlayer localPlayer = EFT.Player.Create<LocalPlayer>
+                    (GClass1334.PLAYER_BUNDLE_NAME
+                    , playerId
+                    , position
+                    , EUpdateQueue.Update
+                    , armsUpdateMode
+                    , bodyUpdateMode
+                    , PatchConstants.CharacterControllerSettings.ClientPlayerMode
+                    , () => 1f
+                    , () => 1f
+                    , "CUNT-"
+                    , false);
+                //LocalPlayer localPlayer = LocalPlayer.Create(
+                //        playerId
+                //        , position + new Vector3(0, 1, 1)
+                //        , Quaternion.identity
+                //        , "Player"
+                //        , ""
+                //        , EPointOfView.ThirdPerson
+                //        , profile
+                //        , false
+                //        , EUpdateQueue.Update
+                //        , armsUpdateMode
+                //        , bodyUpdateMode
+                //        , PatchConstants.CharacterControllerSettings.ClientPlayerMode
+                //        , () => 1f
+                //        , () => 1f
+                //        , (IStatisticsManager)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
+                //        , default(GInterface82)
+                //        , null
+                //        , false
+                //    ).Result;
+                //localPlayer.Transform.position = position;
                 return localPlayer;
             }
             catch (Exception ex)

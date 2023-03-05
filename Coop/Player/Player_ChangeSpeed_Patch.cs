@@ -45,7 +45,7 @@ namespace SIT.Core.Coop.Player
 
             if (LastSpeedDelta.ContainsKey(player.Profile.AccountId))
             {
-                if (Math.Round((double)LastSpeedDelta[player.Profile.AccountId], 2) == Math.Round((double)speedDelta, 2))
+                if (Math.Round((double)LastSpeedDelta[player.Profile.AccountId], 1) == Math.Round((double)speedDelta, 1))
                     return;
             }
 
