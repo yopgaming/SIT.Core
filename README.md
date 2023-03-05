@@ -12,7 +12,7 @@ Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AK
 
 ## Summary
 
-The Stay in Tarkov was born due to Battlestate Games' reluctance to create the pure PvE version of Escape from Tarkov that was outlined in its early cycle. 
+The Stay in Tarkov project was born due to Battlestate Games' reluctance to create the pure PvE version of Escape from Tarkov that was outlined in its early cycle. 
 The project's aim is simple, create a Cooperation PvE experience that retains progression without the issues of Desync, Cheaters and dealing with other issues surrounding the live game right now.
 
 ## Coop
@@ -30,13 +30,26 @@ No. BSG server code is hidden from the client for obvious reasons. So BSG's impl
 1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
 2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data. Initial movement tests work extremely well!
 
+### Coding explanation
+- The project uses multiple methods of BepInEx Harmony patches coupled with Unity Components to achieve its aims.
+- Features/Methods that require constant polling between Client->Server->Client (Move, Rotate, Look, etc) use Components to send data (Harmony patches are too expensive).
+- Features/Methods that can easily be "replicated" use ModuleReplicationPatch abstract class to easily round trip the call.
+- All server communication is via JSON TCP calls to the ["Web Server" developed by SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) using a [typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) to handle the "backend" work.
+- CoopGameComponent is attached to the GameWorld object when a Coop ready game is started (any game that isn't Hideout). CoopGameComponent polls the Server for information and passes the data to the PlayerReplicatedComponent.
+
+### Progress
+- See the Coop folder to see what features have been implemented
+- Spawning on clients is broken
+- BSG's code design is exceptionally difficult to create Harmony modules for and to work out what does what, so some features will 100% be missing!
+
 ## SPT-Aki
 
 ### Are Aki Modules supported?
 The following Aki Modules are supported.
 - aki-core
+- Aki.Common
 - Aki.Reflection
-- 95% of mods
+- 50/50 on Client mods (depends on how well written their reflection patterns are)
 
 ### Why don't you use Aki Module DLLs?
 SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.
