@@ -130,7 +130,7 @@ namespace SIT.Coop.Core.Player
 
             if (LastPacketReceived.ContainsKey(accountId) && LastPacketReceived[accountId] == packetTime)
             {
-                PatchConstants.Logger.LogDebug($"MoveReplicated:[{accountId}]:Ignored. Packet {packetDateTime} already processed.");
+                //PatchConstants.Logger.LogDebug($"MoveReplicated:[{accountId}]:Ignored. Packet {packetDateTime} already processed.");
                 return;
             }
 

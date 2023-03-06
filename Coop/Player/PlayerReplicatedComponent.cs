@@ -223,6 +223,9 @@ namespace SIT.Coop.Core.Player
             if (player.MovementContext == null)
                 return;
 
+            if (!player.IsAI && player.AIData != null)
+                return;
+
             IsUpdatingMovementSend = true;
             try
             {
