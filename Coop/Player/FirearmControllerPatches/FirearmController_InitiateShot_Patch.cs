@@ -22,6 +22,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public override string MethodName => "InitiateShot";
         public MethodInfo Method { get; set; } = null;
 
+        public override bool DisablePatch => true;
+
         public FirearmController_InitiateShot_Patch()
         {
             dictionary = new Dictionary<string, object>
