@@ -1,4 +1,5 @@
 ﻿using ComponentAce.Compression.Libs.zlib;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,6 +55,8 @@ namespace SIT.Tarkov.Core
             }
         }
 
+        private TaskFactory TaskFactory { get; set; }
+
         public Request()
         {
             if (m_Instance == null)
@@ -65,6 +68,7 @@ namespace SIT.Tarkov.Core
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
             GetHeaders();
 
+            TaskFactory = new TaskFactory();
             m_Instance = this;
         }
 
@@ -260,9 +264,23 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public async Task<string> PostJsonAsync(string url, string data, bool compress = true)
+        public async Task<string> PostJsonAsync(string url, string data)
         {
-            return await Task.FromResult(PostJson(url, data, compress));
+            return await Task.FromResult(PostJson(url, data, true));
+        }
+
+
+        /// <summary>
+        /// Retrieves data asyncronously and parses to the desired type
+        /// </summary>
+        /// <typeparam name="T">Desired type to Deserialize to</typeparam>
+        /// <param name="url">URL to call</param>
+        /// <param name="data">data to send</param>
+        /// <returns></returns>
+        public async Task<T> PostJsonAsync<T>(string url, string data)
+        {
+            var json = await PostJsonAsync(url, data);
+            return await Task.FromResult(JsonConvert.DeserializeObject<T>(json));
         }
 
         public Texture2D GetImage(string url, bool compress = true)
