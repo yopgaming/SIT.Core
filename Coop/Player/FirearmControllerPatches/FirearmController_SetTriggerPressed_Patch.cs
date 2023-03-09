@@ -32,16 +32,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , bool pressed
             )
         {
-            var player = ____player;
-            if (player == null)
-                return false;
-
-            if (LastPress.ContainsKey(player.Profile.AccountId) && LastPress[player.Profile.AccountId] == pressed)
-                return true;
-
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(____player.Profile.AccountId, out var expecting) && expecting)
                 result = true;
+
+            if (LastPress.ContainsKey(____player.Profile.AccountId) && LastPress[____player.Profile.AccountId] == pressed)
+                return true;
 
             return result;
         }

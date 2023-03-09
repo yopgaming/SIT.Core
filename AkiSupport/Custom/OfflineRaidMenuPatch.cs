@@ -33,7 +33,7 @@ namespace Aki.Custom.Patches
             ____offlineModeToggle.isOn = true;
 
             // get settings from server
-            var json = new Request().GetJson("/singleplayer/settings/raid/menu");
+            var json = Request.Instance.GetJson("/singleplayer/settings/raid/menu");
             var settings = Json.Deserialize<DefaultRaidSettings>(json);
 
             // TODO: Not all settings are used and they also don't cover all the new settings that are available client-side

@@ -20,6 +20,13 @@ namespace SIT.Core.Coop.Player
         public override string MethodName => "Move";
         public override bool DisablePatch => true;
 
+        public static Request RequestInstance = null;
+
+        public Player_Move_Patch()
+        {
+            RequestInstance = Request.GetRequestInstance(true);
+        }
+
         protected override MethodBase GetTargetMethod()
         {
             var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
@@ -27,13 +34,11 @@ namespace SIT.Core.Coop.Player
             return method;
         }
 
-
-
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            if (__instance.IsAI || __instance.AIData != null)
-                return true;
+            //if (__instance.IsAI || __instance.AIData != null)
+            //    return true;
 
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
@@ -48,8 +53,8 @@ namespace SIT.Core.Coop.Player
            UnityEngine.Vector2 direction
             )
         {
-            if (__instance.IsAI || __instance.AIData != null)
-                return;
+            //if (__instance.IsAI || __instance.AIData != null)
+            //    return;
 
             var player = __instance;
 
@@ -74,7 +79,7 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("pY", __instance.Position.y.ToString());
             dictionary.Add("pZ", __instance.Position.z.ToString());
             dictionary.Add("m", "Move");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
 
             if (!lastDirection.ContainsKey(player.Profile.AccountId))
                 lastDirection.Add(player.Profile.AccountId, direction);

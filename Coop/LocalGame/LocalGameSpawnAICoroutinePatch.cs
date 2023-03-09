@@ -334,7 +334,7 @@
 //                            player.Profile.Inventory.Equipment.SITToJson()
 //                        }
 //                    };
-//                //new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
+//                //Request.Instance.PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 //                await ServerCommunication.PostLocalPlayerDataAsync(player, dictionary2);
 //                //Logger.LogInfo($"BotCreationMethod. [SUCCESS] Adding AI {profile.AccountId} to CoopGameComponent.Players list");
 //            }

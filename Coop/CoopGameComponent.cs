@@ -95,6 +95,12 @@ namespace SIT.Core.Coop
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
+            CoopPatches.EnableDisablePatches();
+        }
+
+        void OnDestroy()
+        {
+            CoopPatches.EnableDisablePatches();
         }
 
         #endregion
@@ -124,7 +130,7 @@ namespace SIT.Core.Coop
                 var jsonDataToSend = d.ToJson();
 
                 if (RequestingObj == null)
-                    RequestingObj = new Request();
+                    RequestingObj = Request.Instance;
 
                 //var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/players", jsonDataToSend).Result;
                 //if (actionsToValuesJson == null)
@@ -476,32 +482,17 @@ namespace SIT.Core.Coop
                 }
 
                 if (RequestingObj == null)
-                    RequestingObj = new Request();
+                    RequestingObj = Request.Instance;
 
-                try
-                {
-                    //Task.Run(async() =>
-                    {
-                        swRequests.Reset();
-                        swRequests.Start();
-                        var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastActions", jsonDataServerId.ToJson()).Result;
-                        yield return waitEndOfFrame;
-                        ReadFromServerLastActionsParseData(actionsToValuesJson);
-                        ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
-                        ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
-
-
-                        actionsToValuesJson = null;
-                    }
-                    //);
-                }
-                finally
-                {
-
-                }
-
+                swRequests.Reset();
+                swRequests.Start();
+                var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastActions", jsonDataServerId.ToJson()).Result;
+                ReadFromServerLastActionsParseData(actionsToValuesJson);
+                ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
+                ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
+                
+                actionsToValuesJson = null;
                 swRequests.Stop();
-
             }
         }
 
@@ -609,7 +600,7 @@ namespace SIT.Core.Coop
                     continue;
 
                 if (RequestingObj == null)
-                    RequestingObj = new Request();
+                    RequestingObj = Request.Instance;
 
                 try
                 {
@@ -687,6 +678,12 @@ namespace SIT.Core.Coop
 
             GUI.Label(rect, $"Ping:{(ApproximatePing >= 0 ? ApproximatePing : 0)}");
             rect.y += 15;
+            if(Request.Instance != null)
+            {
+                var rtt = ApproximatePing + Request.Instance.PostPing;
+                GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");
+                rect.y += 15;
+            }
 
             if (PlayersToSpawn.Any(p => p.Value != ESpawnState.Spawned))
             {

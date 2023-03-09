@@ -90,7 +90,7 @@ namespace SIT.Coop.Core.LocalGame
             //    coopGC.ServerId = PatchConstants.GetPHPSESSID();
 
             // Ensure other Replication patches are running
-            CoopPatches.EnableDisablePatches();
+            //CoopPatches.EnableDisablePatches();
             //__instance.AllPlayers.ForEach(p => { var prc = p.GetOrAddComponent<PlayerReplicatedComponent>(); prc.player = p as EFT.LocalPlayer; });
         }
 

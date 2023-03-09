@@ -116,12 +116,12 @@ namespace SIT.Coop.Core.Player
                             player.Profile.Inventory.Equipment.SITToJson()
                         }
                     };
-            //new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 
-            CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
+            // Removed for testing
+            //CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            prc.player = player;
-            ServerCommunication.PostLocalPlayerData(player, dictionary2);
+            //prc.player = player;
+            //ServerCommunication.PostLocalPlayerData(player, dictionary2);
 
         }
 

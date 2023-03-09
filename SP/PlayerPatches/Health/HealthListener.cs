@@ -36,7 +36,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
         // ctor
         private HealthListener()
         {
-            _request = new Request();
+            _request = Request.Instance;
         }
 
         /// <summary>

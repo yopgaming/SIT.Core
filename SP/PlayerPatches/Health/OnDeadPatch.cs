@@ -71,7 +71,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
             {
                 map.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
             }
-            _ = new Request().PostJsonAsync("/client/raid/person/killed", JsonConvert.SerializeObject(map));
+            _ = Request.Instance.PostJsonAsync("/client/raid/person/killed", JsonConvert.SerializeObject(map));
         }
     }
 }

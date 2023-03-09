@@ -1,8 +1,11 @@
 ﻿using ComponentAce.Compression.Libs.zlib;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,21 +58,80 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        private TaskFactory TaskFactory { get; set; }
 
-        public Request()
+        private Request()
         {
-            if (m_Instance == null)
-                return;
-
-            //if(string.IsNullOrEmpty(Session))
-            //    Session = PatchConstants.GetPHPSESSID();
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
             GetHeaders();
+            PeriodicallySendPooledData();
+        }
 
-            TaskFactory = new TaskFactory();
-            m_Instance = this;
+        public static Request GetRequestInstance(bool createInstance = false)
+        {
+            if (createInstance)
+            {
+                return new Request();
+            }
+
+            return Request.Instance;
+        }
+
+        ConcurrentQueue<KeyValuePair<string, Dictionary<string, object>>> m_PooledDictionariesToPost = new ConcurrentQueue<KeyValuePair<string, Dictionary<string, object>>>();
+        ConcurrentQueue<KeyValuePair<string, string>> m_PooledStringToPost = new ConcurrentQueue<KeyValuePair<string, string>>();
+
+        public void SendDataToPool(string url, Dictionary<string, object> data)
+        {
+            //PatchConstants.Logger.LogDebug($"SendDataToPool({url}, some data)");
+            m_PooledDictionariesToPost.Enqueue(new(url, data));
+            //PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost now has:{m_PooledDictionariesToPost.Count}:entries");
+        }
+
+        public void SendDataToPool(string url, string stringData)
+        {
+            m_PooledStringToPost.Enqueue(new(url, stringData));
+        }
+
+        public long PostPing { get; private set; }
+
+        private Task PeriodicallySendPooledDataTask;
+
+        private void PeriodicallySendPooledData()
+        {
+            //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
+
+            PeriodicallySendPooledDataTask = Task.Run(async() => 
+            {
+                //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
+
+                //while (m_Instance != null)
+                Stopwatch swPing = new Stopwatch();
+
+                while (true)
+                {
+                    swPing.Restart();
+                    await Task.Delay(33);
+                    //PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
+                    if (m_PooledDictionariesToPost.Any())
+                    {
+                        PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
+                        m_PooledDictionariesToPost.TryDequeue(out var d);
+                        var url = d.Key;
+                        var json = JsonConvert.SerializeObject(d.Value);
+                        await PostJsonAsync(url, json);
+                    }
+
+                    if (m_PooledStringToPost.Any())
+                    {
+                        PatchConstants.Logger.LogDebug($"m_PooledStringToPost:{m_PooledStringToPost.Count}:entries");
+                        m_PooledStringToPost.TryDequeue(out var d);
+                        var url = d.Key;
+                        var json = d.Value;
+                        PostJson(url, json);
+                    }
+                    PostPing = swPing.ElapsedMilliseconds - 33;
+                }
+            });
         }
 
         private Dictionary<string, string> GetHeaders()

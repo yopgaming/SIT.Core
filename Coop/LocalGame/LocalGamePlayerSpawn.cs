@@ -156,7 +156,7 @@
 //                //            p.Profile.Inventory.Equipment.ToJson()
 //                //        }
 //                //    };
-//                ////new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
+//                ////Request.Instance.PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 //                //ServerCommunication.PostLocalPlayerData(p, dictionary2);
 
 //                if (!Matchmaker.MatchmakerAcceptPatches.IsClient)

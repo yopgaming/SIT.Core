@@ -1,4 +1,6 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
+using EFT;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
@@ -50,7 +52,8 @@ namespace SIT.Core.Coop
 
         private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            EnableDisablePatches();
+            if (Singleton<GameWorld>.Instantiated)
+                EnableDisablePatches();
         }
 
         private static List<ModulePatch> NoMRPPatches = new List<ModulePatch>();
@@ -95,7 +98,7 @@ namespace SIT.Core.Coop
             }
 
             var moduleReplicationPatches = Assembly.GetAssembly(typeof(ModuleReplicationPatch)).GetTypes().Where(x => x.GetInterface("IModuleReplicationPatch") != null);
-            //Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");
+            ////Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");
             foreach (var module in moduleReplicationPatches)
             {
                 if (module.IsAbstract

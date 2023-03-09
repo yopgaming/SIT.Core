@@ -15,7 +15,7 @@ namespace SIT.Core.AkiSupport.Airdrops.Utils
     {
         public static AirdropConfigModel GetConfigFromServer()
         {
-            string json = new Request().GetJson("/singleplayer/airdrop/config");
+            string json = Request.Instance.GetJson("/singleplayer/airdrop/config");
             return JsonConvert.DeserializeObject<AirdropConfigModel>(json);
         }
 

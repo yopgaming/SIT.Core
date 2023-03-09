@@ -20,7 +20,7 @@ namespace SIT.Tarkov.Core.AI
 
         public CreateFriendlyAIPatch()
         {
-            //ShouldFriendlyAI = JsonConvert.DeserializeObject<bool>(new Request().PostJson("/client/raid/createFriendlyAI", null, true));
+            //ShouldFriendlyAI = JsonConvert.DeserializeObject<bool>(Request.Instance.PostJson("/client/raid/createFriendlyAI", null, true));
         }
 
         [PatchPostfix]
@@ -35,7 +35,7 @@ namespace SIT.Tarkov.Core.AI
 
             //    //if (!ShouldFriendlyAI.HasValue)
             //    //{
-            //    //    var result = new Request().PostJson("/client/raid/createFriendlyAI", JsonConvert.SerializeObject(new Dictionary<string, object>()));
+            //    //    var result = Request.Instance.PostJson("/client/raid/createFriendlyAI", JsonConvert.SerializeObject(new Dictionary<string, object>()));
             //    //    Logger.LogInfo("CreateFriendlyAIPatch.PatchPostfix.Result=" + result);
             //    //    if(bool.TryParse(result, out bool resultB))
             //    //    {

@@ -1,4 +1,5 @@
-﻿using BepInEx.Logging;
+﻿using BepInEx;
+using BepInEx.Logging;
 using SIT.Core.Other.AI;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,9 @@ namespace SIT.Core.Other
         private static BepInEx.Configuration.ConfigFile m_Config;
         public static ManualLogSource Logger { get; private set; }
 
-        public static void Run(BepInEx.Configuration.ConfigFile config)
+        static AIAwakeOrSleepComponent AIAwakeOrSleepComponent { get; set; }
+
+        public static void Run(BepInEx.Configuration.ConfigFile config, BaseUnityPlugin plugin)
         {
             m_Config = config;
 
@@ -29,6 +32,10 @@ namespace SIT.Core.Other
 
             if(config.Bind<bool>("Other Patches", "Enable Props AI Bush Patch", true).Value)
                 new AIBushPatch().Enable();
+
+            //var enableAIWakeOrSleep = config.Bind<bool>("Other Patches", "Enable AI Wake or Sleep Patch", true);
+            //if (enableAIWakeOrSleep.Value)
+            //    AIAwakeOrSleepComponent = plugin.GetOrAddComponent<AIAwakeOrSleepComponent>();
         }
     }
 }

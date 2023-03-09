@@ -9,6 +9,7 @@ using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Coop;
 using SIT.Core.Core;
 using SIT.Core.Misc;
+using SIT.Core.Other;
 using SIT.Core.SP.Menus;
 using SIT.Core.SP.PlayerPatches;
 using SIT.Core.SP.PlayerPatches.Health;
@@ -33,13 +34,15 @@ namespace SIT.Core
 
         private void Awake()
         {
+            Instance = this;
+
             EnableCorePatches();
             EnableSPPatches();
             EnableCoopPatches();
+            OtherPatches.Run(Config, this);
 
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            Instance = this;
         }
 
         private void EnableCorePatches()
@@ -146,23 +149,15 @@ namespace SIT.Core
             CoopPatches.Run(Config);
         }
 
-        //private void SceneManager_sceneUnloaded(Scene arg0)
-        //{
-
-        //}
-
         public static GameWorld gameWorld { get; private set; }
-
 
         private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             //GetPoolManager();
             GetBackendConfigurationInstance();
 
-            gameWorld = Singleton<GameWorld>.Instance;
-
-            //EnableCoopPatches();
-
+            if(Singleton<GameWorld>.Instantiated)
+                gameWorld = Singleton<GameWorld>.Instance;
         }
 
         private void GetBackendConfigurationInstance()

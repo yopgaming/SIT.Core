@@ -71,7 +71,7 @@ namespace SIT.Coop.Core.Matchmaker
 
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
-                string json = new SIT.Tarkov.Core.Request().GetJson("/coop/server/exist");
+                string json = Request.Instance.GetJson("/coop/server/exist");
                 PatchConstants.Logger.LogInfo(json);
 
                 if (!string.IsNullOrEmpty(json))
