@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace SIT.Core.Coop.Player
 {
-    internal class Player_Move_Patch : ModuleReplicationPatch
+    internal class Player_Rotate_Patch : ModuleReplicationPatch
     {
         private static Dictionary<string, UnityEngine.Vector2> lastDirection = new();
 
@@ -19,12 +19,11 @@ namespace SIT.Core.Coop.Player
 
         public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
-        public override string MethodName => "Move";
-        //public override bool DisablePatch => true;
+        public override string MethodName => "Rotate";
 
         public static Request RequestInstance = null;
 
-        public Player_Move_Patch()
+        public Player_Rotate_Patch()
         {
             RequestInstance = Request.GetRequestInstance(true, Logger);
         }
@@ -52,7 +51,7 @@ namespace SIT.Core.Coop.Player
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
-           UnityEngine.Vector2 direction
+           Vector2 deltaRotation, bool ignoreClamp = false
             )
         {
             if (__instance.IsAI || __instance.AIData != null)
@@ -68,25 +67,26 @@ namespace SIT.Core.Coop.Player
 
             if (lastDirection.ContainsKey(player.Profile.AccountId))
             {
-                if (lastDirection[player.Profile.AccountId] == direction)
+                if (lastDirection[player.Profile.AccountId] == deltaRotation)
                     //|| Vector2.Dot(lastDirection[player.Profile.AccountId], direction) >= 0.75)
                     return;
             }
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("dX", direction.x.ToString());
-            dictionary.Add("dY", direction.y.ToString());
+            dictionary.Add("dX", deltaRotation.x.ToString());
+            dictionary.Add("dY", deltaRotation.y.ToString());
+            dictionary.Add("c", ignoreClamp.ToString());
             //dictionary.Add("pX", __instance.Position.x.ToString());
             //dictionary.Add("pY", __instance.Position.y.ToString());
             //dictionary.Add("pZ", __instance.Position.z.ToString());
-            dictionary.Add("m", "Move");
+            dictionary.Add("m", "Rotate");
             ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
 
             if (!lastDirection.ContainsKey(player.Profile.AccountId))
-                lastDirection.Add(player.Profile.AccountId, direction);
+                lastDirection.Add(player.Profile.AccountId, deltaRotation);
 
-            lastDirection[player.Profile.AccountId] = direction;
+            lastDirection[player.Profile.AccountId] = deltaRotation;
         }
 
        
@@ -105,15 +105,17 @@ namespace SIT.Core.Coop.Player
             //if (CallLocally.ContainsKey(player.Profile.AccountId))
             //    return;
 
-            //Logger.LogDebug($"Replicated Move {player.Profile.AccountId}");
+            Logger.LogDebug($"Replicated Rotate {player.Profile.AccountId}");
             try
             {
                 UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
+                var ignoreClamp = bool.Parse(dict["c"].ToString());
                 //CallLocally.Add(player.Profile.AccountId, true);
                 //player.Move(direction);
                 if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
                 {
-                    playerReplicatedComponent.ReplicatedDirection = direction;
+                    playerReplicatedComponent.ReplicatedRotation = direction;
+                    playerReplicatedComponent.ReplicatedRotationClamp = ignoreClamp;
                 }
             }
             catch (Exception e)

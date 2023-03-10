@@ -48,7 +48,7 @@ namespace SIT.Core.Other.AI
                 }
                 LayerMask highPolyWithTerrainMask = LayerMaskClass.HighPolyWithTerrainMask;
                 float maxDistance = Vector3.Distance(bot.Position, iAIDetails.GetPlayer.Position);
-                if (!Physics.SphereCast(bot.Position, 10, iAIDetails.GetPlayer.Position, out var hitInfo, maxDistance, highPolyWithTerrainMask))
+                if (!Physics.SphereCast(bot.Position, 2, iAIDetails.GetPlayer.Position, out var hitInfo, maxDistance, highPolyWithTerrainMask))
                 {
                     return;
                 }

@@ -1,5 +1,7 @@
-﻿using ComponentAce.Compression.Libs.zlib;
+﻿using BepInEx.Logging;
+using ComponentAce.Compression.Libs.zlib;
 using Newtonsoft.Json;
+using SIT.Core.Misc;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace SIT.Tarkov.Core
 {
@@ -58,20 +61,31 @@ namespace SIT.Tarkov.Core
             }
         }
 
+        private ManualLogSource m_ManualLogSource;
 
-        private Request()
+        private Request(BepInEx.Logging.ManualLogSource logger = null)
         {
+            // disable SSL encryption
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            if (logger != null)
+                m_ManualLogSource = logger;
+            else
+                m_ManualLogSource = BepInEx.Logging.Logger.CreateLogSource("Request");
+
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
             GetHeaders();
             PeriodicallySendPooledData();
         }
 
-        public static Request GetRequestInstance(bool createInstance = false)
+        public static Request GetRequestInstance(bool createInstance = false, BepInEx.Logging.ManualLogSource logger = null)
         {
             if (createInstance)
             {
-                return new Request();
+                return new Request(logger);
             }
 
             return Request.Instance;
@@ -102,6 +116,8 @@ namespace SIT.Tarkov.Core
 
             PeriodicallySendPooledDataTask = Task.Run(async() => 
             {
+                GCHelpers.EnableGC();
+                GCHelpers.ClearGarbage();
                 //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
 
                 //while (m_Instance != null)
@@ -112,9 +128,10 @@ namespace SIT.Tarkov.Core
                     swPing.Restart();
                     await Task.Delay(33);
                     //PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
-                    if (m_PooledDictionariesToPost.Any())
+                    while (m_PooledDictionariesToPost.Any())
                     {
-                        PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
+                        await Task.Delay(1);
+                        //m_ManualLogSource.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
                         m_PooledDictionariesToPost.TryDequeue(out var d);
                         var url = d.Key;
                         var json = JsonConvert.SerializeObject(d.Value);
@@ -123,13 +140,14 @@ namespace SIT.Tarkov.Core
 
                     if (m_PooledStringToPost.Any())
                     {
-                        PatchConstants.Logger.LogDebug($"m_PooledStringToPost:{m_PooledStringToPost.Count}:entries");
+                        //m_ManualLogSource.LogDebug($"m_PooledStringToPost:{m_PooledStringToPost.Count}:entries");
                         m_PooledStringToPost.TryDequeue(out var d);
                         var url = d.Key;
                         var json = d.Value;
                         PostJson(url, json);
                     }
                     PostPing = swPing.ElapsedMilliseconds - 33;
+
                 }
             });
         }
@@ -178,9 +196,9 @@ namespace SIT.Tarkov.Core
         private MemoryStream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
         {
             // disable SSL encryption
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            //ServicePointManager.Expect100Continue = true;
+            //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            //ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             var fullUri = url;
             if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
@@ -189,14 +207,14 @@ namespace SIT.Tarkov.Core
             //PatchConstants.Logger.LogInfo(fullUri);
 
             var uri = new Uri(fullUri);
-            if (uri.Scheme == "https")
-            {
-                // disable SSL encryption
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            //if (uri.Scheme == "https")
+            //{
+            //    // disable SSL encryption
+            //    ServicePointManager.Expect100Continue = true;
+            //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            //    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
-            }
+            //}
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.ServerCertificateValidationCallback = delegate { return true; };
@@ -220,16 +238,13 @@ namespace SIT.Tarkov.Core
             if (method != "GET" && !string.IsNullOrEmpty(data))
             {
                 // set request body
-                //byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_COMPRESSION) : Encoding.UTF8.GetBytes(data);
-                byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_SPEED) : Encoding.UTF8.GetBytes(data);
+                var inputDataBytes = Encoding.UTF8.GetBytes(data);
+                byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
                 data = null;
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;
-
                 if (compress)
-                {
                     request.Headers.Add("content-encoding", "deflate");
-                }
 
                 try
                 {
@@ -241,6 +256,11 @@ namespace SIT.Tarkov.Core
                 catch (Exception e)
                 {
                     PatchConstants.Logger.LogError(e);
+                }
+                finally
+                {
+                    bytes = null;
+                    inputDataBytes = null;
                 }
             }
 
@@ -273,6 +293,80 @@ namespace SIT.Tarkov.Core
             return null;
         }
 
+        private async Task<string> SendAsync(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
+        {
+            var fullUri = url;
+            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
+                fullUri = RemoteEndPoint + fullUri;
+
+            var uri = new Uri(fullUri);
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.ServerCertificateValidationCallback = delegate { return true; };
+            
+            foreach (var item in GetHeaders())
+            {
+                request.Headers.Add(item.Key, item.Value);
+            }
+
+            request.Headers.Add("Accept-Encoding", "deflate");
+
+            request.Method = method;
+            request.Timeout = timeout;
+
+            if (method != "GET" && !string.IsNullOrEmpty(data))
+            {
+                // set request body
+                var inputDataBytes =  Encoding.UTF8.GetBytes(data);
+                //m_ManualLogSource.LogDebug("Compressing");
+                byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
+                data = null;
+                request.ContentType = "application/json";
+                request.ContentLength = bytes.Length;
+                if (compress)
+                    request.Headers.Add("content-encoding", "deflate");
+
+                //m_ManualLogSource.LogDebug("GetRequestStream");
+                using (Stream stream = request.GetRequestStream())
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                }
+             
+            }
+
+            // get response stream
+            //m_ManualLogSource.LogDebug("GetResponse");
+            var responseString = string.Empty;
+            using (var response = request.GetResponse())
+            {
+                //m_ManualLogSource.LogDebug("GetResponseStream");
+                using (Stream stream = response.GetResponseStream())
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        stream.CopyTo(ms);
+                        byte[] body = ms.ToArray();
+
+                        if (body.Length == 0)
+                        {
+                            return null;
+                        }
+
+                        if (Zlib.IsCompressed(body))
+                        {
+                            responseString = Encoding.UTF8.GetString(Zlib.Decompress(body));
+                        }
+
+                        responseString = Encoding.UTF8.GetString(body);
+                    }
+                }
+            }
+
+            
+            return responseString;
+            //return null;
+        }
+
         public byte[] GetData(string url, bool hasHost = false)
         {
             using (var dataStream = Send(url, "GET"))
@@ -293,18 +387,17 @@ namespace SIT.Tarkov.Core
                 var bytes = stream.ToArray();
                 var result = SimpleZlib.Decompress(bytes, null);
                 bytes = null;
-                countOfCalls++;
-                if (countOfCalls >= 50)
-                {
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    countOfCalls = 0;
-                }
+                //countOfCalls++;
+                //if (countOfCalls >= 100)
+                //{
+                //    GCHelpers.ClearGarbage();
+                //    countOfCalls = 0;
+                //}
                 return result;
             }
         }
 
-        private int countOfCalls = 0;
+        //private int countOfCalls = 0;
 
         public string PostJson(string url, string data, bool compress = true)
         {
@@ -313,22 +406,24 @@ namespace SIT.Tarkov.Core
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                var result = SimpleZlib.Decompress(bytes, null);
+                //countOfCalls++;
+                //if (countOfCalls >= 1000)
+                //{
+                //    GCHelpers.ClearGarbage();
+                //    countOfCalls = 0;
+                //}
+                var dec = Zlib.Decompress(bytes);
+                var result = Encoding.UTF8.GetString(dec);
+                dec = null;
                 bytes = null;
-                countOfCalls++;
-                if(countOfCalls >= 50)
-                {
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    countOfCalls = 0;
-                }
                 return result;
             }
         }
 
         public async Task<string> PostJsonAsync(string url, string data)
         {
-            return await Task.FromResult(PostJson(url, data, true));
+            return await Task.FromResult(PostJson(url, data));
+            //return await SendAsync(url, "POST", data);
         }
 
 

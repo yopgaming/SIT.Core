@@ -53,8 +53,8 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("o", opened.ToString());
             dictionary.Add("m", "SetInventoryOpened");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-            dictionary.Clear();
-            dictionary = null;
+            //dictionary.Clear();
+            //dictionary = null;
         }
 
 
@@ -69,6 +69,9 @@ namespace SIT.Core.Coop.Player
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
+
+            if (CallLocally.ContainsKey(player.Profile.AccountId))
+                return;
 
             try
             {

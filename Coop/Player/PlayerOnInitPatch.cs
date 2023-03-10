@@ -4,7 +4,9 @@ using EFT;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -120,8 +122,10 @@ namespace SIT.Coop.Core.Player
             // Removed for testing
             //CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            //prc.player = player;
+            prc.player = player;
             //ServerCommunication.PostLocalPlayerData(player, dictionary2);
+
+            //GCHelpers.Collect(0, GCCollectionMode.Optimized, false, true, true);
 
         }
 

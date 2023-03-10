@@ -1,7 +1,9 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 using Newtonsoft.Json;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
@@ -28,19 +30,21 @@ namespace SIT.Coop.Core.Player
 
         void Awake()
         {
-            PatchConstants.Logger.LogInfo("PlayerReplicatedComponent:Awake");
+            PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
         }
 
         void Start()
         {
-            PatchConstants.Logger.LogInfo($"PlayerReplicatedComponent:Start");
+            PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start");
 
             //StartCoroutine(HandleQueuedPackets());
             if (player == null)
             {
                 player = this.GetComponentInParent<EFT.LocalPlayer>();
-                PatchConstants.Logger.LogInfo($"PlayerReplicatedComponent:Start:Set Player to {player}");
+                PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}");
             }
+
+            GCHelpers.EnableGC();
 
             //StartCoroutine(DoManualUpdateSequence());
         }
@@ -176,27 +180,59 @@ namespace SIT.Coop.Core.Player
             if (player == null)
                 return;
 
-            
-            //UpdateMovementSend();
-            //    UpdateMovement();
+            if (ReplicatedDirection.HasValue)
+            {
+                player.InputDirection = ReplicatedDirection.Value;
+                player.CurrentState.Move(player.InputDirection);
+            }
 
-            //    if (player.IsAI)
-            //    {
-            //        if (!LastPosition.HasValue)
-            //            LastPosition = player.Position;
+            if (ReplicatedRotation.HasValue && ReplicatedRotationClamp.HasValue)
+            {
+                if (!ReplicatedRotation.Value.IsAnyComponentInfinity() && !ReplicatedRotation.Value.IsAnyComponentNaN())
+                {
+                    player.CurrentState.Rotate(ReplicatedRotation.Value, ReplicatedRotationClamp.HasValue);
+                }
+            }
 
-            //        if (Vector3.Distance(LastPosition.Value, player.Position) > 3)
-            //        {
-            //            LastPosition = player.Position;
-            //        }
-            //    }
         }
 
-        //        public static Dictionary<string, object> PreMadeDataPacket;
+        void LateUpdate()
+        {
+            if (ReplicatedDirection.HasValue)
+            {
+                player.InputDirection = ReplicatedDirection.Value;
+                player.CurrentState.Move(player.InputDirection);
+            }
+        }
+
+        void FixedUpdate()
+        {
+
+            if (player.IsAI || player.AIData != null)
+            {
+                if (LastPosition != player.Position)
+                {
+                    if (Vector3.Distance(LastPosition, player.Position) > 2)
+                    {
+                        Dictionary<string, object> dict = new Dictionary<string, object>();
+                        dict.Add("pX", LastPosition.x);
+                        dict.Add("pY", LastPosition.y);
+                        dict.Add("pZ", LastPosition.z);
+                        dict.Add("m", "Position");
+                        ServerCommunication.PostLocalPlayerData(player, dict);
+                    }
+                    LastPosition = player.Position;
+                }
+            }
+        }
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
         private Vector2 LastRotator { get; set; } = Vector2.zero;
         private Vector3 LastPosition { get; set; } = Vector3.zero;
+        public Vector2? ReplicatedDirection { get; internal set; }
+        public Vector2? ReplicatedRotation { get; internal set; }
+        public bool? ReplicatedRotationClamp { get; internal set; }
+
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {
             { "dX", "0" },
@@ -226,28 +262,31 @@ namespace SIT.Coop.Core.Player
             if (!player.IsAI && player.AIData != null)
                 return;
 
+            if (MatchmakerAcceptPatches.IsClient)
+                return;
+
             IsUpdatingMovementSend = true;
             try
             {
 
-                //if (
-                //    (LastDirection != player.InputDirection
-                //    && Vector2.Dot(LastDirection, player.InputDirection) <= 0.5)
-                //    || Vector2.Dot(LastRotator, player.Rotation) < 0
-                //    )
-                //{
-                //    PreMadeMoveDataPacket["dX"] = Math.Round(player.InputDirection.x, 2).ToString();
-                //    PreMadeMoveDataPacket["dY"] = Math.Round(player.InputDirection.y, 2).ToString();
-                //    PreMadeMoveDataPacket["rX"] = Math.Round(player.Rotation.x, 2).ToString();
-                //    PreMadeMoveDataPacket["rY"] = Math.Round(player.Rotation.y, 2).ToString();
-                //    PreMadeMoveDataPacket["pX"] = Math.Round(player.Position.x, 2).ToString();
-                //    PreMadeMoveDataPacket["pY"] = Math.Round(player.Position.y, 2).ToString();
-                //    PreMadeMoveDataPacket["pZ"] = Math.Round(player.Position.z, 2).ToString();
-                //    PreMadeMoveDataPacket["t"] = DateTime.Now.Ticks;
-                //    ServerCommunication.PostLocalPlayerData(player, PreMadeMoveDataPacket);
-                //    LastDirection = player.InputDirection;
-                //    LastRotator = player.Rotation;
-                //}
+                if (
+                    (LastDirection != player.InputDirection
+                    && Vector2.Dot(LastDirection, player.InputDirection) <= 0.5)
+                    || Vector2.Dot(LastRotator, player.Rotation) < 0
+                    )
+                {
+                    PreMadeMoveDataPacket["dX"] = Math.Round(player.InputDirection.x, 2).ToString();
+                    PreMadeMoveDataPacket["dY"] = Math.Round(player.InputDirection.y, 2).ToString();
+                    PreMadeMoveDataPacket["rX"] = Math.Round(player.Rotation.x, 2).ToString();
+                    PreMadeMoveDataPacket["rY"] = Math.Round(player.Rotation.y, 2).ToString();
+                    //PreMadeMoveDataPacket["pX"] = Math.Round(player.Position.x, 2).ToString();
+                    //PreMadeMoveDataPacket["pY"] = Math.Round(player.Position.y, 2).ToString();
+                    //PreMadeMoveDataPacket["pZ"] = Math.Round(player.Position.z, 2).ToString();
+                    PreMadeMoveDataPacket["t"] = DateTime.Now.Ticks;
+                    ServerCommunication.PostLocalPlayerData(player, PreMadeMoveDataPacket);
+                    LastDirection = player.InputDirection;
+                    LastRotator = player.Rotation;
+                }
 
                 //if (this.LastTiltLevel != player.MovementContext.Tilt
                 //    && (this.LastTiltLevel - player.MovementContext.Tilt > 0.05f || this.LastTiltLevel - player.MovementContext.Tilt < -0.05f)

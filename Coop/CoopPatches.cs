@@ -118,7 +118,7 @@ namespace SIT.Core.Coop
 
                 if (!mrp.DisablePatch && enablePatches)
                 {
-                    Logger.LogInfo($"Enabled {mrp.GetType()}");
+                    //Logger.LogInfo($"Enabled {mrp.GetType()}");
                     mrp.Enable();
                 }
                 else

@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
@@ -96,6 +97,7 @@ namespace SIT.Core.Coop
             PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
+            GCHelpers.EnableGC();
         }
 
         void OnDestroy()
@@ -463,15 +465,6 @@ namespace SIT.Core.Coop
                 yield return waitSeconds;
 
                 jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
-                //if (fpsCounter == null)
-                //{
-                //    fpsCounter = GameObject.FindObjectOfType<TMP_FPSCounter>();
-                //    if (fpsCounter != null)
-                //    {
-                //        //GameObject.DontDestroyOnLoad(fpsCounter);
-                //        PatchConstants.Logger.LogInfo("CoopGameComponent:Found FPS Counter");
-                //    }
-                //}
                 swDebugPerformance.Reset();
                 swDebugPerformance.Start();
                 if (Players == null)
@@ -544,7 +537,7 @@ namespace SIT.Core.Coop
                     var accountId = packet["accountId"].ToString();
                     if (!Players.ContainsKey(accountId))
                     {
-                        PatchConstants.Logger.LogInfo($"CoopGameComponent:Players does not contain {accountId}. Searching. This is SLOW. FIXME! Don't do this!");
+                        Logger.LogInfo($"Players does not contain {accountId}. Searching. This is SLOW. FIXME! Don't do this!");
                         foreach (var p in FindObjectsOfType<LocalPlayer>())
                         {
                             if (!Players.ContainsKey(p.Profile.AccountId))
@@ -559,13 +552,16 @@ namespace SIT.Core.Coop
 
                     try
                     {
-                        // Deal damage to all versions of this guy (this shouldnt happen but good for testing)
+                        // Deal to all versions of this guy (this shouldnt happen but good for testing)
                         foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
                         {
                             plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc);
 
                             if (prc == null)
+                            {
+                                Logger.LogInfo($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
                                 continue;
+                            }
 
                             prc.HandlePacket(packet);
                         }
@@ -654,7 +650,7 @@ namespace SIT.Core.Coop
                         if (prc == null)
                             continue;
 
-                        PlayerOnMovePatch.MoveReplicated(prc.player, packet);
+                        //PlayerOnMovePatch.MoveReplicated(prc.player, packet);
                     }
                 }
             }
