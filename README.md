@@ -1,11 +1,18 @@
 # SIT.Core
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
+- Please be aware. The Ko-Fi link is literally being me a coffee
+- I do not have some special subset of code that magically makes it work beyond what is here on GitHub 
+- Please do not hand over money expecting help or a magic solution
+- I will update this README / GitHub Wiki with instructions when things are at a point where you can join and play a game together.
 
 ## Disclaimer
 
-This is by no means designed for cheats or illegally downloading the game. This is purely for educational purposes. You must buy the game to use this. 
-You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
+- You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
+- This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
+- This is by no means designed for illegally downloading the game (and has blocks for people that do!)
+- This is purely for educational purposes (I am using this to learn Unity, Reverse Engineering & Networking)
+- I am in no way affiliated with BattleStateGames or others (on Reddit or Discord) claiming to be working on a project
 
 ## SPT-AKI Requirement
 Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
