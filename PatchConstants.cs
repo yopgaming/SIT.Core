@@ -5,6 +5,7 @@ using EFT.Communications;
 using FilesChecker;
 using HarmonyLib;
 using Newtonsoft.Json;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core.AI;
 using SIT.Tarkov.Core.Web;
 using System;
@@ -100,26 +101,10 @@ namespace SIT.Tarkov.Core
             return BackendConnection.GetBackendConnection().PHPSESSID;
         }
 
-        public static void DisplayMessageNotification(string message)
-        {
-            if (MessageNotificationType == null)
-            {
-                Logger.LogError("MessageNotificationType not found");
-                return;
-            }
-
-
-            var o = MessageNotificationType.GetMethod("DisplayMessageNotification", BindingFlags.Static | BindingFlags.Public);
-            if (o != null)
-            {
-                o.Invoke("DisplayMessageNotification", new object[] { message, ENotificationDurationType.Default, ENotificationIconType.Default, null });
-            }
-
-        }
+      
 
         public static ManualLogSource Logger { get; private set; }
 
-        public static Type MessageNotificationType { get; private set; }
         public static Type GroupingType { get; }
         public static Type JsonConverterType { get; }
         public static JsonConverter[] JsonConverterDefault { get; }
@@ -138,216 +123,9 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public static T DoSafeConversion<T>(object o)
-        {
-            var json = o.SITToJson();
-            return json.SITParseJson<T>();
-        }
+        
 
-        public static object GetSingletonInstance(Type singletonInstanceType)
-        {
-            Type generic = typeof(Singleton<>);
-            Type[] typeArgs = { singletonInstanceType };
-            var genericType = generic.MakeGenericType(typeArgs);
-            return GetPropertyFromType(genericType, "Instance").GetValue(null, null);
-        }
-
-        public static PropertyInfo GetPropertyFromType(Type t, string name)
-        {
-            var properties = t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-            PropertyInfo property = properties.FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (property != null)
-                return property;
-
-            return null;
-        }
-
-        public static FieldInfo GetFieldFromType(Type t, string name)
-        {
-            var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            return fields.FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-
-        }
-
-        public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType)
-        {
-            var fields = objectType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            return fields.FirstOrDefault(x => x.FieldType == fieldType);
-
-        }
-
-        public static PropertyInfo GetPropertyFromTypeByPropertyType(Type objectType, Type propertyType)
-        {
-            var fields = objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            return fields.FirstOrDefault(x => x.PropertyType == propertyType);
-
-        }
-
-        public static MethodInfo GetMethodForType(Type t, string methodName, bool debug = false)
-        {
-            if (t == null)
-            {
-                Logger.LogError("GetMethodForType. t is NULL");
-                return null;
-            }
-            return GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower());
-        }
-
-        public static async Task<MethodInfo> GetMethodForTypeAsync(Type t, string methodName, bool debug = false)
-        {
-            return await Task.Run(() => GetMethodForType(t, methodName, debug));
-        }
-
-
-        public static IEnumerable<MethodInfo> GetAllMethodsForType(Type t, bool debug = false)
-        {
-            foreach (var m in t.GetMethods(
-                BindingFlags.NonPublic
-                | BindingFlags.Public
-                | BindingFlags.Static
-                | BindingFlags.Instance
-                | BindingFlags.FlattenHierarchy
-                | BindingFlags.CreateInstance
-                ))
-            {
-                if (debug)
-                    Logger.LogInfo(m.Name);
-
-                yield return m;
-            }
-
-            if (t.BaseType != null)
-            {
-                foreach (var m in t.BaseType.GetMethods(
-                BindingFlags.NonPublic
-                | BindingFlags.Public
-                | BindingFlags.Static
-                | BindingFlags.Instance
-                | BindingFlags.FlattenHierarchy
-                ))
-                {
-                    if (debug)
-                        Logger.LogInfo(m.Name);
-
-                    yield return m;
-                }
-            }
-
-        }
-
-        public static IEnumerable<MethodInfo> GetAllMethodsForObject(object ob)
-        {
-            return GetAllMethodsForType(ob.GetType());
-        }
-
-        public static IEnumerable<PropertyInfo> GetAllPropertiesForObject(object o)
-        {
-            if (o == null)
-                return new List<PropertyInfo>();
-
-            var t = o.GetType();
-            var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public).ToList();
-            props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic));
-            props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
-            props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            if (t.BaseType != null)
-            {
-                t = t.BaseType;
-                props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.Public));
-                props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic));
-                props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-                props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
-                props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            }
-            return props.Distinct(x => x.Name).AsEnumerable();
-        }
-
-        public static IEnumerable<FieldInfo> GetAllFieldsForObject(object o)
-        {
-            var t = o.GetType();
-            var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public).ToList();
-            fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic));
-            fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
-            fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            if (t.BaseType != null)
-            {
-                t = t.BaseType;
-                fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.Public));
-                fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic));
-                fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-                fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
-                fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            }
-            return fields.Distinct(x => x.Name).AsEnumerable();
-        }
-
-        public static T GetFieldOrPropertyFromInstance<T>(object o, string name, bool safeConvert = true)
-        {
-            PropertyInfo property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (property != null)
-            {
-                if (safeConvert)
-                    return DoSafeConversion<T>(property.GetValue(o));
-                else
-                    return (T)property.GetValue(o);
-            }
-            FieldInfo field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (field != null)
-            {
-                if (safeConvert)
-                    return DoSafeConversion<T>(field.GetValue(o));
-                else
-                    return (T)field.GetValue(o);
-            }
-
-            return default(T);
-        }
-
-        public static async Task<T> GetFieldOrPropertyFromInstanceAsync<T>(object o, string name, bool safeConvert = true)
-        {
-            return await Task.Run(() => GetFieldOrPropertyFromInstance<T>(o, name, safeConvert));
-        }
-
-        public static void SetFieldOrPropertyFromInstance(object o, string name, object v)
-        {
-            var field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == (name.ToLower()));
-            if (field != null)
-                field.SetValue(o, v);
-
-            var property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == (name.ToLower()));
-            if (property != null)
-                property.SetValue(o, v);
-        }
-
-        public static void SetFieldOrPropertyFromInstance<T>(object o, string name, T v)
-        {
-            var field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == (name.ToLower()));
-            if (field != null)
-                field.SetValue(o, v);
-
-            var property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == (name.ToLower()));
-            if (property != null)
-                property.SetValue(o, v);
-        }
-
-        public static void ConvertDictionaryToObject(object o, Dictionary<string, object> dict)
-        {
-            foreach (var key in dict)
-            {
-                var prop = GetPropertyFromType(o.GetType(), key.Key);
-                if (prop != null)
-                {
-                    prop.SetValue(o, key.Value);
-                }
-                var field = GetFieldFromType(o.GetType(), key.Key);
-                if (field != null)
-                {
-                    field.SetValue(o, key.Value);
-                }
-            }
-        }
+       
 
         public static JsonConverter[] GetJsonConvertersBSG()
         {
@@ -462,7 +240,7 @@ namespace SIT.Tarkov.Core
 
         public static IDisposable StartWithToken(string name)
         {
-            return GetAllMethodsForType(StartWithTokenType).Single(x => x.Name == "StartWithToken").Invoke(null, new object[] { name }) as IDisposable;
+            return ReflectionHelpers.GetAllMethodsForType(StartWithTokenType).Single(x => x.Name == "StartWithToken").Invoke(null, new object[] { name }) as IDisposable;
         }
 
         public static async Task InvokeAsyncStaticByReflection(MethodInfo methodInfo, object rModel, params object[] p)
@@ -500,7 +278,7 @@ namespace SIT.Tarkov.Core
         /// <returns></returns>
         //public static async Task<object> InvokeAsyncMethod(Type type, Type outputType, string method, object[] param)
         //{
-        //    var m = PatchConstants.GetAllMethodsForType(type).First(x => x.Name == method);// foo.GetType().GetMethod(nameof(IFoo.Get));
+        //    var m = ReflectionHelpers.GetAllMethodsForType(type).First(x => x.Name == method);// foo.GetType().GetMethod(nameof(IFoo.Get));
         //    Logger.LogInfo("InvokeAsyncMethod." + m.Name);
 
         //    //var builder = AsyncTaskMethodBuilder.Create();
@@ -527,8 +305,8 @@ namespace SIT.Tarkov.Core
             ExfilPointManagerType = EftTypes.Single(x => x.GetMethod("InitAllExfiltrationPoints") != null);
             BackendInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("CreateClientSession") && x.IsInterface);
             SessionInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("GetPhpSessionId") && x.IsInterface);
-            MessageNotificationType = EftTypes.Single(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public).Select(y => y.Name).Contains("DisplayMessageNotification"));
-            if (MessageNotificationType == null)
+            DisplayMessageNotifications.MessageNotificationType = EftTypes.Single(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public).Select(y => y.Name).Contains("DisplayMessageNotification"));
+            if (DisplayMessageNotifications.MessageNotificationType == null)
             {
                 Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():MessageNotificationType:Not Found");
             }
@@ -543,14 +321,14 @@ namespace SIT.Tarkov.Core
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];
             //Logger.LogInfo($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
 
-            StartWithTokenType = EftTypes.Single(x => GetAllMethodsForType(x).Count(y => y.Name == "StartWithToken") == 1);
+            StartWithTokenType = EftTypes.Single(x => ReflectionHelpers.GetAllMethodsForType(x).Count(y => y.Name == "StartWithToken") == 1);
 
             BotSystemHelpers.Setup();
 
             if (JobPriorityType == null)
             {
                 JobPriorityType = EftTypes.Single(x =>
-                    GetAllMethodsForType(x).Any(x => x.Name == "Priority")
+                    ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "Priority")
                     );
                 //Logger.LogInfo($"Loading JobPriorityType:{JobPriorityType.FullName}");
             }
@@ -558,68 +336,68 @@ namespace SIT.Tarkov.Core
             if (PlayerInfoType == null)
             {
                 PlayerInfoType = EftTypes.Single(x =>
-                    GetAllMethodsForType(x).Any(x => x.Name == "AddBan")
-                    && GetAllMethodsForType(x).Any(x => x.Name == "RemoveBan")
+                    ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "AddBan")
+                    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "RemoveBan")
                     );
                 //Logger.LogInfo($"Loading PlayerInfoType:{PlayerInfoType.FullName}");
             }
 
             if (PlayerCustomizationType == null)
             {
-                PlayerCustomizationType = GetFieldFromType(typeof(Profile), "Customization").FieldType;
+                PlayerCustomizationType = ReflectionHelpers.GetFieldFromType(typeof(Profile), "Customization").FieldType;
                 //Logger.LogInfo($"Loading PlayerCustomizationType:{PlayerCustomizationType.FullName}");
             }
 
             SpawnPointArrayInterfaceType = EftTypes.Single(x =>
-                        GetAllMethodsForType(x).Any(x => x.Name == "CreateSpawnPoint")
-                        && GetAllMethodsForType(x).Any(x => x.Name == "DestroySpawnPoint")
+                        ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "CreateSpawnPoint")
+                        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "DestroySpawnPoint")
                         && x.IsInterface
                     );
             //Logger.LogInfo($"Loading SpawnPointArrayInterfaceType:{SpawnPointArrayInterfaceType.FullName}");
 
             BackendStaticConfigurationType = EftTypes.Single(x =>
-                    GetAllMethodsForType(x).Any(x => x.Name == "LoadApplicationConfig")
-            //&& PatchConstants.GetFieldFromType(x, "BackendUrl") != null
-            //&& PatchConstants.GetFieldFromType(x, "Config") != null
+                    ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "LoadApplicationConfig")
+            //&& ReflectionHelpers.GetFieldFromType(x, "BackendUrl") != null
+            //&& ReflectionHelpers.GetFieldFromType(x, "Config") != null
             );
 
             //Logger.LogInfo($"Loading BackendStaticConfigurationType:{BackendStaticConfigurationType.FullName}");
 
-            if (!TypeDictionary.ContainsKey("StatisticsSession"))
-            {
-                TypeDictionary.Add("StatisticsSession", EftTypes.OrderBy(x => x.Name).First(x =>
-                    x.IsClass
-                    && GetAllMethodsForType(x).Any(x => x.Name == "BeginStatisticsSession")
-                    && GetAllMethodsForType(x).Any(x => x.Name == "EndStatisticsSession")
-                ));
-                //Logger.LogInfo($"StatisticsSession:{TypeDictionary["StatisticsSession"].FullName}");
-            }
+            //if (!TypeDictionary.ContainsKey("StatisticsSession"))
+            //{
+            //    TypeDictionary.Add("StatisticsSession", EftTypes.OrderBy(x => x.Name).First(x =>
+            //        x.IsClass
+            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "BeginStatisticsSession")
+            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "EndStatisticsSession")
+            //    ));
+            //    //Logger.LogInfo($"StatisticsSession:{TypeDictionary["StatisticsSession"].FullName}");
+            //}
 
-            if (!TypeDictionary.ContainsKey("FilterCustomization"))
-            {
-                // Gather FilterCustomization
-                TypeDictionary.Add("FilterCustomization", EftTypes.OrderBy(x => x.Name).Last(x =>
-                    x.IsClass
-                    && GetAllMethodsForType(x).Any(x => x.Name == "FilterCustomization")
-                ));
-                Logger.LogInfo($"FilterCustomization:{TypeDictionary["FilterCustomization"].FullName}");
-            }
+            //if (!TypeDictionary.ContainsKey("FilterCustomization"))
+            //{
+            //    // Gather FilterCustomization
+            //    TypeDictionary.Add("FilterCustomization", EftTypes.OrderBy(x => x.Name).Last(x =>
+            //        x.IsClass
+            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "FilterCustomization")
+            //    ));
+            //    Logger.LogInfo($"FilterCustomization:{TypeDictionary["FilterCustomization"].FullName}");
+            //}
 
-            TypeDictionary.Add("Profile", EftTypes.First(x =>
-               x.IsClass && x.FullName == "EFT.Profile"
-           ));
+           // TypeDictionary.Add("Profile", EftTypes.First(x =>
+           //    x.IsClass && x.FullName == "EFT.Profile"
+           //));
 
-            TypeDictionary.Add("Profile.Customization", EftTypes.First(x =>
-                x.IsClass
-                && x.BaseType == typeof(Dictionary<EBodyModelPart, string>)
-            ));
+            //TypeDictionary.Add("Profile.Customization", EftTypes.First(x =>
+            //    x.IsClass
+            //    && x.BaseType == typeof(Dictionary<EBodyModelPart, string>)
+            //));
 
-            TypeDictionary.Add("Profile.Inventory", EftTypes.First(x =>
-                x.IsClass
-                && GetAllMethodsForType(x).Any(x => x.Name == "UpdateTotalWeight")
-                && GetAllMethodsForType(x).Any(x => x.Name == "GetAllItemByTemplate")
-                && GetAllMethodsForType(x).Any(x => x.Name == "GetItemsInSlots")
-            ));
+            //TypeDictionary.Add("Profile.Inventory", EftTypes.First(x =>
+            //    x.IsClass
+            //    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "UpdateTotalWeight")
+            //    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "GetAllItemByTemplate")
+            //    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "GetItemsInSlots")
+            //));
         }
     }
 }
