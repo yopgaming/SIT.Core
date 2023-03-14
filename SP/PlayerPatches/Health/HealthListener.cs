@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 
 namespace SIT.Core.SP.PlayerPatches.Health
@@ -79,23 +80,23 @@ namespace SIT.Core.SP.PlayerPatches.Health
         {
             //PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
 
-            if (PatchConstants.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v))
+            if (ReflectionHelpers.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v))
             {
-                var valuestruct = PatchConstants.GetAllPropertiesForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
+                var valuestruct = ReflectionHelpers.GetAllPropertiesForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
                 if (valuestruct == null)
                     return;
 
-                var currentEnergy = PatchConstants.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
+                var currentEnergy = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
                 //PatchConstants.Logger.LogInfo(currentEnergy);
                 CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentEnergy.ToString()));
             }
-            else if (PatchConstants.GetAllFieldsForObject(MyHealthController).Any(x => x.Name == v))
+            else if (ReflectionHelpers.GetAllFieldsForObject(MyHealthController).Any(x => x.Name == v))
             {
-                var valuestruct = PatchConstants.GetAllFieldsForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
+                var valuestruct = ReflectionHelpers.GetAllFieldsForObject(MyHealthController).FirstOrDefault(x => x.Name == v).GetValue(MyHealthController);
                 if (valuestruct == null)
                     return;
 
-                var currentEnergy = PatchConstants.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
+                var currentEnergy = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
                 //PatchConstants.Logger.LogInfo(currentEnergy);
 
                 CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentEnergy.ToString()));
@@ -129,8 +130,8 @@ namespace SIT.Core.SP.PlayerPatches.Health
             //PatchConstants.Logger.LogInfo("GetBodyPartHealth found!");
 
             var bodyPartHealth = getbodyparthealthmethod.Invoke(healthController, new object[] { bodyPart, false });
-            var current = PatchConstants.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Current").GetValue(bodyPartHealth).ToString();
-            var maximum = PatchConstants.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Maximum").GetValue(bodyPartHealth).ToString();
+            var current = ReflectionHelpers.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Current").GetValue(bodyPartHealth).ToString();
+            var maximum = ReflectionHelpers.GetAllFieldsForObject(bodyPartHealth).FirstOrDefault(x => x.Name == "Maximum").GetValue(bodyPartHealth).ToString();
 
             dictionary[bodyPart].Initialize(float.Parse(current), float.Parse(maximum));
 

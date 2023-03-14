@@ -2,6 +2,7 @@
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +15,7 @@ namespace SIT.Core.SP.Menus
         protected override MethodBase GetTargetMethod()
         {
             var desiredType = typeof(MatchmakerOfflineRaidScreen);
-            var desiredMethod = PatchConstants.GetAllMethodsForType(desiredType).Single(x => x.Name == "Show" && x.GetParameters().Length == 2);
+            var desiredMethod = ReflectionHelpers.GetAllMethodsForType(desiredType).Single(x => x.Name == "Show" && x.GetParameters().Length == 2);
 
             Logger.LogInfo($"{GetType().Name} Type: {desiredType?.Name}");
             Logger.LogInfo($"{GetType().Name} Method: {desiredMethod?.Name}");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 
 namespace SIT.Core.SP.PlayerPatches
@@ -24,7 +25,7 @@ namespace SIT.Core.SP.PlayerPatches
         {
             var returnedType = PatchConstants.EftTypes.Single(x =>
                  x.FullName.StartsWith(typeof(EFT.UI.SessionEnd.SessionResultExperienceCount).FullName)
-                 && PatchConstants.GetPropertyFromType(x, "KeyScreen") != null
+                 && ReflectionHelpers.GetPropertyFromType(x, "KeyScreen") != null
                  );
             return returnedType.GetConstructor(new Type[] { typeof(EFT.Profile), typeof(bool), typeof(EFT.ExitStatus) });
         }

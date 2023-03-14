@@ -293,79 +293,79 @@ namespace SIT.Tarkov.Core
             return null;
         }
 
-        private async Task<string> SendAsync(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
-        {
-            var fullUri = url;
-            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
-                fullUri = RemoteEndPoint + fullUri;
+        //private async Task<string> SendAsync(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
+        //{
+        //    var fullUri = url;
+        //    if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
+        //        fullUri = RemoteEndPoint + fullUri;
 
-            var uri = new Uri(fullUri);
+        //    var uri = new Uri(fullUri);
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.ServerCertificateValidationCallback = delegate { return true; };
+        //    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+        //    request.ServerCertificateValidationCallback = delegate { return true; };
             
-            foreach (var item in GetHeaders())
-            {
-                request.Headers.Add(item.Key, item.Value);
-            }
+        //    foreach (var item in GetHeaders())
+        //    {
+        //        request.Headers.Add(item.Key, item.Value);
+        //    }
 
-            request.Headers.Add("Accept-Encoding", "deflate");
+        //    request.Headers.Add("Accept-Encoding", "deflate");
 
-            request.Method = method;
-            request.Timeout = timeout;
+        //    request.Method = method;
+        //    request.Timeout = timeout;
 
-            if (method != "GET" && !string.IsNullOrEmpty(data))
-            {
-                // set request body
-                var inputDataBytes =  Encoding.UTF8.GetBytes(data);
-                //m_ManualLogSource.LogDebug("Compressing");
-                byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
-                data = null;
-                request.ContentType = "application/json";
-                request.ContentLength = bytes.Length;
-                if (compress)
-                    request.Headers.Add("content-encoding", "deflate");
+        //    if (method != "GET" && !string.IsNullOrEmpty(data))
+        //    {
+        //        // set request body
+        //        var inputDataBytes =  Encoding.UTF8.GetBytes(data);
+        //        //m_ManualLogSource.LogDebug("Compressing");
+        //        byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
+        //        data = null;
+        //        request.ContentType = "application/json";
+        //        request.ContentLength = bytes.Length;
+        //        if (compress)
+        //            request.Headers.Add("content-encoding", "deflate");
 
-                //m_ManualLogSource.LogDebug("GetRequestStream");
-                using (Stream stream = request.GetRequestStream())
-                {
-                    stream.Write(bytes, 0, bytes.Length);
-                }
+        //        //m_ManualLogSource.LogDebug("GetRequestStream");
+        //        using (Stream stream = request.GetRequestStream())
+        //        {
+        //            stream.Write(bytes, 0, bytes.Length);
+        //        }
              
-            }
+        //    }
 
-            // get response stream
-            //m_ManualLogSource.LogDebug("GetResponse");
-            var responseString = string.Empty;
-            using (var response = request.GetResponse())
-            {
-                //m_ManualLogSource.LogDebug("GetResponseStream");
-                using (Stream stream = response.GetResponseStream())
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        stream.CopyTo(ms);
-                        byte[] body = ms.ToArray();
+        //    // get response stream
+        //    //m_ManualLogSource.LogDebug("GetResponse");
+        //    var responseString = string.Empty;
+        //    using (var response = request.GetResponse())
+        //    {
+        //        //m_ManualLogSource.LogDebug("GetResponseStream");
+        //        using (Stream stream = response.GetResponseStream())
+        //        {
+        //            using (MemoryStream ms = new MemoryStream())
+        //            {
+        //                stream.CopyTo(ms);
+        //                byte[] body = ms.ToArray();
 
-                        if (body.Length == 0)
-                        {
-                            return null;
-                        }
+        //                if (body.Length == 0)
+        //                {
+        //                    return null;
+        //                }
 
-                        if (Zlib.IsCompressed(body))
-                        {
-                            responseString = Encoding.UTF8.GetString(Zlib.Decompress(body));
-                        }
+        //                if (Zlib.IsCompressed(body))
+        //                {
+        //                    responseString = Encoding.UTF8.GetString(Zlib.Decompress(body));
+        //                }
 
-                        responseString = Encoding.UTF8.GetString(body);
-                    }
-                }
-            }
+        //                responseString = Encoding.UTF8.GetString(body);
+        //            }
+        //        }
+        //    }
 
             
-            return responseString;
-            //return null;
-        }
+        //    return responseString;
+        //    //return null;
+        //}
 
         public byte[] GetData(string url, bool hasHost = false)
         {

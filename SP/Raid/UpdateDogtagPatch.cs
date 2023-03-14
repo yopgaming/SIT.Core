@@ -1,5 +1,6 @@
 ﻿using EFT;
 using EFT.InventoryLogic;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace SIT.Core.SP.Raid
     /// </summary>
     class UpdateDogtagPatch : ModulePatch
     {
-        protected override MethodBase GetTargetMethod() => PatchConstants.GetMethodForType(typeof(Player), "OnBeenKilledByAggressor");
+        protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(typeof(Player), "OnBeenKilledByAggressor");
 
         [PatchPostfix]
         public static void PatchPostfix(Player __instance, Player aggressor, object damageInfo)
@@ -52,7 +53,7 @@ namespace SIT.Core.SP.Raid
 
         private static object GetItemComponent(Item dogtagItem)
         {
-            MethodInfo method = PatchConstants.GetAllMethodsForType(dogtagItem.GetType()).FirstOrDefault(x => x.Name == "GetItemComponent");
+            MethodInfo method = ReflectionHelpers.GetAllMethodsForType(dogtagItem.GetType()).FirstOrDefault(x => x.Name == "GetItemComponent");
             MethodInfo generic = method.MakeGenericMethod(typeof(DogtagComponent));
             var itemComponent = generic.Invoke(dogtagItem, null);
             return itemComponent;
@@ -60,9 +61,9 @@ namespace SIT.Core.SP.Raid
 
         private static Item GetDogtagItem(Player __instance)
         {
-            var equipment = PatchConstants.GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
-            var dogtagSlot = PatchConstants.GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });
-            var dogtagItem = PatchConstants.GetFieldOrPropertyFromInstance<object>(dogtagSlot, "ContainedItem", false) as Item;
+            var equipment = ReflectionHelpers.GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
+            var dogtagSlot = ReflectionHelpers.GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });
+            var dogtagItem = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(dogtagSlot, "ContainedItem", false) as Item;
             return dogtagItem;
         }
     }

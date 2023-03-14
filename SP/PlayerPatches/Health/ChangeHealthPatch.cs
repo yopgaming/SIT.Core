@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 
 namespace SIT.Core.SP.PlayerPatches.Health
@@ -10,14 +11,14 @@ namespace SIT.Core.SP.PlayerPatches.Health
         {
             var t = PatchConstants.EftTypes
                 .First(x =>
-                    PatchConstants.GetMethodForType(x, "ChangeHealth") != null
-                    && PatchConstants.GetMethodForType(x, "Kill") != null
-                    && PatchConstants.GetMethodForType(x, "DoPainKiller") != null
-                    && PatchConstants.GetMethodForType(x, "DoScavRegeneration") != null
+                    ReflectionHelpers.GetMethodForType(x, "ChangeHealth") != null
+                    && ReflectionHelpers.GetMethodForType(x, "Kill") != null
+                    && ReflectionHelpers.GetMethodForType(x, "DoPainKiller") != null
+                    && ReflectionHelpers.GetMethodForType(x, "DoScavRegeneration") != null
                     && x.GetMethod("GetOverallHealthRegenTime", BindingFlags.Public | BindingFlags.Instance) == null // We don't want this one
                     );
             Logger.LogInfo("ChangeHealth:" + t.FullName);
-            var method = PatchConstants.GetMethodForType(t, "ChangeHealth");
+            var method = ReflectionHelpers.GetMethodForType(t, "ChangeHealth");
 
             Logger.LogInfo("ChangeHealth:" + method.Name);
             return method;

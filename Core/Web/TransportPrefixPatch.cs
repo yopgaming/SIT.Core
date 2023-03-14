@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SIT.Core.Misc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace SIT.Tarkov.Core
         {
             try
             {
-                var type = PatchConstants.EftTypes.Where(x => PatchConstants.GetMethodForType(x, "SaveResponseToCache") != null).Single();
+                var type = PatchConstants.EftTypes.Where(x => ReflectionHelpers.GetMethodForType(x, "SaveResponseToCache") != null).Single();
                 var value = Traverse.Create(type).Field("TransportPrefixes").GetValue<Dictionary<ETransportProtocolType, string>>();
                 value[ETransportProtocolType.HTTPS] = "http://";
                 value[ETransportProtocolType.WSS] = "ws://";
@@ -73,9 +74,9 @@ namespace SIT.Tarkov.Core
     {
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(PatchConstants.EftTypes.SingleOrDefault(t
+            return ReflectionHelpers.GetMethodForType(PatchConstants.EftTypes.SingleOrDefault(t
                 => !t.IsInterface
-                && PatchConstants.GetAllMethodsForType(t).Any(x => x.Name == "SetUri")
+                && ReflectionHelpers.GetAllMethodsForType(t).Any(x => x.Name == "SetUri")
                 ), "SetUri", true);
         }
 

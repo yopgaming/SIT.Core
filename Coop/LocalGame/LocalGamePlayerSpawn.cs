@@ -26,7 +26,7 @@
 //            if (t == null)
 //                Logger.LogInfo($"LocalGamePlayerSpawn:Type is NULL");
 
-//            var method = PatchConstants.GetAllMethodsForType(t)
+//            var method = ReflectionHelpers.GetAllMethodsForType(t)
 //                .FirstOrDefault(x => x.GetParameters().Length >= 4
 //                && x.GetParameters()[0].Name.Contains("playerId")
 //                && x.GetParameters()[1].Name.Contains("position")

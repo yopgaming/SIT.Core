@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,8 @@ namespace SIT.Core.SP.Menus
     {
         protected override MethodBase GetTargetMethod()
         {
-            var t = PatchConstants.EftTypes.Single(x => PatchConstants.GetMethodForType(x, "TrySendCommands") != null);
-            return PatchConstants.GetMethodForType(t, "TrySendCommands");
+            var t = PatchConstants.EftTypes.Single(x => ReflectionHelpers.GetMethodForType(x, "TrySendCommands") != null);
+            return ReflectionHelpers.GetMethodForType(t, "TrySendCommands");
         }
 
         [PatchTranspiler]

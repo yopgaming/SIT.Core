@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
 
@@ -16,7 +17,7 @@ namespace SIT.Coop.Core.LocalGame
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(WavesSpawnScenario), "Run");
+            return ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "Run");
         }
 
 
@@ -27,7 +28,7 @@ namespace SIT.Coop.Core.LocalGame
                         , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
 
             var result = !Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem;
-            PatchConstants.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
+            ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
             return result;
         }
     }

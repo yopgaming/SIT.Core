@@ -1,5 +1,6 @@
 ﻿using EFT;
 using Newtonsoft.Json;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
             }
         }
 
-        protected override MethodBase GetTargetMethod() => PatchConstants.GetMethodForType(typeof(Player), "OnDead");
+        protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(typeof(Player), "OnDead");
 
         [PatchPostfix]
         public static void PatchPostfix(Player __instance, EDamageType damageType)
@@ -36,20 +37,20 @@ namespace SIT.Core.SP.PlayerPatches.Health
                 OnPersonKilled(__instance, damageType);
             }
 
-            var killedBy = PatchConstants.GetFieldOrPropertyFromInstance<Player>(deadPlayer, "LastAggressor", false);
+            var killedBy = ReflectionHelpers.GetFieldOrPropertyFromInstance<Player>(deadPlayer, "LastAggressor", false);
             if (killedBy == null)
                 return;
 
-            var killedByLastAggressor = PatchConstants.GetFieldOrPropertyFromInstance<Player>(killedBy, "LastAggressor", false);
+            var killedByLastAggressor = ReflectionHelpers.GetFieldOrPropertyFromInstance<Player>(killedBy, "LastAggressor", false);
             if (killedByLastAggressor == null)
                 return;
 
             if (DisplayDeathMessage)
             {
                 if (killedBy != null)
-                    PatchConstants.DisplayMessageNotification($"{killedBy.Profile.Info.Nickname} killed {deadPlayer.Profile.Nickname}");
+                    DisplayMessageNotifications.DisplayMessageNotification($"{killedBy.Profile.Info.Nickname} killed {deadPlayer.Profile.Nickname}");
                 else
-                    PatchConstants.DisplayMessageNotification($"{deadPlayer.Profile.Nickname} has died by {damageType}");
+                    DisplayMessageNotifications.DisplayMessageNotification($"{deadPlayer.Profile.Nickname} has died by {damageType}");
             }
 
             Dictionary<string, object> map = new Dictionary<string, object>

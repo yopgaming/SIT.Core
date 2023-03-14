@@ -17,7 +17,7 @@
 
 //        protected override MethodBase GetTargetMethod()
 //        {
-//            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+//            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
 //            return method;
 //        }

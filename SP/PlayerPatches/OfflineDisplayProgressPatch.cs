@@ -1,4 +1,5 @@
 ﻿using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace SIT.Core.SP.PlayerPatches
     {
         protected override MethodBase GetTargetMethod()
         {
-            foreach (var method in PatchConstants.GetAllMethodsForType(PatchConstants.EftTypes.Single(x => x.Name == "MainApplication")))
+            foreach (var method in ReflectionHelpers.GetAllMethodsForType(PatchConstants.EftTypes.Single(x => x.Name == "MainApplication")))
             {
                 if (method.Name.StartsWith("method") &&
                     method.GetParameters().Length >= 5 &&

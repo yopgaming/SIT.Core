@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Reflection;
@@ -17,7 +18,7 @@ namespace SIT.Coop.Core.Player
             if (t == null)
                 Logger.LogInfo($"PlayerOnDropBackpackPatch:Type is NULL");
 
-            var method = PatchConstants.GetMethodForType(t, "DropBackpack");
+            var method = ReflectionHelpers.GetMethodForType(t, "DropBackpack");
 
             Logger.LogInfo($"PlayerOnDropBackpackPatch:{t.Name}:{method.Name}");
             return method;

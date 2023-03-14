@@ -166,7 +166,7 @@ namespace SIT.Core
                 PatchConstants.BackendStaticConfigurationType != null &&
                 PatchConstants.BackendStaticConfigurationConfigInstance == null)
             {
-                PatchConstants.BackendStaticConfigurationConfigInstance = PatchConstants.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
+                PatchConstants.BackendStaticConfigurationConfigInstance = ReflectionHelpers.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
                 //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
             }
 
@@ -175,7 +175,7 @@ namespace SIT.Core
                 )
             {
                 PatchConstants.CharacterControllerSettings.CharacterControllerInstance
-                    = PatchConstants.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
+                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
                 Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
             }
 
@@ -184,13 +184,13 @@ namespace SIT.Core
                 )
             {
                 PatchConstants.CharacterControllerSettings.ClientPlayerMode
-                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
+                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
 
                 PatchConstants.CharacterControllerSettings.ObservedPlayerMode
-                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
+                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
 
                 PatchConstants.CharacterControllerSettings.BotPlayerMode
-                    = PatchConstants.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
+                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
             }
 
         }
@@ -199,7 +199,7 @@ namespace SIT.Core
         //{
         //    if (PatchConstants.PoolManagerType == null)
         //    {
-        //        PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
+        //        PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
         //        Type generic = typeof(Singleton<>);
         //        Type[] typeArgs = { PatchConstants.PoolManagerType };
         //        ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
@@ -230,7 +230,7 @@ namespace SIT.Core
         //            var localE = Enum.Parse(assemblyTypeType, "Local");
         //            //PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: localE is " + localE.ToString());
 
-        //            var GenProp = PatchConstants.GetPropertyFromType(PatchConstants.JobPriorityType, "General").GetValue(null, null);
+        //            var GenProp = ReflectionHelpers.GetPropertyFromType(PatchConstants.JobPriorityType, "General").GetValue(null, null);
         //            //PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: GenProp is " + GenProp.ToString());
 
 

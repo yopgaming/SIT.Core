@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
@@ -63,18 +64,18 @@ namespace SIT.Coop.Core.Matchmaker
 
             if (MatchmakerAcceptPatches.IsSinglePlayer)
             {
-                Tarkov.Core.PatchConstants.DisplayMessageNotification("Starting Singleplayer Game...");
+                DisplayMessageNotifications.DisplayMessageNotification("Starting Singleplayer Game...");
             }
             // SendInvitePatch sets up the Host
             else if (MatchmakerAcceptPatches.IsServer)
             {
-                Tarkov.Core.PatchConstants.DisplayMessageNotification("Starting Coop Game as Host");
+                DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Host");
                 MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
             }
             // MatchmakerAcceptPatches.CheckForMatch sets up the Client
             else if (MatchmakerAcceptPatches.IsClient)
             {
-                Tarkov.Core.PatchConstants.DisplayMessageNotification("Starting Coop Game as Client");
+                DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Client");
             }
 
         }

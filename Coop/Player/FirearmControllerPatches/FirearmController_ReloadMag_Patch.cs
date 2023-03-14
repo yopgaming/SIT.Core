@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
             return method;
         }
 
@@ -27,7 +28,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             var player = ____player;
-            //var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return false;
 
@@ -48,7 +49,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , EFT.Player ____player)
         {
             var player = ____player;
-            //var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return;
 

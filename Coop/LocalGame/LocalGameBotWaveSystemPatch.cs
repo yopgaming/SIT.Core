@@ -1,4 +1,5 @@
 ﻿using EFT.Bots;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace SIT.Coop.Core.LocalGame
             var t = typeof(EFT.LocalGame);
             //var t = LocalGamePatches.LocalGameInstance.GetType();
 
-            var method = PatchConstants.GetAllMethodsForType(t)
+            var method = ReflectionHelpers.GetAllMethodsForType(t)
                 .FirstOrDefault(x => x.GetParameters().Length >= 2
                 && x.GetParameters()[0].Name.Contains("botsSettings")
                 && x.GetParameters()[1].Name.Contains("spawnSystem")

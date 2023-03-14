@@ -1,6 +1,7 @@
 ﻿using EFT;
 using Newtonsoft.Json;
 using SIT.Core.Coop.Matchmaker;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ namespace SIT.Coop.Core.Matchmaker
         {
             get
             {
-                var screenController = PatchConstants.GetFieldOrPropertyFromInstance<object>(MatchMakerAcceptScreenInstance, "ScreenController", false);
+                var screenController = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(MatchMakerAcceptScreenInstance, "ScreenController", false);
                 if (screenController != null)
                 {
                     PatchConstants.Logger.LogInfo("MatchmakerAcceptPatches.Found ScreenController Instance");

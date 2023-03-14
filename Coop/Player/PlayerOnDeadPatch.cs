@@ -1,5 +1,6 @@
 ﻿using EFT;
 using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,7 +16,7 @@ namespace SIT.Coop.Core.Player
         {
         }
 
-        protected override MethodBase GetTargetMethod() => PatchConstants.GetMethodForType(typeof(EFT.Player), "OnDead");
+        protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(typeof(EFT.Player), "OnDead");
 
         [PatchPostfix]
         public static void PatchPostfix(EFT.Player __instance, EDamageType damageType)

@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Tarkov.Core;
 using System;
@@ -13,7 +14,7 @@ namespace SIT.Core.SP.PlayerPatches
     {
         protected override MethodBase GetTargetMethod()
         {
-            foreach (var method in PatchConstants.GetAllMethodsForType(typeof(TarkovApplication)))
+            foreach (var method in ReflectionHelpers.GetAllMethodsForType(typeof(TarkovApplication)))
             {
                 if (method.Name.StartsWith("method") &&
                     method.GetParameters().Length >= 3 &&

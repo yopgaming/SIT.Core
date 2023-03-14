@@ -11,7 +11,7 @@
 
 //        protected override MethodBase GetTargetMethod()
 //        {
-//            return PatchConstants.GetAllMethodsForType(LocalGameStartingPatch.LocalGameInstance.GetType())
+//            return ReflectionHelpers.GetAllMethodsForType(LocalGameStartingPatch.LocalGameInstance.GetType())
 //                .Single(
 //                m =>
 //                m.IsVirtual

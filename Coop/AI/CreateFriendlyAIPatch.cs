@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using SIT.Core.Misc;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace SIT.Tarkov.Core.AI
@@ -15,7 +16,7 @@ namespace SIT.Tarkov.Core.AI
         public static EFT.LocalPlayer MyPlayer;
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
+            return ReflectionHelpers.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
         }
 
         public CreateFriendlyAIPatch()
@@ -50,8 +51,8 @@ namespace SIT.Tarkov.Core.AI
             //    //if (ShouldFriendlyAI.Value == true)
             //    //{
 
-            var aiData = __instance.AIData; //PatchConstants.GetFieldOrPropertyFromInstance<object>(__instance, "AIData", false);
-            var botsGroup = __instance.BotsGroup; // PatchConstants.GetFieldOrPropertyFromInstance<object>(__instance, "BotsGroup", false);
+            var aiData = __instance.AIData; //ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(__instance, "AIData", false);
+            var botsGroup = __instance.BotsGroup; // ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(__instance, "BotsGroup", false);
 
             if (__instance.Profile.AccountId == PatchConstants.GetPHPSESSID())
                 MyPlayer = __instance;
@@ -67,8 +68,8 @@ namespace SIT.Tarkov.Core.AI
                     {
                         Logger.LogInfo($"CreateFriendlyAIPatch.PatchPostfix.Creating Friendly AI #{NumberOfFriendlies}");
 
-                        //PatchConstants.GetMethodForType(botsGroup.GetType(), "RemoveInfo").Invoke(botsGroup, new object[] { MyPlayer });
-                        //PatchConstants.GetMethodForType(botsGroup.GetType(), "AddNeutral").Invoke(botsGroup, new object[] { MyPlayer });
+                        //ReflectionHelpers.GetMethodForType(botsGroup.GetType(), "RemoveInfo").Invoke(botsGroup, new object[] { MyPlayer });
+                        //ReflectionHelpers.GetMethodForType(botsGroup.GetType(), "AddNeutral").Invoke(botsGroup, new object[] { MyPlayer });
                         //__instance.BotsGroup.RemoveInfo(MyPlayer);
                         //__instance.BotsGroup.AddNeutral(MyPlayer);
                         //__instance.Teleport(MyPlayer.Position, true);

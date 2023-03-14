@@ -22,7 +22,7 @@ namespace SIT.Coop.Core.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
+            return ReflectionHelpers.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
         }
 
         //[PatchPrefix]
@@ -119,13 +119,11 @@ namespace SIT.Coop.Core.Player
                         }
                     };
 
-            // Removed for testing
-            //CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
-            //ServerCommunication.PostLocalPlayerData(player, dictionary2);
+            ServerCommunication.PostLocalPlayerData(player, dictionary2);
+            
 
-            //GCHelpers.Collect(0, GCCollectionMode.Optimized, false, true, true);
 
         }
 

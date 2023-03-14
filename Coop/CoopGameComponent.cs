@@ -28,13 +28,13 @@ namespace SIT.Core.Coop
     /// <summary>
     /// Coop Game Component is the User 1-2-1 communication to the Server
     /// </summary>
-    public class CoopGameComponent : MonoBehaviour
+    public class CoopGameComponent : MonoBehaviour, IFrameIndexer
     {
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
         private Request RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
-        public ConcurrentDictionary<string, LocalPlayer> Players { get; private set; } = new();
+        public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
         public ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
 
         BepInEx.Logging.ManualLogSource Logger { get; set; }
@@ -48,6 +48,9 @@ namespace SIT.Core.Coop
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
         public ConcurrentDictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
         public ConcurrentDictionary<string, Vector3> PlayersToSpawnPositions { get; private set; } = new();
+        public ulong LocalIndex { get; set; }
+
+        public double LocalTime => 0;
 
         #endregion
 
@@ -87,7 +90,7 @@ namespace SIT.Core.Coop
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
-            Players = new ConcurrentDictionary<string, LocalPlayer>();
+            Players = new ConcurrentDictionary<string, EFT.Player>();
 
             StartCoroutine(ReadFromServerLastActions());
             StartCoroutine(ReadFromServerLastMoves());
@@ -146,7 +149,7 @@ namespace SIT.Core.Coop
                     if (actionsToValues == null)
                         continue;
 
-                    Logger.LogDebug($"CoopGameComponent.ReadFromServerCharacters:{actionsToValues.Length}");
+                    //Logger.LogDebug($"CoopGameComponent.ReadFromServerCharacters:{actionsToValues.Length}");
 
                     var packets = actionsToValues
                          .Where(x => x != null)
@@ -379,6 +382,7 @@ namespace SIT.Core.Coop
 
                 Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
           
+                // Local Player idea
                 LocalPlayer localPlayer = LocalPlayer.Create(playerId
                     , position
                     , Quaternion.identity
@@ -391,42 +395,33 @@ namespace SIT.Core.Coop
                     , EUpdateQueue.Update
                     , armsUpdateMode
                     , EFT.Player.EUpdateMode.Auto
-                    , GClass577.Config.CharacterController.ClientPlayerMode
+                    , BackendConfigManager.Config.CharacterController.ObservedPlayerMode // ClientPlayerMode
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseSensitivity
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseAimingSensitivity
-                    , new GClass1698()
-                    , new GClass1390()
+                    , new StatisticsManagerForPlayer1()
+                    , new FilterCustomizationClass()
                     , null
                     , isYourPlayer: false).Result;
 
-                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
+                // Observed Player idea (more like Live BSG option)
+                //ObservedPlayer.smethod_3(playerId, position, this, EUpdateQueue.Update, true);
 
-                if (!Players.ContainsKey(profile.AccountId))
-                    Players.TryAdd(profile.AccountId, localPlayer);
+                if (localPlayer != null)
+                {
 
-                Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Created Player " + profile.Info.Nickname);
+                    PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
 
-                //LocalPlayer localPlayer = LocalPlayer.Create(
-                //        playerId
-                //        , position + new Vector3(0, 1, 1)
-                //        , Quaternion.identity
-                //        , "Player"
-                //        , ""
-                //        , EPointOfView.ThirdPerson
-                //        , profile
-                //        , false
-                //        , EUpdateQueue.Update
-                //        , armsUpdateMode
-                //        , bodyUpdateMode
-                //        , PatchConstants.CharacterControllerSettings.ClientPlayerMode
-                //        , () => 1f
-                //        , () => 1f
-                //        , (IStatisticsManager)Activator.CreateInstance(PatchConstants.TypeDictionary["StatisticsSession"])
-                //        , default(GInterface82)
-                //        , null
-                //        , false
-                //    ).Result;
-                //localPlayer.Transform.position = position;
+                    if (!Players.ContainsKey(profile.AccountId))
+                        Players.TryAdd(profile.AccountId, localPlayer);
+
+                    Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Created Player " + profile.Info.Nickname);
+                    var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                    prc.IsClientDrone = true;
+
+                    Singleton<GameWorld>.Instance.RegisterPlayer(localPlayer);
+                    SetWeaponInHandsOfNewPlayer(localPlayer);
+                }
+
                 return localPlayer;
             }
             catch (Exception ex)
@@ -437,6 +432,24 @@ namespace SIT.Core.Coop
             return null;
         }
 
+        private void SetWeaponInHandsOfNewPlayer(LocalPlayer person)
+        {
+            var equipment = person.Profile.Inventory.Equipment;
+            if (equipment == null)
+            {
+                return;
+            }
+            Item item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem
+                ?? equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem
+                ?? equipment.GetSlot(EquipmentSlot.Holster).ContainedItem
+                ?? equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
+            if (item == null)
+            {
+                Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
+                return;
+            }
+            person.SetItemInHands(item, (IResult)=> { });
+        }
 
         /// <summary>
         /// Gets the Last Actions Dictionary from the Server. This should not be used for things like Moves. Just other stuff.
@@ -528,8 +541,6 @@ namespace SIT.Core.Coop
 
             }
 
-            //// go through all items apart from "Move"
-            //foreach (var packet in packets.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move"))
             foreach (var packet in packets.Where(x => x.ContainsKey("m")))
             {
                 if (packet != null && packet.Count > 0)
@@ -685,7 +696,7 @@ namespace SIT.Core.Coop
             {
                 GUI.Label(rect, $"Spawning Players:");
                 rect.y += 15;
-                foreach (var p in PlayersToSpawn)
+                foreach (var p in PlayersToSpawn.Where(p => p.Value != ESpawnState.Spawned))
                 {
                     GUI.Label(rect, $"{p.Key}:{p.Value}");
                     rect.y += 15;

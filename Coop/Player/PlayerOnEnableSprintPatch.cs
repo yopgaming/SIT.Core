@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Reflection;
@@ -13,7 +14,7 @@ namespace SIT.Coop.Core.Player
             if (t == null)
                 Logger.LogInfo($"PlayerOnEnableSprintPatch:Type is NULL");
 
-            var method = PatchConstants.GetMethodForType(t, "EnableSprint");
+            var method = ReflectionHelpers.GetMethodForType(t, "EnableSprint");
 
             Logger.LogInfo($"PlayerOnEnableSprintPatch:{t.Name}:{method.Name}");
             return method;

@@ -32,7 +32,7 @@ namespace SIT.Coop.Core.Player
         ////            if (t == null)
         ////                Logger.LogInfo($"PlayerOnMovePatch:Type is NULL");
 
-        ////            var method = PatchConstants.GetAllMethodsForType(t)
+        ////            var method = ReflectionHelpers.GetAllMethodsForType(t)
         ////                .FirstOrDefault(x =>
         ////                x.GetParameters().Length == 1
         ////                && x.GetParameters()[0].Name.Contains("direction")
@@ -204,7 +204,7 @@ namespace SIT.Coop.Core.Player
 //            if (t == null)
 //                Logger.LogInfo($"PlayerOnMovePatch:Type is NULL");
 
-//            var method = PatchConstants.GetAllMethodsForType(t)
+//            var method = ReflectionHelpers.GetAllMethodsForType(t)
 //                .FirstOrDefault(x =>
 //                x.GetParameters().Length == 1
 //                && x.GetParameters()[0].Name.Contains("direction")

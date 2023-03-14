@@ -1,5 +1,6 @@
 ﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         protected override MethodBase GetTargetMethod()
         {
-            Method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+            Method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
             return Method;
         }
 

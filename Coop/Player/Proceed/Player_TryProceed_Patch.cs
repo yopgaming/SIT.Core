@@ -1,6 +1,7 @@
 ﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace SIT.Coop.Core.Player
             if (t == null)
                 Logger.LogInfo($"PlayerOnTryProceedPatch:Type is NULL");
 
-            var method = PatchConstants.GetMethodForType(t, MethodName);
+            var method = ReflectionHelpers.GetMethodForType(t, MethodName);
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:{t.Name}:{method.Name}");
             return method;

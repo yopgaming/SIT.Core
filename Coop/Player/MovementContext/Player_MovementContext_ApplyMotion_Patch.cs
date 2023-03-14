@@ -14,7 +14,7 @@
 
 //        protected override MethodBase GetTargetMethod()
 //        {
-//            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+//            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
 //            return method;
 //        }
@@ -45,7 +45,7 @@
 //           ref float deltaTime
 //            )
 //        {
-//            var player = PatchConstants.GetFieldOrPropertyFromInstance<EFT.Player>(__instance, "player_0", false);
+//            var player = ReflectionHelpers.GetFieldOrPropertyFromInstance<EFT.Player>(__instance, "player_0", false);
 
 //            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
 //            {

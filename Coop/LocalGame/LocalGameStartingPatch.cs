@@ -4,6 +4,7 @@ using Comfort.Common;
 using EFT;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -42,7 +43,7 @@ namespace SIT.Coop.Core.LocalGame
             if (t == null)
                 Logger.LogInfo($"LocalGameStartingPatch:Type is NULL");
 
-            var method = PatchConstants.GetAllMethodsForType(t, false)
+            var method = ReflectionHelpers.GetAllMethodsForType(t, false)
                 .FirstOrDefault(x => x.GetParameters().Length >= 3
                 && x.GetParameters().Any(x => x.Name.Contains("botsSettings"))
                 && x.GetParameters().Any(x => x.Name.Contains("backendUrl"))
@@ -193,7 +194,7 @@ namespace SIT.Coop.Core.LocalGame
         //    if (LocalGamePatches.LocalGameInstance == null)
         //        return;
 
-        //    var method = PatchConstants.GetAllMethodsForType(LocalGamePatches.LocalGameInstance.GetType()).First(x => x.Name == "SetMatchmakerStatus");
+        //    var method = ReflectionHelpers.GetAllMethodsForType(LocalGamePatches.LocalGameInstance.GetType()).First(x => x.Name == "SetMatchmakerStatus");
         //    if (method != null)
         //    {
         //        method.Invoke(LocalGamePatches.LocalGameInstance, new object[] { status, progress });

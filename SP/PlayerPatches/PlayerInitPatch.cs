@@ -1,4 +1,5 @@
 ﻿using EFT;
+using SIT.Core.Misc;
 using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Tarkov.Core;
 using System;
@@ -13,7 +14,7 @@ namespace SIT.Core.SP.PlayerPatches
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(LocalPlayer), "Init");
+            return ReflectionHelpers.GetMethodForType(typeof(LocalPlayer), "Init");
         }
 
         [PatchPostfix]
@@ -39,7 +40,7 @@ namespace SIT.Core.SP.PlayerPatches
                 //Logger.LogInfo($"Skipped on HealthController instance: {__instance.HealthController.GetHashCode()} for profile id: {profile?.Id}");
             }
 
-            PatchConstants.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
+            DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 
         }
     }

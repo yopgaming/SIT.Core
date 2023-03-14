@@ -1,4 +1,5 @@
 ﻿using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
         {
             return PatchConstants.EftTypes.Single(
                 x =>
-                PatchConstants.GetAllMethodsForType(x).Any(y => y.Name == "GetOverDamage")
+                ReflectionHelpers.GetAllMethodsForType(x).Any(y => y.Name == "GetOverDamage")
                 );
         }
 
@@ -22,11 +23,11 @@ namespace SIT.Core.SP.PlayerPatches.Health
         public static DamageInfo CreateDamageInfoTypeFromDict(Dictionary<string, object> dict)
         {
             ReadyMadeDamageInstance = new DamageInfo();
-            PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "Damage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["damage"].ToString()));
-            PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DamageType").SetValue(ReadyMadeDamageInstance, Enum.Parse(typeof(EDamageType), dict["damageType"].ToString()));
-            PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "ArmorDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["armorDamage"].ToString()));
-            PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DidArmorDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["didArmorDamage"].ToString()));
-            PatchConstants.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DidBodyDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["didBodyDamage"].ToString()));
+            ReflectionHelpers.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "Damage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["damage"].ToString()));
+            ReflectionHelpers.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DamageType").SetValue(ReadyMadeDamageInstance, Enum.Parse(typeof(EDamageType), dict["damageType"].ToString()));
+            ReflectionHelpers.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "ArmorDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["armorDamage"].ToString()));
+            ReflectionHelpers.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DidArmorDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["didArmorDamage"].ToString()));
+            ReflectionHelpers.GetFieldFromType(ReadyMadeDamageInstance.GetType(), "DidBodyDamage").SetValue(ReadyMadeDamageInstance, float.Parse(dict["didBodyDamage"].ToString()));
             return ReadyMadeDamageInstance;
         }
 
@@ -43,13 +44,13 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
         public static object GetActiveHealthController(object player)
         {
-            object activeHealthController = PatchConstants.GetFieldOrPropertyFromInstance<object>(player, "ActiveHealthController", false);
+            object activeHealthController = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(player, "ActiveHealthController", false);
             return activeHealthController;
         }
 
         public static bool IsAlive(object healthController)
         {
-            bool isAlive = PatchConstants.GetFieldOrPropertyFromInstance<bool>(healthController, "IsAlive", false);
+            bool isAlive = ReflectionHelpers.GetFieldOrPropertyFromInstance<bool>(healthController, "IsAlive", false);
             return isAlive;
         }
 

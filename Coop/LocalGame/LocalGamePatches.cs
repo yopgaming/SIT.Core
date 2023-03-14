@@ -28,9 +28,9 @@
 
 //		public static object InvokeLocalGameInstanceMethod(string methodName, params object[] p)
 //        {
-//			var method = PatchConstants.GetAllMethodsForType(LocalGameInstance.GetType()).FirstOrDefault(x => x.Name == methodName);
+//			var method = ReflectionHelpers.GetAllMethodsForType(LocalGameInstance.GetType()).FirstOrDefault(x => x.Name == methodName);
 //			if(method == null)
-//				method = PatchConstants.GetAllMethodsForType(LocalGameInstance.GetType().BaseType).FirstOrDefault(x => x.Name == methodName);
+//				method = ReflectionHelpers.GetAllMethodsForType(LocalGameInstance.GetType().BaseType).FirstOrDefault(x => x.Name == methodName);
 
 //			if(method != null)
 //            {
@@ -50,11 +50,11 @@
 //            {
 //				StatisticsManagerType = PatchConstants.EftTypes.First(
 //					x =>
-//					PatchConstants.GetAllMethodsForType(x).Any(m => m.Name == "AddDoorExperience")
-//					&& PatchConstants.GetAllMethodsForType(x).Any(m => m.Name == "BeginStatisticsSession")
-//					&& PatchConstants.GetAllMethodsForType(x).Any(m => m.Name == "EndStatisticsSession")
-//					&& PatchConstants.GetAllMethodsForType(x).Any(m => m.Name == "OnEnemyDamage")
-//					&& PatchConstants.GetAllMethodsForType(x).Any(m => m.Name == "OnEnemyKill")
+//					ReflectionHelpers.GetAllMethodsForType(x).Any(m => m.Name == "AddDoorExperience")
+//					&& ReflectionHelpers.GetAllMethodsForType(x).Any(m => m.Name == "BeginStatisticsSession")
+//					&& ReflectionHelpers.GetAllMethodsForType(x).Any(m => m.Name == "EndStatisticsSession")
+//					&& ReflectionHelpers.GetAllMethodsForType(x).Any(m => m.Name == "OnEnemyDamage")
+//					&& ReflectionHelpers.GetAllMethodsForType(x).Any(m => m.Name == "OnEnemyKill")
 //					);
 //				StatisticsManager = Activator.CreateInstance(StatisticsManagerType);
 //			}

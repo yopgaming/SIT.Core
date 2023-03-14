@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Aki.Custom.Models;
 using DependencyGraph = DependencyGraph<IEasyBundle>;
 using SIT.Tarkov.Core;
+using SIT.Core.Misc;
 
 namespace Aki.Custom.Patches
 {
@@ -27,7 +28,7 @@ namespace Aki.Custom.Patches
             var type = typeof(EasyAssets);
 
             _manifestField = type.GetField(nameof(EasyAssets.Manifest));
-            _bundlesField = PatchConstants.GetFieldFromTypeByFieldType(typeof(EasyAssets), typeof(EasyBundle[]));//  type.GetField($"{EasyBundleHelper.Type.Name.ToLowerInvariant()}_0", PatchConstants.PrivateFlags);
+            _bundlesField = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EasyAssets), typeof(EasyBundle[]));//  type.GetField($"{EasyBundleHelper.Type.Name.ToLowerInvariant()}_0", PatchConstants.PrivateFlags);
             Logger.LogDebug(_bundlesField.Name);
             _systemProperty = type.GetProperty("System");
         }

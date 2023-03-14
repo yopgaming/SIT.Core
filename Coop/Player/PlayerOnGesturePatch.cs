@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace SIT.Coop.Core.Player
             if (t == null)
                 Logger.LogInfo($"OnGesturePatch:Type is NULL");
 
-            var method = PatchConstants.GetAllMethodsForType(t)
+            var method = ReflectionHelpers.GetAllMethodsForType(t)
                 .FirstOrDefault(x => x.GetParameters().Length >= 1 && x.GetParameters()[0].Name.Contains("gesture"));
 
             Logger.LogInfo($"OnGesturePatch:{t.Name}:{method.Name}");
