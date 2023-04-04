@@ -38,7 +38,7 @@ namespace SIT.Core
 
             EnableCorePatches();
             EnableSPPatches();
-            EnableCoopPatches();
+            //EnableCoopPatches();
             OtherPatches.Run(Config, this);
 
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
