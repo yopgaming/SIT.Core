@@ -57,10 +57,7 @@ namespace SIT.Core.Coop
             return default(T);
         }
 
-        public virtual void Replicated(EFT.Player player, Dictionary<string, object> dict)
-        {
-
-        }
+        public abstract void Replicated(EFT.Player player, Dictionary<string, object> dict);
 
         public static void Replicate(Type type, EFT.Player player, Dictionary<string, object> dict)
         {

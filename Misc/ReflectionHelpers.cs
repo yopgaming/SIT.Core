@@ -67,6 +67,12 @@ namespace SIT.Core.Misc
 
         }
 
+        /// <summary>
+        /// Retreives the first field that matches the fieldType parameter provided within the objectType parameter type provided
+        /// </summary>
+        /// <param name="objectType">The Object Type to search within</param>
+        /// <param name="fieldType">The Field Type to find</param>
+        /// <returns>Found FieldInfo or NULL</returns>
         public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType)
         {
             var fields = objectType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
@@ -74,6 +80,12 @@ namespace SIT.Core.Misc
 
         }
 
+        /// <summary>
+        /// Retreives the first property that matches the propertyType parameter provided within the objectType parameter type provided
+        /// </summary>
+        /// <param name="objectType">The Object Type to search within</param>
+        /// <param name="propertyType">The Property Type to find</param>
+        /// <returns>Found PropertyInfo or NULL</returns>
         public static PropertyInfo GetPropertyFromTypeByPropertyType(Type objectType, Type propertyType)
         {
             var fields = objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);

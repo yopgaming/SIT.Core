@@ -22,7 +22,7 @@ namespace Aki.Custom.Patches
         }
 
         [PatchPrefix]
-        private static void PatchPrefix(MatchmakerOfflineRaidScreen.GClass2769 controller, UpdatableToggle ____offlineModeToggle)
+        private static void PatchPrefix(MatchmakerOfflineRaidScreen.GClass2772 controller, UpdatableToggle ____offlineModeToggle)
         {
             var raidSettings = controller.RaidSettings;
 

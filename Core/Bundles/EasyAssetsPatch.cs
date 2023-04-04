@@ -29,7 +29,7 @@ namespace Aki.Custom.Patches
 
             _manifestField = type.GetField(nameof(EasyAssets.Manifest));
             _bundlesField = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EasyAssets), typeof(EasyBundle[]));//  type.GetField($"{EasyBundleHelper.Type.Name.ToLowerInvariant()}_0", PatchConstants.PrivateFlags);
-            Logger.LogDebug(_bundlesField.Name);
+            //Logger.LogDebug(_bundlesField.Name);
             _systemProperty = type.GetProperty("System");
         }
 
@@ -55,16 +55,6 @@ namespace Aki.Custom.Patches
                     && parameters[4].Name == "shouldExclude");
         }
 
-        //[PatchPrefix]
-        //private static bool PatchPrefix(ref Task __result, EasyAssets __instance, [CanBeNull] IBundleLock bundleLock, string defaultKey, string rootPath,
-        //    string platformName, [CanBeNull] Func<string, bool> shouldExclude, [CanBeNull] Func<string, Task> bundleCheck)
-        //{
-        //    //await Init(__instance, bundleLock, defaultKey, rootPath, platformName, shouldExclude, bundleCheck);
-        //    //__result = Init(__instance, bundleLock, defaultKey, rootPath, platformName, shouldExclude, bundleCheck);
-        //    //return false;
-        //    return true;
-        //}
-
         [PatchPrefix]
         public static bool PatchPrefix(
             ref Task __result
@@ -82,20 +72,7 @@ namespace Aki.Custom.Patches
             return false;
         }
 
-        [PatchPostfix]
-        public static void PatchPostfix()
-        {
-
-        }
-        //[PatchPostfix]
-        //public static async Task PatchPostfix(Task __result, EasyAssets __instance, [CanBeNull] IBundleLock bundleLock, string defaultKey, string rootPath,
-        //    string platformName, [CanBeNull] Func<string, bool> shouldExclude, [CanBeNull] Func<string, Task> bundleCheck)
-        //{
-        //    //await Init(__instance, bundleLock, defaultKey, rootPath, platformName, shouldExclude, bundleCheck);
-        //    //__result = Init(__instance, bundleLock, defaultKey, rootPath, platformName, shouldExclude, bundleCheck);
-        //    //return true;
-        //}
-
+      
         public static string GetPairKey(KeyValuePair<string, Models.BundleItem> x)
         {
             return x.Key;

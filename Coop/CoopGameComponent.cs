@@ -93,7 +93,7 @@ namespace SIT.Core.Coop
             Players = new ConcurrentDictionary<string, EFT.Player>();
 
             StartCoroutine(ReadFromServerLastActions());
-            StartCoroutine(ReadFromServerLastMoves());
+            //StartCoroutine(ReadFromServerLastMoves());
             StartCoroutine(ReadFromServerCharacters());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
@@ -253,16 +253,12 @@ namespace SIT.Core.Coop
             profile.AccountId = accountId;
 
             if (PlayersToSpawn.ContainsKey(accountId) 
+                && PlayersToSpawn[accountId] != ESpawnState.Loading
                 && PlayersToSpawn[accountId] != ESpawnState.Spawned
                 && PlayersToSpawnProfiles.ContainsKey(accountId)
                 ) // CreatePhysicalOtherPlayerOrBot has been done before?
             {
-                var newPlayer = CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition);
-                if (newPlayer != null)
-                {
-                    Logger.LogDebug($"DataReceivedClient_PlayerBotSpawn::Spawned:: {PlayersToSpawnProfiles[accountId].Info.Nickname}");
-                    Players.TryAdd(accountId, newPlayer);
-                }
+                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition);
                 return;
             }
 
@@ -322,7 +318,8 @@ namespace SIT.Core.Coop
 
         }
 
-        private LocalPlayer CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        //private LocalPlayer CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
         {
             try
             {
@@ -332,14 +329,14 @@ namespace SIT.Core.Coop
                 if (Players == null)
                 {
                     Logger.LogError("Players is NULL!");
-                    return null;
+                    return;
                 }
 
                 int playerId = Players.Count + 1;
                 if (profile == null)
                 {
                     Logger.LogError("CreatePhysicalOtherPlayerOrBot Profile is NULL!");
-                    return null;
+                    return;
                 }
 
                 PlayersToSpawn.TryAdd(profile.AccountId, ESpawnState.None);
@@ -352,7 +349,7 @@ namespace SIT.Core.Coop
                     {
                         Logger.LogError($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::PrefabPaths are empty!");
                         PlayersToSpawn[profile.AccountId] = ESpawnState.Error;
-                        return null;
+                        return;
                     }
 
                     Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, allPrefabPaths.ToArray(), JobPriority.General)
@@ -360,9 +357,11 @@ namespace SIT.Core.Coop
                         {
                             PlayersToSpawn[profile.AccountId] = ESpawnState.Spawning;
                             Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Complete.");
+                            //CreatePhysicalOtherPlayerOrBot(profile, position);
+                            return;
                         });
 
-                    return null;
+                    return;
                 }
 
                 // Its loading on the previous pass, ignore this one until its finished
@@ -370,14 +369,14 @@ namespace SIT.Core.Coop
                 {
                     Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is still Loading");
 
-                    return null;
+                    return;
                 }
 
                 // It has already spawned, we should never reach this point if Players check is working in previous step
                 if (PlayersToSpawn[profile.AccountId] == ESpawnState.Spawned)
                 {
                     Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is already spawned");
-                    return null;
+                    return;
                 }
 
                 Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
@@ -395,7 +394,7 @@ namespace SIT.Core.Coop
                     , EUpdateQueue.Update
                     , armsUpdateMode
                     , EFT.Player.EUpdateMode.Auto
-                    , BackendConfigManager.Config.CharacterController.ObservedPlayerMode // ClientPlayerMode
+                    , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseSensitivity
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseAimingSensitivity
                     , new StatisticsManagerForPlayer1()
@@ -406,30 +405,49 @@ namespace SIT.Core.Coop
                 // Observed Player idea (more like Live BSG option)
                 //ObservedPlayer.smethod_3(playerId, position, this, EUpdateQueue.Update, true);
 
-                if (localPlayer != null)
+                if (localPlayer == null)
+                    return;
+
+                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
+
+                if (!Players.ContainsKey(profile.AccountId))
+                    Players.TryAdd(profile.AccountId, localPlayer);
+
+                Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Created Player " + profile.Info.Nickname);
+                var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                prc.IsClientDrone = true;
+
+                // ----------------------------------------------------------------------------------------------------
+                // Find the Original version of this Player/Bot and hide them. This is so the SERVER sees the same as CLIENTS.
+                //
+                if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
                 {
-
-                    PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
-
-                    if (!Players.ContainsKey(profile.AccountId))
-                        Players.TryAdd(profile.AccountId, localPlayer);
-
-                    Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Created Player " + profile.Info.Nickname);
-                    var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
-                    prc.IsClientDrone = true;
-
-                    Singleton<GameWorld>.Instance.RegisterPlayer(localPlayer);
-                    SetWeaponInHandsOfNewPlayer(localPlayer);
+                    var originalPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == profile.AccountId);
+                    if (originalPlayer != null)
+                    {
+                        if (originalPlayer.TryGetComponent<MeshRenderer>(out var meshRenderer))
+                        {
+                            Logger.LogDebug($"{profile.AccountId} disable meshRenderer");
+                            meshRenderer.enabled = false;
+                        }
+                        if (originalPlayer.TryGetComponent<Renderer>(out var renderer))
+                        {
+                            Logger.LogDebug($"{profile.AccountId} disable renderer");
+                            renderer.enabled = false;
+                        }
+                    }
                 }
+                //
+                // ----------------------------------------------------------------------------------------------------
+                SetWeaponInHandsOfNewPlayer(localPlayer);
+                //Singleton<GameWorld>.Instance.RegisterPlayer(localPlayer);
 
-                return localPlayer;
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex.ToString());
             }
 
-            return null;
         }
 
         private void SetWeaponInHandsOfNewPlayer(LocalPlayer person)
@@ -439,10 +457,14 @@ namespace SIT.Core.Coop
             {
                 return;
             }
-            Item item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem
-                ?? equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem
-                ?? equipment.GetSlot(EquipmentSlot.Holster).ContainedItem
-                ?? equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
+            Item item = null;
+
+            if (equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem != null)
+                item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
+            //equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem
+            //    ?? equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem
+            //    ?? equipment.GetSlot(EquipmentSlot.Holster).ContainedItem
+            //    ?? equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
             if (item == null)
             {
                 Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
@@ -543,137 +565,151 @@ namespace SIT.Core.Coop
 
             foreach (var packet in packets.Where(x => x.ContainsKey("m")))
             {
-                if (packet != null && packet.Count > 0)
-                {
-                    var accountId = packet["accountId"].ToString();
-                    if (!Players.ContainsKey(accountId))
-                    {
-                        Logger.LogInfo($"Players does not contain {accountId}. Searching. This is SLOW. FIXME! Don't do this!");
-                        foreach (var p in FindObjectsOfType<LocalPlayer>())
-                        {
-                            if (!Players.ContainsKey(p.Profile.AccountId))
-                            {
-                                Players.TryAdd(p.Profile.AccountId, p);
-                                var nPRC = p.GetOrAddComponent<PlayerReplicatedComponent>();
-                                nPRC.player = p;
-                            }
-                        }
-                        continue;
-                    }
-
-                    try
-                    {
-                        // Deal to all versions of this guy (this shouldnt happen but good for testing)
-                        foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
-                        {
-                            plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc);
-
-                            if (prc == null)
-                            {
-                                Logger.LogInfo($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                                continue;
-                            }
-
-                            prc.HandlePacket(packet);
-                        }
-                    }
-                    catch { }
-                    finally { }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the Last Moves Dictionary from the Server. This should be the last move action each account id (character) made
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerator ReadFromServerLastMoves()
-        {
-            var waitEndOfFrame = new WaitForEndOfFrame();
-            var waitSeconds = new WaitForSeconds(1f);
-
-            if (GetServerId() == null)
-                yield return waitSeconds;
-
-            var jsonDataServerId = JsonConvert.SerializeObject(new Dictionary<string, object>
-            {
-                { "serverId", GetServerId() }
-            });
-            while (true)
-            {
-                yield return waitSeconds;
-
-                if (Players == null)
+                if (packet == null || packet.Count == 0)
                     continue;
 
-                if (RequestingObj == null)
-                    RequestingObj = Request.Instance;
+                var accountId = packet["accountId"].ToString();
+                if (!Players.ContainsKey(accountId))
+                {
+                    Logger.LogInfo($"TODO: FIXME: Players does not contain {accountId}. Searching. This is SLOW. FIXME! Don't do this!");
+                    foreach (var p in FindObjectsOfType<LocalPlayer>())
+                    {
+                        if (!Players.ContainsKey(p.Profile.AccountId))
+                        {
+                            Players.TryAdd(p.Profile.AccountId, p);
+                            var nPRC = p.GetOrAddComponent<PlayerReplicatedComponent>();
+                            nPRC.player = p;
+                        }
+                    }
+                    continue;
+                }
 
                 try
                 {
-                    var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastMoves", jsonDataServerId).Result;
-                    ReadFromServerLastMoves_ParseData(actionsToValuesJson);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex.ToString());
-                }
-                //yield return waitEndOfFrame;
-
-            }
-        }
-
-        public void ReadFromServerLastMoves_ParseData(string actionsToValuesJson)
-        {
-            if (actionsToValuesJson == null)
-                return;
-
-            try
-            {
-                //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastMoves:{actionsToValuesJson}");
-                Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-                if (actionsToValues == null)
-                    return;
-
-                var packets = actionsToValues.Values
-                    .Where(x => x != null)
-                    .Where(x => x.Count > 0)
-                    .Select(x => x.ToObject<Dictionary<string, object>>());
-                if (packets == null)
-                    return;
-
-                foreach (var packet in packets)
-                {
-                    if (packet != null && packet.Count > 0)
+                    // Deal to all versions of this guy (this shouldnt happen but good for testing)
+                    foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
                     {
-                        if (!packet.ContainsKey("accountId"))
-                            continue;
+                        if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                        {
 
-                        if (Players == null)
+                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
                             continue;
+                        }
 
-                        if (!Players.ContainsKey(packet["accountId"].ToString()))
-                            continue;
-
-                        if (!Players[packet["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                            continue;
-
-                        if (prc == null)
-                            continue;
-
-                        //PlayerOnMovePatch.MoveReplicated(prc.player, packet);
+                        prc.HandlePacket(packet);
                     }
                 }
-            }
-            finally
-            {
+                catch (Exception) { }
 
+                try
+                {
+                    foreach (var plyr in Players.Where(x => x.Key == packet["accountId"].ToString()))
+                    {
+                        plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
+
+                        if (prc == null)
+                        {
+                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                            continue;
+                        }
+
+                        prc.HandlePacket(packet);
+                    }
+                }
+                catch (Exception) { }
             }
         }
+
+        ///// <summary>
+        ///// Gets the Last Moves Dictionary from the Server. This should be the last move action each account id (character) made
+        ///// </summary>
+        ///// <returns></returns>
+        //private IEnumerator ReadFromServerLastMoves()
+        //{
+        //    var waitEndOfFrame = new WaitForEndOfFrame();
+        //    var waitSeconds = new WaitForSeconds(1f);
+
+        //    if (GetServerId() == null)
+        //        yield return waitSeconds;
+
+        //    var jsonDataServerId = JsonConvert.SerializeObject(new Dictionary<string, object>
+        //    {
+        //        { "serverId", GetServerId() }
+        //    });
+        //    while (true)
+        //    {
+        //        yield return waitSeconds;
+
+        //        if (Players == null)
+        //            continue;
+
+        //        if (RequestingObj == null)
+        //            RequestingObj = Request.Instance;
+
+        //        try
+        //        {
+        //            var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastMoves", jsonDataServerId).Result;
+        //            ReadFromServerLastMoves_ParseData(actionsToValuesJson);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Logger.LogError(ex.ToString());
+        //        }
+        //        //yield return waitEndOfFrame;
+
+        //    }
+        //}
+
+        //public void ReadFromServerLastMoves_ParseData(string actionsToValuesJson)
+        //{
+        //    if (actionsToValuesJson == null)
+        //        return;
+
+        //    try
+        //    {
+        //        //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastMoves:{actionsToValuesJson}");
+        //        Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
+        //        if (actionsToValues == null)
+        //            return;
+
+        //        var packets = actionsToValues.Values
+        //            .Where(x => x != null)
+        //            .Where(x => x.Count > 0)
+        //            .Select(x => x.ToObject<Dictionary<string, object>>());
+        //        if (packets == null)
+        //            return;
+
+        //        foreach (var packet in packets)
+        //        {
+        //            if (packet != null && packet.Count > 0)
+        //            {
+        //                if (!packet.ContainsKey("accountId"))
+        //                    continue;
+
+        //                if (Players == null)
+        //                    continue;
+
+        //                if (!Players.ContainsKey(packet["accountId"].ToString()))
+        //                    continue;
+
+        //                if (!Players[packet["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
+        //                    continue;
+
+        //                if (prc == null)
+        //                    continue;
+
+        //                //PlayerOnMovePatch.MoveReplicated(prc.player, packet);
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+
+        //    }
+        //}
 
         int GuiX = Screen.width - 400;
         int GuiWidth = 400;
-        //Rect rect;// = new Rect(GuiX, Y, GuiWidth, 100);
 
         void OnGUI()
         {

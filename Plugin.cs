@@ -26,7 +26,7 @@ using UnityEngine.SceneManagement;
 namespace SIT.Core
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    //[BepInDependency()] // Should probably be dependant on Aki right?
+    //[BepInDependency("com.spt-aki.core")] // Should probably be dependant on Aki right?
     [BepInProcess("EscapeFromTarkov.exe")]
     public class Plugin : BaseUnityPlugin
     {
@@ -116,6 +116,8 @@ namespace SIT.Core
 
             }
 
+            new WavesSpawnScenarioInitPatch().Enable();
+            new WavesSpawnScenarioMethodPatch().Enable();
         }
 
         private static void EnableSPPatches_PlayerProgression()

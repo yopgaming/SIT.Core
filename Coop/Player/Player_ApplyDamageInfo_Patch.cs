@@ -341,6 +341,7 @@ using EFT;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -389,6 +390,13 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
+            // If this player is a Client drone, do not send any data, anywhere
+            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return;
+            }
+
             Dictionary<string, object> packet = new Dictionary<string, object>();
 
 
@@ -412,24 +420,24 @@ namespace SIT.Core.Coop.Player
             }
             damageInfo.Player = null;
             Dictionary<string, string> weaponDict = new Dictionary<string, string>();
-            try
-            {
-                if (damageInfo.Weapon != null)
-                {
-                    foreach (var wProp in damageInfo.Weapon.GetType()
-                        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                        .Where(x => x.CanWrite && x.CanRead)
-                        )
-                    {
-                        var pw = JsonConvert.SerializeObject(wProp.GetValue(damageInfo.Weapon), PatchConstants.GetJsonSerializerSettingsWithoutBSG());
-                        weaponDict.Add(wProp.Name, pw);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e);
-            }
+            //try
+            //{
+            //    if (damageInfo.Weapon != null)
+            //    {
+            //        foreach (var wProp in damageInfo.Weapon.GetType()
+            //            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            //            .Where(x => x.CanWrite && x.CanRead)
+            //            )
+            //        {
+            //            var pw = JsonConvert.SerializeObject(wProp.GetValue(damageInfo.Weapon), PatchConstants.GetJsonSerializerSettingsWithoutBSG());
+            //            weaponDict.Add(wProp.Name, pw);
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Logger.LogError(e);
+            //}
             if (damageInfo.Weapon != null)
             {
                 packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
@@ -468,7 +476,6 @@ namespace SIT.Core.Coop.Player
 
             try
             {
-                //DamageInfo damageInfo = new DamageInfo();
                 var damageInfo = JObject.Parse(dict["d"].ToString()).ToObject<DamageInfo>();
                 Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
                 var absorbed = float.Parse(dict["ab"].ToString());
@@ -495,10 +502,10 @@ namespace SIT.Core.Coop.Player
                     }
                 }
 
-                if (dict.ContainsKey("d.w") && damageInfo.Weapon == null)
-                {
-                    Dictionary<string, string> weaponDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.w"].ToString());
-                }
+                //if (dict.ContainsKey("d.w") && damageInfo.Weapon == null)
+                //{
+                //    Dictionary<string, string> weaponDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.w"].ToString());
+                //}
 
                 if(dict.ContainsKey("d.w.tpl"))
                 {

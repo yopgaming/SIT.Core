@@ -9,6 +9,7 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.Profiling;
 
 namespace SIT.Coop.Core.Player
 {
@@ -75,8 +76,8 @@ namespace SIT.Coop.Core.Player
                             coopGC.ServerId
                         },
                         {
-                            "isAI",
-                            player.IsAI
+                    "isAI",
+                            player.IsAI && !player.Profile.Id.StartsWith("pmc")
                         },
                         {
                             "accountId",

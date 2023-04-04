@@ -38,16 +38,32 @@ namespace SIT.Core.Coop.Player
         }
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player __instance)
+        public static bool PrePatch(
+          EFT.Player __instance,
+          UnityEngine.Vector2 direction
+           )
         {
-            if (__instance.IsAI || __instance.AIData != null)
-                return true;
+            var player = __instance;
+            var accountId = player.Profile.AccountId;
 
-            var result = false;
-            //if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-            //    result = true;
+            // If this player is a Client drone, do not send any data, anywhere
+            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return false;
 
-            return result;
+                if (prc.IsAI()) // AI Dude do their own logic because shitty AI logic causes LOADS of calls : TODO: Write logic 
+                {
+                    prc.ReplicatedDirection = direction;
+                    return false;
+                }
+
+                if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
+                    return false;
+            }
+
+            return true;
+
         }
 
         [PatchPostfix]
@@ -56,41 +72,66 @@ namespace SIT.Core.Coop.Player
            UnityEngine.Vector2 direction
             )
         {
-            if (__instance.IsAI || __instance.AIData != null)
-                return;
-
             var player = __instance;
+            var accountId = player.Profile.AccountId;
 
-            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-            //{
-            //    CallLocally.Remove(player.Profile.AccountId);
+            //if (lastDirection.ContainsKey(accountId) && Vector3.Dot(direction, lastDirection[accountId]) >= 0)
             //    return;
-            //}
 
-            if (lastDirection.ContainsKey(player.Profile.AccountId))
+            // If this player is a Client drone, do not send any data, anywhere
+            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
-                if (lastDirection[player.Profile.AccountId] == direction)
-                    //|| Vector2.Dot(lastDirection[player.Profile.AccountId], direction) >= 0.75)
+                if (prc.IsClientDrone)
+                    return;
+
+                if (prc.IsAI()) // AI Dude do their own logic because shitty AI logic causes LOADS of calls : TODO: Write logic
+                {
+                    AIProcess(player, direction);
+                    return;
+                }
+
+                if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
                     return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("dX", direction.x.ToString());
-            dictionary.Add("dY", direction.y.ToString());
-            //dictionary.Add("pX", __instance.Position.x.ToString());
-            //dictionary.Add("pY", __instance.Position.y.ToString());
-            //dictionary.Add("pZ", __instance.Position.z.ToString());
-            dictionary.Add("m", "Move");
-            ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
+            // AI cannot use this pattern
+            if (player.IsAI || !player.IsYourPlayer)
+            {
+                AIProcess(__instance, direction);
+                return;
+            }
 
-            if (!lastDirection.ContainsKey(player.Profile.AccountId))
-                lastDirection.Add(player.Profile.AccountId, direction);
+            //if(!lastDirection.ContainsKey(accountId))
+            //    lastDirection.Add(accountId, direction);
 
-            lastDirection[player.Profile.AccountId] = direction;
+            //lastDirection[accountId] = direction;
+
+            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            //dictionary.Add("t", DateTime.Now.Ticks);
+            //dictionary.Add("dX", direction.x.ToString());
+            //dictionary.Add("dY", direction.y.ToString());
+            //dictionary.Add("m", "Move");
+            //ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
+
+
+
         }
 
-       
+        public static void AIProcess(
+           EFT.Player player,
+           UnityEngine.Vector2 direction
+            )
+        {
+            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            //dictionary.Add("t", DateTime.Now.Ticks);
+            //dictionary.Add("dX", direction.x.ToString());
+            //dictionary.Add("dY", direction.y.ToString());
+            //dictionary.Add("m", "Move");
+            //ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
+
+        }
+
+
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             var timestamp = long.Parse(dict["t"].ToString());
@@ -103,15 +144,9 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            //if (CallLocally.ContainsKey(player.Profile.AccountId))
-            //    return;
-
-            //Logger.LogDebug($"Replicated Move {player.Profile.AccountId}");
             try
             {
                 UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
-                //CallLocally.Add(player.Profile.AccountId, true);
-                //player.Move(direction);
                 if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
                 {
                     playerReplicatedComponent.ReplicatedDirection = direction;

@@ -69,6 +69,13 @@ namespace SIT.Core.Coop.Player
         {
             var player = __instance;
 
+            // If this player is a Client drone, do not send any data, anywhere
+            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return;
+            }
+
             if (lastDirection.ContainsKey(player.Profile.AccountId))
             {
                 if (lastDirection[player.Profile.AccountId] == __instance.Rotation
