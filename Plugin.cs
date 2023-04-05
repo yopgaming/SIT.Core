@@ -140,9 +140,10 @@ namespace SIT.Core
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
-            new BotEnemyTargetPatch().Enable();
+            //new BotEnemyTargetPatch().Enable();
             new BotSelfEnemyPatch().Enable();
             new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
+            new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
         }
 
         private void EnableCoopPatches()

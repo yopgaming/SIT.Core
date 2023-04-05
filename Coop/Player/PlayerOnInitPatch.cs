@@ -63,10 +63,12 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            if (!coopGC.Players.ContainsKey(accountId))
-            {
-                coopGC.Players.TryAdd(accountId, player);
-            }
+
+            // These are added to "RegisteredPlayers"
+            //if (!coopGC.Players.ContainsKey(accountId))
+            //{
+            //    coopGC.Players.TryAdd(accountId, player);
+            //}
 
 
             Dictionary<string, object> dictionary2 = new Dictionary<string, object>

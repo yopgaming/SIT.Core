@@ -332,7 +332,7 @@ namespace SIT.Core.Coop
                     return;
                 }
 
-                int playerId = Players.Count + 1;
+                int playerId = Players.Count + Singleton<GameWorld>.Instance.RegisteredPlayers.Count + 1;
                 if (profile == null)
                 {
                     Logger.LogError("CreatePhysicalOtherPlayerOrBot Profile is NULL!");
@@ -380,7 +380,7 @@ namespace SIT.Core.Coop
                 }
 
                 Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
-          
+
                 // Local Player idea
                 LocalPlayer localPlayer = LocalPlayer.Create(playerId
                     , position
@@ -390,7 +390,8 @@ namespace SIT.Core.Coop
                     ""
                     , EPointOfView.ThirdPerson
                     , profile
-                    , aiControl: false
+                    //, aiControl: false
+                    , aiControl: true
                     , EUpdateQueue.Update
                     , armsUpdateMode
                     , EFT.Player.EUpdateMode.Auto
@@ -401,6 +402,39 @@ namespace SIT.Core.Coop
                     , new FilterCustomizationClass()
                     , null
                     , isYourPlayer: false).Result;
+
+                var assetBundles = PatchConstants.EftTypes.FirstOrDefault(x
+                    => x.GetProperty("PLAYER_BUNDLE_NAME", bindingAttr: System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public) != null);
+
+
+                //EFT.Player localPlayer = EFT.Player.Create<EFT.Player>(
+                //    GClass1337.PLAYER_BUNDLE_NAME
+                //    , playerId
+                //    , position
+                //    , EUpdateQueue.Update
+                //    , armsUpdateMode
+                //    , armsUpdateMode
+                //    , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+                //    , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseSensitivity
+                //    , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseAimingSensitivity
+                //    , "ClientDrone"
+                //    , true);
+                //var inventoryController = new InventoryController(profile, false);
+                //localPlayer.Init(Quaternion.identity
+                //    //, "Clones"
+                //    , "Player"
+                //    , EPointOfView.ThirdPerson
+                //    , profile
+                //    , inventoryController
+                //    , new PlayerHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, false)
+                //    , new StatisticsManagerForPlayer1()
+                //    , null
+                //    , new FilterCustomizationClass()
+                //    , EFT.Player.EVoipState.NotAvailable
+                //    , false
+                //    , false
+                //    );
+                //localPlayer._animators[0].enabled = true;
 
                 // Observed Player idea (more like Live BSG option)
                 //ObservedPlayer.smethod_3(playerId, position, this, EUpdateQueue.Update, true);
@@ -450,11 +484,12 @@ namespace SIT.Core.Coop
 
         }
 
-        private void SetWeaponInHandsOfNewPlayer(LocalPlayer person)
+        private void SetWeaponInHandsOfNewPlayer(EFT.Player person)
         {
             var equipment = person.Profile.Inventory.Equipment;
             if (equipment == null)
             {
+                Logger.LogError($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} has no Equipment!");
                 return;
             }
             Item item = null;
@@ -470,7 +505,15 @@ namespace SIT.Core.Coop
                 Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
                 return;
             }
-            person.SetItemInHands(item, (IResult)=> { });
+
+            person.SetItemInHands(item, (IResult)=> {
+            
+                if(IResult.Failed == true)
+                {
+                    Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to set item {item} in hands for {person.Profile.AccountId}");
+                }
+
+            });
         }
 
         /// <summary>
@@ -586,6 +629,23 @@ namespace SIT.Core.Coop
 
                 try
                 {
+                    foreach (var plyr in Players.Where(x => x.Key == packet["accountId"].ToString()))
+                    {
+                        plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
+
+                        if (prc == null)
+                        {
+                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                            continue;
+                        }
+
+                        prc.HandlePacket(packet);
+                    }
+                }
+                catch (Exception) { }
+
+                try
+                {
                     // Deal to all versions of this guy (this shouldnt happen but good for testing)
                     foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
                     {
@@ -601,22 +661,7 @@ namespace SIT.Core.Coop
                 }
                 catch (Exception) { }
 
-                try
-                {
-                    foreach (var plyr in Players.Where(x => x.Key == packet["accountId"].ToString()))
-                    {
-                        plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
-
-                        if (prc == null)
-                        {
-                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                            continue;
-                        }
-
-                        prc.HandlePacket(packet);
-                    }
-                }
-                catch (Exception) { }
+                
             }
         }
 

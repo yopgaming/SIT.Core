@@ -35,7 +35,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
                 result = true;
 
-            Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
+            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
 
             return result;
         }
@@ -61,7 +61,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             dictionary.Add("f", fireMode.ToString());
             dictionary.Add("m", "ChangeFireMode");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-            Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
+            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
 
         }
 
@@ -85,7 +85,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     CallLocally.Add(player.Profile.AccountId, true);
                     if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
                     {
-                        Logger.LogInfo("Replicated: Calling Change FireMode");
+                        //Logger.LogInfo("Replicated: Calling Change FireMode");
                         firearmCont.ChangeFireMode(firemode);
                     }
                 }

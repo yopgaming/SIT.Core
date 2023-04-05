@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Coop.Components;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -19,7 +20,7 @@ namespace SIT.Coop.Core.Player
     /// <summary>
     /// Player Replicated Component is the Player/AI direct communication to the Server
     /// </summary>
-    internal class PlayerReplicatedComponent : MonoBehaviour
+    internal class PlayerReplicatedComponent : MonoBehaviour, IPlayerPacketHandlerComponent
     {
         internal const int PacketTimeoutInSeconds = 1;
         //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
@@ -81,7 +82,24 @@ namespace SIT.Coop.Core.Player
                         player.Rotation = packetRotation;
                     }
                     break;
+                case "Pose":
+                    if (IsClientDrone)
+                    {
+                        float poseLevel = float.Parse(packet["pose"].ToString());
+                        player.ChangePose(poseLevel);
+                    }
+                    break;
 
+            }
+
+            var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
+            if (packetHandlerComponents != null)
+            {
+                packetHandlerComponents = packetHandlerComponents.Where(x => x.GetType() != typeof(PlayerReplicatedComponent)).ToArray();
+                foreach(var packetHandlerComponent in packetHandlerComponents)
+                {
+                    packetHandlerComponent.HandlePacket(packet);
+                }
             }
         }
 
@@ -141,6 +159,17 @@ namespace SIT.Coop.Core.Player
                     LastRotationSent = DateTime.Now;
                     LastRotation = player.Rotation;
                 }
+
+                if (LastPose != player.PoseLevel && LastPoseSent < DateTime.Now.AddSeconds(-1))
+                {
+                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    dict.Add("pose", player.PoseLevel);
+                    dict.Add("m", "Pose");
+                    ServerCommunication.PostLocalPlayerData(player, dict);
+
+                    LastPoseSent = DateTime.Now;
+                    LastPose = player.PoseLevel;
+                }
             }
         }
 
@@ -154,7 +183,8 @@ namespace SIT.Coop.Core.Player
         public Vector2? ReplicatedRotation { get; internal set; }
         public bool? ReplicatedRotationClamp { get; internal set; }
         public Vector3? ReplicatedPosition { get; internal set; }
-
+        public DateTime LastPoseSent { get; private set; }
+        public float LastPose { get; private set; }
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {

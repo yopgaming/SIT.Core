@@ -346,6 +346,7 @@ using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -355,7 +356,7 @@ namespace SIT.Core.Coop.Player
 {
     public class Player_ApplyDamageInfo_Patch : ModuleReplicationPatch
     {
-        private static List<long> ProcessedCalls = new();
+        private static ConcurrentDictionary<string, long> ProcessedCalls = new();
         public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ApplyDamageInfo";
@@ -455,7 +456,25 @@ namespace SIT.Core.Coop.Player
             ServerCommunication.PostLocalPlayerData(player, packet);
         }
 
+        private bool HasProcessed(EFT.Player player, Dictionary<string, object> dict)
+        {
+            var playerID = player.Id.ToString();
+            var timestamp = long.Parse(dict["t"].ToString());
+            if (!ProcessedCalls.ContainsKey(playerID))
+            {
+                Logger.LogDebug($"Adding {playerID},{timestamp} to {this.GetType()} Processed Calls Dictionary");
+                ProcessedCalls.TryAdd(playerID, timestamp);
+                return true;
+            }
 
+            if (ProcessedCalls[playerID] != timestamp)
+            {
+                ProcessedCalls.TryUpdate(playerID, timestamp, timestamp);
+                return false;
+            }
+
+            return false;
+        }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
@@ -465,14 +484,11 @@ namespace SIT.Core.Coop.Player
             if (dict == null)
                 return;
 
-            var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(player, dict))
                 return;
-            }
+
+            if (CallLocally.ContainsKey(player.Profile.AccountId))
+                return;
 
             try
             {
@@ -501,11 +517,6 @@ namespace SIT.Core.Coop.Player
                         }
                     }
                 }
-
-                //if (dict.ContainsKey("d.w") && damageInfo.Weapon == null)
-                //{
-                //    Dictionary<string, string> weaponDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.w"].ToString());
-                //}
 
                 if(dict.ContainsKey("d.w.tpl"))
                 {
