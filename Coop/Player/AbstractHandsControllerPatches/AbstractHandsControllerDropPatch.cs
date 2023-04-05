@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
@@ -16,7 +17,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (t == null)
                 Logger.LogInfo($"AbstractHandsControllerDropPatch:Type is NULL");
 
-            var method = PatchConstants.GetMethodForType(t, "Drop");
+            var method = ReflectionHelpers.GetMethodForType(t, "Drop");
 
             Logger.LogInfo($"AbstractHandsControllerDropPatch:{t.Name}:{method.Name}");
             return method;
@@ -29,7 +30,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance)
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return false;
 
@@ -43,7 +44,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static void PostPatch(EFT.Player.FirearmController __instance)
         {
-            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return;
 

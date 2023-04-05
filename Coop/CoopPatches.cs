@@ -1,7 +1,12 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
+using EFT;
+using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Tarkov.Core;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.SceneManagement;
@@ -31,7 +36,7 @@ namespace SIT.Core.Coop
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
 
-            //new LocalGameStartingPatch(config).Enable();
+            new LocalGameStartingPatch(m_Config).Enable();
             //new LocalGamePlayerSpawn().Enable();
 
             // ------ MATCHMAKER -------------------------
@@ -47,8 +52,11 @@ namespace SIT.Core.Coop
 
         private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            EnableDisablePatches();
+            if (Singleton<GameWorld>.Instantiated)
+                EnableDisablePatches();
         }
+
+        private static List<ModulePatch> NoMRPPatches = new List<ModulePatch>();
 
         public static void EnableDisablePatches()
         {
@@ -74,16 +82,23 @@ namespace SIT.Core.Coop
             }
 
             // ------ PLAYER -------------------------
-
-            if (enablePatches)
+            if (!NoMRPPatches.Any())
             {
-                new PlayerOnInitPatch(m_Config).Enable();
-                //new PlayerOnMovePatch().Enable();
+                NoMRPPatches.Add(new PlayerOnInitPatch(m_Config));
+                //NoMRPPatches.Add(new PlayerOnMovePatch());
             }
 
+            //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
+            foreach (var patch in NoMRPPatches)
+            {
+                if (enablePatches)
+                    patch.Enable();
+                else
+                    patch.Disable();
+            }
 
             var moduleReplicationPatches = Assembly.GetAssembly(typeof(ModuleReplicationPatch)).GetTypes().Where(x => x.GetInterface("IModuleReplicationPatch") != null);
-            //Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");
+            ////Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");
             foreach (var module in moduleReplicationPatches)
             {
                 if (module.IsAbstract
@@ -103,7 +118,7 @@ namespace SIT.Core.Coop
 
                 if (!mrp.DisablePatch && enablePatches)
                 {
-                    Logger.LogInfo($"Enabled {mrp.GetType()}");
+                    //Logger.LogInfo($"Enabled {mrp.GetType()}");
                     mrp.Enable();
                 }
                 else

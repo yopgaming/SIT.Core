@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SIT.Core.Misc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +38,7 @@ namespace SIT.Tarkov.Core.AI
             //Logger = PatchConstants.Logger;
 
             if (BotControllerType == null)
-                //BotControllerType = PatchConstants.EftTypes.Single(x => PatchConstants.GetMethodForType(x, "AddActivePLayer") != null);
+                //BotControllerType = PatchConstants.EftTypes.Single(x => ReflectionHelpers.GetMethodForType(x, "AddActivePLayer") != null);
                 BotControllerType = PatchConstants.EftTypes.Single(x =>
                     x.GetMethod("SetSettings", BindingFlags.Public | BindingFlags.Instance) != null
                     && x.GetMethod("AddActivePLayer", BindingFlags.Public | BindingFlags.Instance) != null
@@ -47,28 +48,28 @@ namespace SIT.Tarkov.Core.AI
 
             if (BotPresetType == null)
                 BotPresetType = PatchConstants.EftTypes.Single(x => x.IsClass
-                    && PatchConstants.GetFieldFromType(x, "BotDifficulty") != null
-                    && PatchConstants.GetFieldFromType(x, "Role") != null
-                    && PatchConstants.GetFieldFromType(x, "UseThis") != null
-                    && PatchConstants.GetFieldFromType(x, "VisibleAngle") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "BotDifficulty") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "Role") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "UseThis") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "VisibleAngle") != null
                     );
 
             //Logger.LogInfo($"BotPresetType:{BotPresetType.Name}");
 
             if (BotScatteringType == null)
                 BotScatteringType = PatchConstants.EftTypes.Single(x => x.IsClass
-                    && PatchConstants.GetFieldFromType(x, "PriorityScatter1meter") != null
-                    && PatchConstants.GetFieldFromType(x, "PriorityScatter10meter") != null
-                    && PatchConstants.GetFieldFromType(x, "PriorityScatter100meter") != null
-                    && PatchConstants.GetMethodForType(x, "Check") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "PriorityScatter1meter") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "PriorityScatter10meter") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "PriorityScatter100meter") != null
+                    && ReflectionHelpers.GetMethodForType(x, "Check") != null
                     );
 
             //Logger.LogInfo($"BotScatteringType:{BotScatteringType.Name}");
 
             if (BossSpawnRunnerType == null)
                 BossSpawnRunnerType = PatchConstants.EftTypes.Single(x => x.IsClass
-                    && PatchConstants.GetPropertyFromType(x, "HaveSectants") != null
-                    && PatchConstants.GetPropertyFromType(x, "BossSpawnWaves") != null
+                    && ReflectionHelpers.GetPropertyFromType(x, "HaveSectants") != null
+                    && ReflectionHelpers.GetPropertyFromType(x, "BossSpawnWaves") != null
                     && x.GetMethod("Run", BindingFlags.Public | BindingFlags.Instance) != null
                     );
 
@@ -85,7 +86,7 @@ namespace SIT.Tarkov.Core.AI
 
             if (BotCreatorType == null)
                 BotCreatorType = PatchConstants.EftTypes.Single(x => x.IsClass
-                    && PatchConstants.GetPropertyFromType(x, "StartProfilesLoaded") != null
+                    && ReflectionHelpers.GetPropertyFromType(x, "StartProfilesLoaded") != null
                     && x.GetMethods(BindingFlags.Public | BindingFlags.Instance).Any(m => m.Name == "ActivateBot")
                     && x.GetMethod("method_0", BindingFlags.NonPublic | BindingFlags.Instance) != null
                     && x.GetMethod("method_1", BindingFlags.NonPublic | BindingFlags.Instance) != null
@@ -96,16 +97,16 @@ namespace SIT.Tarkov.Core.AI
 
             if (RoleLimitDifficultyType == null)
                 RoleLimitDifficultyType = PatchConstants.EftTypes.First(x => x.IsClass
-                    && PatchConstants.GetFieldFromType(x, "Role") != null
-                    && PatchConstants.GetFieldFromType(x, "Limit") != null
-                    && PatchConstants.GetFieldFromType(x, "Difficulty") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "Role") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "Limit") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "Difficulty") != null
                     );
 
             if (LocationBaseType == null)
                 LocationBaseType = PatchConstants.EftTypes.First(x => x.IsClass
-                    && PatchConstants.GetFieldFromType(x, "OpenZones") != null
-                    && PatchConstants.GetFieldFromType(x, "DisabledForScav") != null
-                    && PatchConstants.GetFieldFromType(x, "DisabledScavExits") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "OpenZones") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "DisabledForScav") != null
+                    && ReflectionHelpers.GetFieldFromType(x, "DisabledScavExits") != null
                     );
 
             Logger.LogInfo($"LocationBaseType:{LocationBaseType.Name}");
@@ -113,28 +114,28 @@ namespace SIT.Tarkov.Core.AI
             if (!TypeDictionary.ContainsKey("BotOwner"))
             {
                 TypeDictionary.Add("BotOwner", typeof(EFT.BotOwner));
-                TypeDictionary.Add("BotBrain", PatchConstants.GetPropertyFromType(TypeDictionary["BotOwner"], "Brain").PropertyType);
-                TypeDictionary.Add("BotBaseBrain", PatchConstants.GetPropertyFromType(TypeDictionary["BotBrain"], "BaseBrain").PropertyType);
-                TypeDictionary.Add("BotAgent", PatchConstants.GetPropertyFromType(TypeDictionary["BotBrain"], "Agent").PropertyType);
+                TypeDictionary.Add("BotBrain", ReflectionHelpers.GetPropertyFromType(TypeDictionary["BotOwner"], "Brain").PropertyType);
+                TypeDictionary.Add("BotBaseBrain", ReflectionHelpers.GetPropertyFromType(TypeDictionary["BotBrain"], "BaseBrain").PropertyType);
+                TypeDictionary.Add("BotAgent", ReflectionHelpers.GetPropertyFromType(TypeDictionary["BotBrain"], "Agent").PropertyType);
             }
 
             if (SetSettingsMethod == null)
-                SetSettingsMethod = PatchConstants.GetMethodForType(BotControllerType, "SetSettings");
+                SetSettingsMethod = ReflectionHelpers.GetMethodForType(BotControllerType, "SetSettings");
 
             //Logger.LogInfo($"SetSettingsMethod:{SetSettingsMethod.Name}");
 
             if (StopMethod == null)
-                StopMethod = PatchConstants.GetMethodForType(BotControllerType, "Stop");
+                StopMethod = ReflectionHelpers.GetMethodForType(BotControllerType, "Stop");
 
             //Logger.LogInfo($"StopMethod:{StopMethod.Name}");
 
             if (InitMethod == null)
-                InitMethod = PatchConstants.GetMethodForType(BotControllerType, "Init");
+                InitMethod = ReflectionHelpers.GetMethodForType(BotControllerType, "Init");
 
             //Logger.LogInfo($"InitMethod:{InitMethod.Name}");
 
             if (AddActivePlayerMethod == null)
-                AddActivePlayerMethod = PatchConstants.GetMethodForType(BotControllerType, "AddActivePLayer");
+                AddActivePlayerMethod = ReflectionHelpers.GetMethodForType(BotControllerType, "AddActivePLayer");
 
             //Logger.LogInfo($"AddActivePlayerMethod:{AddActivePlayerMethod.Name}");
         }
@@ -232,21 +233,21 @@ namespace SIT.Tarkov.Core.AI
                 , new object[] { });
         }
 
-        public static void SetBotBrain(EFT.Player player, object brain)
-        {
-            var ai = PatchConstants.GetFieldOrPropertyFromInstance<object>(player, "AIData");
-            if (ai != null)
-            {
-                var botOwner = PatchConstants.GetFieldOrPropertyFromInstance<object>(ai, "BotOwner");
-                if (botOwner != null)
-                {
-                    var botBrain = PatchConstants.GetFieldOrPropertyFromInstance<object>(botOwner, "Brain");
-                    if (botBrain != null)
-                    {
-                        PatchConstants.SetFieldOrPropertyFromInstance(player, "BaseBrain", brain);
-                    }
-                }
-            }
-        }
+        //public static void SetBotBrain(EFT.Player player, object brain)
+        //{
+        //    var ai = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(player, "AIData");
+        //    if (ai != null)
+        //    {
+        //        var botOwner = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(ai, "BotOwner");
+        //        if (botOwner != null)
+        //        {
+        //            var botBrain = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(botOwner, "Brain");
+        //            if (botBrain != null)
+        //            {
+        //                PatchConstants.SetFieldOrPropertyFromInstance(player, "BaseBrain", brain);
+        //            }
+        //        }
+        //    }
+        //}
     }
 }

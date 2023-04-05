@@ -1,8 +1,11 @@
 ﻿using EFT;
 using Newtonsoft.Json;
+using SIT.Core.Coop.Matchmaker;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -39,7 +42,7 @@ namespace SIT.Coop.Core.Matchmaker
         {
             get
             {
-                var screenController = PatchConstants.GetFieldOrPropertyFromInstance<object>(MatchMakerAcceptScreenInstance, "ScreenController", false);
+                var screenController = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(MatchMakerAcceptScreenInstance, "ScreenController", false);
                 if (screenController != null)
                 {
                     PatchConstants.Logger.LogInfo("MatchmakerAcceptPatches.Found ScreenController Instance");
@@ -50,13 +53,8 @@ namespace SIT.Coop.Core.Matchmaker
                 return null;
             }
         }
-        public static void Run()
-        {
-            //new MatchmakerAcceptScreenAwakePatch().Enable();
-            //new MatchmakerAcceptScreenShowPatch().Enable();
-            //new AcceptInvitePatch().Enable();
-            //new SendInvitePatch().Enable();
-        }
+
+        public static GameObject EnvironmentUIRoot { get; internal set; }
 
         public static string GetGroupId()
         {
@@ -70,12 +68,41 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static bool CheckForMatch()
         {
+            PatchConstants.Logger.LogInfo("CheckForMatch");
+
+            if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
+            {
+                string json = Request.Instance.GetJson("/coop/server/exist");
+                PatchConstants.Logger.LogInfo(json);
+
+                if (!string.IsNullOrEmpty(json))
+                {
+                    bool serverExists = false;
+                    if (json.Equals("null", StringComparison.OrdinalIgnoreCase))
+                    {
+                        serverExists = false;
+                    }
+                    else
+                    {
+                        serverExists = true;
+                    }
+                    PatchConstants.Logger.LogInfo($"CheckForMatch:Server Exists?:{serverExists}");
+
+                    return serverExists;
+                }
+            }
             return false;
         }
 
-        internal static void CreateMatch(string accountId)
+        public static void Run()
         {
-            PatchConstants.Logger.LogInfo($"CreateMatch:: Create Match for {accountId}");
+            new EnvironmentUIRootPatch().Enable();
+            new MatchmakerAcceptScreenAwakePatch().Enable();
+            new MatchmakerAcceptScreenShowPatch().Enable();
+        }
+
+        public static void CreateMatch(string accountId)
+        {
 
             string text = Request.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 new Dictionary<string, string>

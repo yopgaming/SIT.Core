@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace SIT.Coop.Core.Player
             if (t == null)
                 Logger.LogInfo($"PlayerOnJumpPatch:Type is NULL");
 
-            var method = PatchConstants.GetMethodForType(t, "Jump");
+            var method = ReflectionHelpers.GetMethodForType(t, "Jump");
 
             Logger.LogInfo($"PlayerOnJumpPatch:{t.Name}:{method.Name}");
             return method;

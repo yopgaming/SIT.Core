@@ -20,7 +20,7 @@
 //            if (t == null)
 //                Logger.LogInfo($"PlayerOnSetItemInHandsPatch:Type is NULL");
 
-//            var method = PatchConstants.GetAllMethodsForType(t)
+//            var method = ReflectionHelpers.GetAllMethodsForType(t)
 //                .FirstOrDefault(x => x.Name == "SetItemInHands"
 //                );
 

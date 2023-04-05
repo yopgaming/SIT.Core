@@ -2,11 +2,11 @@
 //using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
 //using Grouping = GClass2434;
 using EFT.UI;
+using EFT.UI.Matchmaker;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
-using UnityEngine.UIElements;
 
 namespace SIT.Coop.Core.Matchmaker
 {
@@ -27,183 +27,59 @@ namespace SIT.Coop.Core.Matchmaker
 
             var methodName = "Show";
 
-            return GetThisType().GetMethods(privateFlags).First(x => x.Name == methodName);
+            return GetThisType().GetMethods(privateFlags)
+                .First(x => x.Name == methodName && x.GetParameters()[0].Name == "session");
 
         }
 
 
-        private static Button _updateListButton;
-
-
+        //private static Button _updateListButton;
 
         [PatchPrefix]
-        private static bool PatchPrefix(
+        private static void Pre(
             ref ISession session,
             ref RaidSettings raidSettings,
-            ref EFT.ERaidMode ___eraidMode_0,
-            ref EFT.RaidSettings ___raidSettings_0,
-            ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
-            //ref ScreenController ___ScreenController, 
-            ref DefaultUIButton ____updateListButton,
-            ref Profile ___profile_0,
-            ref DefaultUIButton ____findOtherPlayersButton
-
+            Profile ___profile_0,
+            MatchMakerAcceptScreen __instance,
+            DefaultUIButton ____acceptButton
             )
         {
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
-            //_updateListButton = ____updateListButton;
-            MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
-
-            raidSettings.RaidMode = ERaidMode.Online;
-            //eraidMode_0 = ERaidMode.Online;
-            //MatchmakerAcceptPatches.ScreenController = ___ScreenController;
-            //local = false;
-            //___raidSettings_0.RaidMode = ERaidMode.Online;
-            //___raidSettings_0.RaidMode = ERaidMode.Coop;
-
-            //return false; // dont do anything, think for ourselves?
-            return true; // run the original
-
+            ____acceptButton.OnClick.AddListener(() =>
+            {
+                Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
+            });
         }
+
 
         [PatchPostfix]
-        private static void PatchPostfix(
-            ref object session, ref RaidSettings raidSettings,
-            ref EFT.UI.Matchmaker.MatchMakerAcceptScreen __instance,
-            ref Profile ___profile_0,
-            ref DefaultUIButton ____acceptButton,
-            ref DefaultUIButton ____playersRaidReadyPanel,
-            ref DefaultUIButton ____groupPreview,
-            ref DefaultUIButton ____findOtherPlayersButton
+        private static void Post(
+            ref ISession session,
+            ref RaidSettings raidSettings,
+            Profile ___profile_0,
+            MatchMakerAcceptScreen __instance,
+            DefaultUIButton ____acceptButton
             )
         {
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
 
-            MatchmakerAcceptPatches.Profile = ___profile_0;
-            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
-            //Logger.LogInfo(___profile_0.AccountId);
-
-
+            // ------------------------------------------
+            // Keep an instance for other patches to work
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
+            // ------------------------------------------
+            MatchmakerAcceptPatches.Profile = ___profile_0;
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
 
-            raidSettings.RaidMode = ERaidMode.Local;
+            if (MatchmakerAcceptPatches.CheckForMatch())
+            {
+                ____acceptButton.SetHeaderText("Join Match");
+            }
+            else
+            {
+                ____acceptButton.SetHeaderText("Start Match");
+            }
 
-            ____acceptButton.gameObject.SetActive(true);
-            ____playersRaidReadyPanel.ShowGameObject();
-            ____playersRaidReadyPanel.gameObject.SetActive(true);
-
-            ____findOtherPlayersButton.SetHeaderText("Start a Server / Check for Match", 16);
         }
-
-
-        //	if (MatchmakerAcceptPatches.Grouping == null || MatchmakerAcceptPatches.Grouping.Disposed)
-        //	{
-        //		Logger.LogInfo("PeriodicUpdate::Grouping is NULL!");
-        //	}
-        //}
-
-        //private static async Task DoPeriodicUpdateAndSearches()
-        //{
-        //	Logger.LogInfo("DoPeriodicUpdateAndSearches");
-
-        //	await Task.Delay(1000);
-        //	//UpdateListButtonClickedStatus(false);
-        //	//Task task2 = UpdateGroupStatus();
-        //	GetInvites(delegate
-        //	{
-        //	});
-        //	GetMatchStatus(delegate
-        //	{
-        //		MatchmakerAcceptPatches.MatchingType = EMatchingType.GroupPlayer;
-        //		MatchmakerAcceptPatches.GroupId = JsonConvert.DeserializeObject<string>(JsonConvert.SerializeObject(MatchmakerAcceptPatches.Grouping.GroupId));
-        //		Debug.LogError("Starting Game as " + MatchmakerAcceptPatches.MatchingType.ToString() + " in GroupId " + MatchmakerAcceptPatches.GroupId + " via Match Status");
-        //		MatchmakerAcceptPatches.Grouping.Dispose().HandleExceptions();
-        //		MatchmakerAcceptPatches.ScreenController.ShowNextScreen(MatchmakerAcceptPatches.GroupId, MatchmakerAcceptPatches.MatchingType);
-        //	}, null);
-        //	//await Task.WhenAll(task2);
-        //	UpdateListButtonClickedStatus(true);
-        //}
-
-        //private static void UpdateListButtonClickedStatus(bool visible)
-        //{
-        //	Logger.LogInfo("UpdateListButtonClickedStatus");
-
-        //	_updateListButton.visible = visible;
-        //}
-
-        //private static Task UpdateGroupStatus()
-        //{
-        //	Logger.LogInfo("UpdateGroupStatus");
-
-        //	TaskCompletionSource<bool> source = new TaskCompletionSource<bool>();
-        //	if (MatchmakerAcceptPatches.Grouping != null)
-        //	{
-        //		//MatchmakerAcceptPatches.Grouping.UpdateStatus(this.string_3, this.edateTime_0, this.string_4, delegate
-        //		//{
-        //		//	source.SetResult(true);
-        //		//});
-
-        //		source.SetResult(true);
-        //		return source.Task;
-        //	}
-        //	return source.Task;
-        //}
-
-        //private static void GetMatchStatus(Action onLoading, Action onNothing)
-        //{
-
-        //    if (MatchmakerAcceptPatches.Grouping != null
-        //        && MatchmakerAcceptPatches.GetGroupPlayers() != null
-        //        && MatchmakerAcceptPatches.GetGroupPlayers().Count > 0 
-        //        && !MatchmakerAcceptPatches.IsGroupOwner()
-        //        && !string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId())
-        //        )
-        //    {
-        //        Logger.LogInfo("GetMatchStatus");
-        //        string text = new Request().PostJson("/client/match/group/server/status", JsonConvert.SerializeObject(MatchmakerAcceptPatches.GetGroupId()));
-        //        if (!string.IsNullOrEmpty(text))
-        //        {
-        //            Debug.LogError("GetMatchStatus[1] ::" + text.Length);
-        //            ServerStatus serverStatus = JsonConvert.DeserializeObject<ServerStatus>(text);
-        //            Debug.LogError("GetMatchStatus[2] ::" + serverStatus.status);
-        //            if (serverStatus.status == "LOADING" || serverStatus.status == "INGAME")
-        //            {
-        //                Debug.LogError("GetMatchStatus[3] :: Starting up");
-        //                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-        //                onLoading?.Invoke();
-        //            }
-        //        }
-        //    }
-        //    onNothing?.Invoke();
-        //}
-
-        //private static void GetInvites(Action onComplete)
-        //{
-        //	Logger.LogInfo("GetInvites");
-
-        //	if (MatchmakerAcceptPatches.Grouping != null && !MatchmakerAcceptPatches.Grouping.IsInvited && !MatchmakerAcceptPatches.Grouping.IsMeInGroup && !MatchmakerAcceptPatches.Grouping.IsOwner)
-        //	{
-        //		GetInvites2();
-        //	}
-        //}
-
-        //private static void GetInvites2()
-        //{
-        //	Logger.LogInfo("GetInvites2");
-
-        //	string json = Web.WebCallHelper.GetJson("/client/match/group/getInvites");
-        //	if (!string.IsNullOrEmpty(json))
-        //	{
-        //		Logger.LogInfo(json);
-
-        //		GClass1032 gClass = JsonConvert.DeserializeObject<GClass1032>(json);
-        //		if (gClass != null && !string.IsNullOrEmpty(gClass.From))
-        //		{
-        //			//this.InvitePopup(gClass);
-        //		}
-        //	}
-        //}
-
-
     }
 
 

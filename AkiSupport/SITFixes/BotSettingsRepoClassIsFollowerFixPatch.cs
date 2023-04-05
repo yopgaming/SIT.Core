@@ -1,4 +1,5 @@
-﻿using SIT.Tarkov.Core;
+﻿using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System.Reflection;
 
 namespace SIT.Core.AkiSupport.SITFixes
@@ -7,7 +8,7 @@ namespace SIT.Core.AkiSupport.SITFixes
     {
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(BotSettingsRepoClass), "IsFollower");
+            return ReflectionHelpers.GetMethodForType(typeof(BotSettingsRepoClass), "IsFollower");
         }
 
         [PatchPrefix]

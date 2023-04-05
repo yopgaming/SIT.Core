@@ -18,7 +18,7 @@ namespace SIT.Core.AkiSupport.Custom
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result)
         {
-            __result = new Request().GetJson("/singleplayer/settings/bot/difficulty/core/core");
+            __result = Request.Instance.GetJson("/singleplayer/settings/bot/difficulty/core/core");
             return string.IsNullOrWhiteSpace(__result);
         }
     }

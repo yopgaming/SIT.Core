@@ -34,7 +34,7 @@
 //            if (t == null)
 //                Logger.LogInfo($"LocalGameEndingPatch:Type is NULL");
 
-//            var method = PatchConstants.GetAllMethodsForType(t)
+//            var method = ReflectionHelpers.GetAllMethodsForType(t)
 //                .FirstOrDefault(x => x.GetParameters().Length >= 4
 //                && x.GetParameters().Any(x => x.Name.Contains("profileId"))
 //                && x.GetParameters().Any(x => x.Name.Contains("exitStatus"))
@@ -78,16 +78,16 @@
 //            //    Logger.LogInfo("EndSession: Unable to End the Session!");
 //            //    return;
 //            //}
-//            var gameStatus = PatchConstants.GetFieldOrPropertyFromInstance
+//            var gameStatus = ReflectionHelpers.GetFieldOrPropertyFromInstance
 //                                   <GameStatus>(game, "Status", false);
 //            if (game.Status == GameStatus.Starting || game.Status == GameStatus.Started)
 //            {
 //                //__instance.endByTimerScenario_0.GameStatus_0 = GameStatus.SoftStopping;
-//                var endByTimerScenario_0 = PatchConstants.GetFieldOrPropertyFromInstance
+//                var endByTimerScenario_0 = ReflectionHelpers.GetFieldOrPropertyFromInstance
 //                                <EndByTimerScenario>(game, "endByTimerScenario_0", false);
 //                if (endByTimerScenario_0 != null)
 //                {
-//                    var endByTimerScenarioGameStatus = PatchConstants.GetFieldOrPropertyFromInstance
+//                    var endByTimerScenarioGameStatus = ReflectionHelpers.GetFieldOrPropertyFromInstance
 //                                    <GameStatus>(endByTimerScenario_0, "GameStatus_0", false);
 //                    endByTimerScenarioGameStatus = GameStatus.SoftStopping;
 //                }
@@ -121,7 +121,7 @@
 //                StaticManager.Instance.WaitSeconds(delay, delegate
 //                {
 //                    //__instance.callback_0(new Result<ExitStatus, TimeSpan, Metrics>(exitStatus, GClass1150.Now - this.dateTime_0, new Metrics()));
-//                    var callback_0 = PatchConstants.GetFieldOrPropertyFromInstance
+//                    var callback_0 = ReflectionHelpers.GetFieldOrPropertyFromInstance
 //                                <Callback<ExitStatus, TimeSpan, Metrics>>(game, "callback_0", false);
 //                    if (callback_0 != null)
 //                    {

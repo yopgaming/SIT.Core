@@ -20,7 +20,7 @@ namespace SIT.Coop.Core.Matchmaker.MatchmakerAccept
         {
             Logger.LogInfo("AcceptInvitePatch.PatchPostfix");
             MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-            //MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetFieldOrPropertyFromInstance<string>(invite, "From"));
+            //MatchmakerAcceptPatches.SetGroupId(ReflectionHelpers.GetFieldOrPropertyFromInstance<string>(invite, "From"));
         }
     }
 }

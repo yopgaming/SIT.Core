@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
 
@@ -16,7 +17,7 @@ namespace SIT.Coop.Core.LocalGame
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(NonWavesSpawnScenario), "Run");
+            return ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "Run");
         }
 
 

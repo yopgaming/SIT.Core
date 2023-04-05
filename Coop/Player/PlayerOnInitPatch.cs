@@ -4,9 +4,12 @@ using EFT;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.Profiling;
 
 namespace SIT.Coop.Core.Player
 {
@@ -20,7 +23,7 @@ namespace SIT.Coop.Core.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
+            return ReflectionHelpers.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
         }
 
         //[PatchPrefix]
@@ -49,13 +52,11 @@ namespace SIT.Coop.Core.Player
             var accountId = player.Profile.AccountId;
 
             //await __result;
-            Logger.LogInfo($"Init. {accountId}");
+            Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
 
-
-
-
-            var gameWorld = Singleton<GameWorld>.Instance;
-            var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+            //var gameWorld = Singleton<GameWorld>.Instance;
+            //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
             {
                 Logger.LogError("Cannot add player to Coop Game Component because its NULL");
@@ -71,16 +72,12 @@ namespace SIT.Coop.Core.Player
             Dictionary<string, object> dictionary2 = new Dictionary<string, object>
                     {
                         {
-                            "SERVER",
-                            "SERVER"
-                        },
-                        {
                             "serverId",
                             coopGC.ServerId
                         },
                         {
-                            "isAI",
-                            player.IsAI
+                    "isAI",
+                            player.IsAI && !player.Profile.Id.StartsWith("pmc")
                         },
                         {
                             "accountId",
@@ -119,17 +116,16 @@ namespace SIT.Coop.Core.Player
                         },
                         {
                             "p.equip",
-                            //player.Profile.Inventory.Equipment.CloneItem().ToJson()
                             player.Profile.Inventory.Equipment.SITToJson()
                         }
                     };
-            //new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             ServerCommunication.PostLocalPlayerData(player, dictionary2);
+            
 
-            CoopGameComponent.GetCoopGameComponent().Players.TryAdd(player.Profile.AccountId, player);
+
         }
 
         public static void SendOrReceiveSpawnPoint(EFT.Player player)

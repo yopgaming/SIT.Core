@@ -1,4 +1,5 @@
 ﻿using EFT;
+using SIT.Core.Misc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,9 +14,9 @@ namespace SIT.Tarkov.Core.AI
         protected override MethodBase GetTargetMethod()
         {
             return
-                PatchConstants.GetMethodForType(
+                ReflectionHelpers.GetMethodForType(
                 PatchConstants.EftTypes.Single(x =>
-                PatchConstants.GetMethodForType(x, "IsPlayerEnemyByRole") != null), "IsPlayerEnemyByRole");
+                ReflectionHelpers.GetMethodForType(x, "IsPlayerEnemyByRole") != null), "IsPlayerEnemyByRole");
         }
 
         [PatchPrefix]

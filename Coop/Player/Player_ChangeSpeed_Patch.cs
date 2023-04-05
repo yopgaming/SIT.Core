@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace SIT.Core.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
             //Logger.LogInfo($"Player_ChangeSpeed_Patch:{InstanceType.Name}:{method.Name}");
 
             return method;
@@ -45,7 +46,7 @@ namespace SIT.Core.Coop.Player
 
             if (LastSpeedDelta.ContainsKey(player.Profile.AccountId))
             {
-                if (Math.Round((double)LastSpeedDelta[player.Profile.AccountId], 2) == Math.Round((double)speedDelta, 2))
+                if (Math.Round((double)LastSpeedDelta[player.Profile.AccountId], 1) == Math.Round((double)speedDelta, 1))
                     return;
             }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SIT.Core.Misc;
+using System;
 using System.Linq;
 
 namespace SIT.Tarkov.Core.Bundles
@@ -16,8 +17,8 @@ namespace SIT.Tarkov.Core.Bundles
         {
             IEasyBundleType = PatchConstants.EftTypes.Single(x => x.IsInterface
                 &&
-                 (PatchConstants.GetFieldFromType(x, "SameNameAsset") != null
-                 || PatchConstants.GetPropertyFromType(x, "SameNameAsset") != null)
+                 (ReflectionHelpers.GetFieldFromType(x, "SameNameAsset") != null
+                 || ReflectionHelpers.GetPropertyFromType(x, "SameNameAsset") != null)
 
                 );
 
@@ -25,21 +26,21 @@ namespace SIT.Tarkov.Core.Bundles
 
             IBundleLockType = PatchConstants.EftTypes.Single(x => x.IsInterface
                 &&
-                 (PatchConstants.GetFieldFromType(x, "IsLocked") != null
-                 || PatchConstants.GetPropertyFromType(x, "IsLocked") != null)
-                && PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "Lock")
+                 (ReflectionHelpers.GetFieldFromType(x, "IsLocked") != null
+                 || ReflectionHelpers.GetPropertyFromType(x, "IsLocked") != null)
+                && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "Lock")
                 );
 
             PatchConstants.Logger.LogInfo("BundleSetup.Init.IBundleLockType:" + IBundleLockType.Name);
 
             BundleLockType = PatchConstants.EftTypes.Single(x =>
-                 (PatchConstants.GetFieldFromType(x, "IsLocked") != null
-                 || PatchConstants.GetPropertyFromType(x, "IsLocked") != null)
+                 (ReflectionHelpers.GetFieldFromType(x, "IsLocked") != null
+                 || ReflectionHelpers.GetPropertyFromType(x, "IsLocked") != null)
                 &&
-                (PatchConstants.GetFieldFromType(x, "MaxConcurrentOperations") != null
-                 || PatchConstants.GetPropertyFromType(x, "MaxConcurrentOperations") != null)
+                (ReflectionHelpers.GetFieldFromType(x, "MaxConcurrentOperations") != null
+                 || ReflectionHelpers.GetPropertyFromType(x, "MaxConcurrentOperations") != null)
                 &&
-                PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "Lock")
+                ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "Lock")
                 );
 
             PatchConstants.Logger.LogInfo("BundleSetup.Init.BundleLockType:" + BundleLockType.Name);
@@ -47,11 +48,11 @@ namespace SIT.Tarkov.Core.Bundles
             DependancyGraphType = PatchConstants.EftTypes.Single(x =>
                 x.IsSealed
                &&
-                PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "Retain")
+                ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "Retain")
                &&
-               PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "RetainSeparate")
+               ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "RetainSeparate")
                &&
-               PatchConstants.GetAllMethodsForType(x).Any(x => x.Name == "GetNode")
+               ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "GetNode")
                );
 
             PatchConstants.Logger.LogInfo("BundleSetup.Init.DependancyGraphType:" + DependancyGraphType.Name);
@@ -62,10 +63,10 @@ namespace SIT.Tarkov.Core.Bundles
                x.GetConstructors().Length >= 2
               &&
               x.IsGenericTypeDefinition
-              && (PatchConstants.GetFieldFromType(x, "Value") != null
-                 || PatchConstants.GetPropertyFromType(x, "Value") != null)
-              && (PatchConstants.GetFieldFromType(x, "HasHandlers") != null
-                 || PatchConstants.GetPropertyFromType(x, "HasHandlers") != null)
+              && (ReflectionHelpers.GetFieldFromType(x, "Value") != null
+                 || ReflectionHelpers.GetPropertyFromType(x, "Value") != null)
+              && (ReflectionHelpers.GetFieldFromType(x, "HasHandlers") != null
+                 || ReflectionHelpers.GetPropertyFromType(x, "HasHandlers") != null)
               );
 
             PatchConstants.Logger.LogInfo("BundleSetup.Init.BindableStateType:" + BindableStateType.Name);

@@ -17,7 +17,7 @@
 
 //        protected override MethodBase GetTargetMethod()
 //        {
-//            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+//            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 //            return method;
 //        }
 
@@ -29,7 +29,7 @@
 //        public static bool PrePatch(EFT.Player.ItemHandsController __instance)
 //        {
 //            //var player = ____player;
-//            var player = PatchConstants.GetFieldFromType(__instance.GetType(), "_player").GetValue(__instance) as EFT.Player;
+//            var player = ReflectionHelpers.GetFieldFromType(__instance.GetType(), "_player").GetValue(__instance) as EFT.Player;
 //            if (player == null)
 //                return false;
 
@@ -43,7 +43,7 @@
 //        [PatchPostfix]
 //        public static void PostPatch(EFT.Player.ItemHandsController __instance, bool p)
 //        {
-//            var player = PatchConstants.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+//            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
 //            if (player == null)
 //                return;
 

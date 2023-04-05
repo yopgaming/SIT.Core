@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace SIT.Core.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+            var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
 
             return method;
         }
@@ -25,7 +26,7 @@ namespace SIT.Core.Coop.Player
             = new List<long>();
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player __instance)
+        public static bool PrePatch(ref EFT.Player __instance)
         {
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
@@ -36,8 +37,8 @@ namespace SIT.Core.Coop.Player
 
         [PatchPostfix]
         public static void PostPatch(
-           EFT.Player __instance,
-            bool opened
+           ref EFT.Player __instance,
+            ref bool opened
             )
         {
             var player = __instance;
@@ -53,7 +54,8 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("o", opened.ToString());
             dictionary.Add("m", "SetInventoryOpened");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-
+            //dictionary.Clear();
+            //dictionary = null;
         }
 
 
@@ -68,6 +70,9 @@ namespace SIT.Core.Coop.Player
                 ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
                 return;
             }
+
+            if (CallLocally.ContainsKey(player.Profile.AccountId))
+                return;
 
             try
             {

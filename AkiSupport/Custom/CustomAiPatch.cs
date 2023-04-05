@@ -119,7 +119,7 @@ namespace SIT.Core.AkiSupport.Custom
         private static void HydrateCacheWithServerData()
         {
             // Get weightings for PMCs from server and store in dict
-            var result = new Request().GetJson($"/singleplayer/settings/bot/getBotBehaviours/");
+            var result = Request.Instance.GetJson($"/singleplayer/settings/bot/getBotBehaviours/");
             botTypeCache = JsonConvert.DeserializeObject<Dictionary<WildSpawnType, Dictionary<string, Dictionary<string, int>>>>(result);
             Console.WriteLine($"cached: {botTypeCache.Count} bots");
         }

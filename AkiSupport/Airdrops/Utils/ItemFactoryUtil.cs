@@ -63,7 +63,7 @@ namespace SIT.Core.AkiSupport.Airdrops.Utils
 
         private List<AirdropLootModel> GetLoot()
         {
-            var json = new Request().GetJson("/client/location/getAirdropLoot");
+            var json = Request.Instance.GetJson("/client/location/getAirdropLoot");
             var loot = JsonConvert.DeserializeObject<List<AirdropLootModel>>(json);
 
             return loot;

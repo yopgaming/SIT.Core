@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-//using BindableState = BindableState<Diz.DependencyManager.ELoadState>;
+using BindableState = BindableState<Diz.DependencyManager.ELoadState>;
+
 
 /***
  * Full Credit for this patch goes to SPT-Aki team
@@ -24,27 +25,22 @@ namespace SIT.Tarkov.Core
         private static readonly PropertyInfo _loadStateProperty;
         private static readonly MethodInfo _loadingCoroutineMethod;
         private readonly object _instance;
-        public static Type Type
-        {
-            get
-            {
-                return PatchConstants.EftTypes.Single(x => !x.IsInterface && x.GetMethod("set_SameNameAsset", _flags) != null);
-            }
-        }
+        public static readonly Type Type;
 
         static EasyBundleHelper()
         {
-            //PatchConstants.Logger.LogInfo("EasyBundleHelper:STATIC");
+            _ = nameof(IBundleLock.IsLocked);
+            _ = nameof(BindableState.Bind);
 
+            Type = PatchConstants.EftTypes.Single(x => x.GetMethod("set_SameNameAsset", _flags) != null);
+            PatchConstants.Logger.LogDebug($"EasyBundleHelper::{Type.FullName}");
             _pathField = Type.GetField("string_1", _flags);
             _keyWithoutExtensionField = Type.GetField("string_0", _flags);
-            _bundleLockField = Type.GetFields(_flags).FirstOrDefault(x => x.FieldType == BundleSetup.IBundleLockType);
+            _bundleLockField = Type.GetFields(_flags).FirstOrDefault(x => x.FieldType == typeof(IBundleLock));
             _dependencyKeysProperty = Type.GetProperty("DependencyKeys");
             _keyProperty = Type.GetProperty("Key");
             _loadStateProperty = Type.GetProperty("LoadState");
             _loadingCoroutineMethod = Type.GetMethods(_flags).Single(x => x.GetParameters().Length == 0 && x.ReturnType == typeof(Task));
-
-            //PatchConstants.Logger.LogInfo("EasyBundleHelper:STATIC:COMPLETE");
         }
 
         public EasyBundleHelper(object easyBundle)
@@ -64,11 +60,11 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public object BundleLock
+        public IBundleLock BundleLock
         {
             get
             {
-                return _bundleLockField.GetValue(_instance);
+                return (IBundleLock)_bundleLockField.GetValue(_instance);
             }
             set
             {
@@ -100,11 +96,11 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public object LoadState
+        public BindableState LoadState
         {
             get
             {
-                return _loadStateProperty.GetValue(_instance);
+                return (BindableState)_loadStateProperty.GetValue(_instance);
             }
             set
             {

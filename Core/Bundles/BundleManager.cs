@@ -26,7 +26,7 @@ namespace SIT.Tarkov.Core
 
         public static void GetBundles()
         {
-            var json = new Request().GetJson("/singleplayer/bundles");
+            var json = Request.Instance.GetJson("/singleplayer/bundles");
             var jArray = JArray.Parse(json);
 
             foreach (var jObj in jArray)
@@ -44,7 +44,7 @@ namespace SIT.Tarkov.Core
                     var filepath = CachePath + Regex.Split(path, "bundle/", RegexOptions.IgnoreCase)[1];
                     try
                     {
-                        var data = new Request().GetData(path, true);
+                        var data = Request.Instance.GetData(path, true);
                         if (data != null && data.Length == 0)
                         {
                             PatchConstants.Logger.LogInfo("Bundle received is 0 bytes. WTF!");

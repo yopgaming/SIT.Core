@@ -22,7 +22,7 @@ namespace Aki.Custom.Patches
         }
 
         [PatchPrefix]
-        private static void PatchPrefix(MatchmakerOfflineRaidScreen.GClass2769 controller, UpdatableToggle ____offlineModeToggle)
+        private static void PatchPrefix(MatchmakerOfflineRaidScreen.GClass2772 controller, UpdatableToggle ____offlineModeToggle)
         {
             var raidSettings = controller.RaidSettings;
 
@@ -33,7 +33,7 @@ namespace Aki.Custom.Patches
             ____offlineModeToggle.isOn = true;
 
             // get settings from server
-            var json = new Request().GetJson("/singleplayer/settings/raid/menu");
+            var json = Request.Instance.GetJson("/singleplayer/settings/raid/menu");
             var settings = Json.Deserialize<DefaultRaidSettings>(json);
 
             // TODO: Not all settings are used and they also don't cover all the new settings that are available client-side

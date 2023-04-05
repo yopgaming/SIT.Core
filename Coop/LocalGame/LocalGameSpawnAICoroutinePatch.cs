@@ -40,13 +40,13 @@
 //            Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:game:{gameInstance}");
 
 //            Logger.LogInfo("LocalGameSpawnAICoroutinePatch:Get Boss Spawner");
-//            BossSpawner = PatchConstants.GetFieldFromTypeByFieldType(
+//            BossSpawner = ReflectionHelpers.GetFieldFromTypeByFieldType(
 //                    gameType,
 //                    typeof(BossSpawnerClass)).GetValue(game);
 
 //            Logger.LogInfo("LocalGameSpawnAICoroutinePatch:Get Location Settings");
 
-//            //LocationSettings = (LocationSettings.SelectedLocation)PatchConstants.GetFieldFromTypeByFieldType(
+//            //LocationSettings = (LocationSettings.SelectedLocation)ReflectionHelpers.GetFieldFromTypeByFieldType(
 //            //        gameType,
 //            //        typeof(LocationSettings.SelectedLocation)).GetValue(LocalGamePatches.LocalGameInstance);
 
@@ -54,28 +54,28 @@
 
 //        protected override MethodBase GetTargetMethod()
 //        {
-//            //BossSpawner = PatchConstants.GetFieldFromType(LocalGamePatches.LocalGameInstance.GetType().BaseType
+//            //BossSpawner = ReflectionHelpers.GetFieldFromType(LocalGamePatches.LocalGameInstance.GetType().BaseType
 //            //    , BotSystemHelpers.BossSpawnRunnerType.Name.ToLower() + "_0").GetValue(LocalGamePatches.LocalGameInstance);
-//            //BossSpawner = PatchConstants.GetFieldFromTypeByFieldType(
+//            //BossSpawner = ReflectionHelpers.GetFieldFromTypeByFieldType(
 //            //        LocalGamePatches.LocalGameInstance.GetType(),
 //            //        typeof(BossSpawnerClass)).GetValue(LocalGamePatches.LocalGameInstance);
 
 //            //Logger.LogInfo("LocalGameSpawnAICoroutinePatch:Get Location Settings");
 
-//            //LocationSettings = (LocationSettings.SelectedLocation)PatchConstants.GetFieldFromTypeByFieldType(
+//            //LocationSettings = (LocationSettings.SelectedLocation)ReflectionHelpers.GetFieldFromTypeByFieldType(
 //            //        LocalGamePatches.LocalGameInstance.GetType(),
 //            //        typeof(LocationSettings.SelectedLocation)).GetValue(LocalGamePatches.LocalGameInstance); 
 
 
-//            //PatchConstants.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, BotSystemHelpers.BossSpawnRunnerType.Name.ToLower() + "_0", false);
+//            //ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, BotSystemHelpers.BossSpawnRunnerType.Name.ToLower() + "_0", false);
 //            //Logger.LogInfo($"BossSpawner:{BossSpawner.GetType().Name}");
 
-//            BossSpawnerWaves = PatchConstants.GetFieldOrPropertyFromInstance<object>(BossSpawner, "BossSpawnWaves", false);
+//            BossSpawnerWaves = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(BossSpawner, "BossSpawnWaves", false);
 //            //Logger.LogInfo($"BossSpawnerWaves:{BossSpawnerWaves.GetType().Name}");
 
-//            //MethodInfoBotCreation = PatchConstants.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType().BaseType, "method_8");
+//            //MethodInfoBotCreation = ReflectionHelpers.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType().BaseType, "method_8");
 
-//            var targetMethod = PatchConstants.GetAllMethodsForType(LocalGamePatches.LocalGameInstance.GetType().BaseType)
+//            var targetMethod = ReflectionHelpers.GetAllMethodsForType(LocalGamePatches.LocalGameInstance.GetType().BaseType)
 //                .Single(
 //                m =>
 //                m.IsVirtual
@@ -130,7 +130,7 @@
 
 //        //        //Logger.LogInfo($"BotSystemHelpers.RoleLimitDifficultyType.Name_0:{BotSystemHelpers.RoleLimitDifficultyType.Name + "_0"}");
 //        //        //CoopGameComponent.Players.Clear();
-//        //        var nonSpawnWaveShit = PatchConstants.GetFieldOrPropertyFromInstance<object>(
+//        //        var nonSpawnWaveShit = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(
 //        //            LocalGamePatches.LocalGameInstance
 //        //            //, BotSystemHelpers.RoleLimitDifficultyType.Name + "_0"
 //        //            , "nonWavesSpawnScenario_0"
@@ -140,9 +140,9 @@
 //        //            Logger.LogInfo($"nonSpawnWaveShit:{nonSpawnWaveShit.GetType().Name}");
 
 //        //            // this doesn't work because the gclass name isn't the same as the member name, need a work around
-//        //            //var openZones = PatchConstants.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, BotSystemHelpers.LocationBaseType.Name + "_0", false);
-//        //            var openZones = LocationSettings;// PatchConstants.GetFieldOrPropertyFromInstance<object>(__instance, "GClass1113_0", false);
-//        //            var openZones2 = PatchConstants.GetFieldOrPropertyFromInstance<string>(openZones, "OpenZones", false);
+//        //            //var openZones = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, BotSystemHelpers.LocationBaseType.Name + "_0", false);
+//        //            var openZones = LocationSettings;// ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(__instance, "GClass1113_0", false);
+//        //            var openZones2 = ReflectionHelpers.GetFieldOrPropertyFromInstance<string>(openZones, "OpenZones", false);
 
 //        //            //Logger.LogInfo($"BotSystemHelpers.ProfileCreatorType:{BotSystemHelpers.ProfileCreatorType.Name}");
 //        //            // Construct Profile Creator
@@ -183,8 +183,8 @@
 //        //            var AIIgnorePlayers = _config.Bind("Server", "AI Ignore Players", false).Value;
 //        //            if (!AIIgnorePlayers)
 //        //            {
-//        //                //var gparam = PatchConstants.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, "gparam_0", false);
-//        //                //var player = PatchConstants.GetFieldOrPropertyFromInstance<EFT.Player>(gparam, "Player", false);
+//        //                //var gparam = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, "gparam_0", false);
+//        //                //var player = ReflectionHelpers.GetFieldOrPropertyFromInstance<EFT.Player>(gparam, "Player", false);
 //        //                //BotSystemHelpers.AddActivePlayer(player);
 //        //                __instance.BotsController.AddActivePLayer(__instance.AllPlayers[0]);
 //        //            }
@@ -203,14 +203,14 @@
 //        //                    ___nonWavesSpawnScenario_0.Run();
 //        //                }
 
-//        //                PatchConstants.GetMethodForType(BossSpawner.GetType(), "Run").Invoke(BossSpawner, new object[] { EBotsSpawnMode.Anyway });
+//        //                ReflectionHelpers.GetMethodForType(BossSpawner.GetType(), "Run").Invoke(BossSpawner, new object[] { EBotsSpawnMode.Anyway });
 //        //            }
 //        //            yield return new WaitForSeconds(3);
 
 //        //            using (PatchConstants.StartWithToken("SessionRun"))
 //        //            {
 //        //                // TODO: This needs removing!
-//        //                PatchConstants.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType(), "vmethod_4").Invoke(LocalGamePatches.LocalGameInstance, new object[0]);
+//        //                ReflectionHelpers.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType(), "vmethod_4").Invoke(LocalGamePatches.LocalGameInstance, new object[0]);
 //        //            }
 //        //            yield return new WaitForSeconds(1);
 
@@ -234,7 +234,7 @@
 //        //        using (PatchConstants.StartWithToken("SessionRun"))
 //        //        {
 //        //            // TODO: This needs removing!
-//        //            PatchConstants.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType(), "vmethod_4").Invoke(LocalGamePatches.LocalGameInstance, new object[0]);
+//        //            ReflectionHelpers.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType(), "vmethod_4").Invoke(LocalGamePatches.LocalGameInstance, new object[0]);
 //        //        }
 //        //        runCallback.Succeed();
 //        //    }
@@ -273,7 +273,7 @@
 
 //            // TODO: Rewrite the following method into BotCreationMethod
 //            if (method_8 == null)
-//                method_8 = PatchConstants.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType().BaseType, "method_8");
+//                method_8 = ReflectionHelpers.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType().BaseType, "method_8");
 
 //            var player = await (Task<LocalPlayer>)method_8
 //            .Invoke(LocalGamePatches.LocalGameInstance, new object[] { profile, position });
@@ -334,7 +334,7 @@
 //                            player.Profile.Inventory.Equipment.SITToJson()
 //                        }
 //                    };
-//                //new Request().PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
+//                //Request.Instance.PostJson("/client/match/group/server/players/spawn", dictionary2.ToJson());
 //                await ServerCommunication.PostLocalPlayerDataAsync(player, dictionary2);
 //                //Logger.LogInfo($"BotCreationMethod. [SUCCESS] Adding AI {profile.AccountId} to CoopGameComponent.Players list");
 //            }

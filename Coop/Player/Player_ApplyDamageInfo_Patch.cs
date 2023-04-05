@@ -26,7 +26,7 @@
 
 //        public PlayerOnDamagePatch()
 //        {
-//            BeingHitType = PatchConstants.EftTypes.Single(x => PatchConstants.GetMethodForType(x, "BeingHitAction") != null);
+//            BeingHitType = PatchConstants.EftTypes.Single(x => ReflectionHelpers.GetMethodForType(x, "BeingHitAction") != null);
 //        }
 
 //        protected override MethodBase GetTargetMethod()
@@ -35,7 +35,7 @@
 //            if (t == null)
 //                Logger.LogInfo($"PlayerOnDamagePatch:Type is NULL");
 
-//            var method = PatchConstants.GetMethodForType(t, "ApplyDamageInfo");
+//            var method = ReflectionHelpers.GetMethodForType(t, "ApplyDamageInfo");
 
 //            Logger.LogInfo($"PlayerOnDamagePatch:{t.Name}:{method.Name}");
 //            return method;
@@ -66,13 +66,13 @@
 //            //Logger.LogInfo("PlayerOnDamagePatch.PatchPostfix");
 //            Dictionary<string, object> dictionary = new Dictionary<string, object>();
 //            //DamageInfo damageI = JsonConvert.DeserializeObject<DamageInfo>(JsonConvert.SerializeObject(damageInfo, settings: new JsonSerializerSettings() { MaxDepth = 0, ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
-//            //dictionary.Add("armorDamage", PatchConstants.GetFieldFromType(damageInfo.GetType(), "ArmorDamage").GetValue(damageInfo));
+//            //dictionary.Add("armorDamage", ReflectionHelpers.GetFieldFromType(damageInfo.GetType(), "ArmorDamage").GetValue(damageInfo));
 //            dictionary.Add("armorDamage", damageInfo.ArmorDamage);
 //            dictionary.Add("bodyPart", bodyPartType);
 //            ////dictionary.Add("bodyPartColliderType", damageI.BodyPartColliderType);
-//            ////dictionary.Add("damage", PatchConstants.GetFieldFromType(damageInfo.GetType(), "Damage").GetValue(damageInfo));
+//            ////dictionary.Add("damage", ReflectionHelpers.GetFieldFromType(damageInfo.GetType(), "Damage").GetValue(damageInfo));
 //            dictionary.Add("damage", damageInfo.Damage);
-//            ////dictionary.Add("damageType", PatchConstants.GetFieldFromType(damageInfo.GetType(), "DamageType").GetValue(damageInfo));
+//            ////dictionary.Add("damageType", ReflectionHelpers.GetFieldFromType(damageInfo.GetType(), "DamageType").GetValue(damageInfo));
 //            dictionary.Add("damageType", damageInfo.DamageType);
 //            ////dictionary.Add("damageType", damageI.DamageType);
 //            //dictionary.Add("deflectedBy", damageInfo.DeflectedBy);
@@ -103,11 +103,11 @@
 
 //            dictionary.Add("absorbed", absorbed);
 //            //dictionary.Add("headSegment", headSegment);
-//            //foreach(var r in PatchConstants.GetAllPropertiesForObject(damageInfo))
+//            //foreach(var r in ReflectionHelpers.GetAllPropertiesForObject(damageInfo))
 //            //{
 //            //    dictionary.Add(r.Name, r.GetValue(damageInfo));
 //            //}
-//            //foreach (var r in PatchConstants.GetAllFieldsForObject(damageInfo))
+//            //foreach (var r in ReflectionHelpers.GetAllFieldsForObject(damageInfo))
 //            //{
 //            //    dictionary.Add(r.Name, r.GetValue(damageInfo));
 //            //}
@@ -139,7 +139,7 @@
 
 //            //Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Get IsAlive ");
 
-//            bool isAlive = PatchConstants.GetFieldOrPropertyFromInstance<bool>(ActiveHealthController, "IsAlive", false);
+//            bool isAlive = ReflectionHelpers.GetFieldOrPropertyFromInstance<bool>(ActiveHealthController, "IsAlive", false);
 //            //DamageInfo damageInfo = new DamageInfo();
 //            //Logger.LogInfo("PlayerOnDamagePatch.DamageReplicated() - Get DamageInfo ");
 
@@ -150,7 +150,7 @@
 //            dmI.Damage = float.Parse(dict["damage"].ToString());
 //            if (dmI.Damage <= 0)
 //                throw new ArgumentOutOfRangeException("Damage", $"Damage needs to be over 0! Value provided: {dmI.Damage}");
-//            //foreach (var r in PatchConstants.GetAllPropertiesForObject(dmI))
+//            //foreach (var r in ReflectionHelpers.GetAllPropertiesForObject(dmI))
 //            //{
 //            //    if (dict.ContainsKey(r.Name))
 //            //    {
@@ -158,7 +158,7 @@
 //            //        r.SetValue(dmI, dict[r.Name]);
 //            //    }
 //            //}
-//            //foreach (var r in PatchConstants.GetAllFieldsForObject(dmI))
+//            //foreach (var r in ReflectionHelpers.GetAllFieldsForObject(dmI))
 //            //{
 //            //    if (dict.ContainsKey(r.Name))
 //            //    {
@@ -274,7 +274,7 @@
 //                Kill(ActiveHealthController, damageType);
 //            }
 
-//            isAlive = PatchConstants.GetFieldOrPropertyFromInstance<bool>(ActiveHealthController, "IsAlive", false);
+//            isAlive = ReflectionHelpers.GetFieldOrPropertyFromInstance<bool>(ActiveHealthController, "IsAlive", false);
 //            if (!isAlive)
 //                return;
 
@@ -299,7 +299,7 @@
 //                ServerCommunication.PostLocalPlayerData(activeHealthController.Player, dict);
 //            }
 //            //activeHealthController.Kill(damageType);
-//            //PatchConstants.GetMethodForType(activeHealthController.GetType(), "Kill").Invoke(activeHealthController, new object[] { damageType });
+//            //ReflectionHelpers.GetMethodForType(activeHealthController.GetType(), "Kill").Invoke(activeHealthController, new object[] { damageType });
 //        }
 
 //        private static void BeingHitAction(object damageInfo, EFT.Player player)
@@ -308,7 +308,7 @@
 //            if (singletonBeingHit == null)
 //                return;
 
-//            PatchConstants.GetMethodForType(singletonBeingHit.GetType(), "BeingHitAction")
+//            ReflectionHelpers.GetMethodForType(singletonBeingHit.GetType(), "BeingHitAction")
 //                .Invoke(singletonBeingHit, new object[]
 //                {
 //                    damageInfo
@@ -323,7 +323,7 @@
 //            if (activeHealthController == null)
 //                return;
 
-//            PatchConstants.GetMethodForType(activeHealthController.GetType(), "TryApplySideEffects")
+//            ReflectionHelpers.GetMethodForType(activeHealthController.GetType(), "TryApplySideEffects")
 //                .Invoke(activeHealthController, new object[]
 //                {
 //                    damageType
@@ -336,15 +336,20 @@
 //}
 
 #endregion
+using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine.UIElements;
 
 namespace SIT.Core.Coop.Player
 {
@@ -358,7 +363,7 @@ namespace SIT.Core.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.GetMethodForType(InstanceType, MethodName);
+            return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
         [PatchPrefix]
@@ -385,6 +390,16 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
+            // If this player is a Client drone, do not send any data, anywhere
+            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return;
+            }
+
+            Dictionary<string, object> packet = new Dictionary<string, object>();
+
+
             damageInfo.HitCollider = null;
             damageInfo.HittedBallisticCollider = null;
             Dictionary<string, string> playerDict = new Dictionary<string, string>();
@@ -405,36 +420,39 @@ namespace SIT.Core.Coop.Player
             }
             damageInfo.Player = null;
             Dictionary<string, string> weaponDict = new Dictionary<string, string>();
-            try
+            //try
+            //{
+            //    if (damageInfo.Weapon != null)
+            //    {
+            //        foreach (var wProp in damageInfo.Weapon.GetType()
+            //            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            //            .Where(x => x.CanWrite && x.CanRead)
+            //            )
+            //        {
+            //            var pw = JsonConvert.SerializeObject(wProp.GetValue(damageInfo.Weapon), PatchConstants.GetJsonSerializerSettingsWithoutBSG());
+            //            weaponDict.Add(wProp.Name, pw);
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Logger.LogError(e);
+            //}
+            if (damageInfo.Weapon != null)
             {
-                if (damageInfo.Weapon != null)
-                {
-                    foreach (var wProp in damageInfo.Weapon.GetType()
-                        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                        .Where(x => x.CanWrite && x.CanRead)
-                        )
-                    {
-                        var pw = JsonConvert.SerializeObject(wProp.GetValue(damageInfo.Weapon), PatchConstants.GetJsonSerializerSettingsWithoutBSG());
-                        weaponDict.Add(wProp.Name, pw);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e);
+                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+                packet.Add("d.w.id", damageInfo.Weapon.Id);
             }
             damageInfo.Weapon = null;
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("d", SerializeObject(damageInfo));
-            //dictionary.Add("d.p", p);
-            dictionary.Add("d.p", playerDict);
-            dictionary.Add("d.w", weaponDict);
-            dictionary.Add("bpt", bodyPartType.ToString());
-            dictionary.Add("ab", absorbed.ToString());
-            dictionary.Add("m", "ApplyDamageInfo");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            packet.Add("t", DateTime.Now.Ticks);
+            packet.Add("d", SerializeObject(damageInfo));
+            packet.Add("d.p", playerDict);
+            packet.Add("d.w", weaponDict);
+            packet.Add("bpt", bodyPartType.ToString());
+            packet.Add("ab", absorbed.ToString());
+            packet.Add("m", "ApplyDamageInfo");
+            ServerCommunication.PostLocalPlayerData(player, packet);
         }
 
 
@@ -448,9 +466,6 @@ namespace SIT.Core.Coop.Player
                 return;
 
             var timestamp = long.Parse(dict["t"].ToString());
-            //if ((DateTime.Now - new DateTime(timestamp)).TotalSeconds > 10)
-            //    return;
-
             if (!ProcessedCalls.Contains(timestamp))
                 ProcessedCalls.Add(timestamp);
             else
@@ -461,11 +476,11 @@ namespace SIT.Core.Coop.Player
 
             try
             {
-                //DamageInfo damageInfo = new DamageInfo();
                 var damageInfo = JObject.Parse(dict["d"].ToString()).ToObject<DamageInfo>();
                 Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
                 var absorbed = float.Parse(dict["ab"].ToString());
 
+                EFT.Player aggressorPlayer = null;
                 if (dict.ContainsKey("d.p") && damageInfo.Player == null)
                 {
                     Dictionary<string, string> playerDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.p"].ToString());
@@ -475,17 +490,40 @@ namespace SIT.Core.Coop.Player
                         if (coopGC != null)
                         {
                             var accountId = playerDict["d.p.aid"];
-                            damageInfo.Player = coopGC.Players.FirstOrDefault(x => x.Key == accountId).Value;
-                            //damageInfo.Player.Position 
-                            //    = new UnityEngine.Vector3(
-                            //        float.Parse(playerDict["d.p.pos.x"]),
-                            //        float.Parse(playerDict["d.p.pos.y"]),
-                            //        float.Parse(playerDict["d.p.pos.z"]));
-                            //damageInfo.Player.Loyalty = playerDict["d.p.loyalty"].SITParseJson<Loyalty>();
+                            if (coopGC.Players.ContainsKey(accountId))
+                            {
+                                aggressorPlayer = coopGC.Players[accountId];
+                                damageInfo.Player = aggressorPlayer;
+                            }
+                            aggressorPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == accountId);
+                            if (aggressorPlayer != null)
+                                damageInfo.Player = aggressorPlayer;
                         }
                     }
                 }
 
+                //if (dict.ContainsKey("d.w") && damageInfo.Weapon == null)
+                //{
+                //    Dictionary<string, string> weaponDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.w"].ToString());
+                //}
+
+                if(dict.ContainsKey("d.w.tpl"))
+                {
+                    Logger.LogDebug("Apply Damage: Found d.w.tpl");
+                    if (aggressorPlayer != null)
+                    {
+                        if (aggressorPlayer.Inventory.GetAllItemByTemplate(dict["d.w.tpl"].ToString()).Any())
+                        {
+                            Logger.LogDebug("Apply Damage: Found Template in Player Inventory");
+                            var w = aggressorPlayer.Inventory.GetAllItemByTemplate(dict["d.w.tpl"].ToString()).First() as Weapon;
+                            if (w != null)
+                            {
+                                Logger.LogDebug("Apply Damage: Found Weapon in Player Inventory");
+                                damageInfo.Weapon = w;
+                            }
+                        }
+                    }
+                }
 
 
                 CallLocally.Add(player.Profile.AccountId, true);

@@ -1,5 +1,6 @@
 ﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -15,12 +16,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "LightAndSoundShot";
-        //public override bool DisablePatch => true;
         public MethodInfo Method { get; set; } = null;
 
         protected override MethodBase GetTargetMethod()
         {
-            Method = PatchConstants.GetMethodForType(InstanceType, MethodName);
+            Method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
             return Method;
         }
 
@@ -31,6 +31,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
+            Logger.LogInfo("FirearmController_LightAndSoundShot_Patch:PrePatch");
+
             return true;
             //var player = ____player;
             //if (player == null)

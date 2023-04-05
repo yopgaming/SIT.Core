@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using SIT.Core.Misc;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Tarkov.Core.AI
@@ -11,9 +12,9 @@ namespace SIT.Tarkov.Core.AI
         protected override MethodBase GetTargetMethod()
         {
             return
-                PatchConstants.GetMethodForType(
+                ReflectionHelpers.GetMethodForType(
                 PatchConstants.EftTypes.Single(x =>
-                PatchConstants.GetMethodForType(x, "IsEnemy") != null), "IsEnemy");
+                ReflectionHelpers.GetMethodForType(x, "IsEnemy") != null), "IsEnemy");
         }
 
         [PatchPrefix]

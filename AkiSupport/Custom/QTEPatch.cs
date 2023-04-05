@@ -11,7 +11,7 @@ namespace SIT.Core.AkiSupport.Custom
         [PatchPostfix]
         private static void PatchPostfix(HideoutPlayerOwner __instance)
         {
-            new Request().PutJson("/client/hideout/workout", new
+            Request.Instance.PutJson("/client/hideout/workout", new
             {
                 skills = __instance.HideoutPlayer.Skills,
                 effects = __instance.HideoutPlayer.HealthController.BodyPartEffects

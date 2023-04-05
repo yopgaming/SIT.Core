@@ -1,179 +1,183 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
+using Newtonsoft.Json;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace SIT.Coop.Core.Player
 {
-    internal class PlayerReplicatedComponent : NetworkBehaviour
+    /// <summary>
+    /// Player Replicated Component is the Player/AI direct communication to the Server
+    /// </summary>
+    internal class PlayerReplicatedComponent : MonoBehaviour
     {
         internal const int PacketTimeoutInSeconds = 1;
-        internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
+        //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
         internal Dictionary<string, object> LastMovementPacket { get; set; }
-        internal EFT.LocalPlayer player { private get; set; }
+        internal EFT.LocalPlayer player { get; set; }
         public float LastTiltLevel { get; private set; }
         public bool IsMyPlayer { get; internal set; }
+        public bool IsClientDrone { get; internal set; }
 
         void Awake()
         {
-            PatchConstants.Logger.LogInfo("PlayerReplicatedComponent:Awake");
+            PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
         }
 
         void Start()
         {
-            PatchConstants.Logger.LogInfo($"PlayerReplicatedComponent:Start");
+            PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start");
 
-            StartCoroutine(HandleQueuedPackets());
-        }
-
-        private IEnumerator HandleQueuedPackets()
-        {
-            var waitSeconds = new WaitForSeconds(1f);
-            var waitEndOfFrame = new WaitForEndOfFrame();
-
-            while (true)
+            if (player == null)
             {
-                var coopGC = CoopGameComponent.GetCoopGameComponent();
-                if (coopGC == null)
-                    continue;
-
-                if (player == null)
-                {
-                    PatchConstants.Logger.LogInfo($"Player is NULL for Component {this}");
-                    yield return waitSeconds;
-                    continue;
-                }
-
-                //if (!coopGC.Players.ContainsKey(player.Profile.AccountId))
-                //{
-                //    coopGC.Players.TryAdd(player.Profile.AccountId, player);
-                //    yield return waitSeconds;
-                //    continue;
-                //}
-
-                if (!QueuedPackets.Any())
-                {
-                    yield return waitSeconds;
-                    continue;
-                }
-
-                //PatchConstants.Logger.LogInfo($"{player.Profile.AccountId} has {QueuedPackets.Count} QueuedPackets");
-
-                // Concurrent Queue may be breaking. CoopGameComponent is fighting with this thread and seems to win in most cases. 
-                // Maybe move all logic to run directly from CoopGameComponent?
-                if (QueuedPackets.TryDequeue(out Dictionary<string, object> packet))
-                {
-                    HandlePacket(packet);
-                }
-
-                //yield return waitSeconds;
-                yield return waitEndOfFrame;
+                player = this.GetComponentInParent<EFT.LocalPlayer>();
+                PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}");
             }
+
+            GCHelpers.EnableGC();
         }
 
         public void HandlePacket(Dictionary<string, object> packet)
         {
             var method = packet["m"].ToString();
 
-            foreach (var patch in ModuleReplicationPatch.Patches)
+            var patch = ModuleReplicationPatch.Patches.FirstOrDefault(x=>x.MethodName == method);
+            if (patch != null)
             {
-                if (patch.MethodName == method)
-                {
-                    patch.Replicated(player, packet);
-                    break;
-                }
+                patch.Replicated(player, packet);
+                return;
             }
 
             switch (method)
             {
-
-                case "HostDied":
-                    PatchConstants.Logger.LogInfo("Host Died");
-                    //LocalGameEndingPatch.EndSession(LocalGamePatches.LocalGameInstance, LocalGamePatches.MyPlayerProfile.Id, EFT.ExitStatus.Survived, "", 0);
-                    break;
-                case "Jump":
-                    PlayerOnJumpPatch.Replicated(player, packet);
-                    break;
-                case "Move":
-                    LastMovementPacket = packet;
-                    break;
                 case "Position":
-                    if (!IsMyPlayer)
+                    if (IsClientDrone)
                     {
-                        Vector3 newPos = Vector3.zero;
-                        newPos.x = float.Parse(packet["x"].ToString());
-                        newPos.y = float.Parse(packet["y"].ToString());
-                        newPos.z = float.Parse(packet["z"].ToString());
-                        //ReceivedPacketPostion = newPos;
+                        Vector3 packetPosition = new Vector3(
+                            float.Parse(packet["pX"].ToString())
+                            , float.Parse(packet["pY"].ToString())
+                            , float.Parse(packet["pZ"].ToString())
+                            );
+                        player.Teleport(packetPosition, true);
                     }
                     break;
                 case "Rotation":
-                    if (!IsMyPlayer)
+                    if (IsClientDrone)
                     {
-                        var rotationX = float.Parse(packet["rX"].ToString());
-                        var rotationY = float.Parse(packet["rY"].ToString());
-                        //ReceivedPacketRotation = new Vector2(rotationX, rotationY);
+                        Vector2 packetRotation = new Vector2(
+                        float.Parse(packet["rX"].ToString())
+                        , float.Parse(packet["rY"].ToString())
+                        );
+                        player.Rotation = packetRotation;
                     }
                     break;
-                case "Tilt":
-                    PlayerOnTiltPatch.TiltReplicated(player, packet);
-                    break;
-
 
             }
         }
 
-        void Update()
+
+        void LateUpdate()
         {
-            if (player == null)
+            if (ReplicatedDirection.HasValue)
+            {
+                player.InputDirection = ReplicatedDirection.Value;
+                player.CurrentState.Move(player.InputDirection);
+            }
+
+            if (IsClientDrone)
                 return;
 
-            UpdateMovement();
-
-        }
-
-        private IEnumerator UpdateMovement()
-        {
-            var waitSeconds = new WaitForSeconds(0.01f);
-            var waitEndOfFrame = new WaitForEndOfFrame();
-
-            while (true)
+            if (player.IsAI)
             {
-                if (player == null)
-                    continue;
-
-                //yield return waitEndOfFrame;
-
-                if (player.MovementContext != null)
+                if (LastPosition != player.Position && LastPositionSent < DateTime.Now.AddSeconds(-2))
                 {
-                    if (this.LastTiltLevel != player.MovementContext.Tilt
-                        && (this.LastTiltLevel - player.MovementContext.Tilt > 0.05f || this.LastTiltLevel - player.MovementContext.Tilt < -0.05f)
-                        )
+                    if (Vector3.Distance(LastPosition, player.Position) > 0.5)
                     {
-                        this.LastTiltLevel = player.MovementContext.Tilt;
-                        ServerCommunication.PostLocalPlayerData(player, new Dictionary<string, object>
-                        {
-                            { "tilt", LastTiltLevel },
-                            { "m", "Tilt" }
-                        });
+                        Dictionary<string, object> dict = new Dictionary<string, object>();
+                        dict.Add("pX", LastPosition.x);
+                        dict.Add("pY", LastPosition.y);
+                        dict.Add("pZ", LastPosition.z);
+                        dict.Add("m", "Position");
+                        ServerCommunication.PostLocalPlayerData(player, dict);
+
+                        LastPositionSent = DateTime.Now;
+                        LastPosition = player.Position;
                     }
+                }
 
+                if (ReplicatedDirection.HasValue)
+                {
+                    if (LastDirection != ReplicatedDirection.Value && LastDirectionSent < DateTime.Now.AddSeconds(-1))
+                    {
+                        Dictionary<string, object> dict = new Dictionary<string, object>();
+                        dict.Add("dX", ReplicatedDirection.Value.x);
+                        dict.Add("dY", ReplicatedDirection.Value.y);
+                        dict.Add("m", "Move");
+                        ServerCommunication.PostLocalPlayerData(player, dict);
 
-                    if (LastMovementPacket == null)
-                        continue;
+                        LastDirectionSent = DateTime.Now;
+                        LastDirection = player.Position;
+                    }
+                }
 
-                    PlayerOnMovePatch.MoveReplicated(player, LastMovementPacket);
+                if (LastRotation != player.Rotation && LastRotationSent < DateTime.Now.AddSeconds(-1))
+                {
+                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    dict.Add("rX", player.Rotation.x);
+                    dict.Add("rY", player.Rotation.y);
+                    dict.Add("m", "Rotation");
+                    ServerCommunication.PostLocalPlayerData(player, dict);
 
-                    yield return waitEndOfFrame;
-
+                    LastRotationSent = DateTime.Now;
+                    LastRotation = player.Rotation;
                 }
             }
+        }
+
+        private Vector2 LastDirection { get; set; } = Vector2.zero;
+        private DateTime LastDirectionSent { get; set; } = DateTime.Now;
+        private Vector2 LastRotation { get; set; } = Vector2.zero;
+        private DateTime LastRotationSent { get; set; } = DateTime.Now;
+        private Vector3 LastPosition { get; set; } = Vector3.zero;
+        private DateTime LastPositionSent { get; set; } = DateTime.Now;
+        public Vector2? ReplicatedDirection { get; internal set; }
+        public Vector2? ReplicatedRotation { get; internal set; }
+        public bool? ReplicatedRotationClamp { get; internal set; }
+        public Vector3? ReplicatedPosition { get; internal set; }
+
+
+        public Dictionary<string, object> PreMadeMoveDataPacket = new()
+        {
+            { "dX", "0" },
+            { "dY", "0" },
+            { "rX", "0" },
+            { "rY", "0" },
+            { "m", "Move" }
+        };
+        public Dictionary<string, object> PreMadeTiltDataPacket = new()
+        {
+            { "tilt", "0" },
+            { "m", "Tilt" }
+        };
+
+        public bool IsAI()
+        {
+            return player.IsAI && !player.Profile.Id.StartsWith("pmc");
+        }
+
+        public bool IsOwnedPlayer()
+        {
+            return player.Profile.Id.StartsWith("pmc") && !IsClientDrone;
         }
     }
 }

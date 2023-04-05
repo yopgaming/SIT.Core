@@ -2,17 +2,20 @@
 using Diz.Resources;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Build.Pipeline;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.Build.Pipeline;
+using Aki.Custom.Models;
 using DependencyGraph = DependencyGraph<IEasyBundle>;
+using SIT.Tarkov.Core;
+using SIT.Core.Misc;
 
-namespace SIT.Tarkov.Core
+namespace Aki.Custom.Patches
 {
     public class EasyAssetsPatch : ModulePatch
     {
@@ -25,7 +28,8 @@ namespace SIT.Tarkov.Core
             var type = typeof(EasyAssets);
 
             _manifestField = type.GetField(nameof(EasyAssets.Manifest));
-            _bundlesField = type.GetField($"{EasyBundleHelper.Type.Name.ToLowerInvariant()}_0", PatchConstants.PrivateFlags);
+            _bundlesField = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EasyAssets), typeof(EasyBundle[]));//  type.GetField($"{EasyBundleHelper.Type.Name.ToLowerInvariant()}_0", PatchConstants.PrivateFlags);
+            //Logger.LogDebug(_bundlesField.Name);
             _systemProperty = type.GetProperty("System");
         }
 
@@ -52,19 +56,29 @@ namespace SIT.Tarkov.Core
         }
 
         [PatchPrefix]
-        private static bool PatchPrefix(ref Task __result, EasyAssets __instance, [CanBeNull] IBundleLock bundleLock, string defaultKey, string rootPath,
-            string platformName, [CanBeNull] Func<string, bool> shouldExclude, [CanBeNull] Func<string, Task> bundleCheck)
+        public static bool PatchPrefix(
+            ref Task __result
+            , EasyAssets __instance
+            , [CanBeNull] IBundleLock bundleLock
+            , string defaultKey
+            , string rootPath
+            , string platformName
+            , [CanBeNull] Func<string, bool> shouldExclude
+            , [CanBeNull] Func<string, Task> bundleCheck
+            
+            )
         {
             __result = Init(__instance, bundleLock, defaultKey, rootPath, platformName, shouldExclude, bundleCheck);
             return false;
         }
 
-        public static string GetPairKey(KeyValuePair<string, BundleItem> x)
+      
+        public static string GetPairKey(KeyValuePair<string, Models.BundleItem> x)
         {
             return x.Key;
         }
 
-        public static BundleDetails GetPairValue(KeyValuePair<string, BundleItem> x)
+        public static BundleDetails GetPairValue(KeyValuePair<string, Models.BundleItem> x)
         {
             return new BundleDetails
             {
@@ -95,7 +109,7 @@ namespace SIT.Tarkov.Core
                 text = await reader.ReadToEndAsync();
             }
 
-            var data = JsonConvert.DeserializeObject<Dictionary<string, BundleItem>>(text).ToDictionary(GetPairKey, GetPairValue);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Models.BundleItem>>(text).ToDictionary(GetPairKey, GetPairValue);
             var manifest = ScriptableObject.CreateInstance<CompatibilityAssetBundleManifest>();
             manifest.SetResults(data);
 

@@ -2,6 +2,7 @@
 using EFT.Interactive;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace SIT.Coop.Core.Player
         /// <returns></returns>
         protected override MethodBase GetTargetMethod()
         {
-            Method = PatchConstants.GetAllMethodsForType(InstanceType)
+            Method = ReflectionHelpers.GetAllMethodsForType(InstanceType)
                 .FirstOrDefault(x => x.GetParameters().Length == 2
                 && x.GetParameters()[0].Name == "door"
                 && x.GetParameters()[1].Name == "interactionResult"

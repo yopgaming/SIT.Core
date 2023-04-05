@@ -19,7 +19,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result, BotDifficulty botDifficulty, WildSpawnType role)
         {
-            __result = new Request().GetJson($"/singleplayer/settings/bot/difficulty/{role}/{botDifficulty}");
+            __result = Request.Instance.GetJson($"/singleplayer/settings/bot/difficulty/{role}/{botDifficulty}");
             return string.IsNullOrWhiteSpace(__result);
         }
     }
