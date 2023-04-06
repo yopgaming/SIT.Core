@@ -86,10 +86,7 @@ namespace SIT.Core
             new AirdropPatch().Enable();
 
             //// --------- Screens ----------------
-            new OfflineRaidMenuPatch().Enable();
-            new AutoSetOfflineMatch2().Enable();
-            new InsuranceScreenPatch().Enable();
-            new VersionLabelPatch().Enable();
+            EnableSPPatches_Screens();
 
             //// --------- Progression -----------------------
             EnableSPPatches_PlayerProgression();
@@ -118,6 +115,15 @@ namespace SIT.Core
 
             new WavesSpawnScenarioInitPatch().Enable();
             new WavesSpawnScenarioMethodPatch().Enable();
+        }
+
+        private static void EnableSPPatches_Screens()
+        {
+            new OfflineRaidMenuPatch().Enable();
+            new AutoSetOfflineMatch2().Enable();
+            new InsuranceScreenPatch().Enable();
+            new DisableReadyButtonOnFirstScreen().Enable();
+            new VersionLabelPatch().Enable();
         }
 
         private static void EnableSPPatches_PlayerProgression()
