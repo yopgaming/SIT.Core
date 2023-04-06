@@ -13,7 +13,6 @@ namespace SIT.Core.Coop.Player
     internal class Player_Gesture_Patch : ModuleReplicationPatch
     {
         private static Dictionary<string, EGesture> LastGesture = new();
-        private static List<long> ProcessedCalls = new();
         public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Gesture";
@@ -71,13 +70,8 @@ namespace SIT.Core.Coop.Player
         {
             var timestamp = long.Parse(dict["t"].ToString());
 
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (CallLocally.Contains(player.Profile.AccountId))
                 return;

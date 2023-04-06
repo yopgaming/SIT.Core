@@ -77,22 +77,12 @@ namespace SIT.Coop.Core.Player
             //Logger.LogInfo("OnInteractWithDoorPatch.PatchPostfix:Sent");
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
-
-
         public override void Replicated(EFT.Player player, Dictionary<string, object> packet)
         {
             var timestamp = long.Parse(packet["t"].ToString());
-            if ((DateTime.Now - new DateTime(timestamp)).TotalSeconds > 10)
-                return;
 
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, packet))
                 return;
-            }
 
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)

@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using EFT;
+using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Coop.Core.Player
@@ -18,14 +20,9 @@ namespace SIT.Coop.Core.Player
         public static Dictionary<string, bool> CallLocally
           = new Dictionary<string, bool>();
 
-        private static List<long> ProcessedCalls = new List<long>();
-
-        public override bool DisablePatch => base.DisablePatch;
-
         protected override MethodBase GetTargetMethod()
         {
             var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
-            //Logger.LogInfo($"PlayerOnHealPatch:{t.Name}:{method.Name}");
             return method;
         }
 
@@ -36,7 +33,7 @@ namespace SIT.Coop.Core.Player
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
 
-            Logger.LogInfo("Player_DropBackpack_Patch:PrePatch");
+            Logger.LogDebug("Player_DropBackpack_Patch:PrePatch");
 
             return result;
         }
@@ -53,29 +50,48 @@ namespace SIT.Coop.Core.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("p.equip", JsonConvert.SerializeObject(__instance.Profile.Inventory.Equipment, PatchConstants.GetJsonSerializerSettings()));
+            Logger.LogDebug($"PatchPostfix: Current Equipment Item Count {__instance.Profile.Inventory.Equipment.GetAllItems().Count()}");
+            dictionary.Add("p.equip", __instance.Profile.Inventory.Equipment.SITToJson());
             dictionary.Add("m", "DropBackpack");
             ServerCommunication.PostLocalPlayerData(__instance, dictionary);
+
+            //var invPacket = __instance.Profile.Inventory.ToInventorySyncPacket();
+            //foreach (var item in invPacket.SlotsItemInfo)
+            //{
+            //    var It = item.ItemJson.SITParseJson<EFT.InventoryLogic.Item>();
+            //    Logger.LogDebug($"PatchPostfix: Equipment Item {It.Id}");
+            //}
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (dict.ContainsKey("p.equip"))
             {
-                //player.Profile.Inventory.Equipment = dict["p.equip"].ToString().SITParseJson<Equipment>();
+                // TODO: Spin up a new Equipment using the Equipment Template
+
+                // Equipment from Replication
+                var equipment = dict["p.equip"].ToString().SITParseJson<Equipment>();
+                Logger.LogDebug($"Replicated: Deserialized Equipment Item Count {equipment.GetAllItems().Count()}");
+
+                // You can get the GClass2267 from the Equipment Constructor
+                //var equipmentTemplate = new GClass2267();
+                //equipmentTemplate.Slots = equipment.Slots;
+                //equipmentTemplate.Grids = equipment.Grids;
+                //equipmentTemplate.CanPutIntoDuringTheRaid = true;
+                //equipmentTemplate.CantRemoveFromSlotsDuringRaid = new EFT.InventoryLogic.EquipmentSlot[0];
+
+                //var nEquipment = new Equipment(equipment.Id, equipmentTemplate);
+                //Logger.LogDebug($"Replicated: New Equipment Item Count {nEquipment.GetAllItems().Count()}");
+                //player.Profile.Inventory.Equipment = nEquipment;
+                player.Profile.Inventory.Equipment.Grids = equipment.Grids;
+               
             }
 
             CallLocally.Add(player.Profile.AccountId, true);
-            Logger.LogInfo("Replicated: Calling Drop Backpack");
+            Logger.LogDebug("Replicated: Calling Drop Backpack");
             player.DropBackpack();
         }
     }

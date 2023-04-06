@@ -17,7 +17,7 @@ namespace SIT.Core.Coop.Player
     {
         private static Dictionary<string, UnityEngine.Vector2> lastDirection = new();
 
-        private static ConcurrentDictionary<string, long> ProcessedCalls = new();
+        //private static ConcurrentDictionary<string, long> ProcessedCalls = new();
 
         public static Dictionary<string, bool> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
@@ -132,30 +132,30 @@ namespace SIT.Core.Coop.Player
 
         }
 
-        private bool HasProcessed(EFT.Player player, Dictionary<string, object> dict)
-        {
-            var playerID = player.Id.ToString();
-            var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.ContainsKey(playerID))
-            {
-                Logger.LogDebug($"Adding {playerID},{timestamp} to {this.GetType()} Processed Calls Dictionary");
-                ProcessedCalls.TryAdd(playerID, timestamp);
-                return true;
-            }
+        //private bool HasProcessed(EFT.Player player, Dictionary<string, object> dict)
+        //{
+        //    var playerID = player.Id.ToString();
+        //    var timestamp = long.Parse(dict["t"].ToString());
+        //    if (!ProcessedCalls.ContainsKey(playerID))
+        //    {
+        //        Logger.LogDebug($"Adding {playerID},{timestamp} to {this.GetType()} Processed Calls Dictionary");
+        //        ProcessedCalls.TryAdd(playerID, timestamp);
+        //        return true;
+        //    }
 
-            if (ProcessedCalls[playerID] != timestamp)
-            {
-                ProcessedCalls.TryUpdate(playerID, timestamp, timestamp);
-                return false;
-            }
+        //    if (ProcessedCalls[playerID] != timestamp)
+        //    {
+        //        ProcessedCalls.TryUpdate(playerID, timestamp, timestamp);
+        //        return false;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if(HasProcessed(player, dict))
+            if(HasProcessed(GetType(), player, dict))
                 return;
 
             try

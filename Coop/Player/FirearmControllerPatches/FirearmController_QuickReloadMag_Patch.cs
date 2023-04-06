@@ -1,17 +1,17 @@
-﻿using SIT.Coop.Core.Web;
+﻿using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmControllerCheckAmmoPatch : ModuleReplicationPatch
+    public class FirearmController_QuickReloadMag_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
-        public override string MethodName => "CheckAmmo";
+        public override string MethodName => "QuickReloadMag";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -24,12 +24,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
 
         [PatchPrefix]
-        public static bool PrePatch(
-            EFT.Player.FirearmController __instance
-            , EFT.Player ____player)
+        public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
             var player = ____player;
-            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return false;
 
@@ -41,9 +38,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         }
 
         [PatchPostfix]
-        public static void PostPatch(EFT.Player.FirearmController __instance)
+        public static void PostPatch(
+            EFT.Player.FirearmController __instance
+            , MagazineClass magazine
+            , EFT.Player ____player)
         {
-            var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            var player = ____player;
             if (player == null)
                 return;
 
@@ -53,30 +53,44 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
+
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("m", "CheckAmmo");
+            dictionary.Add("mg.id", magazine.Id);
+            dictionary.Add("mg.tpl", magazine.Template);
+            dictionary.Add("m", "QuickReloadMag");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-        }
 
-        private static List<long> ProcessedCalls = new List<long>();
+        }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
+
             var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
-                //Logger.LogInfo("FirearmControllerCheckAmmoPatch:Replicated:CheckAmmo");
-                firearmCont.CheckAmmo();
+                try
+                {
+                    //player.ToUnloadMagOperation().
+
+                    // this is not working, maybe try and find it in the inventory instead???
+                    var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
+                    CallLocally.Add(player.Profile.AccountId, true);
+                    Logger.LogInfo("Replicated: Calling Quick Reload Mag");
+                    firearmCont.QuickReloadMag(magazine, (IResult) => {
+                    
+                        Logger.LogInfo($"Replicated: Callback Quick Reload Mag: {IResult}");
+
+                    });
+                }
+                catch (Exception e)
+                {
+                    Logger.LogInfo(e);
+                }
             }
         }
     }

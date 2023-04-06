@@ -93,20 +93,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
-
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
-
             var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {

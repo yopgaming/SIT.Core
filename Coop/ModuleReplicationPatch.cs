@@ -59,6 +59,31 @@ namespace SIT.Core.Coop
 
         public abstract void Replicated(EFT.Player player, Dictionary<string, object> dict);
 
+        protected static ConcurrentDictionary<Type, ConcurrentDictionary<string, ConcurrentBag<long>>> ProcessedCalls = new();
+
+        protected static bool HasProcessed(Type type, EFT.Player player, Dictionary<string, object> dict)
+        {
+            if(!ProcessedCalls.ContainsKey(type))
+                ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
+
+            var playerId = player.Id.ToString();
+            var timestamp = long.Parse(dict["t"].ToString());
+            if (!ProcessedCalls[type].ContainsKey(playerId))
+            {
+                Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
+                ProcessedCalls[type].TryAdd(playerId, new ConcurrentBag<long>());
+                ProcessedCalls[type][playerId].Add(timestamp);
+            }
+
+            if (!ProcessedCalls[type][playerId].Contains(timestamp))
+            {
+                ProcessedCalls[type][playerId].Add(timestamp);
+                return false;
+            }
+
+            return true;
+        }
+
         public static void Replicate(Type type, EFT.Player player, Dictionary<string, object> dict)
         {
             if (!Patches.Any(x => x.GetType().Equals(type)))

@@ -73,25 +73,16 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             LastPress[player.Profile.AccountId] = pressed;
 
             var timestamp = ticks;
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
             // then instantly trigger? otherwise we are waiting for the return trip?
             CallLocally.Add(player.Profile.AccountId, true);
             __instance.SetTriggerPressed(pressed);
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             bool pressed = bool.Parse(dict["pr"].ToString());
 

@@ -27,7 +27,7 @@ namespace SIT.Coop.Core.Player
         internal Dictionary<string, object> LastMovementPacket { get; set; }
         internal EFT.LocalPlayer player { get; set; }
         public float LastTiltLevel { get; private set; }
-        public bool IsMyPlayer { get; internal set; }
+        public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
         void Awake()
@@ -89,6 +89,13 @@ namespace SIT.Coop.Core.Player
                         player.ChangePose(poseLevel);
                     }
                     break;
+                case "Speed":
+                    if (IsClientDrone)
+                    {
+                        float speed = float.Parse(packet["spd"].ToString());
+                        player.ChangeSpeed(speed);
+                    }
+                    break;
 
             }
 
@@ -115,9 +122,12 @@ namespace SIT.Coop.Core.Player
             if (IsClientDrone)
                 return;
 
+
             if (player.IsAI)
             {
-                if (LastPosition != player.Position && LastPositionSent < DateTime.Now.AddSeconds(-2))
+                // if the character is really far away from last position, send immediately
+                var repositionTimeout = Math.Max(0, -3 - Vector3.Distance(LastPosition, player.Position));
+                if (Vector3.Distance(LastPosition, player.Position) > 0.5 && LastPositionSent < DateTime.Now.AddSeconds(repositionTimeout))
                 {
                     if (Vector3.Distance(LastPosition, player.Position) > 0.5)
                     {
@@ -135,7 +145,7 @@ namespace SIT.Coop.Core.Player
 
                 if (ReplicatedDirection.HasValue)
                 {
-                    if (LastDirection != ReplicatedDirection.Value && LastDirectionSent < DateTime.Now.AddSeconds(-1))
+                    if (Vector2.Dot(LastDirection, ReplicatedDirection.Value) < 1 && LastDirectionSent < DateTime.Now.AddSeconds(-0.5))
                     {
                         Dictionary<string, object> dict = new Dictionary<string, object>();
                         dict.Add("dX", ReplicatedDirection.Value.x);
@@ -148,7 +158,7 @@ namespace SIT.Coop.Core.Player
                     }
                 }
 
-                if (LastRotation != player.Rotation && LastRotationSent < DateTime.Now.AddSeconds(-1))
+                if (Vector2.Dot(LastRotation, player.Rotation) < 1 && LastRotationSent < DateTime.Now.AddSeconds(-0.5))
                 {
                     Dictionary<string, object> dict = new Dictionary<string, object>();
                     dict.Add("rX", player.Rotation.x);
@@ -170,6 +180,17 @@ namespace SIT.Coop.Core.Player
                     LastPoseSent = DateTime.Now;
                     LastPose = player.PoseLevel;
                 }
+
+                if (LastSpeed != player.Speed && LastSpeedSent < DateTime.Now.AddSeconds(-1))
+                {
+                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    dict.Add("spd", player.Speed);
+                    dict.Add("m", "Speed");
+                    ServerCommunication.PostLocalPlayerData(player, dict);
+
+                    LastSpeedSent = DateTime.Now;
+                    LastSpeed = player.Speed;
+                }
             }
         }
 
@@ -185,6 +206,8 @@ namespace SIT.Coop.Core.Player
         public Vector3? ReplicatedPosition { get; internal set; }
         public DateTime LastPoseSent { get; private set; }
         public float LastPose { get; private set; }
+        public DateTime LastSpeedSent { get; private set; }
+        public float LastSpeed { get; private set; }
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {

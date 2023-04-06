@@ -267,17 +267,15 @@ namespace SIT.Core.Coop
 
             try
             {
-                Logger.LogDebug("DataReceivedClient_PlayerBotSpawn:: Adding " + accountId + " to spawner list");
+                //Logger.LogDebug("PlayerBotSpawn:: Adding " + accountId + " to spawner list");
                 profile.Id = accountId;
                 profile.Info.Nickname = "Nikita " + Players.Count;
                 profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
                 if (packet.ContainsKey("p.info"))
                 {
-                    Logger.LogDebug("DataReceivedClient_PlayerBotSpawn:: Converting Profile data");
+                    //Logger.LogDebug("PlayerBotSpawn:: Converting Profile data");
                     profile.Info = packet["p.info"].ToString().ParseJsonTo<ProfileInfo>(Array.Empty<JsonConverter>());
-                    //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
-                    //profile.Info = JsonConvert.DeserializeObject<ProfileInfo>(parsedDict["p.info"].ToString());// PatchConstants.SITParseJson<ProfileInfo>(parsedDict["p.info"].ToString());//.ParseJsonTo<ProfileData>(Array.Empty<JsonConverter>());
-                    Logger.LogDebug("DataReceivedClient_PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
+                    //Logger.LogDebug("PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
                 }
                 if (packet.ContainsKey("p.cust"))
                 {
@@ -290,7 +288,7 @@ namespace SIT.Core.Coop
                         //    , "Customization"
                         //    , Activator.CreateInstance(PatchConstants.TypeDictionary["Profile.Customization"], parsedCust)
                         //    );
-                        Logger.LogDebug("DataReceivedClient_PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
+                        //Logger.LogDebug("PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
 
                     }
                 }
@@ -300,7 +298,7 @@ namespace SIT.Core.Coop
                     //var equipment = parsedDict["p.equip"].ToString().ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
                     var equipment = packet["p.equip"].ToString().SITParseJson<Equipment>();//.ParseJsonTo<Equipment>(Array.Empty<JsonConverter>());
                     profile.Inventory.Equipment = equipment;
-                    Logger.LogDebug("DataReceivedClient_PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
+                    //Logger.LogDebug("PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
 
                 }
                 if (packet.ContainsKey("isHost"))
@@ -313,7 +311,7 @@ namespace SIT.Core.Coop
             }
             catch (Exception ex)
             {
-                Logger.LogError($"DataReceivedClient_PlayerBotSpawn::ERROR::" + ex.Message);
+                Logger.LogError($"PlayerBotSpawn::ERROR::" + ex.Message);
             }
 
         }
@@ -342,7 +340,7 @@ namespace SIT.Core.Coop
                 PlayersToSpawn.TryAdd(profile.AccountId, ESpawnState.None);
                 if (PlayersToSpawn[profile.AccountId] == ESpawnState.None)
                 {
-                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Loading...");
+                    //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Loading...");
                     PlayersToSpawn[profile.AccountId] = ESpawnState.Loading;
                     IEnumerable<ResourceKey> allPrefabPaths = profile.GetAllPrefabPaths();
                     if (allPrefabPaths.Count() == 0)
@@ -367,7 +365,7 @@ namespace SIT.Core.Coop
                 // Its loading on the previous pass, ignore this one until its finished
                 if (PlayersToSpawn[profile.AccountId] == ESpawnState.Loading)
                 {
-                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is still Loading");
+                    //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is still Loading");
 
                     return;
                 }
@@ -379,7 +377,7 @@ namespace SIT.Core.Coop
                     return;
                 }
 
-                Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
+                //Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Attempting to Create Player " + profile.Info.Nickname);
 
                 // Local Player idea
                 LocalPlayer localPlayer = LocalPlayer.Create(playerId
@@ -447,7 +445,7 @@ namespace SIT.Core.Coop
                 if (!Players.ContainsKey(profile.AccountId))
                     Players.TryAdd(profile.AccountId, localPlayer);
 
-                Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Created Player " + profile.Info.Nickname);
+                //Logger.LogDebug("CreatePhysicalOtherPlayerOrBot: Created Player " + profile.Info.Nickname);
                 var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
                 prc.IsClientDrone = true;
 

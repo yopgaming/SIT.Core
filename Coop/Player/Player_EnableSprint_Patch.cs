@@ -12,7 +12,6 @@ namespace SIT.Core.Coop.Player
     public class Player_EnableSprint_Patch : ModuleReplicationPatch
     {
         private static Dictionary<string, (bool, long)> LastSprintEn = new();
-        private static List<long> ProcessedCalls = new();
         public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "EnableSprint";
@@ -77,15 +76,8 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (CallLocally.Contains(player.Profile.AccountId))
                 return;
