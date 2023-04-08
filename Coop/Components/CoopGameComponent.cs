@@ -392,12 +392,13 @@ namespace SIT.Core.Coop
                     , aiControl: true
                     , EUpdateQueue.Update
                     , armsUpdateMode
-                    , EFT.Player.EUpdateMode.Auto
+                    , EFT.Player.EUpdateMode.Manual
                     , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseSensitivity
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseAimingSensitivity
-                    , new StatisticsManagerForPlayer1()
-                    , new FilterCustomizationClass()
+                    , new GClass1698() // Found by going thru LocalGame and BotCreator
+                    //, new StatisticsManagerForPlayer1()
+                    , FilterCustomizationClass.Default
                     , null
                     , isYourPlayer: false).Result;
 
@@ -452,23 +453,23 @@ namespace SIT.Core.Coop
                 // ----------------------------------------------------------------------------------------------------
                 // Find the Original version of this Player/Bot and hide them. This is so the SERVER sees the same as CLIENTS.
                 //
-                if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
-                {
-                    var originalPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == profile.AccountId);
-                    if (originalPlayer != null)
-                    {
-                        if (originalPlayer.TryGetComponent<MeshRenderer>(out var meshRenderer))
-                        {
-                            Logger.LogDebug($"{profile.AccountId} disable meshRenderer");
-                            meshRenderer.enabled = false;
-                        }
-                        if (originalPlayer.TryGetComponent<Renderer>(out var renderer))
-                        {
-                            Logger.LogDebug($"{profile.AccountId} disable renderer");
-                            renderer.enabled = false;
-                        }
-                    }
-                }
+                //if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                //{
+                //    var originalPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == profile.AccountId);
+                //    if (originalPlayer != null)
+                //    {
+                //        if (originalPlayer.TryGetComponent<MeshRenderer>(out var meshRenderer))
+                //        {
+                //            Logger.LogDebug($"{profile.AccountId} disable meshRenderer");
+                //            meshRenderer.enabled = false;
+                //        }
+                //        if (originalPlayer.TryGetComponent<Renderer>(out var renderer))
+                //        {
+                //            Logger.LogDebug($"{profile.AccountId} disable renderer");
+                //            renderer.enabled = false;
+                //        }
+                //    }
+                //}
                 //
                 // ----------------------------------------------------------------------------------------------------
                 SetWeaponInHandsOfNewPlayer(localPlayer);
@@ -484,6 +485,15 @@ namespace SIT.Core.Coop
 
         private void SetWeaponInHandsOfNewPlayer(EFT.Player person)
         {
+            // Set first available item...
+            person.SetFirstAvailableItem((IResult) => { 
+                
+                    
+
+            });
+
+            Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
+
             var equipment = person.Profile.Inventory.Equipment;
             if (equipment == null)
             {
@@ -494,6 +504,10 @@ namespace SIT.Core.Coop
 
             if (equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem != null)
                 item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
+
+            if (equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem != null)
+                item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
+
             //equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem
             //    ?? equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem
             //    ?? equipment.GetSlot(EquipmentSlot.Holster).ContainedItem
@@ -503,6 +517,8 @@ namespace SIT.Core.Coop
                 Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
                 return;
             }
+
+            Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} {item.TemplateId}");
 
             person.SetItemInHands(item, (IResult)=> {
             
