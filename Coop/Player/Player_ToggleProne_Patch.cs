@@ -22,9 +22,6 @@ namespace SIT.Core.Coop.Player
         public static Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
 
-        private static List<long> ProcessedCalls
-            = new List<long>();
-
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
@@ -58,15 +55,8 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             try
             {
@@ -75,7 +65,7 @@ namespace SIT.Core.Coop.Player
             }
             catch (Exception e)
             {
-                Logger.LogInfo(e);
+                Logger.LogError(e);
             }
         }
     }

@@ -19,11 +19,6 @@ namespace SIT.Coop.Core.Player
         public static Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
 
-        private static List<long> ProcessedCalls
-            = new List<long>();
-
-        //public override bool DisablePatch => true;
-
         protected override MethodBase GetTargetMethod()
         {
             var t = typeof(EFT.Player);
@@ -75,21 +70,26 @@ namespace SIT.Coop.Core.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var t = long.Parse(dict["t"].ToString());
-            if (ProcessedCalls.Contains(t))
+            if (HasProcessed(GetType(), player, dict))
                 return;
 
-            ProcessedCalls.Add(t);
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated");
-
             var item = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString()).FirstOrDefault();
+            if(item == null)
+            {
+                Logger.LogError($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Item not found");
+                player.SetFirstAvailableItem((result) => { 
+                    Logger.LogDebug(result.ToString());
+                });
+                return;
+            }
+            
             if (item != null)
             {
-                //Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated:Found Item");
+                //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Found Item");
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.TryProceed(item, (IResult) =>
                 {
-                    //Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
+                    Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
                 }, bool.Parse(dict["s"].ToString()));
             }
         }
