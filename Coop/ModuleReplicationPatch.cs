@@ -72,7 +72,7 @@ namespace SIT.Core.Coop
             {
                 Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
                 ProcessedCalls[type].TryAdd(playerId, new ConcurrentBag<long>());
-                ProcessedCalls[type][playerId].Add(timestamp);
+                //ProcessedCalls[type][playerId].Add(timestamp);
             }
 
             if (!ProcessedCalls[type][playerId].Contains(timestamp))
