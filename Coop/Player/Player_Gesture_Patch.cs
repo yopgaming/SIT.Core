@@ -68,8 +68,6 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-
             if (HasProcessed(GetType(), player, dict))
                 return;
 
