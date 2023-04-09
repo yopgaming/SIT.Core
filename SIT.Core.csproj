@@ -72,8 +72,4 @@
     </Reference>
   </ItemGroup>
   
-  <ItemGroup>
-    <Folder Include="Coop\Player\MovementContext\" />
-  </ItemGroup>
-  
 </Project>
