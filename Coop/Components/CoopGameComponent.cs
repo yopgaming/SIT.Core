@@ -321,7 +321,7 @@ namespace SIT.Core.Coop
         {
             try
             {
-                EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
+                //EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
                 //EFT.Player.EUpdateMode bodyUpdateMode = EFT.Player.EUpdateMode.Auto;
                 
                 if (Players == null)
@@ -388,15 +388,16 @@ namespace SIT.Core.Coop
                     ""
                     , EPointOfView.ThirdPerson
                     , profile
-                    //, aiControl: false
-                    , aiControl: true
+                    , aiControl: false
+                    //, aiControl: true
                     , EUpdateQueue.Update
-                    , armsUpdateMode
-                    , EFT.Player.EUpdateMode.Manual
+                    , EFT.Player.EUpdateMode.Auto
+                    , EFT.Player.EUpdateMode.Auto
                     , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseSensitivity
                     , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseAimingSensitivity
-                    , new GClass1698() // Found by going thru LocalGame and BotCreator
+                    //, new GClass1698() // Found by going thru LocalGame and BotCreator
+                    , new CoopStatisticsManager()
                     //, new StatisticsManagerForPlayer1()
                     , FilterCustomizationClass.Default
                     , null
