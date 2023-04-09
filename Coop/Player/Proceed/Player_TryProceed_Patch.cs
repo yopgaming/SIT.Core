@@ -37,10 +37,12 @@ namespace SIT.Coop.Core.Player
            EFT.Player __instance
             )
         {
-            if (__instance.IsAI)
-                return true;
-
             var result = false;
+
+            // This has to happen, otherwise AI free on spawn, cos its stupid like that
+            if (__instance.IsAI)
+                result = true;
+
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
 
@@ -74,15 +76,16 @@ namespace SIT.Coop.Core.Player
                 return;
 
             var item = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString()).FirstOrDefault();
-            if(item == null)
+            if (item == null)
             {
                 Logger.LogError($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Item not found");
-                player.SetFirstAvailableItem((result) => { 
+                player.SetFirstAvailableItem((result) =>
+                {
                     Logger.LogDebug(result.ToString());
                 });
                 return;
             }
-            
+
             if (item != null)
             {
                 //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Found Item");
@@ -90,7 +93,8 @@ namespace SIT.Coop.Core.Player
                 player.TryProceed(item, (IResult) =>
                 {
                     Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
-                }, bool.Parse(dict["s"].ToString()));
+                    //}, bool.Parse(dict["s"].ToString()));
+                }, false);
             }
         }
     }
