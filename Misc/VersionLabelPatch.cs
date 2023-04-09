@@ -27,12 +27,14 @@ namespace SIT.Core.Misc
         }
 
         [PatchPostfix]
-        internal static void PatchPostfix(object __result)
+        internal static void PatchPostfix(
+            string major, string minor, string backend, string taxonomy
+            , object __result)
         {
             if (string.IsNullOrEmpty(_versionLabel))
             {
                 _versionLabel = string.Empty;
-                _versionLabel = "SIT Powered by Aki";
+                _versionLabel = $"SIT on SPT-Aki | {major}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");
