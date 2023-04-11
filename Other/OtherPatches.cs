@@ -1,11 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using SIT.Core.Other.AI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Other
 {
@@ -30,7 +25,7 @@ namespace SIT.Core.Other
                 return;
             }
 
-            if(config.Bind<bool>("Other Patches", "Enable Props AI Bush Patch", true).Value)
+            if (config.Bind<bool>("Other Patches", "Enable Props AI Bush Patch", true).Value)
                 new AIBushPatch().Enable();
 
             //var enableAIWakeOrSleep = config.Bind<bool>("Other Patches", "Enable AI Wake or Sleep Patch", true);

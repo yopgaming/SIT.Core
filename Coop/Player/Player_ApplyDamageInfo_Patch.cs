@@ -346,11 +346,9 @@ using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine.UIElements;
 
 namespace SIT.Core.Coop.Player
 {
@@ -417,7 +415,7 @@ namespace SIT.Core.Coop.Player
             }
             damageInfo.Player = null;
             Dictionary<string, string> weaponDict = new Dictionary<string, string>();
-            
+
             if (damageInfo.Weapon != null)
             {
                 packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
@@ -477,7 +475,7 @@ namespace SIT.Core.Coop.Player
                     }
                 }
 
-                if(dict.ContainsKey("d.w.tpl"))
+                if (dict.ContainsKey("d.w.tpl"))
                 {
                     //Logger.LogDebug("Apply Damage: Found d.w.tpl");
                     if (aggressorPlayer != null)

@@ -17,10 +17,6 @@ using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
 namespace SIT.Core
@@ -165,7 +161,7 @@ namespace SIT.Core
             //GetPoolManager();
             GetBackendConfigurationInstance();
 
-            if(Singleton<GameWorld>.Instantiated)
+            if (Singleton<GameWorld>.Instantiated)
                 gameWorld = Singleton<GameWorld>.Instance;
         }
 

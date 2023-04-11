@@ -81,8 +81,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
                     CallLocally.Add(player.Profile.AccountId, true);
                     Logger.LogInfo("Replicated: Calling Quick Reload Mag");
-                    firearmCont.QuickReloadMag(magazine, (IResult) => {
-                    
+                    firearmCont.QuickReloadMag(magazine, (IResult) =>
+                    {
+
                         Logger.LogInfo($"Replicated: Callback Quick Reload Mag: {IResult}");
 
                     });

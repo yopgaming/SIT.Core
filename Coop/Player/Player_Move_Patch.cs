@@ -1,15 +1,9 @@
 ﻿using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace SIT.Core.Coop.Player
 {
@@ -155,7 +149,7 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if(HasProcessed(GetType(), player, dict))
+            if (HasProcessed(GetType(), player, dict))
                 return;
 
             try

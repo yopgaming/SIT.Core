@@ -1,9 +1,7 @@
 ﻿using Comfort.Common;
-using Dissonance.Datastructures;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using EFT.UI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Matchmaker;
@@ -16,12 +14,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Analytics;
-using UnityEngine.Profiling;
 
 namespace SIT.Core.Coop
 {
@@ -168,7 +161,7 @@ namespace SIT.Core.Coop
                                     var method = queuedPacket["m"].ToString();
                                     if (method != "PlayerSpawn")
                                         continue;
-                                   
+
                                     string accountId = queuedPacket["accountId"].ToString();
                                     // TODO: Put this back in after testing in Creation functions
                                     //if (Players == null || Players.ContainsKey(accountId))
@@ -176,7 +169,7 @@ namespace SIT.Core.Coop
                                     //    Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
                                     //    continue;
                                     //}
-                                    if(PlayersToSpawn.ContainsKey(accountId))
+                                    if (PlayersToSpawn.ContainsKey(accountId))
                                         continue;
 
                                     if (!PlayersToSpawnPacket.ContainsKey(accountId))
@@ -194,8 +187,8 @@ namespace SIT.Core.Coop
                                         string npzString = queuedPacket["sPz"].ToString();
                                         newPosition.z = float.Parse(npzString) + 0.5f;
 
-                                        if(!PlayersToSpawnPositions.ContainsKey(accountId))
-                                            PlayersToSpawnPositions.TryAdd(accountId, newPosition); 
+                                        if (!PlayersToSpawnPositions.ContainsKey(accountId))
+                                            PlayersToSpawnPositions.TryAdd(accountId, newPosition);
 
                                         PlayerBotSpawn(queuedPacket, accountId, newPosition, false);
                                     }
@@ -206,18 +199,18 @@ namespace SIT.Core.Coop
                         }
                     }
                 }
-                catch(Exception ex) 
+                catch (Exception ex)
                 {
 
                     Logger.LogError(ex.ToString());
-                
+
                 }
                 finally
                 {
 
                 }
 
-                foreach(var p in PlayersToSpawn)
+                foreach (var p in PlayersToSpawn)
                 {
                     if (p.Value != ESpawnState.Spawned)
                     {
@@ -252,7 +245,7 @@ namespace SIT.Core.Coop
             Profile profile = MatchmakerAcceptPatches.Profile.Clone();
             profile.AccountId = accountId;
 
-            if (PlayersToSpawn.ContainsKey(accountId) 
+            if (PlayersToSpawn.ContainsKey(accountId)
                 && PlayersToSpawn[accountId] != ESpawnState.Loading
                 && PlayersToSpawn[accountId] != ESpawnState.Spawned
                 && PlayersToSpawnProfiles.ContainsKey(accountId)
@@ -323,7 +316,7 @@ namespace SIT.Core.Coop
             {
                 //EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
                 //EFT.Player.EUpdateMode bodyUpdateMode = EFT.Player.EUpdateMode.Auto;
-                
+
                 if (Players == null)
                 {
                     Logger.LogError("Players is NULL!");
@@ -487,9 +480,10 @@ namespace SIT.Core.Coop
         private void SetWeaponInHandsOfNewPlayer(EFT.Player person)
         {
             // Set first available item...
-            person.SetFirstAvailableItem((IResult) => { 
-                
-                    
+            person.SetFirstAvailableItem((IResult) =>
+            {
+
+
 
             });
 
@@ -521,9 +515,10 @@ namespace SIT.Core.Coop
 
             Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} {item.TemplateId}");
 
-            person.SetItemInHands(item, (IResult)=> {
-            
-                if(IResult.Failed == true)
+            person.SetItemInHands(item, (IResult) =>
+            {
+
+                if (IResult.Failed == true)
                 {
                     Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to set item {item} in hands for {person.Profile.AccountId}");
                 }
@@ -576,7 +571,7 @@ namespace SIT.Core.Coop
                 ReadFromServerLastActionsParseData(actionsToValuesJson);
                 ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
                 ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
-                
+
                 actionsToValuesJson = null;
                 swRequests.Stop();
             }
@@ -676,7 +671,7 @@ namespace SIT.Core.Coop
                 }
                 catch (Exception) { }
 
-                
+
             }
         }
 
@@ -781,7 +776,7 @@ namespace SIT.Core.Coop
 
             GUI.Label(rect, $"Ping:{(ApproximatePing >= 0 ? ApproximatePing : 0)}");
             rect.y += 15;
-            if(Request.Instance != null)
+            if (Request.Instance != null)
             {
                 var rtt = ApproximatePing + Request.Instance.PostPing;
                 GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");

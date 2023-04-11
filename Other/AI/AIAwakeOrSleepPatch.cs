@@ -1,13 +1,9 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
 
@@ -79,7 +75,7 @@ namespace SIT.Core.Other.AI
 
         public static float TimeAfterSpawn;
 
-        public string Location { get; set; } 
+        public string Location { get; set; }
 
 
         internal void Awake()
@@ -100,7 +96,7 @@ namespace SIT.Core.Other.AI
             if (Singleton<GameWorld>.Instantiated)
             {
                 var gameWorld = Singleton<GameWorld>.Instance;
-                if(!string.IsNullOrEmpty(gameWorld.LocationId) && gameWorld.LocationId != Location)
+                if (!string.IsNullOrEmpty(gameWorld.LocationId) && gameWorld.LocationId != Location)
                 {
                     Location = gameWorld.LocationId;
                     PatchConstants.Logger.LogDebug($"AIAwakeOrSleepPatch:{Location}");
@@ -122,7 +118,7 @@ namespace SIT.Core.Other.AI
 
         public void UpdateBots(GameWorld gameWorld)
         {
-            if(gameWorld == null)
+            if (gameWorld == null)
                 return;
 
             if (!gameWorld.RegisteredPlayers.Any())

@@ -2,11 +2,8 @@
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.SP.Raid
 {
@@ -43,7 +40,7 @@ namespace SIT.Core.SP.Raid
 
         private static SpawnWaves method_1(WildSpawnWave wave)
         {
-            if(Random == null)
+            if (Random == null)
                 Random = new Random();
 
             int botsCount = Random.Next(wave.slots_min, wave.slots_max);

@@ -12,7 +12,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.XR;
 
 namespace SIT.Tarkov.Core
 {
@@ -114,7 +113,7 @@ namespace SIT.Tarkov.Core
         {
             //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData()");
 
-            PeriodicallySendPooledDataTask = Task.Run(async() => 
+            PeriodicallySendPooledDataTask = Task.Run(async () =>
             {
                 GCHelpers.EnableGC();
                 GCHelpers.ClearGarbage();
@@ -303,7 +302,7 @@ namespace SIT.Tarkov.Core
 
         //    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
         //    request.ServerCertificateValidationCallback = delegate { return true; };
-            
+
         //    foreach (var item in GetHeaders())
         //    {
         //        request.Headers.Add(item.Key, item.Value);
@@ -331,7 +330,7 @@ namespace SIT.Tarkov.Core
         //        {
         //            stream.Write(bytes, 0, bytes.Length);
         //        }
-             
+
         //    }
 
         //    // get response stream
@@ -362,7 +361,7 @@ namespace SIT.Tarkov.Core
         //        }
         //    }
 
-            
+
         //    return responseString;
         //    //return null;
         //}

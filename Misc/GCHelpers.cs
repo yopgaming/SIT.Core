@@ -1,11 +1,9 @@
 ﻿using SIT.Tarkov.Core;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.Scripting;
 
 namespace SIT.Core.Misc
@@ -24,7 +22,7 @@ namespace SIT.Core.Misc
 
         public static void EnableGC()
         {
-            if(GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
+            if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
             {
                 PatchConstants.Logger.LogDebug($"EnableGC():Enabled GC");
                 //GarbageCollector.CollectIncremental(1000000);

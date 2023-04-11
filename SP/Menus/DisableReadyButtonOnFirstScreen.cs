@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using SIT.Tarkov.Core;
+﻿using SIT.Tarkov.Core;
+using System.Reflection;
 
 namespace SIT.Core.SP.Menus
 {

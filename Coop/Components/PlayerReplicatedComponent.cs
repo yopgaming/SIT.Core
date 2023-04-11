@@ -1,19 +1,13 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
-using Newtonsoft.Json;
-using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace SIT.Coop.Core.Player
 {
@@ -52,7 +46,7 @@ namespace SIT.Coop.Core.Player
         {
             var method = packet["m"].ToString();
 
-            var patch = ModuleReplicationPatch.Patches.FirstOrDefault(x=>x.MethodName == method);
+            var patch = ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == method);
             if (patch != null)
             {
                 patch.Replicated(player, packet);
@@ -103,7 +97,7 @@ namespace SIT.Coop.Core.Player
             if (packetHandlerComponents != null)
             {
                 packetHandlerComponents = packetHandlerComponents.Where(x => x.GetType() != typeof(PlayerReplicatedComponent)).ToArray();
-                foreach(var packetHandlerComponent in packetHandlerComponents)
+                foreach (var packetHandlerComponent in packetHandlerComponents)
                 {
                     packetHandlerComponent.HandlePacket(packet);
                 }

@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using SIT.Tarkov.Core;
+using System.Linq;
 using System.Reflection;
-using SIT.Tarkov.Core;
 
 namespace SIT.Core.SP.PlayerPatches.Health
 {

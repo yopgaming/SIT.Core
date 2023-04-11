@@ -63,7 +63,7 @@ namespace SIT.Core.Coop
 
         protected static bool HasProcessed(Type type, EFT.Player player, Dictionary<string, object> dict)
         {
-            if(!ProcessedCalls.ContainsKey(type))
+            if (!ProcessedCalls.ContainsKey(type))
                 ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
 
             var playerId = player.Id.ToString();

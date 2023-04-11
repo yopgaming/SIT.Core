@@ -1,15 +1,11 @@
 ﻿using BepInEx.Configuration;
-using Comfort.Common;
-using EFT;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine.Profiling;
 
 namespace SIT.Coop.Core.Player
 {
@@ -125,7 +121,7 @@ namespace SIT.Coop.Core.Player
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             ServerCommunication.PostLocalPlayerData(player, dictionary2);
-            
+
 
 
         }

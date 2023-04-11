@@ -1,6 +1,4 @@
-﻿using EFT;
-using Newtonsoft.Json;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -87,7 +85,7 @@ namespace SIT.Coop.Core.Player
                 //Logger.LogDebug($"Replicated: New Equipment Item Count {nEquipment.GetAllItems().Count()}");
                 //player.Profile.Inventory.Equipment = nEquipment;
                 player.Profile.Inventory.Equipment.Grids = equipment.Grids;
-               
+
             }
 
             CallLocally.Add(player.Profile.AccountId, true);

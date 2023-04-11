@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using SIT.Core.Misc;
+﻿using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SIT.Core.SP.PlayerPatches.Health
 {
