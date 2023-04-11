@@ -377,40 +377,26 @@ namespace SIT.Tarkov.Core
             using (Stream stream = Send(url, "PUT", data, compress)) { }
         }
 
-        public string GetJson(string url, bool compress = true)
+        public string GetJson(string url, bool compress = true, int timeout = 1000)
         {
-            using (MemoryStream stream = Send(url, "GET", null, compress))
+            using (MemoryStream stream = Send(url, "GET", null, compress, timeout))
             {
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
                 var result = SimpleZlib.Decompress(bytes, null);
                 bytes = null;
-                //countOfCalls++;
-                //if (countOfCalls >= 100)
-                //{
-                //    GCHelpers.ClearGarbage();
-                //    countOfCalls = 0;
-                //}
                 return result;
             }
         }
 
-        //private int countOfCalls = 0;
-
-        public string PostJson(string url, string data, bool compress = true)
+        public string PostJson(string url, string data, bool compress = true, int timeout = 1000)
         {
-            using (MemoryStream stream = Send(url, "POST", data, compress))
+            using (MemoryStream stream = Send(url, "POST", data, compress, timeout))
             {
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                //countOfCalls++;
-                //if (countOfCalls >= 1000)
-                //{
-                //    GCHelpers.ClearGarbage();
-                //    countOfCalls = 0;
-                //}
                 var dec = Zlib.Decompress(bytes);
                 var result = Encoding.UTF8.GetString(dec);
                 dec = null;
