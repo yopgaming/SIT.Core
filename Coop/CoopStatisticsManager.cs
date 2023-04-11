@@ -17,7 +17,9 @@ namespace SIT.Core.Coop
             }
         }
 
+#pragma warning disable CS0067
         public event Action OnUniqueLoot;
+#pragma warning restore CS0067
 
         public void AddDoorExperience(bool breached)
         {
