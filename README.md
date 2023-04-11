@@ -1,10 +1,10 @@
 # SIT.Core
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-- Please be aware. The Ko-Fi link is literally being me a coffee
-- I do not have some special subset of code that magically makes it work beyond what is here on GitHub 
-- Please do not hand over money expecting help or a magic solution
-- I will update this README / GitHub Wiki with instructions when things are at a point where you can join and play a game together.
+- Please be aware. The Ko-Fi link is literally buying me a coffee
+- I do not have some special subset of code that makes it work beyond what is here on GitHub 
+- Please do not hand over money expecting help or a solution
+- I will update this README / GitHub Wiki with instructions when things are at a point where you can join and play a game together
 
 ## Disclaimer
 
