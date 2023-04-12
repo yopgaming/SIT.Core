@@ -31,16 +31,19 @@ namespace SIT.Core.SP.Menus
             , UpdatableToggle ____offlineModeToggle
             , DefaultUIButton ____changeSettingsButton
             , UiElementBlocker ____onlineBlocker
+            , DefaultUIButton ____readyButton
            )
         {
-            Logger.LogInfo(JsonConvert.SerializeObject(raidSettings));
+            //Logger.LogInfo(JsonConvert.SerializeObject(raidSettings));
             raidSettings.RaidMode = ERaidMode.Local;
             RemoveBlockers(__instance
               , profileInfo
               , raidSettings
               , ____offlineModeToggle
               , ____changeSettingsButton
-              , ____onlineBlocker);
+              , ____onlineBlocker
+              , ____readyButton
+              );
             //return false;
             return true;
         }
@@ -53,6 +56,7 @@ namespace SIT.Core.SP.Menus
             , UpdatableToggle ____offlineModeToggle
             , DefaultUIButton ____changeSettingsButton
             , UiElementBlocker ____onlineBlocker
+            , DefaultUIButton ____readyButton
             )
         {
             var warningPanel = GameObject.Find("Warning Panel");
@@ -62,7 +66,11 @@ namespace SIT.Core.SP.Menus
              , raidSettings
              , ____offlineModeToggle
              , ____changeSettingsButton
-             , ____onlineBlocker);
+             , ____onlineBlocker
+             , ____readyButton
+             );
+
+            ____changeSettingsButton.OnPointerClick(new UnityEngine.EventSystems.PointerEventData(null) { });
 
             //Logger.LogInfo("AutoSetOfflineMatch2.Postfix");
 
@@ -74,7 +82,9 @@ namespace SIT.Core.SP.Menus
             , RaidSettings raidSettings
             , UpdatableToggle ____offlineModeToggle
             , DefaultUIButton ____changeSettingsButton
-            , UiElementBlocker ____onlineBlocker)
+            , UiElementBlocker ____onlineBlocker
+            , DefaultUIButton ____readyButton
+            )
         {
             raidSettings.RaidMode = ERaidMode.Local;
             ____onlineBlocker.RemoveBlock();
@@ -86,6 +96,8 @@ namespace SIT.Core.SP.Menus
             raidSettings.Side = ESideType.Pmc;
             ____changeSettingsButton.Interactable = true;
             ____changeSettingsButton.enabled = true;
+            ____readyButton.Interactable = false;
+            ____readyButton.enabled = false;
             //Logger.LogInfo("AutoSetOfflineMatch2.RemoveBlockers");
         }
     }
