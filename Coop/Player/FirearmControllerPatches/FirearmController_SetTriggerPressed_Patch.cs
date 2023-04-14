@@ -33,14 +33,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , bool pressed
             )
         {
-            var result = false;
-            if (CallLocally.TryGetValue(____player.Profile.AccountId, out var expecting) && expecting)
-                result = true;
-
-            if (LastPress.ContainsKey(____player.Profile.AccountId) && LastPress[____player.Profile.AccountId] == pressed)
-                return true;
-
-            return result;
+            return true;
         }
 
         [PatchPostfix]
@@ -54,28 +47,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-            {
-                CallLocally.Remove(player.Profile.AccountId);
-                return;
-            }
-
             var ticks = DateTime.Now.Ticks;
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", ticks);
             dictionary.Add("pr", pressed.ToString());
             dictionary.Add("m", "SetTriggerPressed");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-
-            if (!LastPress.ContainsKey(player.Profile.AccountId))
-                LastPress.Add(player.Profile.AccountId, pressed);
-
-            LastPress[player.Profile.AccountId] = pressed;
-
-            var timestamp = ticks;
-            // then instantly trigger? otherwise we are waiting for the return trip?
-            CallLocally.Add(player.Profile.AccountId, true);
-            __instance.SetTriggerPressed(pressed);
         }
 
 
@@ -90,8 +67,14 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
-                    CallLocally.Add(player.Profile.AccountId, true);
-                    firearmCont.SetTriggerPressed(pressed);
+                    var weaponEffectsManager
+                        = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
+                    if (weaponEffectsManager == null)
+                        return;
+
+                    weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                    firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
+                    //ReflectionHelpers.GetMethodForType(typeof(EFT.Player.FirearmController), "method_52").Invoke()
                 }
                 catch (Exception e)
                 {
