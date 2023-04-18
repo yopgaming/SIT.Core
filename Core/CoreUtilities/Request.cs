@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Policy;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -67,7 +68,7 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        
+        public HttpClient HttpClient { get; set; }
 
         private ManualLogSource m_ManualLogSource;
 
@@ -88,6 +89,13 @@ namespace SIT.Tarkov.Core
             GetHeaders();
             PeriodicallySendPooledData();
 
+            HttpClient = new HttpClient();
+            foreach (var item in GetHeaders())
+            {
+                HttpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+            }
+            HttpClient.MaxResponseContentBufferSize = long.MaxValue;
+            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
         }
 
         public static Request GetRequestInstance(bool createInstance = false, BepInEx.Logging.ManualLogSource logger = null)
@@ -199,50 +207,18 @@ namespace SIT.Tarkov.Core
         /// <returns>Stream or null</returns>
         private MemoryStream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
         {
+            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+
+            method = method.ToUpper();
+
             var fullUri = url;
             if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
                 fullUri = RemoteEndPoint + fullUri;
 
-            var httpClient = new HttpClient();
-            foreach (var item in GetHeaders())
-            {
-                httpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
-            }
-            httpClient.MaxResponseContentBufferSize = long.MaxValue;
-            httpClient.Timeout = new TimeSpan(0, 0, 0, 0, timeout);
-
-            //try
-            //{
-
-            //    if (method == "POST")
-            //    {
-            //        //TarkovRequest tarkovRequest = TarkovRequest.CreateFromLegacyParams(new TarkovRequestParams()
-            //        //{
-            //        //    Url = fullUri,
-            //        //});
-
-            //        //TarkovRequestTransportHttp httpTransport = (TarkovRequestTransportHttp)Activator.CreateInstance(typeof(TarkovRequestTransportHttp)
-            //        //    , bindingAttr: BindingFlags.NonPublic | BindingFlags.CreateInstance  
-            //        //    , null
-            //        //    //internal TarkovRequestTransportHttp(string appVersion, [CanBeNull] string phpSessionId = null, bool zipped = false, GDelegate5 failHandler = null)
-            //        //    //
-            //        //    , new object[] { "SIT" }
-            //        //    , culture: CultureInfo.DefaultThreadCurrentCulture );// new TarkovRequestTransportHttp("SIT Client ", Session, true, () => { });
-            //        //if (TarkovTransportHttpInstanceHookPatch.TarkovRequestTransportHttpInstance != null)
-            //        //{
-            //        //    TarkovTransportHttpInstanceHookPatch.TarkovRequestTransportHttpInstance.SendAndHandleRetries<object>(tarkovRequest);
-            //        //}
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    PatchConstants.Logger.LogError(ex);
-            //}
-
             if (method == "GET")
             {
                 var ms = new MemoryStream();
-                var stream = httpClient.GetStreamAsync(fullUri);
+                var stream = HttpClient.GetStreamAsync(fullUri);
                 stream.Result.CopyTo(ms);
                 return ms;
             }
@@ -279,7 +255,7 @@ namespace SIT.Tarkov.Core
                 request.Method = method;
                 request.Timeout = timeout;
 
-                if (method != "GET" && !string.IsNullOrEmpty(data))
+                if (!string.IsNullOrEmpty(data))
                 {
                     // set request body
                     var inputDataBytes = Encoding.UTF8.GetBytes(data);
@@ -310,19 +286,17 @@ namespace SIT.Tarkov.Core
 
                 // get response stream
                 //WebResponse response = null;
+                var ms = new MemoryStream();
                 try
                 {
-                    var ms = new MemoryStream();
                     using (var response = request.GetResponse())
                     {
                         using (var responseStream = response.GetResponseStream())
                             responseStream.CopyTo(ms);
                     }
-                    return ms;
                 }
                 catch (Exception e)
                 {
-                    //Debug.LogError(e);
                     PatchConstants.Logger.LogError(e);
                 }
                 finally
@@ -330,89 +304,13 @@ namespace SIT.Tarkov.Core
                     fullUri = null;
                     request = null;
                     uri = null;
-                    //response.Close();
-                    //response.Dispose();
-                    //response = null;
                 }
+                return ms;
             }
 
             throw new ArgumentException($"Unknown method {method}");
 
         }
-
-        //private async Task<string> SendAsync(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
-        //{
-        //    var fullUri = url;
-        //    if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
-        //        fullUri = RemoteEndPoint + fullUri;
-
-        //    var uri = new Uri(fullUri);
-
-        //    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-        //    request.ServerCertificateValidationCallback = delegate { return true; };
-
-        //    foreach (var item in GetHeaders())
-        //    {
-        //        request.Headers.Add(item.Key, item.Value);
-        //    }
-
-        //    request.Headers.Add("Accept-Encoding", "deflate");
-
-        //    request.Method = method;
-        //    request.Timeout = timeout;
-
-        //    if (method != "GET" && !string.IsNullOrEmpty(data))
-        //    {
-        //        // set request body
-        //        var inputDataBytes =  Encoding.UTF8.GetBytes(data);
-        //        //m_ManualLogSource.LogDebug("Compressing");
-        //        byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
-        //        data = null;
-        //        request.ContentType = "application/json";
-        //        request.ContentLength = bytes.Length;
-        //        if (compress)
-        //            request.Headers.Add("content-encoding", "deflate");
-
-        //        //m_ManualLogSource.LogDebug("GetRequestStream");
-        //        using (Stream stream = request.GetRequestStream())
-        //        {
-        //            stream.Write(bytes, 0, bytes.Length);
-        //        }
-
-        //    }
-
-        //    // get response stream
-        //    //m_ManualLogSource.LogDebug("GetResponse");
-        //    var responseString = string.Empty;
-        //    using (var response = request.GetResponse())
-        //    {
-        //        //m_ManualLogSource.LogDebug("GetResponseStream");
-        //        using (Stream stream = response.GetResponseStream())
-        //        {
-        //            using (MemoryStream ms = new MemoryStream())
-        //            {
-        //                stream.CopyTo(ms);
-        //                byte[] body = ms.ToArray();
-
-        //                if (body.Length == 0)
-        //                {
-        //                    return null;
-        //                }
-
-        //                if (Zlib.IsCompressed(body))
-        //                {
-        //                    responseString = Encoding.UTF8.GetString(Zlib.Decompress(body));
-        //                }
-
-        //                responseString = Encoding.UTF8.GetString(body);
-        //            }
-        //        }
-        //    }
-
-
-        //    return responseString;
-        //    //return null;
-        //}
 
         public byte[] GetData(string url, bool hasHost = false)
         {
@@ -432,7 +330,9 @@ namespace SIT.Tarkov.Core
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                var result = SimpleZlib.Decompress(bytes, null);
+                var dec = Zlib.Decompress(bytes);
+                var result = Encoding.UTF8.GetString(dec);
+                dec = null;
                 bytes = null;
                 return result;
             }
