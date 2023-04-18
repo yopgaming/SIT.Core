@@ -32,7 +32,8 @@ namespace SIT.Core.Coop.Player
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
-            object @event
+            EPhraseTrigger @event,
+            ETagStatus mask
             )
         {
             var player = __instance;
@@ -45,6 +46,7 @@ namespace SIT.Core.Coop.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
+            dictionary.Add("mask", mask);
             dictionary.Add("event", @event);
             dictionary.Add("m", "Say");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
