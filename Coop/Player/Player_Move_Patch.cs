@@ -46,16 +46,12 @@ namespace SIT.Core.Coop.Player
             var accountId = player.Profile.AccountId;
 
             // If this player is a Client drone, do not send any data, anywhere
-            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                    return false;
+            var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
+            if (prc.IsClientDrone)
+                return false;
 
-                prc.ReplicatedDirection = direction;
+            prc.ReplicatedDirection = direction;
 
-                //if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
-                //    return false;
-            }
 
             //return true;
             return false;
