@@ -38,6 +38,10 @@ namespace SIT.Core.Coop.Player
           UnityEngine.Vector2 direction
            )
         {
+            // FIX: Error that occurs when leaving a raid
+            if(__instance == null)
+                return false;
+
             var player = __instance;
             var accountId = player.Profile.AccountId;
 
@@ -47,84 +51,81 @@ namespace SIT.Core.Coop.Player
                 if (prc.IsClientDrone)
                     return false;
 
-                if (prc.IsAI()) // AI Dude do their own logic because shitty AI logic causes LOADS of calls : TODO: Write logic 
-                {
-                    prc.ReplicatedDirection = direction;
-                    return false;
-                }
+                prc.ReplicatedDirection = direction;
 
-                if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
-                    return false;
+                //if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
+                //    return false;
             }
 
-            return true;
+            //return true;
+            return false;
 
         }
 
-        [PatchPostfix]
-        public static void PostPatch(
-           EFT.Player __instance,
-           UnityEngine.Vector2 direction
-            )
-        {
-            var player = __instance;
-            var accountId = player.Profile.AccountId;
+        //[PatchPostfix]
+        //public static void PostPatch(
+        //   EFT.Player __instance,
+        //   UnityEngine.Vector2 direction
+        //    )
+        //{
+        //    var player = __instance;
+        //    var accountId = player.Profile.AccountId;
 
-            //if (lastDirection.ContainsKey(accountId) && Vector3.Dot(direction, lastDirection[accountId]) >= 0)
-            //    return;
+        //    //if (lastDirection.ContainsKey(accountId) && Vector3.Dot(direction, lastDirection[accountId]) >= 0)
+        //    //    return;
 
-            // If this player is a Client drone, do not send any data, anywhere
-            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                    return;
+        //    // If this player is a Client drone, do not send any data, anywhere
+        //    if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+        //    {
+        //        if (prc.IsClientDrone)
+        //            return;
 
-                if (prc.IsAI()) // AI Dude do their own logic because shitty AI logic causes LOADS of calls : TODO: Write logic
-                {
-                    AIProcess(player, direction);
-                    return;
-                }
+        //        if (prc.IsAI()) // AI Dude do their own logic because shitty AI logic causes LOADS of calls : TODO: Write logic
+        //        {
+        //            AIProcess(player, direction);
+        //            return;
+        //        }
 
-                if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
-                    return;
-            }
+        //        if (!prc.IsOwnedPlayer()) // If it isn't an owned player (i.e. you are controlling them) then you shouldnt send
+        //            return;
+        //    }
 
-            // AI cannot use this pattern
-            if (player.IsAI || !player.IsYourPlayer)
-            {
-                AIProcess(__instance, direction);
-                return;
-            }
+        //    // AI cannot use this pattern
+        //    if (player.IsAI || !player.IsYourPlayer)
+        //    {
+        //        AIProcess(__instance, direction);
+        //        return;
+        //    }
 
-            //if(!lastDirection.ContainsKey(accountId))
-            //    lastDirection.Add(accountId, direction);
+        //    //if(!lastDirection.ContainsKey(accountId))
+        //    //    lastDirection.Add(accountId, direction);
 
-            //lastDirection[accountId] = direction;
+        //    //lastDirection[accountId] = direction;
 
-            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            //dictionary.Add("t", DateTime.Now.Ticks);
-            //dictionary.Add("dX", direction.x.ToString());
-            //dictionary.Add("dY", direction.y.ToString());
-            //dictionary.Add("m", "Move");
-            //ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
+        //    //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        //    //dictionary.Add("t", DateTime.Now.Ticks);
+        //    //dictionary.Add("dX", direction.x.ToString());
+        //    //dictionary.Add("dY", direction.y.ToString());
+        //    //dictionary.Add("m", "Move");
+        //    //ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
 
 
 
-        }
+        //}
 
-        public static void AIProcess(
-           EFT.Player player,
-           UnityEngine.Vector2 direction
-            )
-        {
-            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            //dictionary.Add("t", DateTime.Now.Ticks);
-            //dictionary.Add("dX", direction.x.ToString());
-            //dictionary.Add("dY", direction.y.ToString());
-            //dictionary.Add("m", "Move");
-            //ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
+        //public static void AIProcess(
+        //   EFT.Player player,
+        //   UnityEngine.Vector2 direction
+        //    )
+        //{
+        //    //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+        //    //dictionary.Add("t", DateTime.Now.Ticks);
+        //    //dictionary.Add("dX", direction.x.ToString());
+        //    //dictionary.Add("dY", direction.y.ToString());
+        //    //dictionary.Add("m", "Move");
+        //    //ServerCommunication.PostLocalPlayerData(player, dictionary, RequestInstance);
 
-        }
+        //}
 
         //private bool HasProcessed(EFT.Player player, Dictionary<string, object> dict)
         //{
@@ -157,7 +158,8 @@ namespace SIT.Core.Coop.Player
                 UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
                 if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
                 {
-                    playerReplicatedComponent.ReplicatedDirection = direction;
+                    if(playerReplicatedComponent.IsClientDrone)
+                        playerReplicatedComponent.ReplicatedDirection = direction;
                 }
             }
             catch (Exception e)
