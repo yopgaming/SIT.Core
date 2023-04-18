@@ -8,6 +8,7 @@ using SIT.Core.AkiSupport.Singleplayer;
 using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Coop;
 using SIT.Core.Core;
+using SIT.Core.Core.Web;
 using SIT.Core.Misc;
 using SIT.Core.Other;
 using SIT.Core.SP.Menus;
@@ -58,11 +59,13 @@ namespace SIT.Core
             new UnityWebRequestPatch().Enable();
             new TransportPrefixPatch().Enable();
             new WebSocketPatch().Enable();
+            new TarkovTransportWSInstanceHookPatch().Enable();
+            new TarkovTransportHttpInstanceHookPatch().Enable();
         }
 
         private void EnableSPPatches()
         {
-            var enabled = Config.Bind<bool>("SIT SP Patches", "Enable", true);
+            var enabled = Config.Bind<bool>("SIT.SP", "Enable", true);
             if (!enabled.Value) // if it is disabled. stop all SIT SP Patches.
             {
                 Logger.LogInfo("SIT SP Patches has been disabled! Ignoring Patches.");
@@ -73,7 +76,7 @@ namespace SIT.Core
             new UpdateDogtagPatch().Enable();
 
             //// --------- Player Init & Health -------------------
-            EnableSPPatches_PlayerHealth();
+            EnableSPPatches_PlayerHealth(Config);
 
             //// --------- SCAV MODE ---------------------
             new DisableScavModePatch().Enable();
@@ -89,7 +92,7 @@ namespace SIT.Core
 
             //// --------------------------------------
             // Bots
-            EnableSPPatches_Bots();
+            EnableSPPatches_Bots(Config);
 
             new QTEPatch().Enable();
             new TinnitusFixPatch().Enable();
@@ -115,7 +118,7 @@ namespace SIT.Core
 
         private static void EnableSPPatches_Screens()
         {
-            new OfflineRaidMenuPatch().Enable();
+            //new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
             new InsuranceScreenPatch().Enable();
             new DisableReadyButtonOnFirstScreen().Enable();
@@ -128,8 +131,12 @@ namespace SIT.Core
             new ExperienceGainFix().Enable();
         }
 
-        private void EnableSPPatches_PlayerHealth()
+        private void EnableSPPatches_PlayerHealth(BepInEx.Configuration.ConfigFile config)
         {
+            var enabled = config.Bind<bool>("SIT.SP", "EnableHealthPatches", true);
+            if (!enabled.Value)
+                return;
+
             new PlayerInitPatch().Enable();
             new ChangeHealthPatch().Enable();
             new ChangeHydrationPatch().Enable();
@@ -137,15 +144,20 @@ namespace SIT.Core
             new OnDeadPatch(Config).Enable();
         }
 
-        private static void EnableSPPatches_Bots()
+        private static void EnableSPPatches_Bots(BepInEx.Configuration.ConfigFile config)
         {
+            new CoreDifficultyPatch().Enable();
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
-            //new BotEnemyTargetPatch().Enable();
-            new BotSelfEnemyPatch().Enable();
+
+            var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
+            if (!enabled.Value)
+                return;
+
+            //new BotSelfEnemyPatch().Enable();
             new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
-            new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
+            //new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
         }
 
         private void EnableCoopPatches()
