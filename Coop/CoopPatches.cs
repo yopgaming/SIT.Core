@@ -4,6 +4,7 @@ using EFT;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Coop.Sounds;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -85,7 +86,7 @@ namespace SIT.Core.Coop
             if (!NoMRPPatches.Any())
             {
                 NoMRPPatches.Add(new PlayerOnInitPatch(m_Config));
-                //NoMRPPatches.Add(new PlayerOnMovePatch());
+                NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
