@@ -90,6 +90,30 @@ namespace SIT.Coop.Core.Player
                         player.ChangeSpeed(speed);
                     }
                     break;
+                case "PlayerState":
+                    if (IsClientDrone)
+                    {
+                        // Pose
+                        float poseLevel = float.Parse(packet["pose"].ToString());
+                        player.ChangePose(poseLevel);
+                        // Speed
+                        float speed = float.Parse(packet["spd"].ToString());
+                        player.ChangeSpeed(speed);
+                        // Rotation
+                        Vector2 packetRotation = new Vector2(
+                        float.Parse(packet["rX"].ToString())
+                        , float.Parse(packet["rY"].ToString())
+                        );
+                        player.Rotation = packetRotation;
+                        // Position
+                        Vector3 packetPosition = new Vector3(
+                            float.Parse(packet["pX"].ToString())
+                            , float.Parse(packet["pY"].ToString())
+                            , float.Parse(packet["pZ"].ToString())
+                            );
+                        player.Teleport(packetPosition, true);
+                    }
+                    break;
 
             }
 
@@ -104,86 +128,111 @@ namespace SIT.Coop.Core.Player
             }
         }
 
-
-        void LateUpdate()
+        void Update()
         {
             if (ReplicatedDirection.HasValue)
             {
                 player.InputDirection = ReplicatedDirection.Value;
-                player.CurrentState.Move(player.InputDirection);
+                ReplicatedDirection = null;
             }
+            player.CurrentState.Move(player.InputDirection);
+        }
 
+
+        void LateUpdate()
+        {
             if (IsClientDrone)
                 return;
 
-
-            if (player.IsAI)
+            //if (player.IsAI)
             {
                 // if the character is really far away from last position, send immediately
-                var repositionTimeout = Math.Max(0, -3 - Vector3.Distance(LastPosition, player.Position));
-                if (Vector3.Distance(LastPosition, player.Position) > 0.5 && LastPositionSent < DateTime.Now.AddSeconds(repositionTimeout))
+                //var repositionTimeout = Math.Max(0, -3 - Vector3.Distance(LastPosition, player.Position));
+                //if (Vector3.Distance(LastPosition, player.Position) > 0.5 && LastPositionSent < DateTime.Now.AddSeconds(repositionTimeout))
+                //{
+                //    if (Vector3.Distance(LastPosition, player.Position) > 0.5)
+                //    {
+                //        Dictionary<string, object> dict = new Dictionary<string, object>();
+                //        dict.Add("pX", LastPosition.x);
+                //        dict.Add("pY", LastPosition.y);
+                //        dict.Add("pZ", LastPosition.z);
+                //        dict.Add("m", "Position");
+                //        ServerCommunication.PostLocalPlayerData(player, dict);
+
+                //        LastPositionSent = DateTime.Now;
+                //        LastPosition = player.Position;
+                //    }
+                //}
+
+                //if (ReplicatedDirection.HasValue)
+                //{
+                //    if (Vector2.Dot(LastDirection, ReplicatedDirection.Value) < 1 && LastDirectionSent < DateTime.Now.AddSeconds(-0.5))
+                //    {
+                //        Dictionary<string, object> dict = new Dictionary<string, object>();
+                //        dict.Add("dX", ReplicatedDirection.Value.x);
+                //        dict.Add("dY", ReplicatedDirection.Value.y);
+                //        dict.Add("m", "Move");
+                //        ServerCommunication.PostLocalPlayerData(player, dict);
+
+                //        LastDirectionSent = DateTime.Now;
+                //        LastDirection = player.Position;
+                //    }
+                //}
+
+                //if (Vector2.Dot(LastRotation, player.Rotation) < 1 && LastRotationSent < DateTime.Now.AddSeconds(-0.5))
+                //{
+                //    Dictionary<string, object> dict = new Dictionary<string, object>();
+                //    dict.Add("rX", player.Rotation.x);
+                //    dict.Add("rY", player.Rotation.y);
+                //    dict.Add("m", "Rotation");
+                //    ServerCommunication.PostLocalPlayerData(player, dict);
+
+                //    LastRotationSent = DateTime.Now;
+                //    LastRotation = player.Rotation;
+                //}
+
+                //if (LastPose != player.PoseLevel && LastPoseSent < DateTime.Now.AddSeconds(-1))
+                //{
+                //    Dictionary<string, object> dict = new Dictionary<string, object>();
+                //    dict.Add("pose", player.PoseLevel);
+                //    dict.Add("m", "Pose");
+                //    ServerCommunication.PostLocalPlayerData(player, dict);
+
+                //    LastPoseSent = DateTime.Now;
+                //    LastPose = player.PoseLevel;
+                //}
+
+                //if (LastSpeed != player.Speed && LastSpeedSent < DateTime.Now.AddSeconds(-1))
+                //{
+                //    Dictionary<string, object> dict = new Dictionary<string, object>();
+                //    dict.Add("spd", player.Speed);
+                //    dict.Add("m", "Speed");
+                //    ServerCommunication.PostLocalPlayerData(player, dict);
+
+                //    LastSpeedSent = DateTime.Now;
+                //    LastSpeed = player.Speed;
+                //}
+
+                if (LastPlayerStateSent < DateTime.Now.AddSeconds(-0.33))
                 {
-                    if (Vector3.Distance(LastPosition, player.Position) > 0.5)
+                    
+                    Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
+                    if (ReplicatedDirection.HasValue)
                     {
-                        Dictionary<string, object> dict = new Dictionary<string, object>();
-                        dict.Add("pX", LastPosition.x);
-                        dict.Add("pY", LastPosition.y);
-                        dict.Add("pZ", LastPosition.z);
-                        dict.Add("m", "Position");
-                        ServerCommunication.PostLocalPlayerData(player, dict);
-
-                        LastPositionSent = DateTime.Now;
-                        LastPosition = player.Position;
+                        dictPlayerState.Add("dX", ReplicatedDirection.Value.x);
+                        dictPlayerState.Add("dY", ReplicatedDirection.Value.y);
                     }
-                }
+                    dictPlayerState.Add("pX", player.Position.x);
+                    dictPlayerState.Add("pY", player.Position.y);
+                    dictPlayerState.Add("pZ", player.Position.z);
+                    dictPlayerState.Add("rX", player.Rotation.x);
+                    dictPlayerState.Add("rY", player.Rotation.y);
+                    dictPlayerState.Add("pose", player.PoseLevel);
+                    dictPlayerState.Add("spd", player.Speed);
+                    dictPlayerState.Add("m", "PlayerState");
+                    ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
 
-                if (ReplicatedDirection.HasValue)
-                {
-                    if (Vector2.Dot(LastDirection, ReplicatedDirection.Value) < 1 && LastDirectionSent < DateTime.Now.AddSeconds(-0.5))
-                    {
-                        Dictionary<string, object> dict = new Dictionary<string, object>();
-                        dict.Add("dX", ReplicatedDirection.Value.x);
-                        dict.Add("dY", ReplicatedDirection.Value.y);
-                        dict.Add("m", "Move");
-                        ServerCommunication.PostLocalPlayerData(player, dict);
-
-                        LastDirectionSent = DateTime.Now;
-                        LastDirection = player.Position;
-                    }
-                }
-
-                if (Vector2.Dot(LastRotation, player.Rotation) < 1 && LastRotationSent < DateTime.Now.AddSeconds(-0.5))
-                {
-                    Dictionary<string, object> dict = new Dictionary<string, object>();
-                    dict.Add("rX", player.Rotation.x);
-                    dict.Add("rY", player.Rotation.y);
-                    dict.Add("m", "Rotation");
-                    ServerCommunication.PostLocalPlayerData(player, dict);
-
-                    LastRotationSent = DateTime.Now;
-                    LastRotation = player.Rotation;
-                }
-
-                if (LastPose != player.PoseLevel && LastPoseSent < DateTime.Now.AddSeconds(-1))
-                {
-                    Dictionary<string, object> dict = new Dictionary<string, object>();
-                    dict.Add("pose", player.PoseLevel);
-                    dict.Add("m", "Pose");
-                    ServerCommunication.PostLocalPlayerData(player, dict);
-
-                    LastPoseSent = DateTime.Now;
-                    LastPose = player.PoseLevel;
-                }
-
-                if (LastSpeed != player.Speed && LastSpeedSent < DateTime.Now.AddSeconds(-1))
-                {
-                    Dictionary<string, object> dict = new Dictionary<string, object>();
-                    dict.Add("spd", player.Speed);
-                    dict.Add("m", "Speed");
-                    ServerCommunication.PostLocalPlayerData(player, dict);
-
-                    LastSpeedSent = DateTime.Now;
-                    LastSpeed = player.Speed;
+                    LastPlayerStateSent = DateTime.Now;
                 }
             }
         }
@@ -202,6 +251,7 @@ namespace SIT.Coop.Core.Player
         public float LastPose { get; private set; }
         public DateTime LastSpeedSent { get; private set; }
         public float LastSpeed { get; private set; }
+        public DateTime LastPlayerStateSent { get; private set; } = DateTime.Now;
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {
