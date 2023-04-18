@@ -1,10 +1,14 @@
 ﻿using BepInEx.Configuration;
+using Comfort.Common;
+using EFT;
 using Newtonsoft.Json;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Coop.Core.Player
@@ -50,6 +54,8 @@ namespace SIT.Coop.Core.Player
             //await __result;
             Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
 
+            SendPlayerDataToServer(player);
+
             //var gameWorld = Singleton<GameWorld>.Instance;
             //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
             var coopGC = CoopGameComponent.GetCoopGameComponent();
@@ -60,18 +66,85 @@ namespace SIT.Coop.Core.Player
             }
 
 
-            // These are added to "RegisteredPlayers"
-            //if (!coopGC.Players.ContainsKey(accountId))
-            //{
-            //    coopGC.Players.TryAdd(accountId, player);
-            //}
+            if (Singleton<GameWorld>.Instance != null)
+            {
+                // These are usually added to "RegisteredPlayers"
+                if (!Singleton<GameWorld>.Instance.Any(x => x.Profile.AccountId == accountId))
+                {
+                    if (!coopGC.Players.ContainsKey(accountId))
+                    {
+                        coopGC.Players.TryAdd(accountId, player);
+                    }
+                }
+            }
 
 
+            //Dictionary<string, object> dictionary2 = new Dictionary<string, object>
+            //        {
+            //            {
+            //                "serverId",
+            //                !string.IsNullOrEmpty(coopGC.ServerId) ? coopGC.ServerId : MatchmakerAcceptPatches.GetGroupId()
+            //            },
+            //            {
+            //        "isAI",
+            //                player.IsAI && !player.Profile.Id.StartsWith("pmc")
+            //            },
+            //            {
+            //                "accountId",
+            //                player.Profile.AccountId
+            //            },
+            //            {
+            //                "profileId",
+            //                player.ProfileId
+            //            },
+            //            {
+            //                "groupId",
+            //                Matchmaker.MatchmakerAcceptPatches.GetGroupId()
+            //            },
+            //            {
+            //                "sPx",
+            //                player.Transform.position.x
+            //            },
+            //            {
+            //                "sPy",
+            //                player.Transform.position.y
+            //            },
+            //            {
+            //                "sPz",
+            //                player.Transform.position.z
+            //            },
+            //            { "m", "PlayerSpawn" },
+            //            {
+            //                "p.info",
+            //                JsonConvert.SerializeObject(player.Profile.Info
+            //                    , Formatting.None
+            //                    , new JsonSerializerSettings() { })//.SITToJson()
+            //            },
+            //            {
+            //                "p.cust",
+            //                 player.Profile.Customization.SITToJson()
+            //            },
+            //            {
+            //                "p.equip",
+            //                player.Profile.Inventory.Equipment.SITToJson()
+            //            }
+            //        };
+
+            //var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
+            //prc.player = player;
+            //ServerCommunication.PostLocalPlayerData(player, dictionary2);
+
+
+
+        }
+
+        public static void SendPlayerDataToServer(EFT.LocalPlayer player)
+        {
             Dictionary<string, object> dictionary2 = new Dictionary<string, object>
                     {
                         {
                             "serverId",
-                            coopGC.ServerId
+                            MatchmakerAcceptPatches.GetGroupId()
                         },
                         {
                     "isAI",
@@ -121,9 +194,6 @@ namespace SIT.Coop.Core.Player
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             ServerCommunication.PostLocalPlayerData(player, dictionary2);
-
-
-
         }
 
         public static void SendOrReceiveSpawnPoint(EFT.Player player)
