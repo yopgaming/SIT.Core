@@ -26,25 +26,6 @@ namespace SIT.Coop.Core.Player
             return ReflectionHelpers.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
         }
 
-        //[PatchPrefix]
-        //public static
-        //  bool
-        //  PatchPrefix(EFT.LocalPlayer __instance)
-        //{
-        //    var EnableAISpawnWaveSystem = _config.Bind("Server", "Enable AI Spawn Wave System", true
-        //                           , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
-
-        //    var result = !__instance.IsAI || (!Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem);
-        //    return result;
-        //}
-
-        //[PatchPostfix]
-        //public static
-        //    async
-        //    void
-        //    PatchPostfix(Task __result, EFT.LocalPlayer __instance)
-        //{
-
         [PatchPostfix]
         public static void PatchPostfix(EFT.LocalPlayer __instance)
         {
@@ -56,8 +37,6 @@ namespace SIT.Coop.Core.Player
 
             SendPlayerDataToServer(player);
 
-            //var gameWorld = Singleton<GameWorld>.Instance;
-            //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
             {
@@ -77,64 +56,6 @@ namespace SIT.Coop.Core.Player
                     }
                 }
             }
-
-
-            //Dictionary<string, object> dictionary2 = new Dictionary<string, object>
-            //        {
-            //            {
-            //                "serverId",
-            //                !string.IsNullOrEmpty(coopGC.ServerId) ? coopGC.ServerId : MatchmakerAcceptPatches.GetGroupId()
-            //            },
-            //            {
-            //        "isAI",
-            //                player.IsAI && !player.Profile.Id.StartsWith("pmc")
-            //            },
-            //            {
-            //                "accountId",
-            //                player.Profile.AccountId
-            //            },
-            //            {
-            //                "profileId",
-            //                player.ProfileId
-            //            },
-            //            {
-            //                "groupId",
-            //                Matchmaker.MatchmakerAcceptPatches.GetGroupId()
-            //            },
-            //            {
-            //                "sPx",
-            //                player.Transform.position.x
-            //            },
-            //            {
-            //                "sPy",
-            //                player.Transform.position.y
-            //            },
-            //            {
-            //                "sPz",
-            //                player.Transform.position.z
-            //            },
-            //            { "m", "PlayerSpawn" },
-            //            {
-            //                "p.info",
-            //                JsonConvert.SerializeObject(player.Profile.Info
-            //                    , Formatting.None
-            //                    , new JsonSerializerSettings() { })//.SITToJson()
-            //            },
-            //            {
-            //                "p.cust",
-            //                 player.Profile.Customization.SITToJson()
-            //            },
-            //            {
-            //                "p.equip",
-            //                player.Profile.Inventory.Equipment.SITToJson()
-            //            }
-            //        };
-
-            //var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
-            //prc.player = player;
-            //ServerCommunication.PostLocalPlayerData(player, dictionary2);
-
-
 
         }
 
