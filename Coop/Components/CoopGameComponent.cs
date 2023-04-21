@@ -17,6 +17,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop
@@ -49,6 +51,7 @@ namespace SIT.Core.Coop
         public double LocalTime => 0;
 
         public bool DEBUGSpawnDronesOnServer { get; set; }
+        public bool DEBUGShowPlayerList { get; set; }
 
         #endregion
 
@@ -90,29 +93,37 @@ namespace SIT.Core.Coop
             // Always clear "Players" when creating a new CoopGameComponent
             Players = new ConcurrentDictionary<string, EFT.Player>();
 
-            StartCoroutine(ReadFromServerLastActions());
-            //StartCoroutine(ReadFromServerLastMoves());
+            //StartCoroutine(ReadFromServerLastActions());
             StartCoroutine(ReadFromServerCharacters());
+            ReadFromServerLastActionsTaskToken = new CancellationToken(false);
+            Task.Run(() => { ReadFromServerLastActionsTask = ReadFromServerLastActions(ReadFromServerLastActionsTaskToken); });
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
-            GCHelpers.EnableGC();
+            //GCHelpers.EnableGC();
 
             DEBUGSpawnDronesOnServer = Plugin.Instance.Config.Bind<bool>
                 ("Coop", "ShowDronesOnServer", false, new BepInEx.Configuration.ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
+
+            DEBUGShowPlayerList = Plugin.Instance.Config.Bind<bool>
+               ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
         }
 
         void OnDestroy()
         {
             CoopPatches.EnableDisablePatches();
+            if (ReadFromServerLastActionsTask != null)
+            {
+            }
         }
 
         #endregion
 
-
+        Task ReadFromServerLastActionsTask;
+        CancellationToken ReadFromServerLastActionsTaskToken { get; set; }
 
         private IEnumerator ReadFromServerCharacters()
         {
@@ -147,13 +158,13 @@ namespace SIT.Core.Coop
 
                 try
                 {
-                    var actionsToValues = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend).Result;
-                    if (actionsToValues == null)
+                    m_CharactersJson = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend).Result;
+                    if (m_CharactersJson == null)
                         continue;
 
                     //Logger.LogDebug($"CoopGameComponent.ReadFromServerCharacters:{actionsToValues.Length}");
 
-                    var packets = actionsToValues
+                    var packets = m_CharactersJson
                          .Where(x => x != null)
                          .Select(x => x);
                     if (packets == null)
@@ -493,15 +504,15 @@ namespace SIT.Core.Coop
         /// Attempts to set up the New Player with the current weapon after spawning
         /// </summary>
         /// <param name="person"></param>
-        private void SetWeaponInHandsOfNewPlayer(EFT.Player person)
+        public void SetWeaponInHandsOfNewPlayer(EFT.Player person)
         {
             // Set first available item...
-            person.SetFirstAvailableItem((IResult) =>
-            {
+            //person.SetFirstAvailableItem((IResult) =>
+            //{
 
 
 
-            });
+            //});
 
             Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
 
@@ -544,23 +555,18 @@ namespace SIT.Core.Coop
             });
         }
 
+        private string m_ActionsToValuesJson;
+        private List<string> m_ActionsToValuesJson2 { get; } = new List<string>();
+        private Dictionary<string, object>[] m_CharactersJson;
+
         /// <summary>
         /// Gets the Last Actions Dictionary from the Server. This should not be used for things like Moves. Just other stuff.
         /// </summary>
         /// <returns></returns>
-        private IEnumerator ReadFromServerLastActions()
+        //private IEnumerator ReadFromServerLastActions()
+        private async Task ReadFromServerLastActions(CancellationToken cancellationToken = default(CancellationToken))
         {
-            Stopwatch swDebugPerformance = new Stopwatch();
-            Stopwatch swRequests = new Stopwatch();
-
-            var waitEndOfFrame = new WaitForEndOfFrame();
-
-            if (GetServerId() == null)
-                yield return waitEndOfFrame;
-
             var fTimeToWaitInMS = 500;
-            var waitSeconds = new WaitForSeconds(fTimeToWaitInMS / 1000f);
-
             var jsonDataServerId = new Dictionary<string, object>
             {
                 { "serverId", GetServerId() },
@@ -568,32 +574,101 @@ namespace SIT.Core.Coop
             };
             while (true)
             {
-                yield return waitSeconds;
+                if(cancellationToken.IsCancellationRequested) 
+                    return;
+
+                //yield return waitSeconds;
+                await Task.Delay(fTimeToWaitInMS);
 
                 jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
-                swDebugPerformance.Reset();
-                swDebugPerformance.Start();
                 if (Players == null)
                 {
                     PatchConstants.Logger.LogInfo("CoopGameComponent:No Players Found! Nothing to process!");
-                    yield return waitSeconds;
+                    //yield return waitSeconds;
                     continue;
                 }
 
                 if (RequestingObj == null)
                     RequestingObj = Request.Instance;
 
-                swRequests.Reset();
-                swRequests.Start();
-                var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastActions", jsonDataServerId.ToJson()).Result;
-                ReadFromServerLastActionsParseData(actionsToValuesJson);
+                m_ActionsToValuesJson = await RequestingObj.PostJsonAsync("/coop/server/read/lastActions", jsonDataServerId.ToJson());
+                if (!string.IsNullOrEmpty(m_ActionsToValuesJson))
+                {
+                    ReadFromServerLastActionsByAccountParseData(m_ActionsToValuesJson);
+                    m_ActionsToValuesJson = null;
+                }
                 ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
                 ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
-
-                actionsToValuesJson = null;
-                swRequests.Stop();
             }
         }
+
+        void LateUpdate()
+        {
+            try
+            {
+                if (m_ActionsToValuesJson2.Any())
+                {
+                    foreach (var result in m_ActionsToValuesJson2)
+                    {
+                        ReadFromServerLastActionsParseData(result);
+                    }
+                    m_ActionsToValuesJson2.Clear();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+
+            //if (!string.IsNullOrEmpty(m_ActionsToValuesJson))
+            //{
+            //    ReadFromServerLastActionsByAccountParseData(m_ActionsToValuesJson);
+            //    m_ActionsToValuesJson = null;
+            //}
+
+            
+        }
+
+        public void ReadFromServerLastActionsByAccountParseData(string actionsToValuesJson)
+        {
+            if (string.IsNullOrEmpty(actionsToValuesJson))
+                return;
+
+            if (actionsToValuesJson.StartsWith("["))
+            {
+                Logger.LogDebug("ReadFromServerLastActionsByAccountParseData: Has Array. This wont work!");
+                return;
+            }
+            
+            Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
+            if (actionsToValues == null)
+            {
+                return;
+            }
+
+            var packets = actionsToValues.Values
+                 .Where(x => x != null)
+                 .Where(x => x.Count > 0)
+                 .Select(x => x.ToObject<Dictionary<string, object>>());
+
+            foreach (var packets2 in packets.Select(x=>x.Values))
+            {
+                foreach (var packet in packets2)
+                {
+                    var json = packet.SITToJson();
+                    try
+                    {
+                        m_ActionsToValuesJson2.Add(json);
+                    }
+                    catch (Exception)
+                    { 
+                    }
+                }
+            }
+            packets = null;
+            actionsToValues = null;
+        }
+
 
         public void ReadFromServerLastActionsParseData(string actionsToValuesJson)
         {
@@ -606,180 +681,61 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastActions:{actionsToValuesJson}");
-            Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-            if (actionsToValues == null)
-            {
+            Dictionary<string, object> packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(actionsToValuesJson);
+            if (packet == null || packet.Count == 0)
                 return;
 
-            }
-
-            var packets = actionsToValues.Values
-                 .Where(x => x != null)
-                 .Where(x => x.Count > 0)
-                 .Select(x => x.ToObject<Dictionary<string, object>>());
-            //.Where(x => x.ContainsKey("m") && x["m"].ToString() != "Move")
-            //.Where(x => x.ContainsKey("accountId"));
-            if (packets == null)
+            var accountId = packet["accountId"].ToString();
+            if (!Players.ContainsKey(accountId))
             {
-                //PatchConstants.Logger.LogInfo("CoopGameComponent:No Data Returned from Last Actions!");
-                return;
-
-            }
-
-            if (!packets.Any())
-            {
-                //PatchConstants.Logger.LogInfo("CoopGameComponent:No Data Returned from Last Actions!");
-                return;
-
-            }
-
-            foreach (var packet in packets.Where(x => x.ContainsKey("m")))
-            {
-                if (packet == null || packet.Count == 0)
-                    continue;
-
-                var accountId = packet["accountId"].ToString();
-                if (!Players.ContainsKey(accountId))
+                Logger.LogInfo($"TODO: FIXME: Players does not contain {accountId}. Searching. This is SLOW. FIXME! Don't do this!");
+                foreach (var p in FindObjectsOfType<LocalPlayer>())
                 {
-                    Logger.LogInfo($"TODO: FIXME: Players does not contain {accountId}. Searching. This is SLOW. FIXME! Don't do this!");
-                    foreach (var p in FindObjectsOfType<LocalPlayer>())
+                    if (!Players.ContainsKey(p.Profile.AccountId))
                     {
-                        if (!Players.ContainsKey(p.Profile.AccountId))
-                        {
-                            Players.TryAdd(p.Profile.AccountId, p);
-                            var nPRC = p.GetOrAddComponent<PlayerReplicatedComponent>();
-                            nPRC.player = p;
-                        }
-                    }
-                    continue;
-                }
-
-                try
-                {
-                    foreach (var plyr in Players.Where(x => x.Key == packet["accountId"].ToString()))
-                    {
-                        plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
-
-                        if (prc == null)
-                        {
-                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                            continue;
-                        }
-
-                        prc.HandlePacket(packet);
+                        Players.TryAdd(p.Profile.AccountId, p);
+                        var nPRC = p.GetOrAddComponent<PlayerReplicatedComponent>();
+                        nPRC.player = p;
                     }
                 }
-                catch (Exception) { }
-
-                try
-                {
-                    // Deal to all versions of this guy (this shouldnt happen but good for testing)
-                    foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
-                    {
-                        if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                        {
-
-                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                            continue;
-                        }
-
-                        prc.HandlePacket(packet);
-                    }
-                }
-                catch (Exception) { }
-
-
             }
+
+            try
+            {
+                foreach (var plyr in Players.Where(x => x.Key == packet["accountId"].ToString()))
+                {
+                    plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
+
+                    if (prc == null)
+                    {
+                        Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                        continue;
+                    }
+
+                    prc.HandlePacket(packet);
+                }
+            }
+            catch (Exception) { }
+
+            try
+            {
+                // Deal to all versions of this guy (this shouldnt happen but good for testing)
+                foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
+                {
+                    if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    {
+
+                        Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                        continue;
+                    }
+
+                    prc.HandlePacket(packet);
+                }
+            }
+            catch (Exception) { }
+
+
         }
-
-        ///// <summary>
-        ///// Gets the Last Moves Dictionary from the Server. This should be the last move action each account id (character) made
-        ///// </summary>
-        ///// <returns></returns>
-        //private IEnumerator ReadFromServerLastMoves()
-        //{
-        //    var waitEndOfFrame = new WaitForEndOfFrame();
-        //    var waitSeconds = new WaitForSeconds(1f);
-
-        //    if (GetServerId() == null)
-        //        yield return waitSeconds;
-
-        //    var jsonDataServerId = JsonConvert.SerializeObject(new Dictionary<string, object>
-        //    {
-        //        { "serverId", GetServerId() }
-        //    });
-        //    while (true)
-        //    {
-        //        yield return waitSeconds;
-
-        //        if (Players == null)
-        //            continue;
-
-        //        if (RequestingObj == null)
-        //            RequestingObj = Request.Instance;
-
-        //        try
-        //        {
-        //            var actionsToValuesJson = RequestingObj.PostJsonAsync("/coop/server/read/lastMoves", jsonDataServerId).Result;
-        //            ReadFromServerLastMoves_ParseData(actionsToValuesJson);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Logger.LogError(ex.ToString());
-        //        }
-        //        //yield return waitEndOfFrame;
-
-        //    }
-        //}
-
-        //public void ReadFromServerLastMoves_ParseData(string actionsToValuesJson)
-        //{
-        //    if (actionsToValuesJson == null)
-        //        return;
-
-        //    try
-        //    {
-        //        //Logger.LogInfo($"CoopGameComponent:ReadFromServerLastMoves:{actionsToValuesJson}");
-        //        Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-        //        if (actionsToValues == null)
-        //            return;
-
-        //        var packets = actionsToValues.Values
-        //            .Where(x => x != null)
-        //            .Where(x => x.Count > 0)
-        //            .Select(x => x.ToObject<Dictionary<string, object>>());
-        //        if (packets == null)
-        //            return;
-
-        //        foreach (var packet in packets)
-        //        {
-        //            if (packet != null && packet.Count > 0)
-        //            {
-        //                if (!packet.ContainsKey("accountId"))
-        //                    continue;
-
-        //                if (Players == null)
-        //                    continue;
-
-        //                if (!Players.ContainsKey(packet["accountId"].ToString()))
-        //                    continue;
-
-        //                if (!Players[packet["accountId"].ToString()].TryGetComponent<PlayerReplicatedComponent>(out var prc))
-        //                    continue;
-
-        //                if (prc == null)
-        //                    continue;
-
-        //                //PlayerOnMovePatch.MoveReplicated(prc.player, packet);
-        //            }
-        //        }
-        //    }
-        //    finally
-        //    {
-
-        //    }
-        //}
 
         int GuiX = Screen.width - 400;
         int GuiWidth = 400;
@@ -807,6 +763,9 @@ namespace SIT.Core.Coop
                 GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");
                 rect.y += 15;
             }
+
+            if (!DEBUGShowPlayerList)
+                return;
 
             if (PlayersToSpawn.Any(p => p.Value != ESpawnState.Spawned))
             {
