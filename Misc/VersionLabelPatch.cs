@@ -1,4 +1,5 @@
-﻿using EFT.UI;
+﻿using BepInEx.Configuration;
+using EFT.UI;
 using HarmonyLib;
 using SIT.Tarkov.Core;
 using System.Linq;
@@ -9,6 +10,16 @@ namespace SIT.Core.Misc
     public class VersionLabelPatch : ModulePatch
     {
         private static string _versionLabel;
+        private ConfigFile config;
+
+        private static bool EnableSITVersionLabel { get; set; } = true;
+
+        public VersionLabelPatch(ConfigFile config)
+        {
+            this.config = config;
+
+            var EnableSITVersionLabel = config.Bind<bool>("SIT.SP", "EnableSITVersionLabel", true);
+        }
 
         protected override MethodBase GetTargetMethod()
         {
@@ -31,6 +42,9 @@ namespace SIT.Core.Misc
             string major, string minor, string backend, string taxonomy
             , object __result)
         {
+            if (!EnableSITVersionLabel)
+                return;
+
             if (string.IsNullOrEmpty(_versionLabel))
             {
                 _versionLabel = string.Empty;
