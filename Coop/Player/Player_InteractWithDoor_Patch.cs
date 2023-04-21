@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
 using EFT.Interactive;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
@@ -43,13 +44,14 @@ namespace SIT.Coop.Core.Player
         public static bool PrePatch(
             EFT.Player __instance)
         {
-            var result = false;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            //var result = false;
+            //if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            //    result = true;
 
-            //Logger.LogInfo("PlayerOnInteractWithDoorPatch:PrePatch");
+            ////Logger.LogInfo("PlayerOnInteractWithDoorPatch:PrePatch");
 
-            return result;
+            //return result;
+            return true;
         }
 
         [PatchPostfix]
@@ -97,6 +99,8 @@ namespace SIT.Coop.Core.Player
                     x => x.Id == packet["doorId"].ToString());
                 if (foundDoor == null)
                     return;
+
+                Singleton<GameWorld>.Instance.FindDoor(packet["doorId"].ToString());
 
                 CallLocally.Add(player.Profile.AccountId, true);
                 //Logger.LogInfo("Replicated: Calling Door Opener");
