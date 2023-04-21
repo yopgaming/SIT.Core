@@ -1,4 +1,5 @@
-﻿using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Player;
+using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -59,6 +60,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             if (HasProcessed(GetType(), player, dict))
+                return;
+
+            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                return;
+
+            if (!prc.IsClientDrone)
                 return;
 
             bool pressed = bool.Parse(dict["pr"].ToString());
