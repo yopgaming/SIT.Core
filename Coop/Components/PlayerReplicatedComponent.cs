@@ -55,50 +55,51 @@ namespace SIT.Coop.Core.Player
 
             switch (method)
             {
-                case "Position":
-                    if (IsClientDrone)
-                    {
-                        Vector3 packetPosition = new Vector3(
-                            float.Parse(packet["pX"].ToString())
-                            , float.Parse(packet["pY"].ToString())
-                            , float.Parse(packet["pZ"].ToString())
-                            );
-                        player.Teleport(packetPosition, true);
-                    }
-                    break;
-                case "Rotation":
-                    if (IsClientDrone)
-                    {
-                        Vector2 packetRotation = new Vector2(
-                        float.Parse(packet["rX"].ToString())
-                        , float.Parse(packet["rY"].ToString())
-                        );
-                        player.Rotation = packetRotation;
-                    }
-                    break;
-                case "Pose":
-                    if (IsClientDrone)
-                    {
-                        float poseLevel = float.Parse(packet["pose"].ToString());
-                        player.ChangePose(poseLevel);
-                    }
-                    break;
-                case "Speed":
-                    if (IsClientDrone)
-                    {
-                        float speed = float.Parse(packet["spd"].ToString());
-                        player.ChangeSpeed(speed);
-                    }
-                    break;
+                //case "Position":
+                //    if (IsClientDrone)
+                //    {
+                //        Vector3 packetPosition = new Vector3(
+                //            float.Parse(packet["pX"].ToString())
+                //            , float.Parse(packet["pY"].ToString())
+                //            , float.Parse(packet["pZ"].ToString())
+                //            );
+                //        player.Teleport(packetPosition, true);
+                //    }
+                //    break;
+                //case "Rotation":
+                //    if (IsClientDrone)
+                //    {
+                //        Vector2 packetRotation = new Vector2(
+                //        float.Parse(packet["rX"].ToString())
+                //        , float.Parse(packet["rY"].ToString())
+                //        );
+                //        player.Rotation = packetRotation;
+                //    }
+                //    break;
+                //case "Pose":
+                //    if (IsClientDrone)
+                //    {
+                //        float poseLevel = float.Parse(packet["pose"].ToString());
+                //        player.ChangePose(poseLevel);
+                //    }
+                //    break;
+                //case "Speed":
+                //    if (IsClientDrone)
+                //    {
+                //        float speed = float.Parse(packet["spd"].ToString());
+                //        player.ChangeSpeed(speed);
+                //    }
+                //    break;
                 case "PlayerState":
                     if (IsClientDrone)
                     {
                         // Pose
                         float poseLevel = float.Parse(packet["pose"].ToString());
-                        player.ChangePose(poseLevel);
+                        player.MovementContext.SetPoseLevel(poseLevel, true);
                         // Speed
                         float speed = float.Parse(packet["spd"].ToString());
-                        player.ChangeSpeed(speed);
+                        //player.ChangeSpeed(speed);
+                        player.MovementContext.CharacterMovementSpeed = speed;
                         // Rotation
                         Vector2 packetRotation = new Vector2(
                         float.Parse(packet["rX"].ToString())
@@ -111,7 +112,21 @@ namespace SIT.Coop.Core.Player
                             , float.Parse(packet["pY"].ToString())
                             , float.Parse(packet["pZ"].ToString())
                             );
-                        player.Teleport(packetPosition, true);
+                        //if (Vector3.Distance(packetPosition, player.Position) > 1)
+                        //    player.Teleport(packetPosition, true);
+                        ReplicatedPosition = packetPosition;
+                        // Move / Direction
+                        if (packet.ContainsKey("dX"))
+                        {
+                            Vector2 packetDirection = new Vector2(
+                            float.Parse(packet["dX"].ToString())
+                            , float.Parse(packet["dY"].ToString())
+                            );
+                            //player.Move(packetDirection);
+                            player.CurrentState.Move(packetDirection);
+                            player.InputDirection = packetDirection;
+                            ReplicatedDirection = packetDirection;
+                        }
                     }
                     break;
 
@@ -128,112 +143,45 @@ namespace SIT.Coop.Core.Player
             }
         }
 
-        void Update()
-        {
-            if (ReplicatedDirection.HasValue)
-            {
-                player.InputDirection = ReplicatedDirection.Value;
-                ReplicatedDirection = null;
-            }
-            player.CurrentState.Move(player.InputDirection);
-        }
-
-
         void LateUpdate()
         {
             if (IsClientDrone)
+            {
+                if (ReplicatedPosition.HasValue)
+                {
+                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime);
+                }
+
+                if (ReplicatedDirection.HasValue)
+                {
+                    player.CurrentState.Move(ReplicatedDirection.Value);
+                    player.InputDirection = ReplicatedDirection.Value;
+                }
+            }
+
+            if (IsClientDrone)
                 return;
 
-            //if (player.IsAI)
+            if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
             {
-                // if the character is really far away from last position, send immediately
-                //var repositionTimeout = Math.Max(0, -3 - Vector3.Distance(LastPosition, player.Position));
-                //if (Vector3.Distance(LastPosition, player.Position) > 0.5 && LastPositionSent < DateTime.Now.AddSeconds(repositionTimeout))
-                //{
-                //    if (Vector3.Distance(LastPosition, player.Position) > 0.5)
-                //    {
-                //        Dictionary<string, object> dict = new Dictionary<string, object>();
-                //        dict.Add("pX", LastPosition.x);
-                //        dict.Add("pY", LastPosition.y);
-                //        dict.Add("pZ", LastPosition.z);
-                //        dict.Add("m", "Position");
-                //        ServerCommunication.PostLocalPlayerData(player, dict);
-
-                //        LastPositionSent = DateTime.Now;
-                //        LastPosition = player.Position;
-                //    }
-                //}
-
-                //if (ReplicatedDirection.HasValue)
-                //{
-                //    if (Vector2.Dot(LastDirection, ReplicatedDirection.Value) < 1 && LastDirectionSent < DateTime.Now.AddSeconds(-0.5))
-                //    {
-                //        Dictionary<string, object> dict = new Dictionary<string, object>();
-                //        dict.Add("dX", ReplicatedDirection.Value.x);
-                //        dict.Add("dY", ReplicatedDirection.Value.y);
-                //        dict.Add("m", "Move");
-                //        ServerCommunication.PostLocalPlayerData(player, dict);
-
-                //        LastDirectionSent = DateTime.Now;
-                //        LastDirection = player.Position;
-                //    }
-                //}
-
-                //if (Vector2.Dot(LastRotation, player.Rotation) < 1 && LastRotationSent < DateTime.Now.AddSeconds(-0.5))
-                //{
-                //    Dictionary<string, object> dict = new Dictionary<string, object>();
-                //    dict.Add("rX", player.Rotation.x);
-                //    dict.Add("rY", player.Rotation.y);
-                //    dict.Add("m", "Rotation");
-                //    ServerCommunication.PostLocalPlayerData(player, dict);
-
-                //    LastRotationSent = DateTime.Now;
-                //    LastRotation = player.Rotation;
-                //}
-
-                //if (LastPose != player.PoseLevel && LastPoseSent < DateTime.Now.AddSeconds(-1))
-                //{
-                //    Dictionary<string, object> dict = new Dictionary<string, object>();
-                //    dict.Add("pose", player.PoseLevel);
-                //    dict.Add("m", "Pose");
-                //    ServerCommunication.PostLocalPlayerData(player, dict);
-
-                //    LastPoseSent = DateTime.Now;
-                //    LastPose = player.PoseLevel;
-                //}
-
-                //if (LastSpeed != player.Speed && LastSpeedSent < DateTime.Now.AddSeconds(-1))
-                //{
-                //    Dictionary<string, object> dict = new Dictionary<string, object>();
-                //    dict.Add("spd", player.Speed);
-                //    dict.Add("m", "Speed");
-                //    ServerCommunication.PostLocalPlayerData(player, dict);
-
-                //    LastSpeedSent = DateTime.Now;
-                //    LastSpeed = player.Speed;
-                //}
-
-                if (LastPlayerStateSent < DateTime.Now.AddSeconds(-0.33))
-                {
                     
-                    Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
-                    if (ReplicatedDirection.HasValue)
-                    {
-                        dictPlayerState.Add("dX", ReplicatedDirection.Value.x);
-                        dictPlayerState.Add("dY", ReplicatedDirection.Value.y);
-                    }
-                    dictPlayerState.Add("pX", player.Position.x);
-                    dictPlayerState.Add("pY", player.Position.y);
-                    dictPlayerState.Add("pZ", player.Position.z);
-                    dictPlayerState.Add("rX", player.Rotation.x);
-                    dictPlayerState.Add("rY", player.Rotation.y);
-                    dictPlayerState.Add("pose", player.PoseLevel);
-                    dictPlayerState.Add("spd", player.Speed);
-                    dictPlayerState.Add("m", "PlayerState");
-                    ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
-
-                    LastPlayerStateSent = DateTime.Now;
+                Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
+                if (ReplicatedDirection.HasValue)
+                {
+                    dictPlayerState.Add("dX", ReplicatedDirection.Value.x);
+                    dictPlayerState.Add("dY", ReplicatedDirection.Value.y);
                 }
+                dictPlayerState.Add("pX", player.Position.x);
+                dictPlayerState.Add("pY", player.Position.y);
+                dictPlayerState.Add("pZ", player.Position.z);
+                dictPlayerState.Add("rX", player.Rotation.x);
+                dictPlayerState.Add("rY", player.Rotation.y);
+                dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
+                dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+                dictPlayerState.Add("m", "PlayerState");
+                ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
+
+                LastPlayerStateSent = DateTime.Now;
             }
         }
 

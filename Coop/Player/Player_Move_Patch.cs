@@ -39,7 +39,7 @@ namespace SIT.Core.Coop.Player
            )
         {
             // FIX: Error that occurs when leaving a raid
-            if(__instance == null)
+            if (__instance == null)
                 return false;
 
             var player = __instance;
@@ -52,9 +52,7 @@ namespace SIT.Core.Coop.Player
 
             prc.ReplicatedDirection = direction;
 
-
-            //return true;
-            return false;
+            return true;
 
         }
 
@@ -146,22 +144,24 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
-                return;
+            //try
+            //{
+            //    if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
+            //    {
+            //        if (playerReplicatedComponent.IsClientDrone)
+            //        {
+            //            if (HasProcessed(GetType(), player, dict))
+            //                return;
 
-            try
-            {
-                UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
-                if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
-                {
-                    if(playerReplicatedComponent.IsClientDrone)
-                        playerReplicatedComponent.ReplicatedDirection = direction;
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogInfo(e);
-            }
+            //            UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
+            //            playerReplicatedComponent.ReplicatedDirection = direction;
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Logger.LogError(e);
+            //}
         }
     }
 }
