@@ -85,7 +85,7 @@ namespace SIT.Core
             new AirdropPatch().Enable();
 
             //// --------- Screens ----------------
-            EnableSPPatches_Screens();
+            EnableSPPatches_Screens(Config);
 
             //// --------- Progression -----------------------
             EnableSPPatches_PlayerProgression();
@@ -112,17 +112,17 @@ namespace SIT.Core
 
             }
 
-            new WavesSpawnScenarioInitPatch().Enable();
+            new WavesSpawnScenarioInitPatch(Config).Enable();
             new WavesSpawnScenarioMethodPatch().Enable();
         }
 
-        private static void EnableSPPatches_Screens()
+        private static void EnableSPPatches_Screens(BepInEx.Configuration.ConfigFile config)
         {
             //new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
             new InsuranceScreenPatch().Enable();
             new DisableReadyButtonOnFirstScreen().Enable();
-            new VersionLabelPatch().Enable();
+            new VersionLabelPatch(config).Enable();
         }
 
         private static void EnableSPPatches_PlayerProgression()

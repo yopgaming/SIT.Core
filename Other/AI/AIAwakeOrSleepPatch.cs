@@ -80,10 +80,10 @@ namespace SIT.Core.Other.AI
 
         internal void Awake()
         {
-            PluginEnabled = true;// ((BaseUnityPlugin)this).get_Config().Bind<bool>("Main Settings", "Plugin on/off", true, "");
-            BotDistance = 200;// ((BaseUnityPlugin)this).get_Config().Bind<float>("Main Settings", "Bot Distance", 200f, "Set Max Distance to activate bots");
-            BotLimit = 10;// ((BaseUnityPlugin)this).get_Config().Bind<int>("Main Settings", "Bot Limit (At Distance)", 10, "Based on your distance selected, limits up to this many # of bots moving at one time");
-            TimeAfterSpawn = 10;// ((BaseUnityPlugin)this).get_Config().Bind<float>("Main Settings", "Time After Spawn", 10f, "Time (sec) to wait before disabling");
+            PluginEnabled = true;// (Config.Bind<bool>("Main Settings", "Plugin on/off", true, "");
+            BotDistance = 200;// (Config.Bind<float>("Main Settings", "Bot Distance", 200f, "Set Max Distance to activate bots");
+            BotLimit = 10;// (Config.Bind<int>("Main Settings", "Bot Limit (At Distance)", 10, "Based on your distance selected, limits up to this many # of bots moving at one time");
+            TimeAfterSpawn = 10;// (Config.Bind<float>("Main Settings", "Time After Spawn", 10f, "Time (sec) to wait before disabling");
         }
 
         void Start()

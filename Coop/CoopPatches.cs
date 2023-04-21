@@ -36,18 +36,13 @@ namespace SIT.Core.Coop
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-
             new LocalGameStartingPatch(m_Config).Enable();
-            //new LocalGamePlayerSpawn().Enable();
+            new LocalGameSpawnAICoroutinePatch().Enable();
+            new NonWaveSpawnScenarioPatch(m_Config).Enable();
+            new WaveSpawnScenarioPatch(m_Config).Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
-
-
-
-            // Tests
-            //_ = new EFT.Player().SITToJson();
-
 
         }
 

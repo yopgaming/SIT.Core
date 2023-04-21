@@ -75,9 +75,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
-                    //player.ToUnloadMagOperation().
-
-                    // this is not working, maybe try and find it in the inventory instead???
                     var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
                     CallLocally.Add(player.Profile.AccountId, true);
                     Logger.LogInfo("Replicated: Calling Quick Reload Mag");
