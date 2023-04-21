@@ -32,8 +32,12 @@ namespace SIT.Core.Coop.Player
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
-            EPhraseTrigger @event,
-            ETagStatus mask
+            EPhraseTrigger @event
+            , bool demand
+            , float delay
+            , ETagStatus mask
+            , int probability
+            , bool aggressive
             )
         {
             var player = __instance;
@@ -46,8 +50,12 @@ namespace SIT.Core.Coop.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("mask", mask);
             dictionary.Add("event", @event);
+            dictionary.Add("demand", demand.ToString());
+            dictionary.Add("delay", delay.ToString());
+            dictionary.Add("mask", mask);
+            dictionary.Add("probability", probability.ToString());
+            dictionary.Add("aggressive", aggressive.ToString());
             dictionary.Add("m", "Say");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
         }
@@ -64,7 +72,15 @@ namespace SIT.Core.Coop.Player
             try
             {
                 CallLocally.Add(player.Profile.AccountId);
-                player.Say((EPhraseTrigger)Enum.Parse(typeof(EPhraseTrigger), dict["event"].ToString()));
+                player.Say(
+                    (EPhraseTrigger)Enum.Parse(typeof(EPhraseTrigger), dict["event"].ToString())
+                    , demand: bool.Parse(dict["demand"].ToString())
+                    , delay: float.Parse(dict["delay"].ToString())
+                    , mask: (ETagStatus)Enum.Parse(typeof(ETagStatus), dict["mask"].ToString())
+                    , probability: int.Parse(dict["probability"].ToString())
+                    , aggressive: bool.Parse(dict["aggressive"].ToString())
+
+                    );
             }
             catch (Exception e)
             {
