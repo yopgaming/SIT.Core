@@ -37,6 +37,7 @@ namespace SIT.Core.Coop
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             new LocalGameStartingPatch(m_Config).Enable();
+            new LocalGameEndingPatch(m_Config).Enable();
             new LocalGameSpawnAICoroutinePatch().Enable();
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
