@@ -37,7 +37,7 @@ namespace SIT.Core.Coop
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             new LocalGameStartingPatch(m_Config).Enable();
-            new LocalGameEndingPatch(m_Config).Enable();
+            //new LocalGameEndingPatch(m_Config).Enable();
             new LocalGameSpawnAICoroutinePatch().Enable();
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
@@ -81,7 +81,7 @@ namespace SIT.Core.Coop
             // ------ PLAYER -------------------------
             if (!NoMRPPatches.Any())
             {
-                NoMRPPatches.Add(new PlayerOnInitPatch(m_Config));
+                NoMRPPatches.Add(new Player_Init_Patch(m_Config));
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
             }
 

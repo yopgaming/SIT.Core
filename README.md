@@ -46,7 +46,6 @@ No. BSG server code is hidden from the client for obvious reasons. So BSG's impl
 
 ### Progress
 - See the Coop folder to see what features have been implemented
-- Spawning on clients is broken
 - BSG's code design is exceptionally difficult to create Harmony modules for and to work out what does what, so some features will 100% be missing!
 
 ## SPT-Aki

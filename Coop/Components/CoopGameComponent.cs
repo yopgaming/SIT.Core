@@ -110,6 +110,7 @@ namespace SIT.Core.Coop
             DEBUGShowPlayerList = Plugin.Instance.Config.Bind<bool>
                ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
+            Player_Init_Patch.SendPlayerDataToServer((EFT.LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
         }
 
         void OnDestroy()
@@ -747,7 +748,7 @@ namespace SIT.Core.Coop
             var rect = new Rect(GuiX, 5, GuiWidth, 100);
 
             rect.y = 5;
-            GUI.Label(rect, $"Coop Server");
+            GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
             GUI.Label(rect, $"Ping:{(ApproximatePing >= 0 ? ApproximatePing : 0)}");
