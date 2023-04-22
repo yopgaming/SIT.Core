@@ -153,15 +153,15 @@ namespace GamePanelHUDCore
 
 		//public static readonly IUpdateManger UpdateManger = new IUpdateManger();
 
-		internal static GameUI YourGameUI;
+		//internal static GameUI YourGameUI;
 
-		internal static Player YourPlayer;
+		//internal static Player YourPlayer;
 
-		internal static GameWorld TheWorld;
+		//internal static GameWorld TheWorld;
 
 		public static readonly HUDCoreClass HUDCore = new HUDCoreClass();
 
-		private bool AllHUDSW;
+		//private bool AllHUDSW;
 
 		private readonly SettingsData SettingsDatas = new SettingsData();
 
