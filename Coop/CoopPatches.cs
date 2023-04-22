@@ -4,6 +4,7 @@ using EFT;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Coop.Sounds;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -35,18 +36,14 @@ namespace SIT.Core.Coop
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-
             new LocalGameStartingPatch(m_Config).Enable();
-            //new LocalGamePlayerSpawn().Enable();
+            //new LocalGameEndingPatch(m_Config).Enable();
+            new LocalGameSpawnAICoroutinePatch().Enable();
+            new NonWaveSpawnScenarioPatch(m_Config).Enable();
+            new WaveSpawnScenarioPatch(m_Config).Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
-
-
-
-            // Tests
-            //_ = new EFT.Player().SITToJson();
-
 
         }
 
@@ -84,8 +81,8 @@ namespace SIT.Core.Coop
             // ------ PLAYER -------------------------
             if (!NoMRPPatches.Any())
             {
-                NoMRPPatches.Add(new PlayerOnInitPatch(m_Config));
-                //NoMRPPatches.Add(new PlayerOnMovePatch());
+                NoMRPPatches.Add(new Player_Init_Patch(m_Config));
+                NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");

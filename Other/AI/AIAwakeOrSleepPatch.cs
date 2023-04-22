@@ -1,13 +1,9 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
 
@@ -79,15 +75,15 @@ namespace SIT.Core.Other.AI
 
         public static float TimeAfterSpawn;
 
-        public string Location { get; set; } 
+        public string Location { get; set; }
 
 
         internal void Awake()
         {
-            PluginEnabled = true;// ((BaseUnityPlugin)this).get_Config().Bind<bool>("Main Settings", "Plugin on/off", true, "");
-            BotDistance = 200;// ((BaseUnityPlugin)this).get_Config().Bind<float>("Main Settings", "Bot Distance", 200f, "Set Max Distance to activate bots");
-            BotLimit = 10;// ((BaseUnityPlugin)this).get_Config().Bind<int>("Main Settings", "Bot Limit (At Distance)", 10, "Based on your distance selected, limits up to this many # of bots moving at one time");
-            TimeAfterSpawn = 10;// ((BaseUnityPlugin)this).get_Config().Bind<float>("Main Settings", "Time After Spawn", 10f, "Time (sec) to wait before disabling");
+            PluginEnabled = true;// (Config.Bind<bool>("Main Settings", "Plugin on/off", true, "");
+            BotDistance = 200;// (Config.Bind<float>("Main Settings", "Bot Distance", 200f, "Set Max Distance to activate bots");
+            BotLimit = 10;// (Config.Bind<int>("Main Settings", "Bot Limit (At Distance)", 10, "Based on your distance selected, limits up to this many # of bots moving at one time");
+            TimeAfterSpawn = 10;// (Config.Bind<float>("Main Settings", "Time After Spawn", 10f, "Time (sec) to wait before disabling");
         }
 
         void Start()
@@ -100,7 +96,7 @@ namespace SIT.Core.Other.AI
             if (Singleton<GameWorld>.Instantiated)
             {
                 var gameWorld = Singleton<GameWorld>.Instance;
-                if(!string.IsNullOrEmpty(gameWorld.LocationId) && gameWorld.LocationId != Location)
+                if (!string.IsNullOrEmpty(gameWorld.LocationId) && gameWorld.LocationId != Location)
                 {
                     Location = gameWorld.LocationId;
                     PatchConstants.Logger.LogDebug($"AIAwakeOrSleepPatch:{Location}");
@@ -122,7 +118,7 @@ namespace SIT.Core.Other.AI
 
         public void UpdateBots(GameWorld gameWorld)
         {
-            if(gameWorld == null)
+            if (gameWorld == null)
                 return;
 
             if (!gameWorld.RegisteredPlayers.Any())

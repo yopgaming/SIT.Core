@@ -33,7 +33,9 @@ namespace SIT.Tarkov.Core
         }
 
         [PatchPrefix]
-        private static bool PatchPrefix(ref GStruct22 legacyParams)
+        private static bool PatchPrefix(
+            TarkovRequest __instance,
+            ref TarkovRequestParams legacyParams)
         {
             legacyParams.Url = legacyParams.Url
                 .Replace("https://", "")

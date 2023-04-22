@@ -26,7 +26,9 @@ namespace SIT.Tarkov.Core
 
         public static void GetBundles()
         {
-            var json = Request.Instance.GetJson("/singleplayer/bundles");
+            var json = Request.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
+            //PatchConstants.Logger.LogDebug($"GetBundles Json: {json}");
+
             var jArray = JArray.Parse(json);
 
             foreach (var jObj in jArray)

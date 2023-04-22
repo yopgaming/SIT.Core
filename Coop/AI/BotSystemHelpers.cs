@@ -34,7 +34,7 @@ namespace SIT.Tarkov.Core.AI
 
         public static void Setup()
         {
-            Logger = BepInEx.Logging.Logger.CreateLogSource("SIT.Tarkov.Core.BotSystemHelpers");
+            Logger = BepInEx.Logging.Logger.CreateLogSource("SIT.Core.BotSystemHelpers");
             //Logger = PatchConstants.Logger;
 
             if (BotControllerType == null)
@@ -109,7 +109,7 @@ namespace SIT.Tarkov.Core.AI
                     && ReflectionHelpers.GetFieldFromType(x, "DisabledScavExits") != null
                     );
 
-            Logger.LogInfo($"LocationBaseType:{LocationBaseType.Name}");
+            //Logger.LogInfo($"LocationBaseType:{LocationBaseType.Name}");
 
             if (!TypeDictionary.ContainsKey("BotOwner"))
             {

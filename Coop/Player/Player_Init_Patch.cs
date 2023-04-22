@@ -2,21 +2,21 @@
 using Comfort.Common;
 using EFT;
 using Newtonsoft.Json;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using UnityEngine.Profiling;
 
 namespace SIT.Coop.Core.Player
 {
-    internal class PlayerOnInitPatch : ModulePatch
+    internal class Player_Init_Patch : ModulePatch
     {
         private static ConfigFile _config;
-        public PlayerOnInitPatch(ConfigFile config)
+        public Player_Init_Patch(ConfigFile config)
         {
             _config = config;
         }
@@ -25,25 +25,6 @@ namespace SIT.Coop.Core.Player
         {
             return ReflectionHelpers.GetMethodForType(typeof(EFT.LocalPlayer), "Init");
         }
-
-        //[PatchPrefix]
-        //public static
-        //  bool
-        //  PatchPrefix(EFT.LocalPlayer __instance)
-        //{
-        //    var EnableAISpawnWaveSystem = _config.Bind("Server", "Enable AI Spawn Wave System", true
-        //                           , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
-
-        //    var result = !__instance.IsAI || (!Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem);
-        //    return result;
-        //}
-
-        //[PatchPostfix]
-        //public static
-        //    async
-        //    void
-        //    PatchPostfix(Task __result, EFT.LocalPlayer __instance)
-        //{
 
         [PatchPostfix]
         public static void PatchPostfix(EFT.LocalPlayer __instance)
@@ -54,8 +35,8 @@ namespace SIT.Coop.Core.Player
             //await __result;
             Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
 
-            //var gameWorld = Singleton<GameWorld>.Instance;
-            //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+            SendPlayerDataToServer(player);
+
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
             {
@@ -63,17 +44,28 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            if (!coopGC.Players.ContainsKey(accountId))
+
+            if (Singleton<GameWorld>.Instance != null)
             {
-                coopGC.Players.TryAdd(accountId, player);
+                // These are usually added to "RegisteredPlayers"
+                if (!Singleton<GameWorld>.Instance.Any(x => x.Profile.AccountId == accountId))
+                {
+                    if (!coopGC.Players.ContainsKey(accountId))
+                    {
+                        coopGC.Players.TryAdd(accountId, player);
+                    }
+                }
             }
 
+        }
 
+        public static void SendPlayerDataToServer(EFT.LocalPlayer player)
+        {
             Dictionary<string, object> dictionary2 = new Dictionary<string, object>
                     {
                         {
                             "serverId",
-                            coopGC.ServerId
+                            MatchmakerAcceptPatches.GetGroupId()
                         },
                         {
                     "isAI",
@@ -123,9 +115,6 @@ namespace SIT.Coop.Core.Player
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             ServerCommunication.PostLocalPlayerData(player, dictionary2);
-            
-
-
         }
 
         public static void SendOrReceiveSpawnPoint(EFT.Player player)

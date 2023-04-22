@@ -2,18 +2,17 @@
 using Diz.Resources;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using UnityEngine;
-using UnityEngine.Build.Pipeline;
+using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Aki.Custom.Models;
+using UnityEngine;
+using UnityEngine.Build.Pipeline;
 using DependencyGraph = DependencyGraph<IEasyBundle>;
-using SIT.Tarkov.Core;
-using SIT.Core.Misc;
 
 namespace Aki.Custom.Patches
 {
@@ -65,14 +64,14 @@ namespace Aki.Custom.Patches
             , string platformName
             , [CanBeNull] Func<string, bool> shouldExclude
             , [CanBeNull] Func<string, Task> bundleCheck
-            
+
             )
         {
             __result = Init(__instance, bundleLock, defaultKey, rootPath, platformName, shouldExclude, bundleCheck);
             return false;
         }
 
-      
+
         public static string GetPairKey(KeyValuePair<string, Models.BundleItem> x)
         {
             return x.Key;

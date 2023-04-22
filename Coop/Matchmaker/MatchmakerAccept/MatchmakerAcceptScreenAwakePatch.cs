@@ -25,7 +25,6 @@ namespace SIT.Coop.Core.Matchmaker
         {
             return Tarkov.Core.PatchConstants.EftTypes
                  .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
-            //.Single(x => x.FullName == "EFT.UI.Matchmaker.MatchMakerAcceptScreen");
         }
 
         protected override MethodBase GetTargetMethod()
@@ -47,38 +46,38 @@ namespace SIT.Coop.Core.Matchmaker
             return true;
         }
 
-        public static void DoCreateAndCheck()
-        {
-            if (MatchmakerAcceptPatches.Profile == null)
-            {
-                Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
-                return;
-            }
-            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
-            MatchmakerAcceptPatches.CheckForMatch();
-        }
+        //public static void DoCreateAndCheck()
+        //{
+        //    if (MatchmakerAcceptPatches.Profile == null)
+        //    {
+        //        Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
+        //        return;
+        //    }
+        //    MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
+        //    MatchmakerAcceptPatches.CheckForMatch();
+        //}
 
-        public static void GoToRaid()
-        {
-            MatchmakerAcceptPatches.CheckForMatch();
+        //public static void GoToRaid()
+        //{
+        //    MatchmakerAcceptPatches.CheckForMatch();
 
-            if (MatchmakerAcceptPatches.IsSinglePlayer)
-            {
-                DisplayMessageNotifications.DisplayMessageNotification("Starting Singleplayer Game...");
-            }
-            // SendInvitePatch sets up the Host
-            else if (MatchmakerAcceptPatches.IsServer)
-            {
-                DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Host");
-                MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
-            }
-            // MatchmakerAcceptPatches.CheckForMatch sets up the Client
-            else if (MatchmakerAcceptPatches.IsClient)
-            {
-                DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Client");
-            }
+        //    if (MatchmakerAcceptPatches.IsSinglePlayer)
+        //    {
+        //        DisplayMessageNotifications.DisplayMessageNotification("Starting Singleplayer Game...");
+        //    }
+        //    // SendInvitePatch sets up the Host
+        //    else if (MatchmakerAcceptPatches.IsServer)
+        //    {
+        //        DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Host");
+        //        MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
+        //    }
+        //    // MatchmakerAcceptPatches.CheckForMatch sets up the Client
+        //    else if (MatchmakerAcceptPatches.IsClient)
+        //    {
+        //        DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Client");
+        //    }
 
-        }
+        //}
     }
 }
 

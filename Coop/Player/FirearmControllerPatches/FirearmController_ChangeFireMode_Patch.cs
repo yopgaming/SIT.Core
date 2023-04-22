@@ -35,7 +35,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
                 result = true;
 
-            Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
+            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
 
             return result;
         }
@@ -61,22 +61,24 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             dictionary.Add("f", fireMode.ToString());
             dictionary.Add("m", "ChangeFireMode");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-            Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
+            //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
 
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
+        //private static List<long> ProcessedCalls = new List<long>();
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            //if (!ProcessedCalls.Contains(timestamp))
+            //    ProcessedCalls.Add(timestamp);
+            //else
+            //{
+            //    ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            //    return;
+            //}
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
@@ -85,7 +87,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     CallLocally.Add(player.Profile.AccountId, true);
                     if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
                     {
-                        Logger.LogInfo("Replicated: Calling Change FireMode");
+                        //Logger.LogInfo("Replicated: Calling Change FireMode");
                         firearmCont.ChangeFireMode(firemode);
                     }
                 }

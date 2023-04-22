@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using SIT.Core.Coop;
+﻿using SIT.Core.Coop;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ namespace SIT.Coop.Core.Web
 {
     public static class ServerCommunication
     {
-       
+
         public static void PostLocalPlayerData(
             EFT.Player player
             , Dictionary<string, object> data

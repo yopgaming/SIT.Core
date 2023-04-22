@@ -22,6 +22,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Reference Include="AnimationSystem.Types">
+      <HintPath>..\Tarkov.References\AnimationSystem.Types.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\Tarkov.References\Assembly-CSharp.dll</HintPath>
     </Reference>
@@ -51,6 +54,9 @@
     </Reference>
     <Reference Include="Sirenix.Utilities">
       <HintPath>..\Tarkov.References\Sirenix.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ScriptableBuildPipeline">
       <HintPath>..\Tarkov.References\Unity.ScriptableBuildPipeline.dll</HintPath>

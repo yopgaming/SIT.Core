@@ -17,7 +17,6 @@ namespace SIT.Core.Coop.Matchmaker
         private static void PatchPostfix(EnvironmentUIRoot __instance)
         {
             MatchmakerAcceptPatches.EnvironmentUIRoot = ((Component)__instance).gameObject;
-            __instance.GetOrAddComponent<CoopUI>();
         }
     }
 }

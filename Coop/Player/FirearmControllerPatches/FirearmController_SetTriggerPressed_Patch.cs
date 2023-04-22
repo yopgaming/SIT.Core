@@ -1,4 +1,5 @@
-﻿using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Player;
+using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -33,14 +34,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , bool pressed
             )
         {
-            var result = false;
-            if (CallLocally.TryGetValue(____player.Profile.AccountId, out var expecting) && expecting)
-                result = true;
-
-            if (LastPress.ContainsKey(____player.Profile.AccountId) && LastPress[____player.Profile.AccountId] == pressed)
-                return true;
-
-            return result;
+            return true;
         }
 
         [PatchPostfix]
@@ -54,44 +48,25 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-            {
-                CallLocally.Remove(player.Profile.AccountId);
-                return;
-            }
-
             var ticks = DateTime.Now.Ticks;
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", ticks);
             dictionary.Add("pr", pressed.ToString());
             dictionary.Add("m", "SetTriggerPressed");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-
-            if (!LastPress.ContainsKey(player.Profile.AccountId))
-                LastPress.Add(player.Profile.AccountId, pressed);
-
-            LastPress[player.Profile.AccountId] = pressed;
-
-            var timestamp = ticks;
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            // then instantly trigger? otherwise we are waiting for the return trip?
-            CallLocally.Add(player.Profile.AccountId, true);
-            __instance.SetTriggerPressed(pressed);
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
+
+            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                return;
+
+            if (!prc.IsClientDrone)
+                return;
 
             bool pressed = bool.Parse(dict["pr"].ToString());
 
@@ -99,8 +74,14 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
-                    CallLocally.Add(player.Profile.AccountId, true);
-                    firearmCont.SetTriggerPressed(pressed);
+                    var weaponEffectsManager
+                        = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
+                    if (weaponEffectsManager == null)
+                        return;
+
+                    weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                    firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
+                    //ReflectionHelpers.GetMethodForType(typeof(EFT.Player.FirearmController), "method_52").Invoke()
                 }
                 catch (Exception e)
                 {

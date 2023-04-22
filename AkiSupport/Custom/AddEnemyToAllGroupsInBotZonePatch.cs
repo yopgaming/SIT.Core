@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace Aki.Custom.Patches
+namespace SIT.Core.AkiSupport.Custom
 {
     public class AddEnemyToAllGroupsInBotZonePatch : ModulePatch
     {

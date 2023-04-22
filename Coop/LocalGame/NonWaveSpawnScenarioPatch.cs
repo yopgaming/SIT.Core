@@ -24,11 +24,10 @@ namespace SIT.Coop.Core.LocalGame
         [PatchPrefix]
         public static bool PatchPrefix(NonWavesSpawnScenario __instance)
         {
-            var EnableAISpawnWaveSystem = _config.Bind("Server", "Enable AI Spawn Wave System", true
+            var EnableAISpawnWaveSystem = _config.Bind("Coop", "EnableAISpawnWaveSystem", true
                         , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
 
             var result = !Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem;
-            //PatchConstants.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
             return result;
         }
     }

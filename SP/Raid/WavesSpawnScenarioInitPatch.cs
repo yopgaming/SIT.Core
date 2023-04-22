@@ -1,12 +1,11 @@
-﻿using EFT;
+﻿using BepInEx.Configuration;
+using EFT;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using static GClass1649;
 
 namespace SIT.Core.SP.Raid
 {
@@ -15,6 +14,13 @@ namespace SIT.Core.SP.Raid
         private static Random Random = new Random();
 
         private static EFT.WavesSpawnScenario CurrentInstance;
+
+        private static ConfigFile _config;
+
+        public WavesSpawnScenarioInitPatch(ConfigFile config)
+        {
+            _config = config;
+        }
 
         protected override MethodBase GetTargetMethod()
         {
@@ -25,12 +31,18 @@ namespace SIT.Core.SP.Raid
         public static bool PrePatch(EFT.WavesSpawnScenario __instance, WildSpawnWave[] waves)
         {
             CurrentInstance = __instance;
+            var EnableAISpawnWaveSystem = _config.Bind("Coop", "EnableAISpawnWaveSystem", true
+                  , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
 
-            ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", true);
+            var result = !SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem;
+
+            
+            ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
             SpawnWaves[] spawnWaves;
-            if (waves != null)
+            if (waves != null && result)
             {
-                spawnWaves = waves.Select(new Func<WildSpawnWave, SpawnWaves>(method_1)).ToArray();
+                spawnWaves = waves
+                    .Select(new Func<WildSpawnWave, SpawnWaves>(method_1)).ToArray();
             }
             else
             {
@@ -43,8 +55,9 @@ namespace SIT.Core.SP.Raid
 
         private static SpawnWaves method_1(WildSpawnWave wave)
         {
-            if(Random == null)
+            if (Random == null)
                 Random = new Random();
+
 
             int botsCount = Random.Next(wave.slots_min, wave.slots_max);
             SpawnWaves spawnWaves = new SpawnWaves
@@ -52,6 +65,7 @@ namespace SIT.Core.SP.Raid
                 Time = (float)UnityEngine.Random.Range(wave.time_min, wave.time_max),
                 BotsCount = botsCount,
                 Difficulty = wave.GetDifficulty(),
+                //WildSpawnType = wave.WildSpawnType == WildSpawnType.sptUsec ? WildSpawnType.pmcBot : wave.WildSpawnType,
                 WildSpawnType = wave.WildSpawnType,
                 SpawnAreaName = wave.SpawnPoints,
                 Side = wave.BotSide,

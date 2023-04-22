@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using SIT.Tarkov.Core;
+﻿using SIT.Tarkov.Core;
+using System.Reflection;
 
 namespace SIT.Core.SP.Menus
 {
@@ -7,7 +7,7 @@ namespace SIT.Core.SP.Menus
     /// This Patch Disables the Ready button after you select the location so you will not be jumping to online match by default
     /// Game needs to initialize the offline match variables first unfortunatly
     /// </summary>
-    class DisableReadyButtonOnFirstScreen : ModulePatch
+    internal class DisableReadyButtonOnFirstScreen : ModulePatch
     {
         public DisableReadyButtonOnFirstScreen()
         {

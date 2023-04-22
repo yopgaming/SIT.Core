@@ -66,19 +66,20 @@ namespace SIT.Coop.Core.Matchmaker
             groupId = newId;
         }
 
-        public static bool CheckForMatch()
+        public static bool CheckForMatch(RaidSettings settings, out string outJson)
         {
             PatchConstants.Logger.LogInfo("CheckForMatch");
+            outJson = string.Empty;
 
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
-                string json = Request.Instance.GetJson("/coop/server/exist");
-                PatchConstants.Logger.LogInfo(json);
+                outJson = Request.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settings));
+                //PatchConstants.Logger.LogInfo(outJson);
 
-                if (!string.IsNullOrEmpty(json))
+                if (!string.IsNullOrEmpty(outJson))
                 {
                     bool serverExists = false;
-                    if (json.Equals("null", StringComparison.OrdinalIgnoreCase))
+                    if (outJson.Equals("null", StringComparison.OrdinalIgnoreCase))
                     {
                         serverExists = false;
                     }
@@ -101,13 +102,14 @@ namespace SIT.Coop.Core.Matchmaker
             new MatchmakerAcceptScreenShowPatch().Enable();
         }
 
-        public static void CreateMatch(string accountId)
+        public static void CreateMatch(string accountId, RaidSettings rs)
         {
 
             string text = Request.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
-                new Dictionary<string, string>
+                new Dictionary<string, object>
             {
                 { "serverId", accountId }
+                , { "settings", rs }
             }));
             if (!string.IsNullOrEmpty(text))
             {

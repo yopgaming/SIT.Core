@@ -3,8 +3,11 @@
 //using Grouping = GClass2434;
 using EFT.UI;
 using EFT.UI.Matchmaker;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -12,8 +15,6 @@ namespace SIT.Coop.Core.Matchmaker
 {
     public class MatchmakerAcceptScreenShowPatch : ModulePatch
     {
-
-
         static BindingFlags privateFlags = BindingFlags.NonPublic | BindingFlags.Instance;
 
         public static Type GetThisType()
@@ -35,6 +36,8 @@ namespace SIT.Coop.Core.Matchmaker
 
         //private static Button _updateListButton;
 
+        private static DateTime LastClickedTime { get; set; } = DateTime.MinValue;
+
         [PatchPrefix]
         private static void Pre(
             ref ISession session,
@@ -44,10 +47,32 @@ namespace SIT.Coop.Core.Matchmaker
             DefaultUIButton ____acceptButton
             )
         {
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
+
+            var rs = raidSettings;
             ____acceptButton.OnClick.AddListener(() =>
             {
-                Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
+                if (LastClickedTime < DateTime.Now.AddSeconds(-10))
+                {
+                    LastClickedTime = DateTime.Now;
+
+                    Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
+                    if (MatchmakerAcceptPatches.CheckForMatch(rs, out string returnedJson))
+                    {
+                        Logger.LogDebug(returnedJson);
+                        JObject result = JObject.Parse(returnedJson);
+                        var groupId = result["ServerId"].ToString();
+                        Matchmaker.MatchmakerAcceptPatches.SetGroupId(groupId);
+                        MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        GC.Collect();
+                    }
+                    else
+                    {
+                        MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, rs);
+                    }
+                }
             });
         }
 
@@ -70,7 +95,7 @@ namespace SIT.Coop.Core.Matchmaker
             MatchmakerAcceptPatches.Profile = ___profile_0;
             Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
 
-            if (MatchmakerAcceptPatches.CheckForMatch())
+            if (MatchmakerAcceptPatches.CheckForMatch(raidSettings, out string returnedJson))
             {
                 ____acceptButton.SetHeaderText("Join Match");
             }

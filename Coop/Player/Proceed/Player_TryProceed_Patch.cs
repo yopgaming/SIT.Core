@@ -19,11 +19,6 @@ namespace SIT.Coop.Core.Player
         public static Dictionary<string, bool> CallLocally
             = new Dictionary<string, bool>();
 
-        private static List<long> ProcessedCalls
-            = new List<long>();
-
-        //public override bool DisablePatch => true;
-
         protected override MethodBase GetTargetMethod()
         {
             var t = typeof(EFT.Player);
@@ -42,14 +37,17 @@ namespace SIT.Coop.Core.Player
            EFT.Player __instance
             )
         {
-            if (__instance.IsAI)
-                return true;
+            //var result = false;
+            //var player = __instance;
 
-            var result = false;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            // This has to happen, otherwise AI freeze on spawn, cos its stupid like that
+            //if (player.IsAI)
+            //    result = true;
 
-            return result;
+            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            //    result = true;
+
+            return true;
         }
 
         [PatchPostfix]
@@ -75,22 +73,48 @@ namespace SIT.Coop.Core.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var t = long.Parse(dict["t"].ToString());
-            if (ProcessedCalls.Contains(t))
+            if (HasProcessed(GetType(), player, dict))
                 return;
 
-            ProcessedCalls.Add(t);
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated");
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+                return;
 
             var item = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString()).FirstOrDefault();
+            //if (item == null)
+            //{
+            //    Logger.LogError($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Item not found");
+            //    player.SetFirstAvailableItem((result) =>
+            //    {
+            //        Logger.LogDebug(result.ToString());
+            //    });
+            //    return;
+            //}
+
             if (item != null)
             {
-                //Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated:Found Item");
-                CallLocally.Add(player.Profile.AccountId, true);
-                player.TryProceed(item, (IResult) =>
+                //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Found Item");
+
+                if (item is Weapon weapon)
                 {
-                    //Logger.LogInfo($"PlayerOnTryProceedPatch:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
-                }, bool.Parse(dict["s"].ToString()));
+                    player.Proceed(weapon, (IResult) =>
+                    {
+                        Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Weapon:Try Proceed Succeeded?:{IResult.Succeed}");
+                    }, true);
+                }
+                else
+                {
+                    CallLocally.Add(player.Profile.AccountId, true);
+
+                    player.TryProceed(item, (IResult) =>
+                    {
+                        Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
+                        if (!IResult.Succeed)
+                        {
+                        }
+                    }, bool.Parse(dict["s"].ToString()));
+
+                }
             }
         }
     }

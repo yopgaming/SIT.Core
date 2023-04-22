@@ -1,7 +1,6 @@
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
-using EFT.Communications;
 using FilesChecker;
 using HarmonyLib;
 using Newtonsoft.Json;
@@ -101,7 +100,7 @@ namespace SIT.Tarkov.Core
             return BackendConnection.GetBackendConnection().PHPSESSID;
         }
 
-      
+
 
         public static ManualLogSource Logger { get; private set; }
 
@@ -123,9 +122,9 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        
 
-       
+
+
 
         public static JsonConverter[] GetJsonConvertersBSG()
         {
@@ -383,9 +382,9 @@ namespace SIT.Tarkov.Core
             //    Logger.LogInfo($"FilterCustomization:{TypeDictionary["FilterCustomization"].FullName}");
             //}
 
-           // TypeDictionary.Add("Profile", EftTypes.First(x =>
-           //    x.IsClass && x.FullName == "EFT.Profile"
-           //));
+            // TypeDictionary.Add("Profile", EftTypes.First(x =>
+            //    x.IsClass && x.FullName == "EFT.Profile"
+            //));
 
             //TypeDictionary.Add("Profile.Customization", EftTypes.First(x =>
             //    x.IsClass

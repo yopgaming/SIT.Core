@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SIT.Core.Misc
@@ -93,12 +92,15 @@ namespace SIT.Core.Misc
 
         }
 
-        public static MethodInfo GetMethodForType(Type t, string methodName, bool debug = false)
+        public static MethodInfo GetMethodForType(Type t, string methodName, bool debug = false, bool findFirst = false)
         {
             if (t == null)
                 return null;
 
-            return ReflectionHelpers.GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower());
+            if(findFirst)
+                return ReflectionHelpers.GetAllMethodsForType(t, debug).FirstOrDefault(x => x.Name.ToLower() == methodName.ToLower());
+            else
+                return ReflectionHelpers.GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower());
         }
 
         public static async Task<MethodInfo> GetMethodForTypeAsync(Type t, string methodName, bool debug = false)

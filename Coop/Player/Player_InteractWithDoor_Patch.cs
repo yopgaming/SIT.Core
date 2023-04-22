@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
 using EFT.Interactive;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
@@ -43,13 +44,14 @@ namespace SIT.Coop.Core.Player
         public static bool PrePatch(
             EFT.Player __instance)
         {
-            var result = false;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            //var result = false;
+            //if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            //    result = true;
 
-            //Logger.LogInfo("PlayerOnInteractWithDoorPatch:PrePatch");
+            ////Logger.LogInfo("PlayerOnInteractWithDoorPatch:PrePatch");
 
-            return result;
+            //return result;
+            return true;
         }
 
         [PatchPostfix]
@@ -77,22 +79,12 @@ namespace SIT.Coop.Core.Player
             //Logger.LogInfo("OnInteractWithDoorPatch.PatchPostfix:Sent");
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
-
-
         public override void Replicated(EFT.Player player, Dictionary<string, object> packet)
         {
             var timestamp = long.Parse(packet["t"].ToString());
-            if ((DateTime.Now - new DateTime(timestamp)).TotalSeconds > 10)
-                return;
 
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, packet))
                 return;
-            }
 
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
@@ -107,6 +99,8 @@ namespace SIT.Coop.Core.Player
                     x => x.Id == packet["doorId"].ToString());
                 if (foundDoor == null)
                     return;
+
+                Singleton<GameWorld>.Instance.FindDoor(packet["doorId"].ToString());
 
                 CallLocally.Add(player.Profile.AccountId, true);
                 //Logger.LogInfo("Replicated: Calling Door Opener");

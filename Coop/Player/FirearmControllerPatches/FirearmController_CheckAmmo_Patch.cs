@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
-    internal class FirearmControllerCheckAmmoPatch : ModuleReplicationPatch
+    internal class FirearmController_CheckAmmo_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "CheckAmmo";
@@ -59,18 +59,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             ServerCommunication.PostLocalPlayerData(player, dictionary);
         }
 
-        private static List<long> ProcessedCalls = new List<long>();
-
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls.Contains(timestamp))
-                ProcessedCalls.Add(timestamp);
-            else
-            {
-                ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
+            if (HasProcessed(GetType(), player, dict))
                 return;
-            }
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
