@@ -389,16 +389,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            // If this player is a Client drone, do not send any data, anywhere
-            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            {
-                if (prc.IsClientDrone)
-                    return;
-            }
-
             Dictionary<string, object> packet = new Dictionary<string, object>();
-
-
             damageInfo.HitCollider = null;
             damageInfo.HittedBallisticCollider = null;
             Dictionary<string, string> playerDict = new Dictionary<string, string>();
@@ -496,6 +487,7 @@ namespace SIT.Core.Coop.Player
 
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, EHeadSegment.Eyes);
+                player.ShotReactions(damageInfo, bodyPartType);
                 //damageInfo.Player = null;
             }
             catch (Exception e)
