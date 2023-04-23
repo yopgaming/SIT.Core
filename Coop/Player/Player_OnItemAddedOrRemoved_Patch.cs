@@ -80,15 +80,8 @@ namespace SIT.Core.Coop.Player
                 return;
 
             Item item = null;
-            //foreach (var l in Singleton<GameWorld>.Instance.AllLoot)
-            //{
-            //    if (l.Item.TemplateId == dict["tpl"].ToString())
-            //    {
-            //        item = l.Item;
-            //        break;
-            //    }
-            //}
 
+            // Get the Item and Clone it
             var itemFindResult = Singleton<GameWorld>.Instance.FindItemById(dict["id"].ToString());
             if(itemFindResult.Succeeded)
             {
@@ -99,6 +92,8 @@ namespace SIT.Core.Coop.Player
             if (item != null) 
             {
                 Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Item[{item}]");
+
+                // Grid Item stuff
                 if (dict.ContainsKey("grad"))
                 {
                     Logger.LogDebug($"Has GridItemAddressDescriptor");
@@ -115,6 +110,7 @@ namespace SIT.Core.Coop.Player
                         }
                     }
                 }
+                // Slot Item stuff (Equip weapons, armor, backpack etc)
                 else
                 {
                     Logger.LogDebug($"Has SlotItemAddressDescriptor");
@@ -148,26 +144,5 @@ namespace SIT.Core.Coop.Player
 
         }
     }
-
-    //internal static class ItemTransactionHelper
-    //{
-    //    public static Type ReflectedType { get; }
-
-    //    static ItemTransactionHelper()
-    //    {
-    //        string[] names = new string[10] { "Sort", "QuickFindAppropriatePlace", "TransferOrMerge", "TransferMax", "Merge", "ApplyItemToRevolverDrum", "ApplySingleItemToAddress", "Fold", "CanRecode", "CanFold" };
-    //        ReflectedType = ReflectionHelper.FindClassTypeByMethodNames(names);
-    //    }
-
-    //    public static object Move(Item item, ItemAddress to, object itemController, bool simulate = false)
-    //    {
-    //        return ReflectedType.GetMethod("Move").Invoke(null, new object[4] { item, to, itemController, simulate });
-    //    }
-
-    //    public static object TransferOrMerge(Item item, Item targetItem, TraderControllerClass itemController, bool simulate)
-    //    {
-    //        return ReflectedType.InvokeMethod("TransferOrMerge", new object[4] { item, targetItem, itemController, simulate });
-    //    }
-    //}
 
 }
