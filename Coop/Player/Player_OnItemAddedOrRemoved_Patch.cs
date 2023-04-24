@@ -125,7 +125,8 @@ namespace SIT.Core.Coop.Player
                             if (container1 is EFT.InventoryLogic.Slot slot) 
                             {
                                 Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
-                                slot.AddWithoutRestrictions(item);
+                                if(slot.CanAccept(item))
+                                    slot.AddWithoutRestrictions(item);
                             }
                         }
                     }
