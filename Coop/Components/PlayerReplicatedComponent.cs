@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace SIT.Coop.Core.Player
 {
@@ -20,7 +21,6 @@ namespace SIT.Coop.Core.Player
         //internal ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
         internal Dictionary<string, object> LastMovementPacket { get; set; }
         internal EFT.LocalPlayer player { get; set; }
-        public float LastTiltLevel { get; private set; }
         public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
@@ -55,41 +55,6 @@ namespace SIT.Coop.Core.Player
 
             switch (method)
             {
-                //case "Position":
-                //    if (IsClientDrone)
-                //    {
-                //        Vector3 packetPosition = new Vector3(
-                //            float.Parse(packet["pX"].ToString())
-                //            , float.Parse(packet["pY"].ToString())
-                //            , float.Parse(packet["pZ"].ToString())
-                //            );
-                //        player.Teleport(packetPosition, true);
-                //    }
-                //    break;
-                //case "Rotation":
-                //    if (IsClientDrone)
-                //    {
-                //        Vector2 packetRotation = new Vector2(
-                //        float.Parse(packet["rX"].ToString())
-                //        , float.Parse(packet["rY"].ToString())
-                //        );
-                //        player.Rotation = packetRotation;
-                //    }
-                //    break;
-                //case "Pose":
-                //    if (IsClientDrone)
-                //    {
-                //        float poseLevel = float.Parse(packet["pose"].ToString());
-                //        player.ChangePose(poseLevel);
-                //    }
-                //    break;
-                //case "Speed":
-                //    if (IsClientDrone)
-                //    {
-                //        float speed = float.Parse(packet["spd"].ToString());
-                //        player.ChangeSpeed(speed);
-                //    }
-                //    break;
                 case "PlayerState":
                     if (IsClientDrone)
                     {
@@ -105,7 +70,8 @@ namespace SIT.Coop.Core.Player
                         float.Parse(packet["rX"].ToString())
                         , float.Parse(packet["rY"].ToString())
                         );
-                        player.Rotation = packetRotation;
+                        //player.Rotation = packetRotation;
+                        ReplicatedRotation = packetRotation;
                         // Position
                         Vector3 packetPosition = new Vector3(
                             float.Parse(packet["pX"].ToString())
@@ -147,9 +113,38 @@ namespace SIT.Coop.Core.Player
         {
             if (IsClientDrone)
             {
+                // Replicate Position.
+                // If a short distance -> Smooth Lerp to the Desired Position
+                // If the other side of a wall -> Teleport to the correct side (TODO)
+                // If far away -> Teleport
                 if (ReplicatedPosition.HasValue)
                 {
-                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime);
+                    var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
+                    var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
+                    LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainMask;
+                    //var rayCheck = Physics.SphereCast(ReplicatedPosition.Value, 10, replicatedPositionDirection, out var hit, replicationDistance, layerMask);
+                    var rayCheck = Physics.SphereCast(ReplicatedPosition.Value, 10, replicatedPositionDirection, out var hit);
+                    Debug.DrawLine(ReplicatedPosition.Value, player.Position, Color.green);
+                    if (rayCheck)
+                    {
+                        Debug.DrawRay(ReplicatedPosition.Value, replicatedPositionDirection * hit.distance, Color.yellow);
+                    }
+
+                    if (Vector3.Distance(ReplicatedPosition.Value, player.Position) >= 3)// || rayCheck)
+                    {
+                        player.Teleport(ReplicatedPosition.Value, true);
+                    }
+                    else
+                    {
+                        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime);
+                    }
+                }
+
+                // Replicate Rotation.
+                // Smooth Lerp to the Desired Rotation
+                if (ReplicatedRotation.HasValue)
+                {
+                    player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
                 }
 
                 if (ReplicatedDirection.HasValue)
