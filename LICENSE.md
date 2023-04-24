@@ -1,10 +1,11 @@
 # NCSA Open Source License  
 
-Copyright (c) 2022 Merijn Hendriks. All rights reserved.  
+Copyright (c) 2023 Paulov-t. All rights reserved.  
 
-Developed by:   Paulov-t - Stay In Tarkov (SIT) Core and Coop Code
-                Merijn Hendriks - SPT-AKI Libraries
-                SPT-AKI Dev Team - - SPT-AKI Libraries
+Developed by:   
+* Paulov-t - Stay In Tarkov (SIT) Core and Coop Code
+* Merijn Hendriks - SPT-AKI Libraries
+* SPT-AKI Dev Team - - SPT-AKI Libraries
 
 Permission is hereby granted, free of charge, to any person obtaining a copy  
 of this software and associated documentation files (the "Software"), to deal  
