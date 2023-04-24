@@ -150,7 +150,9 @@ namespace SIT.Core.Coop
                 else
                     d["pL"] = PlayersToSpawn.Keys.ToArray()
                         // If not debugging, remove all already spawned characters
-                        .AddRangeToArray(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.Profile.AccountId).ToArray());
+                        .AddRangeToArray(Players.Keys.ToArray())
+                        .AddRangeToArray(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.Profile.AccountId)
+                        .ToArray());
 
                 var jsonDataToSend = d.ToJson();
 
@@ -185,11 +187,16 @@ namespace SIT.Core.Coop
 
                                     string accountId = queuedPacket["accountId"].ToString();
                                     // TODO: Put this back in after testing in Creation functions
-                                    //if (Players == null || Players.ContainsKey(accountId))
-                                    //{
-                                    //    Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
-                                    //    continue;
-                                    //}
+                                    if (!DEBUGSpawnDronesOnServer)
+                                    {
+                                        if (Players == null 
+                                            || Players.ContainsKey(accountId) 
+                                            || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x=>x.Profile.AccountId == accountId))
+                                        {
+                                            Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
+                                            continue;
+                                        }
+                                    }
                                     if (PlayersToSpawn.ContainsKey(accountId))
                                         continue;
 
@@ -480,26 +487,26 @@ namespace SIT.Core.Coop
         /// Doesn't seem to work :(
         /// </summary>
         /// <param name="profile"></param>
-        private void MakeOriginalPlayerInvisible(Profile profile)
-        {
-            if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
-            {
-                var originalPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == profile.AccountId);
-                if (originalPlayer != null)
-                {
-                    Logger.LogDebug($"Make {profile.AccountId} invisible?");
-                    originalPlayer.IsVisible = false;
-                }
-                else
-                {
-                    Logger.LogDebug($"Unable to find {profile.AccountId} to make them invisible");
-                }
-            }
-            else
-            {
-                Logger.LogDebug($"Unable to find {profile.AccountId} to make them invisible");
-            }
-        }
+        //private void MakeOriginalPlayerInvisible(Profile profile)
+        //{
+        //    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+        //    {
+        //        var originalPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == profile.AccountId);
+        //        if (originalPlayer != null)
+        //        {
+        //            Logger.LogDebug($"Make {profile.AccountId} invisible?");
+        //            originalPlayer.IsVisible = false;
+        //        }
+        //        else
+        //        {
+        //            Logger.LogDebug($"Unable to find {profile.AccountId} to make them invisible");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Logger.LogDebug($"Unable to find {profile.AccountId} to make them invisible");
+        //    }
+        //}
 
         /// <summary>
         /// Attempts to set up the New Player with the current weapon after spawning
