@@ -48,45 +48,14 @@ namespace SIT.Coop.Core.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
-            Logger.LogDebug($"PatchPostfix: Current Equipment Item Count {__instance.Profile.Inventory.Equipment.GetAllItems().Count()}");
-            dictionary.Add("p.equip", __instance.Profile.Inventory.Equipment.SITToJson());
             dictionary.Add("m", "DropBackpack");
             ServerCommunication.PostLocalPlayerData(__instance, dictionary);
-
-            //var invPacket = __instance.Profile.Inventory.ToInventorySyncPacket();
-            //foreach (var item in invPacket.SlotsItemInfo)
-            //{
-            //    var It = item.ItemJson.SITParseJson<EFT.InventoryLogic.Item>();
-            //    Logger.LogDebug($"PatchPostfix: Equipment Item {It.Id}");
-            //}
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             if (HasProcessed(GetType(), player, dict))
                 return;
-
-            if (dict.ContainsKey("p.equip"))
-            {
-                // TODO: Spin up a new Equipment using the Equipment Template
-
-                // Equipment from Replication
-                var equipment = dict["p.equip"].ToString().SITParseJson<Equipment>();
-                Logger.LogDebug($"Replicated: Deserialized Equipment Item Count {equipment.GetAllItems().Count()}");
-
-                // You can get the GClass2267 from the Equipment Constructor
-                //var equipmentTemplate = new GClass2267();
-                //equipmentTemplate.Slots = equipment.Slots;
-                //equipmentTemplate.Grids = equipment.Grids;
-                //equipmentTemplate.CanPutIntoDuringTheRaid = true;
-                //equipmentTemplate.CantRemoveFromSlotsDuringRaid = new EFT.InventoryLogic.EquipmentSlot[0];
-
-                //var nEquipment = new Equipment(equipment.Id, equipmentTemplate);
-                //Logger.LogDebug($"Replicated: New Equipment Item Count {nEquipment.GetAllItems().Count()}");
-                //player.Profile.Inventory.Equipment = nEquipment;
-                player.Profile.Inventory.Equipment.Grids = equipment.Grids;
-
-            }
 
             CallLocally.Add(player.Profile.AccountId, true);
             Logger.LogDebug("Replicated: Calling Drop Backpack");
