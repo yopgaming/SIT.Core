@@ -1,18 +1,20 @@
 # SIT.Core
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-- Please be aware. The Ko-Fi link is literally buying me a coffee
-- I do not have some special subset of code that makes it work beyond what is here on GitHub 
-- Please do not hand over money expecting help or a solution
-- I will update this README / GitHub Wiki with instructions when things are at a point where you can join and play a game together
-
 ## Disclaimer
 
-- You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
-- This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
-- This is by no means designed for illegally downloading the game (and has blocks for people that do!)
-- This is purely for educational purposes (I am using this to learn Unity, Reverse Engineering & Networking)
-- I am in no way affiliated with BattleStateGames or others (on Reddit or Discord) claiming to be working on a project
+* You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
+* This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
+* This is by no means designed for illegally downloading the game (and has blocks for people that do!)
+* This is purely for educational purposes (I am using this to learn Unity, Reverse Engineering & Networking)
+* I am in no way affiliated with BattleStateGames or others (on Reddit or Discord) claiming to be working on a project
+
+## Support
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
+* Please be aware. The Ko-Fi link is literally buying me a coffee
+* I do not have some special subset of code that makes it work beyond what is here on GitHub 
+* Please do not hand over money expecting help or a solution
+* I will update this README / GitHub Wiki with instructions when things are at a point where you can join and play a game together
 
 ## SPT-AKI Requirement
 Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
@@ -25,7 +27,8 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 ## Coop
 
 ### Highlight - BE AWARE
-Coop is in very early stages of redevelopment. Nothing works.
+* Coop is in very early stages of redevelopment.
+* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/coop/HOSTING.md)
 
 ### PREREQUISITE
 You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
@@ -39,14 +42,10 @@ No. BSG server code is hidden from the client for obvious reasons. So BSG's impl
 
 ### Coding explanation
 - The project uses multiple methods of BepInEx Harmony patches coupled with Unity Components to achieve its aims.
-- Features/Methods that require constant polling between Client->Server->Client (Move, Rotate, Look, etc) use Components to send data (Harmony patches are too expensive).
+- Features/Methods that require constant polling between Client->Server->Client (Move, Rotate, Look, etc) use Components to send data (Harmony patches are too expensive, especially on AI!).
 - Features/Methods that can easily be "replicated" use ModuleReplicationPatch abstract class to easily round trip the call.
 - All server communication is via JSON TCP calls to the ["Web Server" developed by SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) using a [typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) to handle the "backend" work.
 - CoopGameComponent is attached to the GameWorld object when a Coop ready game is started (any game that isn't Hideout). CoopGameComponent polls the Server for information and passes the data to the PlayerReplicatedComponent.
-
-### Progress
-- See the Coop folder to see what features have been implemented
-- BSG's code design is exceptionally difficult to create Harmony modules for and to work out what does what, so some features will 100% be missing!
 
 ## SPT-Aki
 
@@ -55,7 +54,7 @@ The following Aki Modules are supported.
 - aki-core
 - Aki.Common
 - Aki.Reflection
-- 50/50 on Client mods (depends on how well written their reflection patterns are)
+- 50/50 on SPT-AKI Client mods. This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
 
 ### Why don't you use Aki Module DLLs?
 SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.

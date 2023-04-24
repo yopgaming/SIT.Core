@@ -27,7 +27,8 @@ THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME
 
 ## NOTES / ISSUES
 - Both HOST and CLIENT should spawn on each others game after a few seconds
-- CLIENT may not see BOTS until they are spawned in their RAID
+- CLIENT may not see BOTS until they are spawned in their RAID and may be targeted by BOTS on the HOST before CLIENT spawns them
 - CLIENT may not see some doors opened
 - Only ONE match can run on a Server at ONE time, this means if the HOST or CLIENT dies, they must wait for the game to FINISH before playing again
-- If the HOST dies, the SERVER is DEAD. CLIENTS can freely escape or disconnect as they wish.
+- If the HOST dies, the SERVER is DEAD. CLIENTS can freely escape or disconnect as they wish
+- Loot is NOT the same between HOST & CLIENT, there may be a desync between them - THIS IS PRIORITY 1 TO FIX
