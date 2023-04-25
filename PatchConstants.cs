@@ -147,7 +147,7 @@ namespace SIT.Tarkov.Core
             converters.AddItem(new DateTimeOffsetJsonConverter());
             converters.AddItem(new SimpleCharacterControllerJsonConverter());
             converters.AddItem(new CollisionFlagsJsonConverter());
-            //converters.AddItem(new PlayerJsonConverter());
+            converters.AddItem(new NotesJsonConverter());
             var paulovconverters = GetJsonConvertersPaulov();
             converters.AddRangeToArray(paulovconverters.ToArray());
 

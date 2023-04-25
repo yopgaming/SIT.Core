@@ -121,16 +121,7 @@ namespace SIT.Coop.Core.Player
                 {
                     var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
                     var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                    LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainMask;
-                    //var rayCheck = Physics.SphereCast(ReplicatedPosition.Value, 10, replicatedPositionDirection, out var hit, replicationDistance, layerMask);
-                    var rayCheck = Physics.SphereCast(ReplicatedPosition.Value, 10, replicatedPositionDirection, out var hit);
-                    Debug.DrawLine(ReplicatedPosition.Value, player.Position, Color.green);
-                    if (rayCheck)
-                    {
-                        Debug.DrawRay(ReplicatedPosition.Value, replicatedPositionDirection * hit.distance, Color.yellow);
-                    }
-
-                    if (Vector3.Distance(ReplicatedPosition.Value, player.Position) >= 3)// || rayCheck)
+                    if (replicationDistance >= 3)
                     {
                         player.Teleport(ReplicatedPosition.Value, true);
                     }
@@ -159,7 +150,7 @@ namespace SIT.Coop.Core.Player
 
             if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
             {
-                    
+
                 Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
                 if (ReplicatedDirection.HasValue)
                 {
@@ -173,6 +164,7 @@ namespace SIT.Coop.Core.Player
                 dictPlayerState.Add("rY", player.Rotation.y);
                 dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
                 dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+                dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
                 dictPlayerState.Add("m", "PlayerState");
                 ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
 

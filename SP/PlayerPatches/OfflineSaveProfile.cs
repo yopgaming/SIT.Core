@@ -57,18 +57,37 @@ namespace SIT.Core.SP.PlayerPatches
 
         public static void SaveProfileProgress(ExitStatus exitStatus, Profile profileData, PlayerHealth currentHealth, bool isPlayerScav)
         {
+            // "Disconnecting" from your game in Single Player shouldn't result in losing your gear. This is stupid.
+            if (exitStatus == ExitStatus.Left || exitStatus == ExitStatus.MissingInAction)
+                exitStatus = ExitStatus.Runner;
+
+            // TODO: Remove uneccessary data
+            var clonedProfile = profileData.Clone();
+            //clonedProfile.Encyclopedia = null;
+            //clonedProfile.Hideout = null;
+            //clonedProfile.Notes = null;
+            //clonedProfile.RagfairInfo = null;
+            //clonedProfile.Skills = null;
+            //clonedProfile.TradersInfo = null;
+            //clonedProfile.QuestsData = null;
+            //clonedProfile.UnlockedRecipeInfo = null;
+            //clonedProfile.WishList = null;
+
             SaveProfileRequest request = new SaveProfileRequest
             {
                 exit = exitStatus.ToString().ToLower(),
-                profile = profileData,
+                profile = clonedProfile,
                 health = currentHealth,
-                //health = profileData.Health,
                 isPlayerScav = isPlayerScav
             };
 
             var convertedJson = request.SITToJson();
-            Request.Instance.PostJson("/raid/profile/save", convertedJson);
+            //Logger.LogDebug("SaveProfileProgress =====================================================");
+            //Logger.LogDebug(convertedJson);
+            Request.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);
 
+
+            //Request.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);
         }
 
         public class SaveProfileRequest

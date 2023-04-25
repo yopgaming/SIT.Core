@@ -421,7 +421,7 @@ namespace SIT.Core.Coop.Player
             packet.Add("bpt", bodyPartType.ToString());
             packet.Add("ab", absorbed.ToString());
             packet.Add("m", "ApplyDamageInfo");
-            ServerCommunication.PostLocalPlayerData(player, packet);
+            ServerCommunication.PostLocalPlayerData(player, packet, true);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

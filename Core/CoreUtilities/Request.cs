@@ -1,25 +1,17 @@
 ﻿using BepInEx.Logging;
-using ComponentAce.Compression.Libs.zlib;
 using Newtonsoft.Json;
-using SIT.Core.Core.Web;
 using SIT.Core.Misc;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
-using System.Security.Policy;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.Networking.Match;
 
 namespace SIT.Tarkov.Core
 {
@@ -133,8 +125,8 @@ namespace SIT.Tarkov.Core
 
             PeriodicallySendPooledDataTask = Task.Run(async () =>
             {
-                GCHelpers.EnableGC();
-                GCHelpers.ClearGarbage();
+                //GCHelpers.EnableGC();
+                //GCHelpers.ClearGarbage();
                 //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
 
                 //while (m_Instance != null)
@@ -147,22 +139,24 @@ namespace SIT.Tarkov.Core
                     //PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
                     while (m_PooledDictionariesToPost.Any())
                     {
-                        await Task.Delay(1);
-                        //m_ManualLogSource.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
-                        m_PooledDictionariesToPost.TryDequeue(out var d);
+                        KeyValuePair<string, Dictionary<string, object>> d;
+                        while (!m_PooledDictionariesToPost.TryDequeue(out d)) ;
                         var url = d.Key;
                         var json = JsonConvert.SerializeObject(d.Value);
-                        await PostJsonAsync(url, json);
+                        await PostJsonAsync(url, json, timeout: 3000, debug: true);
+
                     }
 
-                    if (m_PooledStringToPost.Any())
-                    {
-                        //m_ManualLogSource.LogDebug($"m_PooledStringToPost:{m_PooledStringToPost.Count}:entries");
-                        m_PooledStringToPost.TryDequeue(out var d);
-                        var url = d.Key;
-                        var json = d.Value;
-                        PostJson(url, json);
-                    }
+                    //if (m_PooledStringToPost.Any())
+                    //{
+                    //    //m_ManualLogSource.LogDebug($"m_PooledStringToPost:{m_PooledStringToPost.Count}:entries");
+                    //    m_PooledStringToPost.TryDequeue(out var d);
+                    //    var url = d.Key;
+                    //    var json = d.Value;
+                    //    //await PostJsonAsync(url, json);
+                    //    await SendAndForgetAsync(url, "PUT", json, timeout: 999);
+
+                    //}
                     PostPing = swPing.ElapsedMilliseconds - 33;
 
                 }
@@ -192,11 +186,79 @@ namespace SIT.Tarkov.Core
             return m_RequestHeaders;
         }
 
-        //public Request(string session, string remoteEndPoint, bool isUnity = true)
-        //{
-        //    Session = session;
-        //    RemoteEndPoint = remoteEndPoint;
-        //}
+        private async Task SendAndForgetAsync(string url, string method, string data, bool compress = true, int timeout = 1000, bool debug = false)
+        {
+            if (method == "GET")
+            {
+                throw new NotSupportedException("GET wont work on a SendAndForget call. It won't receive anything!");
+            }
+
+            if(data == null)
+            {
+                throw new ArgumentNullException("data", "data value must be provided");
+            }
+
+            // Force to DEBUG mode if not Compressing.
+            debug = debug || !compress;
+
+            method = method.ToUpper();
+
+            var fullUri = url;
+            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
+                fullUri = RemoteEndPoint + fullUri;
+
+            var uri = new Uri(fullUri);
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.ServerCertificateValidationCallback = delegate { return true; };
+
+            foreach (var item in GetHeaders())
+            {
+                request.Headers.Add(item.Key, item.Value);
+            }
+
+            if (!debug && method == "POST")
+            {
+                request.Headers.Add("Accept-Encoding", "deflate");
+            }
+
+            request.Method = method;
+            request.Timeout = timeout;
+
+            if (debug && method == "POST")
+            {
+                compress = false;
+                request.Headers.Add("debug", "1");
+            }
+
+            // set request body
+            var inputDataBytes = Encoding.UTF8.GetBytes(data);
+            byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
+            data = null;
+            request.ContentType = "application/json";
+            request.ContentLength = bytes.Length;
+            if (compress)
+                request.Headers.Add("content-encoding", "deflate");
+
+            try
+            {
+                using (Stream stream = await request.GetRequestStreamAsync())
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                }
+                await request.GetResponseAsync();
+            }
+            catch (Exception e)
+            {
+                PatchConstants.Logger.LogError(e);
+            }
+            finally
+            {
+                bytes = null;
+                inputDataBytes = null;
+            }
+        }
+
         /// <summary>
         /// Send request to the server and get Stream of data back
         /// </summary>
@@ -205,8 +267,11 @@ namespace SIT.Tarkov.Core
         /// <param name="data">string json data</param>
         /// <param name="compress">Should use compression gzip?</param>
         /// <returns>Stream or null</returns>
-        private MemoryStream Send(string url, string method = "GET", string data = null, bool compress = true, int timeout = 1000)
+        private MemoryStream SendAndReceive(string url, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
         {
+            // Force to DEBUG mode if not Compressing.
+            debug = debug || !compress;
+
             HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
 
             method = method.ToUpper();
@@ -224,22 +289,6 @@ namespace SIT.Tarkov.Core
             }
             else if (method == "POST" || method == "PUT")
             {
-                //var ms = new MemoryStream();
-                //var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                //byte[] bytes = Zlib.Compress(inputDataBytes, ZlibCompression.Normal);
-
-                //ByteArrayContent stringContent = new ByteArrayContent(bytes);
-                //var stream = httpClient.PostAsync(fullUri, stringContent);
-                //stream.Result.Content.ReadAsStreamAsync().Result.CopyTo(ms);
-                //return ms;
-                //}
-                //else
-                //{
-                //    throw new ArgumentException($"Unknown method {method}");
-                //}
-
-                //return null;
-
                 var uri = new Uri(fullUri);
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
@@ -250,16 +299,26 @@ namespace SIT.Tarkov.Core
                     request.Headers.Add(item.Key, item.Value);
                 }
 
-                request.Headers.Add("Accept-Encoding", "deflate");
+                if (!debug && method == "POST")
+                {
+                    request.Headers.Add("Accept-Encoding", "deflate");
+                }
 
                 request.Method = method;
                 request.Timeout = timeout;
+                //request.Timeout = 60 * 100000;
 
                 if (!string.IsNullOrEmpty(data))
                 {
+                    if (debug && method == "POST")
+                    {
+                        compress = false;
+                        request.Headers.Add("debug", "1");
+                    }
+
                     // set request body
                     var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                    byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
+                    byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
                     data = null;
                     request.ContentType = "application/json";
                     request.ContentLength = bytes.Length;
@@ -314,18 +373,18 @@ namespace SIT.Tarkov.Core
 
         public byte[] GetData(string url, bool hasHost = false)
         {
-            using (var dataStream = Send(url, "GET"))
+            using (var dataStream = SendAndReceive(url, "GET"))
                 return dataStream.ToArray();
         }
 
-        public void PutJson(string url, string data, bool compress = true)
+        public void PutJson(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
         {
-            using (Stream stream = Send(url, "PUT", data, compress)) { }
+            using (Stream stream = SendAndReceive(url, "PUT", data, compress, timeout, debug)) { }
         }
 
         public string GetJson(string url, bool compress = true, int timeout = 1000)
         {
-            using (MemoryStream stream = Send(url, "GET", null, compress, timeout))
+            using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
             {
                 if (stream == null)
                     return "";
@@ -338,25 +397,35 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public string PostJson(string url, string data, bool compress = true, int timeout = 1000)
+        public string PostJson(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
         {
-            using (MemoryStream stream = Send(url, "POST", data, compress, timeout))
+            using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
             {
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                var dec = Zlib.Decompress(bytes);
-                var result = Encoding.UTF8.GetString(dec);
-                dec = null;
+                byte[] resultBytes = null;
+                if (compress)
+                {
+                    if (Zlib.IsCompressed(bytes))
+                        resultBytes = Zlib.Decompress(bytes);
+                    else
+                        resultBytes = bytes;
+                }
+                else
+                {
+                    resultBytes = bytes;
+                }
+                var result = Encoding.UTF8.GetString(resultBytes);
+                resultBytes = null;
                 bytes = null;
                 return result;
             }
         }
 
-        public async Task<string> PostJsonAsync(string url, string data)
+        public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
         {
-            return await Task.FromResult(PostJson(url, data));
-            //return await SendAsync(url, "POST", data);
+            return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
         }
 
 
@@ -375,7 +444,7 @@ namespace SIT.Tarkov.Core
 
         public Texture2D GetImage(string url, bool compress = true)
         {
-            using (Stream stream = Send(url, "GET", null, compress))
+            using (Stream stream = SendAndReceive(url, "GET", null, compress))
             {
                 using (MemoryStream ms = new MemoryStream())
                 {
