@@ -63,8 +63,10 @@ namespace SIT.Coop.Core.Player
                     return;
             }
 
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
             Dictionary<string, object> args = new Dictionary<string, object>();
+            ItemAddressHelpers.ConvertItemAddressToDescriptor(meds.CurrentAddress, ref args);
+
+            //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
             args.Add("m", "ProceedMeds");
             args.Add("t", DateTime.Now.Ticks);
             args.Add("bodyPart", bodyPart.ToString());

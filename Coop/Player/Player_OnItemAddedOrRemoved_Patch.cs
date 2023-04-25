@@ -106,7 +106,7 @@ namespace SIT.Core.Coop.Player
                         if (bool.Parse(dict["added"].ToString()))
                         {
                             Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
-                            ((GClass2169)container1).AddItemWithoutRestrictions(item, gridItemAddressDescriptor.LocationInGrid);
+                            ((GridContainer)container1).AddItemWithoutRestrictions(item, gridItemAddressDescriptor.LocationInGrid);
                         }
                     }
                 }
