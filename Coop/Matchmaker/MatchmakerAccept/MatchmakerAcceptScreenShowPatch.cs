@@ -86,18 +86,19 @@ namespace SIT.Coop.Core.Matchmaker
             DefaultUIButton ____acceptButton
             )
         {
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
+            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
 
             // ------------------------------------------
             // Keep an instance for other patches to work
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             // ------------------------------------------
             MatchmakerAcceptPatches.Profile = ___profile_0;
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
+            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
 
             if (MatchmakerAcceptPatches.CheckForMatch(raidSettings, out string returnedJson))
             {
                 ____acceptButton.SetHeaderText("Join Match");
+                raidSettings.BotSettings.BotAmount = EFT.Bots.EBotAmount.NoBots;
             }
             else
             {
