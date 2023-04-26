@@ -61,6 +61,13 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
+            // Stop Spawning Client Drone sending a TryProceed back to the player
+            if(__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return;
+            }
+
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
             Dictionary<string, object> args = new Dictionary<string, object>();
             args.Add("m", "TryProceed");

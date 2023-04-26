@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -12,7 +13,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "ReloadMag";
-        public override bool DisablePatch => true;
+        //public override bool DisablePatch => true;
 
         protected override MethodBase GetTargetMethod()
         {
@@ -27,18 +28,19 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            var player = ____player;
-            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-            if (player == null)
-                return false;
+            return true;
+            //var player = ____player;
+            ////var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            //if (player == null)
+            //    return false;
 
-            var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            //var result = false;
+            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            //    result = true;
 
-            Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
 
-            return result;
+            //return result;
         }
 
         [PatchPostfix]
@@ -59,34 +61,18 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            var giadNewAddress_I_Think = new GridItemAddressDescriptor()
-            {
-                LocationInGrid = gridItemAddress.LocationInGrid,
-                Container = new ContainerDescriptor()
-                {
-                    ContainerId = gridItemAddress.Container.ID
-                    ,
-                    ParentId = gridItemAddress.Container.ParentItem.Id
-                }
-            };
+            Dictionary<string, object> magAddressDict = new Dictionary<string, object>();
+            ItemAddressHelpers.ConvertItemAddressToDescriptor(magazine.CurrentAddress, ref magAddressDict);
 
-            var giadOldAddress_I_Think = new GridItemAddressDescriptor()
-            {
-                LocationInGrid = gridItemAddress.LocationInGrid,
-                Container = new ContainerDescriptor()
-                {
-                    ContainerId = magazine.CurrentAddress.Container.ID
-                    ,
-                    ParentId = magazine.CurrentAddress.Container.ParentItem.Id
-                }
-            };
+            Dictionary<string, object> gridAddressDict = new Dictionary<string, object>();
+            ItemAddressHelpers.ConvertItemAddressToDescriptor(gridItemAddress, ref gridAddressDict);
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("mg.id", magazine.Id);
             dictionary.Add("mg.tpl", magazine.Template);
-            dictionary.Add("a.old", giadOldAddress_I_Think.SITToJson());
-            dictionary.Add("a.new", giadNewAddress_I_Think.SITToJson());
+            dictionary.Add("ma", magAddressDict);
+            dictionary.Add("ga", gridAddressDict);
             dictionary.Add("m", "ReloadMag");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
             Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
@@ -95,7 +81,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
             if (HasProcessed(GetType(), player, dict))
                 return;
 
@@ -103,33 +88,39 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
+                    var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
+                    ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
+
+                    var ga = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ga"].ToString());
+                    ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
+
                     //player.ToUnloadMagOperation().
 
                     // this is not working, maybe try and find it in the inventory instead???
-                    var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
-                    var gridItemAddressNewDesc = JObject.Parse(dict["a.new"].ToString()).ToObject<GridItemAddressDescriptor>();
-                    var gridItemAddressNew = new GridItemAddress(
-                            (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressNewDesc.Container.ContainerId, gridItemAddressNewDesc.Container.ParentId)
-                            , gridItemAddressNewDesc.LocationInGrid
-                            );
+                    //var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
+                    //var gridItemAddressNewDesc = JObject.Parse(dict["a.new"].ToString()).ToObject<GridItemAddressDescriptor>();
+                    //var gridItemAddressNew = new GridItemAddress(
+                    //        (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressNewDesc.Container.ContainerId, gridItemAddressNewDesc.Container.ParentId)
+                    //        , gridItemAddressNewDesc.LocationInGrid
+                    //        );
 
-                    var gridItemAddressOldDesc = JObject.Parse(dict["a.old"].ToString()).ToObject<GridItemAddressDescriptor>();
-                    var gridItemAddressOld = new GridItemAddress(
-                            (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressOldDesc.Container.ContainerId, gridItemAddressOldDesc.Container.ParentId)
-                            , gridItemAddressOldDesc.LocationInGrid
-                            );
+                    //var gridItemAddressOldDesc = JObject.Parse(dict["a.old"].ToString()).ToObject<GridItemAddressDescriptor>();
+                    //var gridItemAddressOld = new GridItemAddress(
+                    //        (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressOldDesc.Container.ContainerId, gridItemAddressOldDesc.Container.ParentId)
+                    //        , gridItemAddressOldDesc.LocationInGrid
+                    //        );
 
-                    magazine.CurrentAddress = gridItemAddressOld;
-                    CallLocally.Add(player.Profile.AccountId, true);
-                    Logger.LogInfo("Replicated: Calling Reload Mag");
-                    firearmCont.ReloadMag(magazine
-                        //, gridItemAddressNew
-                        , gridItemAddressOld
-                        , null);
+                    //magazine.CurrentAddress = gridItemAddressOld;
+                    //CallLocally.Add(player.Profile.AccountId, true);
+                    //Logger.LogInfo("Replicated: Calling Reload Mag");
+                    //firearmCont.ReloadMag(magazine
+                    //    //, gridItemAddressNew
+                    //    , gridItemAddressOld
+                    //    , null);
                 }
                 catch (Exception e)
                 {
-                    Logger.LogInfo(e);
+                    Logger.LogError(e);
                 }
             }
         }
