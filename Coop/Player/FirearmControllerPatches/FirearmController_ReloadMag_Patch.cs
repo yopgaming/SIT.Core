@@ -5,6 +5,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
@@ -95,6 +96,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
 
                     //player.ToUnloadMagOperation().
+                    var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString()).FirstOrDefault() as MagazineClass;
+                    if (magazine == null)
+                        return;
+
+                    Grid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as Grid;
 
                     // this is not working, maybe try and find it in the inventory instead???
                     //var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
@@ -109,6 +115,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     //        (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressOldDesc.Container.ContainerId, gridItemAddressOldDesc.Container.ParentId)
                     //        , gridItemAddressOldDesc.LocationInGrid
                     //        );
+
+
+
+                    firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) => { });
 
                     //magazine.CurrentAddress = gridItemAddressOld;
                     //CallLocally.Add(player.Profile.AccountId, true);

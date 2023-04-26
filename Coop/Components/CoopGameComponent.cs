@@ -139,7 +139,8 @@ namespace SIT.Core.Coop
 
             Dictionary<string, object> d = new Dictionary<string, object>();
             d.Add("serverId", GetServerId());
-            d.Add("pL", new List<string>());
+            var playerList = new List<string>();
+            d.Add("pL", playerList);
             while (true)
             {
                 yield return waitSeconds;
@@ -153,14 +154,21 @@ namespace SIT.Core.Coop
                     //if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
                     //    ((string[])d["pL"]).AddRangeToArray(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.Profile.AccountId).ToArray());
                 }
+
+                // -----------------------------------------------------------------------------------------------------------
+                // We must filter out characters that already exist on this match!
+                //
                 else
                 {
-                    //d["pL"] = PlayersToSpawn.Keys.ToArray();
-                    //if (Players.Keys.Any())
-                    //    ((string[])d["pL"]).AddRangeToArray(Players.Keys.ToArray());
-                    //.AddRangeToArray(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.Profile.AccountId)
-                    //.ToArray());
+                    if(PlayersToSpawn.Count > 0)
+                        playerList.AddRange(PlayersToSpawn.Keys.ToArray());
+                    if (Players.Keys.Any())
+                        playerList.AddRange(Players.Keys.ToArray());
+                    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
+                        playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.Profile.AccountId));
                 }
+                //
+                // -----------------------------------------------------------------------------------------------------------
 
                 var jsonDataToSend = d.ToJson();
 
@@ -311,6 +319,14 @@ namespace SIT.Core.Coop
             if (!DEBUGSpawnDronesOnServer)
             {
                 if(Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x=>x.Profile.AccountId == accountId))
+                {
+                    if (PlayersToSpawn.ContainsKey(accountId))
+                        PlayersToSpawn[accountId] = ESpawnState.Ignore;
+
+                    return;
+                }
+
+                if (Players.Keys.Any(x => x == accountId))
                 {
                     if (PlayersToSpawn.ContainsKey(accountId))
                         PlayersToSpawn[accountId] = ESpawnState.Ignore;
