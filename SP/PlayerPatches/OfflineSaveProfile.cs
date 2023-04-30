@@ -12,7 +12,7 @@ namespace SIT.Core.SP.PlayerPatches
 {
     public class OfflineSaveProfile : ModulePatch
     {
-        protected override MethodBase GetTargetMethod()
+        public static MethodInfo GetMethod()
         {
             foreach (var method in ReflectionHelpers.GetAllMethodsForType(typeof(TarkovApplication)))
             {
@@ -32,6 +32,11 @@ namespace SIT.Core.SP.PlayerPatches
             Logger.Log(BepInEx.Logging.LogLevel.Error, "OfflineSaveProfile::Method is not found!");
 
             return null;
+        }
+
+        protected override MethodBase GetTargetMethod()
+        {
+            return GetMethod();
         }
 
         [PatchPrefix]
