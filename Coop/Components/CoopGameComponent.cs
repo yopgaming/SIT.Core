@@ -547,13 +547,13 @@ namespace SIT.Core.Coop
             if (equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem != null)
                 item = equipment.GetSlot(EquipmentSlot.FirstPrimaryWeapon).ContainedItem;
 
-            if (equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem != null)
+            if (item == null && equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem != null)
                 item = equipment.GetSlot(EquipmentSlot.SecondPrimaryWeapon).ContainedItem;
 
-            if (equipment.GetSlot(EquipmentSlot.Holster).ContainedItem != null)
+            if (item == null && equipment.GetSlot(EquipmentSlot.Holster).ContainedItem != null)
                 item = equipment.GetSlot(EquipmentSlot.Holster).ContainedItem;
 
-            if (equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem != null)
+            if (item == null && equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem != null)
                 item = equipment.GetSlot(EquipmentSlot.Scabbard).ContainedItem;
 
             if (item == null)
@@ -585,10 +585,9 @@ namespace SIT.Core.Coop
         private bool RunAsyncTasks = true;
 
         /// <summary>
-        /// Gets the Last Actions Dictionary from the Server. This should not be used for things like Moves. Just other stuff.
+        /// Gets the Last Actions Dictionary from the Server and stores them to ActionsToValuesJson
         /// </summary>
         /// <returns></returns>
-        //private IEnumerator ReadFromServerLastActions()
         private async Task ReadFromServerLastActions(CancellationToken cancellationToken = default(CancellationToken))
         {
             var fTimeToWaitInMS = 250;
@@ -597,6 +596,10 @@ namespace SIT.Core.Coop
                 { "serverId", GetServerId() },
                 { "t", ReadFromServerLastActionsLastTime }
             };
+
+            if (RequestingObj == null)
+                RequestingObj = Request.GetRequestInstance(true, Logger);
+
             while (RunAsyncTasks)
             {
 
@@ -605,12 +608,9 @@ namespace SIT.Core.Coop
                 jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
                 if (Players == null)
                 {
-                    PatchConstants.Logger.LogInfo("CoopGameComponent:No Players Found! Nothing to process!");
+                    PatchConstants.Logger.LogError("CoopGameComponent:No Players Found! Nothing to process!");
                     continue;
                 }
-
-                if (RequestingObj == null)
-                    RequestingObj = Request.GetRequestInstance(true, Logger);
 
                 m_ActionsToValuesJson = await RequestingObj.GetJsonAsync($"/coop/server/read/lastActions/{GetServerId()}/{ReadFromServerLastActionsLastTime}");
                 ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
@@ -618,6 +618,10 @@ namespace SIT.Core.Coop
             }
         }
 
+        /// <summary>
+        /// Process the ActionsToValuesJson every 1ms
+        /// </summary>
+        /// <returns></returns>
         private async Task ProcessFromServerLastActions()
         {
             while (RunAsyncTasks)
@@ -661,7 +665,6 @@ namespace SIT.Core.Coop
 
                     if (m_ActionPackets.Any(x => x.SITToJson() == packetJson))
                         continue;
-
 
                     try
                     {
@@ -764,7 +767,6 @@ namespace SIT.Core.Coop
                 }
             }
 
-            // TODO : Player
             List < Dictionary<string, object> > playerStates = new List<Dictionary<string, object>>();
             if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
             {
@@ -773,6 +775,9 @@ namespace SIT.Core.Coop
                     Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
 
                     if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
+                        continue;
+
+                    if (prc.IsClientDrone)
                         continue;
 
                     if (prc.ReplicatedDirection.HasValue)
