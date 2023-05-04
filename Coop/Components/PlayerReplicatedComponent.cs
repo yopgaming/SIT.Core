@@ -93,6 +93,8 @@ namespace SIT.Coop.Core.Player
                             player.InputDirection = packetDirection;
                             ReplicatedDirection = packetDirection;
                         }
+
+                        return;
                     }
                     break;
 
@@ -148,28 +150,28 @@ namespace SIT.Coop.Core.Player
             if (IsClientDrone)
                 return;
 
-            if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
-            {
+            //if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
+            //{
 
-                Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
-                if (ReplicatedDirection.HasValue)
-                {
-                    dictPlayerState.Add("dX", ReplicatedDirection.Value.x);
-                    dictPlayerState.Add("dY", ReplicatedDirection.Value.y);
-                }
-                dictPlayerState.Add("pX", player.Position.x);
-                dictPlayerState.Add("pY", player.Position.y);
-                dictPlayerState.Add("pZ", player.Position.z);
-                dictPlayerState.Add("rX", player.Rotation.x);
-                dictPlayerState.Add("rY", player.Rotation.y);
-                dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-                dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-                dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
-                dictPlayerState.Add("m", "PlayerState");
-                ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
+            //    Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
+            //    if (ReplicatedDirection.HasValue)
+            //    {
+            //        dictPlayerState.Add("dX", ReplicatedDirection.Value.x);
+            //        dictPlayerState.Add("dY", ReplicatedDirection.Value.y);
+            //    }
+            //    dictPlayerState.Add("pX", player.Position.x);
+            //    dictPlayerState.Add("pY", player.Position.y);
+            //    dictPlayerState.Add("pZ", player.Position.z);
+            //    dictPlayerState.Add("rX", player.Rotation.x);
+            //    dictPlayerState.Add("rY", player.Rotation.y);
+            //    dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
+            //    dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+            //    dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
+            //    dictPlayerState.Add("m", "PlayerState");
+            //    ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
 
-                LastPlayerStateSent = DateTime.Now;
-            }
+            //    LastPlayerStateSent = DateTime.Now;
+            //}
         }
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;

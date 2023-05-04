@@ -38,29 +38,29 @@ namespace SIT.Core.SP.Raid
 
             
             ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
-            SpawnWaves[] spawnWaves;
+            Wave[] spawnWaves;
             if (waves != null && result)
             {
                 spawnWaves = waves
-                    .Select(new Func<WildSpawnWave, SpawnWaves>(method_1)).ToArray();
+                    .Select(new Func<WildSpawnWave, Wave>(method_1)).ToArray();
             }
             else
             {
-                spawnWaves = new SpawnWaves[0];
+                spawnWaves = new Wave[0];
             }
             ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "SpawnWaves", spawnWaves);
             return false;
         }
 
 
-        private static SpawnWaves method_1(WildSpawnWave wave)
+        private static Wave method_1(WildSpawnWave wave)
         {
             if (Random == null)
                 Random = new Random();
 
 
             int botsCount = Random.Next(wave.slots_min, wave.slots_max);
-            SpawnWaves spawnWaves = new SpawnWaves
+            Wave spawnWaves = new Wave
             {
                 Time = (float)UnityEngine.Random.Range(wave.time_min, wave.time_max),
                 BotsCount = botsCount,

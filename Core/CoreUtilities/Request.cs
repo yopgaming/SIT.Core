@@ -272,7 +272,7 @@ namespace SIT.Tarkov.Core
             // Force to DEBUG mode if not Compressing.
             debug = debug || !compress;
 
-            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, timeout);
 
             method = method.ToUpper();
 
@@ -397,6 +397,35 @@ namespace SIT.Tarkov.Core
             }
         }
 
+        public async Task<string> GetJsonAsync(string url, bool compress = true, int timeout = 1000)
+        {
+            try
+            {
+                var fullUri = url;
+                if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
+                    fullUri = RemoteEndPoint + fullUri;
+
+                using (var ms = new MemoryStream())
+                {
+                    var stream = await HttpClient.GetStreamAsync(fullUri);
+                    stream.CopyTo(ms);
+
+                    var bytes = ms.ToArray();
+                    var dec = Zlib.Decompress(bytes);
+                    var result = Encoding.UTF8.GetString(dec);
+                    dec = null;
+                    bytes = null;
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                PatchConstants.Logger.LogDebug(ex);
+            }
+
+            return null;
+        }
+
         public string PostJson(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
         {
             using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
@@ -426,6 +455,18 @@ namespace SIT.Tarkov.Core
         public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
         {
             return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
+        }
+
+        public async void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
+        {
+            try
+            {
+                _ = await Task.Run(() => PostJson(url, data, compress, timeout, debug));
+            }
+            catch (Exception ex)
+            { 
+                PatchConstants.Logger.LogError(ex);
+            }
         }
 
 

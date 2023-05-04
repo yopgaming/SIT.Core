@@ -100,7 +100,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     if (magazine == null)
                         return;
 
-                    Grid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as Grid;
+                    StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
 
                     // this is not working, maybe try and find it in the inventory instead???
                     //var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
