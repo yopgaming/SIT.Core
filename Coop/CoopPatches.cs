@@ -54,7 +54,7 @@ namespace SIT.Core.Coop
                 EnableDisablePatches();
         }
 
-        private static List<ModulePatch> NoMRPPatches = new List<ModulePatch>();
+        public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
 
         public static void EnableDisablePatches()
         {
@@ -85,6 +85,8 @@ namespace SIT.Core.Coop
                 NoMRPPatches.Add(new Player_Init_Patch(m_Config));
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
+                NoMRPPatches.Add(new Door_Interact_Patch());
+                NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");

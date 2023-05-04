@@ -42,6 +42,11 @@ namespace SIT.Core.Misc
             string major, string minor, string backend, string taxonomy
             , object __result)
         {
+            DisplaySITVersionLabel(major, __result);
+        }
+
+        private static void DisplaySITVersionLabel(string major, object __result)
+        {
             if (!EnableSITVersionLabel)
                 return;
 

@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -54,6 +55,7 @@ namespace SIT.Core.Coop
 
         public bool DEBUGSpawnDronesOnServer { get; set; }
         public bool DEBUGShowPlayerList { get; set; }
+        public int PlayerStateTickRateInMS { get; set; } = -1000;
 
         #endregion
 
@@ -117,6 +119,17 @@ namespace SIT.Core.Coop
             DEBUGShowPlayerList = Plugin.Instance.Config.Bind<bool>
                ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
+            PlayerStateTickRateInMS = Plugin.Instance.Config.Bind<int>
+              ("Coop", "PlayerStateTickRateInMS", 1000, new BepInEx.Configuration.ConfigDescription("The rate at which Player States will be sent to the Server. DEFAULT = 1000ms")).Value;
+            if (PlayerStateTickRateInMS > 0)
+                PlayerStateTickRateInMS = PlayerStateTickRateInMS * -1;
+            else if (PlayerStateTickRateInMS == 0)
+                PlayerStateTickRateInMS = -1000;
+
+            Logger.LogDebug($"DEBUGSpawnDronesOnServer: {DEBUGSpawnDronesOnServer}");
+            Logger.LogDebug($"DEBUGShowPlayerList: {DEBUGShowPlayerList}");
+            Logger.LogDebug($"PlayerStateTickRateInMS: {PlayerStateTickRateInMS}");
+
             Player_Init_Patch.SendPlayerDataToServer((EFT.LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
         }
 
@@ -124,6 +137,49 @@ namespace SIT.Core.Coop
         {
             CoopPatches.EnableDisablePatches();
             RunAsyncTasks = false;
+        }
+
+        void LateUpdate()
+        {
+            if (m_ActionPackets.Count > 0)
+            {
+                if (m_ActionPackets.TryDequeue(out var result))
+                {
+                    ReadFromServerLastActionsParseData(result);
+                }
+            }
+
+            List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
+            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(PlayerStateTickRateInMS))
+            {
+                foreach (var player in Players.Values)
+                {
+                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
+                        continue;
+
+                    if (prc.IsClientDrone)
+                        continue;
+
+                    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
+                }
+
+                foreach (var player in Singleton<GameWorld>.Instance.RegisteredPlayers)
+                {
+                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                        continue;
+
+                    if (prc.IsClientDrone)
+                        continue;
+
+                    // TODO: This needs to double check I dont send the same stuff twice!
+                    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
+                }
+
+                RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
+
+
+                LastPlayerStateSent = DateTime.Now;
+            }
         }
 
         #endregion
@@ -151,13 +207,11 @@ namespace SIT.Core.Coop
                 if (Players == null)
                     continue;
 
-                if (DEBUGSpawnDronesOnServer)
-                {
-                }
+
                 // -----------------------------------------------------------------------------------------------------------
                 // We must filter out characters that already exist on this match!
                 //
-                else
+                if (!DEBUGSpawnDronesOnServer)
                 {
                     if (PlayersToSpawn.Count > 0)
                         playerList.AddRange(PlayersToSpawn.Keys.ToArray());
@@ -675,7 +729,11 @@ namespace SIT.Core.Coop
                             var useTimestamp = true;
                             if (packetToProcess.ContainsKey("m"))
                             {
-                                if (packetToProcess["m"].ToString() == "Proceed" || packetToProcess["m"].ToString() == "TryProceed")
+                                if (packetToProcess["m"].ToString() == "Proceed" 
+                                    || packetToProcess["m"].ToString() == "TryProceed"
+                                    || packetToProcess["m"].ToString() == "Door"
+                                    || packetToProcess["m"].ToString() == "WIO_Interact"
+                                    )
                                 {
                                     useTimestamp = false;
                                 }
@@ -683,7 +741,7 @@ namespace SIT.Core.Coop
 
                             if (useTimestamp &&
                                     long.Parse(packetToProcess["t"].ToString()) 
-                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, 1).Ticks)
+                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, 2).Ticks)
                                 continue;
                         }
 
@@ -715,32 +773,55 @@ namespace SIT.Core.Coop
                 return;
             }
 
+            ProcessPlayerPacket(packet);
+            ProcessWorldPacket(packet);
+
+        }
+
+        private void ProcessWorldPacket(Dictionary<string, object> packet)
+        {
+            if (packet.ContainsKey("accountId"))
+                return;
+
+            switch (packet["m"].ToString())
+            {
+                case "WIO_Interact":
+                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
+                    break;
+                case "Door_Interact":
+                    Door_Interact_Patch.Replicated(packet);
+                    break;
+            }
+        }
+
+        private void ProcessPlayerPacket(Dictionary<string, object> packet)
+        {
+            if (!packet.ContainsKey("accountId"))
+                return;
+
             var accountId = packet["accountId"].ToString();
 
-            //try
-            //{
-                foreach (var plyr in 
-                    Players.ToArray()
-                    .Where(x => x.Key == packet["accountId"].ToString())
-                    )
+            foreach (var plyr in
+                Players.ToArray()
+                .Where(x => x.Key == accountId)
+                )
+            {
+                plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
+
+                if (prc == null)
                 {
-                    plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
-
-                    if (prc == null)
-                    {
-                        Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                        continue;
-                    }
-
-                    prc.HandlePacket(packet);
+                    Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                    continue;
                 }
-            //}
-            //catch (Exception) { }
+
+                prc.ProcessPacket(packet);
+            }
 
             try
             {
-                // Deal to all versions of this guy (this shouldnt happen but good for testing)
-                foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers.Where(x => x.Profile != null && x.Profile.AccountId == packet["accountId"].ToString()))
+                // Deal to all versions of this guy
+                foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
+                    .Where(x => x.Profile != null && x.Profile.AccountId == accountId))
                 {
                     if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
@@ -749,64 +830,35 @@ namespace SIT.Core.Coop
                         continue;
                     }
 
-                    prc.HandlePacket(packet);
+                    prc.ProcessPacket(packet);
                 }
             }
             catch (Exception) { }
-
-
         }
 
-
-        void LateUpdate()
+        private static void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
-            if (m_ActionPackets.Count > 0)
+            Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
+
+            if (prc.ReplicatedDirection.HasValue)
             {
-                if (m_ActionPackets.TryDequeue(out var result))
-                {
-                    ReadFromServerLastActionsParseData(result);
-                }
+                dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
+                dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
             }
+            dictPlayerState.Add("pX", player.Position.x);
+            dictPlayerState.Add("pY", player.Position.y);
+            dictPlayerState.Add("pZ", player.Position.z);
+            dictPlayerState.Add("rX", player.Rotation.x);
+            dictPlayerState.Add("rY", player.Rotation.y);
+            dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
+            dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+            dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
+            dictPlayerState.Add("accountId", player.Profile.AccountId);
+            dictPlayerState.Add("serverId", GetServerId());
+            dictPlayerState.Add("t", DateTime.Now.Ticks);
+            dictPlayerState.Add("m", "PlayerState");
 
-            List < Dictionary<string, object> > playerStates = new List<Dictionary<string, object>>();
-            if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
-            {
-                foreach (var player in Players.Values)
-                {
-                    Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
-
-                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
-                        continue;
-
-                    if (prc.IsClientDrone)
-                        continue;
-
-                    if (prc.ReplicatedDirection.HasValue)
-                    {
-                        dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
-                        dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
-                    }
-                    dictPlayerState.Add("pX", player.Position.x);
-                    dictPlayerState.Add("pY", player.Position.y);
-                    dictPlayerState.Add("pZ", player.Position.z);
-                    dictPlayerState.Add("rX", player.Rotation.x);
-                    dictPlayerState.Add("rY", player.Rotation.y);
-                    dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-                    dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-                    dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
-                    dictPlayerState.Add("accountId", player.Profile.AccountId);
-                    dictPlayerState.Add("serverId", GetServerId());
-                    dictPlayerState.Add("t", DateTime.Now.Ticks);
-                    dictPlayerState.Add("m", "PlayerState");
-
-                    playerStates.Add(dictPlayerState);
-                }
-
-                RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
-
-
-                LastPlayerStateSent = DateTime.Now;
-            }
+            playerStates.Add(dictPlayerState);
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;

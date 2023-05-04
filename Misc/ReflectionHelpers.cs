@@ -109,6 +109,11 @@ namespace SIT.Core.Misc
         }
 
 
+        public static void InvokeMethodForObject(object o, string methodName, params object[] args)
+        {
+            GetMethodForType(o.GetType(), methodName).Invoke(o, args);
+        }
+
         public static IEnumerable<MethodInfo> GetAllMethodsForType(Type t, bool debug = false)
         {
             foreach (var m in t.GetMethods(

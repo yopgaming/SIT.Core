@@ -42,7 +42,7 @@ namespace SIT.Coop.Core.Player
             GCHelpers.EnableGC();
         }
 
-        public void HandlePacket(Dictionary<string, object> packet)
+        public void ProcessPacket(Dictionary<string, object> packet)
         {
             var method = packet["m"].ToString();
 
@@ -106,7 +106,7 @@ namespace SIT.Coop.Core.Player
                 packetHandlerComponents = packetHandlerComponents.Where(x => x.GetType() != typeof(PlayerReplicatedComponent)).ToArray();
                 foreach (var packetHandlerComponent in packetHandlerComponents)
                 {
-                    packetHandlerComponent.HandlePacket(packet);
+                    packetHandlerComponent.ProcessPacket(packet);
                 }
             }
         }

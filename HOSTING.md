@@ -8,7 +8,8 @@
 5) Forward ports of your router to your Computer Primary Network on port 6969
 6) Install [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) in user\mods of your Server
 7) Get your IPv4 from https://www.whatismyip.com/
-8) Start the Server and provide the others your IP and port to connect to
+8) Read and apply the README of SIT.Aki-Server-Mod!
+9) Start the Server and provide the others your IP and port to connect to
 
 ## How to join each other's match
 THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME
