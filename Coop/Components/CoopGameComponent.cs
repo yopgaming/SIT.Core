@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using Bsg.GameSettings;
+using Comfort.Common;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
@@ -460,8 +461,8 @@ namespace SIT.Core.Coop
                     , EFT.Player.EUpdateMode.Auto
                     , EFT.Player.EUpdateMode.Auto
                     , BackendConfigManager.Config.CharacterController.ClientPlayerMode
-                    , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseSensitivity
-                    , () => Singleton<OriginalSettings>.Instance.Control.Settings.MouseAimingSensitivity
+                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                     , new CoopStatisticsManager()
                     , FilterCustomizationClass.Default
                     , null
