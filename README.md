@@ -28,7 +28,7 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 
 ### Highlight - BE AWARE
 * Coop is in very early stages of redevelopment.
-* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/coop/HOSTING.md)
+* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/HOSTING.md)
 
 ### PREREQUISITE
 You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
