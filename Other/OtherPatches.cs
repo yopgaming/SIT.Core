@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using SIT.Core.Other.AI;
+using SIT.Core.Other.UI;
 
 namespace SIT.Core.Other
 {
@@ -20,12 +21,15 @@ namespace SIT.Core.Other
             if (Logger == null)
                 Logger = BepInEx.Logging.Logger.CreateLogSource("Coop");
 
-            var enabled = config.Bind<bool>(ConfigSITOtherCategoryValue, "Enable", false);
+            var enabled = config.Bind<bool>(ConfigSITOtherCategoryValue, "Enable", true);
             if (!enabled.Value) // if it is disabled. stop all Other Patches stuff.
             {
                 Logger.LogInfo("Other patches have been disabled! Ignoring Patches.");
                 return;
             }
+
+            if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableAdditionalAmmoUIDescriptions", true).Value)
+                new Ammo_CachedReadOnlyAttributes_Patch().Enable();
 
             if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnablePropsAIBushPatch", false).Value)
                 new AIBushPatch().Enable();
