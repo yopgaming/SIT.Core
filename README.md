@@ -26,9 +26,11 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 
 ## Coop
 
-### Highlight - BE AWARE
-* Coop is in very early stages of redevelopment.
-* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/HOSTING.md)
+### Coop Summary - BE AWARE
+* Coop is in early stages of development. 
+* Most features now work and it is "playable". Playable and perfect are two very different things. Expect lag (desync) and bugs.
+* My tests have included all maps. The map that works best is Factory. Performance is very dependant on the CPU / Internet on the Server and Clients.
+* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/master/HOSTING.md)
 
 ### PREREQUISITE
 You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
