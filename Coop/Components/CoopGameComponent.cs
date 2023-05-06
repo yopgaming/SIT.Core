@@ -733,6 +733,7 @@ namespace SIT.Core.Coop
                                     || packetToProcess["m"].ToString() == "TryProceed"
                                     || packetToProcess["m"].ToString() == "Door"
                                     || packetToProcess["m"].ToString() == "WIO_Interact"
+                                    || packetToProcess["m"].ToString() == "ApplyDamageInfo"
                                     )
                                 {
                                     useTimestamp = false;
@@ -741,7 +742,7 @@ namespace SIT.Core.Coop
 
                             if (useTimestamp &&
                                     long.Parse(packetToProcess["t"].ToString()) 
-                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, 2).Ticks)
+                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, 3).Ticks)
                                 continue;
                         }
 
