@@ -2,6 +2,7 @@
 using EFT.UI;
 using HarmonyLib;
 using SIT.Tarkov.Core;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -53,7 +54,7 @@ namespace SIT.Core.Misc
             if (string.IsNullOrEmpty(_versionLabel))
             {
                 _versionLabel = string.Empty;
-                _versionLabel = $"SIT on SPT-Aki | {major}";
+                _versionLabel = $"SIT | { Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version } | {major}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");
