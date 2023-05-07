@@ -17,6 +17,9 @@ namespace SIT.Tarkov.Core
 {
     public class Request : IDisposable
     {
+        public const int DEFAULT_TIMEOUT_MS = 1000;
+        public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
+
         private string m_Session;
 
         public string Session
@@ -452,12 +455,12 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
+        public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false)
         {
             return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
         }
 
-        public async void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
+        public async void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
         {
             try
             {
@@ -477,32 +480,33 @@ namespace SIT.Tarkov.Core
         /// <param name="url">URL to call</param>
         /// <param name="data">data to send</param>
         /// <returns></returns>
-        public async Task<T> PostJsonAsync<T>(string url, string data)
+        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS)
         {
-            var json = await PostJsonAsync(url, data);
+            var json = await PostJsonAsync(url, data, timeout: timeout);
             return await Task.FromResult(JsonConvert.DeserializeObject<T>(json));
         }
 
-        public Texture2D GetImage(string url, bool compress = true)
-        {
-            using (Stream stream = SendAndReceive(url, "GET", null, compress))
-            {
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    if (stream == null)
-                        return null;
-                    Texture2D texture = new Texture2D(8, 8);
+        //public Texture2D GetImage(string url, bool compress = true)
+        //{
+        //    using (Stream stream = SendAndReceive(url, "GET", null, compress))
+        //    {
+        //        using (MemoryStream ms = new MemoryStream())
+        //        {
+        //            if (stream == null)
+        //                return null;
+        //            Texture2D texture = new Texture2D(8, 8);
 
-                    stream.CopyTo(ms);
-                    texture.LoadImage(ms.ToArray());
-                    return texture;
-                }
-            }
-        }
+        //            stream.CopyTo(ms);
+        //            texture.LoadImage(ms.ToArray());
+        //            return texture;
+        //        }
+        //    }
+        //}
 
         public void Dispose()
         {
-            //m_RequestHeaders = null;
+            Session = null;
+            RemoteEndPoint = null;
         }
     }
 }

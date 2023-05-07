@@ -227,7 +227,8 @@ namespace SIT.Core.Coop
 
                 try
                 {
-                    m_CharactersJson = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend).Result;
+                    m_CharactersJson = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend, 9999).Result;
+                    //m_CharactersJson = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend).Result;
                     if (m_CharactersJson == null)
                         continue;
 
@@ -264,6 +265,7 @@ namespace SIT.Core.Coop
                                             continue;
                                         }
                                     }
+
                                     if (PlayersToSpawn.ContainsKey(accountId))
                                         continue;
 
