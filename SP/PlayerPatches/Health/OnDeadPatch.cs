@@ -53,26 +53,26 @@ namespace SIT.Core.SP.PlayerPatches.Health
                     DisplayMessageNotifications.DisplayMessageNotification($"{deadPlayer.Profile.Nickname} has died by {damageType}");
             }
 
-            Dictionary<string, object> map = new Dictionary<string, object>
+            Dictionary<string, object> packet = new Dictionary<string, object>
             {
                 { "diedAID", __instance.Profile.AccountId }
             };
             if (__instance.Profile.Info != null)
             {
-                map.Add("diedFaction", __instance.Side);
+                packet.Add("diedFaction", __instance.Side);
                 if (__instance.Profile.Info.Settings != null)
-                    map.Add("diedWST", __instance.Profile.Info.Settings.Role);
+                    packet.Add("diedWST", __instance.Profile.Info.Settings.Role);
             }
             if (killedBy != null)
             {
-                map.Add("killedByAID", killedBy.Profile.AccountId);
-                map.Add("killerFaction", killedBy.Side);
+                packet.Add("killedByAID", killedBy.Profile.AccountId);
+                packet.Add("killerFaction", killedBy.Side);
             }
             if (killedByLastAggressor != null)
             {
-                map.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
+                packet.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
             }
-            _ = Request.Instance.PostJsonAsync("/client/raid/person/killed", JsonConvert.SerializeObject(map));
+            Request.Instance.PostJsonAndForgetAsync("/client/raid/person/killed", JsonConvert.SerializeObject(packet));
         }
     }
 }

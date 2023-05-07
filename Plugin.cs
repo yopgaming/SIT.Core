@@ -121,7 +121,7 @@ namespace SIT.Core
             //new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
             new InsuranceScreenPatch().Enable();
-            new DisableReadyButtonOnFirstScreen().Enable();
+            new DisableReadyButtonOnLocationScreen_Patch().Enable();
             new VersionLabelPatch(config).Enable();
         }
 
