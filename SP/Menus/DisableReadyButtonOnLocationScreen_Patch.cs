@@ -1,4 +1,5 @@
-﻿using SIT.Tarkov.Core;
+﻿using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System.Reflection;
 
 namespace SIT.Core.SP.Menus
@@ -7,11 +8,12 @@ namespace SIT.Core.SP.Menus
     /// This Patch Disables the Ready button after you select the location so you will not be jumping to online match by default
     /// Game needs to initialize the offline match variables first unfortunatly
     /// </summary>
-    internal class DisableReadyButtonOnFirstScreen : ModulePatch
+    internal class DisableReadyButtonOnLocationScreen_Patch : ModulePatch
     {
-        public DisableReadyButtonOnFirstScreen()
+        public DisableReadyButtonOnLocationScreen_Patch()
         {
         }
+
         [PatchPostfix]
         public static void PatchPostfix(ref EFT.UI.DefaultUIButton ____readyButton)
         {
@@ -20,11 +22,12 @@ namespace SIT.Core.SP.Menus
 
         protected override MethodBase GetTargetMethod()
         {
-            foreach (var method in typeof(EFT.UI.Matchmaker.MatchMakerSelectionLocationScreen).GetProperties(BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                return method?.SetMethod; // there is only 1 here so lets just return first one...
-            }
-            return null;
+            return ReflectionHelpers.GetMethodForType(typeof(EFT.UI.Matchmaker.MatchMakerSelectionLocationScreen), "Show", false, true);
+            //foreach (var method in typeof(EFT.UI.Matchmaker.MatchMakerSelectionLocationScreen).GetProperties(BindingFlags.NonPublic | BindingFlags.Instance))
+            //{
+            //    return method?.SetMethod; 
+            //}
+            //return null;
         }
     }
 }
