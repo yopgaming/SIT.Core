@@ -29,6 +29,9 @@ namespace SIT.Coop.Core.Player
         [PatchPostfix]
         public static void PatchPostfix(EFT.LocalPlayer __instance)
         {
+            if (__instance is HideoutPlayer)
+                return;
+
             var player = __instance;
             var accountId = player.Profile.AccountId;
 
