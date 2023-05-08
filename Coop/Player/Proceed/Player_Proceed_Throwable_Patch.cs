@@ -1,0 +1,110 @@
+﻿using Comfort.Common;
+using SIT.Coop.Core.Player;
+using SIT.Coop.Core.Web;
+using SIT.Core.Misc;
+using SIT.Tarkov.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SIT.Core.Coop.Player.Proceed
+{
+    internal class Player_Proceed_Throwable_Patch : ModuleReplicationPatch
+    {
+        public override Type InstanceType => typeof(EFT.Player);
+
+        public override string MethodName => "ProceedThrowable";
+
+        public static Dictionary<string, bool> CallLocally
+            = new Dictionary<string, bool>();
+
+        public static MethodInfo method1 = null;
+
+        protected override MethodBase GetTargetMethod()
+        {
+            var t = typeof(EFT.Player);
+            if (t == null)
+                Logger.LogInfo($"Player_Proceed_Throwable_Patch:Type is NULL");
+
+            method1 = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed" 
+                && x.GetParameters().Length == 3
+                && x.GetParameters()[0].Name == "throwWeap"
+                && x.GetParameters()[1].Name == "callback"
+                && x.GetParameters()[2].Name == "scheduled"
+
+                && x.GetParameters()[1].ParameterType == typeof(Callback<IThrowableCallback>)
+
+                );
+
+            return method1;
+        }
+
+
+        [PatchPrefix]
+        public static bool PrePatch(
+           EFT.Player __instance
+            )
+        {
+            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        [PatchPostfix]
+        public static void PostPatch(EFT.Player __instance
+            , ThrowWeap throwWeap
+            , bool scheduled)
+        {
+            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            {
+                CallLocally.Remove(__instance.Profile.AccountId);
+                return;
+            }
+
+            // Stop Client Drone sending a Proceed back to the player
+            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return;
+            }
+
+            //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
+            Dictionary<string, object> args = new Dictionary<string, object>();
+            ItemAddressHelpers.ConvertItemAddressToDescriptor(throwWeap.CurrentAddress, ref args);
+
+            args.Add("m", "ProceedThrowable");
+            args.Add("t", DateTime.Now.Ticks);
+            args.Add("item.id", throwWeap.Id);
+            args.Add("item.tpl", throwWeap.TemplateId);
+            args.Add("s", scheduled.ToString());
+            ServerCommunication.PostLocalPlayerData(__instance, args);
+        }
+
+        public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
+        {
+            if (HasProcessed(GetType(), player, dict))
+                return;
+
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null)
+                return;
+
+            var item = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString()).FirstOrDefault();
+
+            if (item != null && item is ThrowWeap throwable)
+            {
+                CallLocally.Add(player.Profile.AccountId, true);
+                //player.Proceed(throwable, callback: (IResult) => { }, scheduled: true);
+
+                var callback = new Comfort.Common.Callback<IThrowableCallback>((IResult) => { });
+                method1.Invoke(player, new object[] { throwable, callback, true });
+            }
+        }
+    }
+}
