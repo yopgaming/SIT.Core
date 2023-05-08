@@ -50,8 +50,8 @@ namespace SIT.Core.Coop
 
         private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            if (Singleton<GameWorld>.Instantiated)
-                EnableDisablePatches();
+            //if (Singleton<GameWorld>.Instantiated)
+            //    EnableDisablePatches();
         }
 
         public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
@@ -87,6 +87,7 @@ namespace SIT.Core.Coop
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
+                NoMRPPatches.Add(new LocalGame_Weather_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
