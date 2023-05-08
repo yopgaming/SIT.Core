@@ -53,9 +53,12 @@ namespace SIT.Core.Coop
 
         public double LocalTime => 0;
 
-        public bool DEBUGSpawnDronesOnServer { get; set; }
-        public bool DEBUGShowPlayerList { get; set; }
-        public int PlayerStateTickRateInMS { get; set; } = -1000;
+        public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
+        public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
+        public bool SETTING_Actions_AlwaysProcessAllActions { get; private set; }
+        public int SETTING_Actions_CutoffTimeInSeconds { get; private set; }
+        public int SETTING_PlayerStateTickRateInMS { get; set; } = -1000;
+        public bool SETTING_AlwaysProcessEverything { get; set; } = false;
 
         #endregion
 
@@ -87,11 +90,13 @@ namespace SIT.Core.Coop
             // ----------------------------------------------------
             // Create a BepInEx Logger for CoopGameComponent
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
+            Logger.LogDebug("CoopGameComponent:Awake");
+
         }
 
         void Start()
         {
-            Logger.LogInfo("CoopGameComponent:Start");
+            Logger.LogDebug("CoopGameComponent:Start");
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
@@ -108,35 +113,30 @@ namespace SIT.Core.Coop
             Task.Run(() => ProcessFromServerLastActions());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
-            PatchConstants.Logger.LogInfo($"Found {ListOfInteractiveObjects.Length} interactive objects");
+            PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
             //GCHelpers.EnableGC();
 
-            DEBUGSpawnDronesOnServer = Plugin.Instance.Config.Bind<bool>
-                ("Coop", "ShowDronesOnServer", false, new BepInEx.Configuration.ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
-
-            DEBUGShowPlayerList = Plugin.Instance.Config.Bind<bool>
-               ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
-
-            PlayerStateTickRateInMS = Plugin.Instance.Config.Bind<int>
-              ("Coop", "PlayerStateTickRateInMS", 1000, new BepInEx.Configuration.ConfigDescription("The rate at which Player States will be sent to the Server. DEFAULT = 1000ms")).Value;
-            if (PlayerStateTickRateInMS > 0)
-                PlayerStateTickRateInMS = PlayerStateTickRateInMS * -1;
-            else if (PlayerStateTickRateInMS == 0)
-                PlayerStateTickRateInMS = -1000;
-
-            Logger.LogDebug($"DEBUGSpawnDronesOnServer: {DEBUGSpawnDronesOnServer}");
-            Logger.LogDebug($"DEBUGShowPlayerList: {DEBUGShowPlayerList}");
-            Logger.LogDebug($"PlayerStateTickRateInMS: {PlayerStateTickRateInMS}");
-
+            GetSettings();
             Player_Init_Patch.SendPlayerDataToServer((EFT.LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
         }
 
         void OnDestroy()
         {
-            CoopPatches.EnableDisablePatches();
+            PatchConstants.Logger.LogDebug($"CoopGameComponent:OnDestroy");
+
+            Players.Clear();
+            PlayersToSpawnProfiles.Clear();
+            PlayersToSpawnPositions.Clear();
+            PlayersToSpawnPacket.Clear();
+            while(QueuedPackets.Count > 0)
+                QueuedPackets.TryDequeue(out var packet);
+            StopCoroutine(ReadFromServerCharacters());
+            StopCoroutine(ProcessServerCharacters());
             RunAsyncTasks = false;
+
+            CoopPatches.EnableDisablePatches();
         }
 
         void LateUpdate()
@@ -150,7 +150,7 @@ namespace SIT.Core.Coop
             }
 
             List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
-            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(PlayerStateTickRateInMS))
+            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(SETTING_PlayerStateTickRateInMS))
             {
                 foreach (var player in Players.Values)
                 {
@@ -184,8 +184,35 @@ namespace SIT.Core.Coop
 
         #endregion
 
-        Task ReadFromServerLastActionsTask { get; set; }
-        CancellationTokenSource ReadFromServerLastActionsTaskToken { get; set; }
+        void GetSettings()
+        {
+            SETTING_DEBUGSpawnDronesOnServer = Plugin.Instance.Config.Bind<bool>
+                ("Coop", "ShowDronesOnServer", false, new BepInEx.Configuration.ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
+
+            SETTING_DEBUGShowPlayerList = Plugin.Instance.Config.Bind<bool>
+               ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
+
+            SETTING_PlayerStateTickRateInMS = Plugin.Instance.Config.Bind<int>
+              ("Coop", "PlayerStateTickRateInMS", 1000, new BepInEx.Configuration.ConfigDescription("The rate at which Player States will be sent to the Server. DEFAULT = 1000ms")).Value;
+            if (SETTING_PlayerStateTickRateInMS > 0)
+                SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
+            else if (SETTING_PlayerStateTickRateInMS == 0)
+                SETTING_PlayerStateTickRateInMS = -1000;
+
+            SETTING_Actions_AlwaysProcessAllActions = Plugin.Instance.Config.Bind<bool>
+               ("Coop", "AlwaysProcessAllActions", false, new BepInEx.Configuration.ConfigDescription("Whether to show process all actions, ignoring the time it was sent. This can cause EXTREME lag.")).Value;
+
+            SETTING_Actions_CutoffTimeInSeconds = Plugin.Instance.Config.Bind<int>
+             ("Coop", "CutoffTimeInSeconds", 3, new BepInEx.Configuration.ConfigDescription("The time at which actions are ignored. DEFAULT = 3s. MIN = 1s. MAX = 10s")).Value;
+            SETTING_Actions_CutoffTimeInSeconds = Math.Max(1, SETTING_Actions_CutoffTimeInSeconds);
+            SETTING_Actions_CutoffTimeInSeconds = Math.Min(10, SETTING_Actions_CutoffTimeInSeconds);
+
+            Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
+            Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
+            Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
+            Logger.LogDebug($"SETTING_Actions_AlwaysProcessAllActions: {SETTING_Actions_AlwaysProcessAllActions}");
+            Logger.LogDebug($"SETTING_Actions_CutoffTimeInSeconds: {SETTING_Actions_CutoffTimeInSeconds}");
+        }
 
         private IEnumerator ReadFromServerCharacters()
         {
@@ -211,7 +238,7 @@ namespace SIT.Core.Coop
                 // -----------------------------------------------------------------------------------------------------------
                 // We must filter out characters that already exist on this match!
                 //
-                if (!DEBUGSpawnDronesOnServer)
+                if (!SETTING_DEBUGSpawnDronesOnServer)
                 {
                     if (PlayersToSpawn.Count > 0)
                         playerList.AddRange(PlayersToSpawn.Keys.ToArray());
@@ -255,7 +282,7 @@ namespace SIT.Core.Coop
                                         continue;
 
                                     string accountId = queuedPacket["accountId"].ToString();
-                                    if (!DEBUGSpawnDronesOnServer)
+                                    if (!SETTING_DEBUGSpawnDronesOnServer)
                                     {
                                         if (Players == null
                                             || Players.ContainsKey(accountId)
@@ -313,7 +340,7 @@ namespace SIT.Core.Coop
                 foreach (var p in PlayersToSpawn)
                 {
                     // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
-                    if (!DEBUGSpawnDronesOnServer)
+                    if (!SETTING_DEBUGSpawnDronesOnServer)
                     {
                         if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == p.Key))
                         {
@@ -364,7 +391,7 @@ namespace SIT.Core.Coop
         private void ProcessPlayerBotSpawn(Dictionary<string, object> packet, string accountId, Vector3 newPosition, bool isBot)
         {
             // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
-            if (!DEBUGSpawnDronesOnServer)
+            if (!SETTING_DEBUGSpawnDronesOnServer)
             {
                 if(Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x=>x.Profile.AccountId == accountId))
                 {
@@ -726,7 +753,7 @@ namespace SIT.Core.Coop
                     try
                     {
                         var packetToProcess = JsonConvert.DeserializeObject<Dictionary<string, object>>(packetJson);
-                        if(packetToProcess.ContainsKey("t"))
+                        if(packetToProcess.ContainsKey("t") && !SETTING_AlwaysProcessEverything)
                         {
                             var useTimestamp = true;
                             if (packetToProcess.ContainsKey("m"))
@@ -893,7 +920,7 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-            if (!DEBUGShowPlayerList)
+            if (!SETTING_DEBUGShowPlayerList)
                 return;
 
             if (PlayersToSpawn.Any(p => p.Value != ESpawnState.Spawned))
