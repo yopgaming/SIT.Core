@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SIT.Core.SP.PlayerPatches
 {
-    internal class PlayerInitPatch : ModulePatch
+    internal class Player_Init_SP_Patch : ModulePatch
     {
         public static event Action<LocalPlayer> OnPlayerInit;
 
@@ -23,6 +23,9 @@ namespace SIT.Core.SP.PlayerPatches
             void
             PatchPostfix(Task __result, LocalPlayer __instance, Profile profile)
         {
+            if (__instance is HideoutPlayer)
+                return;
+
             if (OnPlayerInit != null)
                 OnPlayerInit(__instance);
 
