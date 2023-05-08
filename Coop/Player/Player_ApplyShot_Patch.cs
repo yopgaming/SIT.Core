@@ -44,7 +44,7 @@ namespace SIT.Core.Coop.Player
         {
             var player = __instance;
 
-            Logger.LogDebug("Player_ApplyShot_Patch:PostPatch");
+            //Logger.LogDebug("Player_ApplyShot_Patch:PostPatch");
 
 
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
