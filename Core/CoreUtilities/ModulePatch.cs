@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Tarkov.Core
@@ -96,6 +97,9 @@ namespace SIT.Tarkov.Core
 
             try
             {
+                if (_harmony.GetPatchedMethods().Any(x => x == target))
+                    return;
+
                 foreach (var prefix in _prefixList)
                 {
                     _harmony.Patch(target, prefix: prefix);
@@ -144,7 +148,7 @@ namespace SIT.Tarkov.Core
             try
             {
                 _harmony.Unpatch(target, HarmonyPatchType.All, _harmony.Id);
-                Logger.LogDebug($"Disabled patch {GetType().Name}");
+                //Logger.LogDebug($"Disabled patch {GetType().Name}");
             }
             catch (Exception ex)
             {
