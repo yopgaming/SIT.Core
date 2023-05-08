@@ -137,7 +137,7 @@ namespace SIT.Core
             if (!enabled.Value)
                 return;
 
-            new PlayerInitPatch().Enable();
+            new Player_Init_SP_Patch().Enable();
             new ChangeHealthPatch().Enable();
             new ChangeHydrationPatch().Enable();
             new ChangeEnergyPatch().Enable();
@@ -157,7 +157,7 @@ namespace SIT.Core
 
             //new BotSelfEnemyPatch().Enable();
             new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
-            //new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
+            new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
         }
 
         private void EnableCoopPatches()
