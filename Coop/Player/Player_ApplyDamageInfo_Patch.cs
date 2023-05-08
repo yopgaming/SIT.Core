@@ -440,55 +440,14 @@ namespace SIT.Core.Coop.Player
 
             try
             {
-                var damageInfo = JObject.Parse(dict["d"].ToString()).ToObject<DamageInfo>();
                 Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
                 var absorbed = float.Parse(dict["ab"].ToString());
 
-                EFT.Player aggressorPlayer = null;
-                if (dict.ContainsKey("d.p") && damageInfo.Player == null)
-                {
-                    Dictionary<string, string> playerDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.p"].ToString());
-                    if (playerDict != null && playerDict.ContainsKey("d.p.aid"))
-                    {
-                        var coopGC = CoopGameComponent.GetCoopGameComponent();
-                        if (coopGC != null)
-                        {
-                            var accountId = playerDict["d.p.aid"];
-                            if (coopGC.Players.ContainsKey(accountId))
-                            {
-                                aggressorPlayer = coopGC.Players[accountId];
-                                damageInfo.Player = aggressorPlayer;
-                            }
-                            aggressorPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == accountId);
-                            if (aggressorPlayer != null)
-                                damageInfo.Player = aggressorPlayer;
-                        }
-                    }
-                }
-
-                if (dict.ContainsKey("d.w.tpl"))
-                {
-                    //Logger.LogDebug("Apply Damage: Found d.w.tpl");
-                    if (aggressorPlayer != null)
-                    {
-                        if (aggressorPlayer.Inventory.GetAllItemByTemplate(dict["d.w.tpl"].ToString()).Any())
-                        {
-                            //Logger.LogDebug("Apply Damage: Found Template in Player Inventory");
-                            var w = aggressorPlayer.Inventory.GetAllItemByTemplate(dict["d.w.tpl"].ToString()).First() as Weapon;
-                            if (w != null)
-                            {
-                                //Logger.LogDebug("Apply Damage: Found Weapon in Player Inventory");
-                                damageInfo.Weapon = w;
-                            }
-                        }
-                    }
-                }
-
+                var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
 
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, EHeadSegment.Eyes);
                 player.ShotReactions(damageInfo, bodyPartType);
-                //damageInfo.Player = null;
             }
             catch (Exception e)
             {
