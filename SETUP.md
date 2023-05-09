@@ -1,7 +1,7 @@
 
 # Installation guide
 
-## This is simple guide how to get [SIT.Core](https://github.com/paulov-t/SIT.Core) up and running with friends using [Hamachi](https://www.vpn.net/) and [SIT.Launcher](https://github.com/paulov-t/SIT.Launcher).
+## This is simple guide how to get [SIT.Core](https://github.com/paulov-t/SIT.Core) up and running with friends using [Hamachi](https://www.vpn.net/) (or similiar program) and [SIT.Launcher](https://github.com/paulov-t/SIT.Launcher).
 
 ### READ THIS BEFORE YOU START!
 You need to purchase and have an active install of [Escape From Tarkov](https://www.escapefromtarkov.com/) for this to work.
