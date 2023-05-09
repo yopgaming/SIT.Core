@@ -66,7 +66,8 @@ C:\SPCOOP\Launcher\AkiSupport\Managed
 Example: http://100.100.100.100:6969
 
 8. Input desired username and password. 
-## The username and password is stored as a plain text on the host's computer, do not use any username / password you use somewhere else or do not wish for the host to see!
+9. 
+The username and password is stored as a plain text on the host's computer, do not use any username / password you use somewhere else or do not wish for the host to see!
 
 9. Go to launchers settings and make sure you have "Automatically Install SIT", "Force Install Latest SIT..." and "Automatically Install AKi Support" enabled.
 
