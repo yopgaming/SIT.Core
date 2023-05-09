@@ -4,6 +4,6 @@ namespace SIT.Core.Coop.Components
 {
     internal interface IPlayerPacketHandlerComponent
     {
-        public void HandlePacket(Dictionary<string, object> packet);
+        public void ProcessPacket(Dictionary<string, object> packet);
     }
 }

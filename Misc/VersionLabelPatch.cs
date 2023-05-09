@@ -2,6 +2,7 @@
 using EFT.UI;
 using HarmonyLib;
 using SIT.Tarkov.Core;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -42,13 +43,18 @@ namespace SIT.Core.Misc
             string major, string minor, string backend, string taxonomy
             , object __result)
         {
+            DisplaySITVersionLabel(major, __result);
+        }
+
+        private static void DisplaySITVersionLabel(string major, object __result)
+        {
             if (!EnableSITVersionLabel)
                 return;
 
             if (string.IsNullOrEmpty(_versionLabel))
             {
                 _versionLabel = string.Empty;
-                _versionLabel = $"SIT on SPT-Aki | {major}";
+                _versionLabel = $"SIT | { Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version } | {major}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");

@@ -35,6 +35,9 @@ namespace SIT.Core.SP.Menus
            )
         {
             //Logger.LogInfo(JsonConvert.SerializeObject(raidSettings));
+
+
+
             raidSettings.RaidMode = ERaidMode.Local;
             RemoveBlockers(__instance
               , profileInfo

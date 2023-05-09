@@ -87,6 +87,7 @@ namespace SIT.Coop.Core.LocalGame
                 coopGC = null;
                 Logger.LogInfo("No Server Id found, Deleting Coop Game Component");
             }
+            CoopPatches.EnableDisablePatches();
 
         }
 

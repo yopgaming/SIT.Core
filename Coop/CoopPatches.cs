@@ -4,6 +4,7 @@ using EFT;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Coop.LocalGame;
 using SIT.Core.Coop.Sounds;
 using SIT.Tarkov.Core;
 using System;
@@ -49,11 +50,11 @@ namespace SIT.Core.Coop
 
         private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            if (Singleton<GameWorld>.Instantiated)
-                EnableDisablePatches();
+            //if (Singleton<GameWorld>.Instantiated)
+            //    EnableDisablePatches();
         }
 
-        private static List<ModulePatch> NoMRPPatches = new List<ModulePatch>();
+        public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
 
         public static void EnableDisablePatches()
         {
@@ -83,6 +84,10 @@ namespace SIT.Core.Coop
             {
                 NoMRPPatches.Add(new Player_Init_Patch(m_Config));
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
+                NoMRPPatches.Add(new Player_LeavingGame_Patch());
+                NoMRPPatches.Add(new Door_Interact_Patch());
+                NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
+                NoMRPPatches.Add(new LocalGame_Weather_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");

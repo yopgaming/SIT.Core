@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.LocalGame
 {
-    internal class LocalGameEndingPatch : ModulePatch
+    public class LocalGameEndingPatch : ModulePatch
     {
         private static ConfigFile _config;
 
@@ -31,14 +31,6 @@ namespace SIT.Coop.Core.LocalGame
             var t = PatchConstants.EftTypes.FirstOrDefault(x => x.FullName.StartsWith("EFT.LocalGame"));
             if (t == null)
                 Logger.LogInfo($"LocalGameEndingPatch:Type is NULL");
-
-            //var method = ReflectionHelpers.GetAllMethodsForType(t)
-            //    .FirstOrDefault(x => x.GetParameters().Length >= 4
-            //    && x.GetParameters().Any(x => x.Name.Contains("profileId"))
-            //    && x.GetParameters().Any(x => x.Name.Contains("exitStatus"))
-            //    && x.GetParameters().Any(x => x.Name.Contains("exitName"))
-            //    && x.GetParameters().Any(x => x.Name.Contains("delay"))
-            //    );
 
             var method = ReflectionHelpers.GetMethodForType(t, "Stop", false, true);
 
@@ -107,7 +99,7 @@ namespace SIT.Coop.Core.LocalGame
             {
                 // Get Coop Game Component to find profileid player
                 var coopGC = Singleton<GameWorld>.Instance.GetComponent<CoopGameComponent>();
-                if(coopGC == null)
+                if (coopGC == null)
                 {
                     Logger.LogError("Couldn't find Coop Game Component");
                     return;
@@ -118,7 +110,7 @@ namespace SIT.Coop.Core.LocalGame
                 EFT.LocalPlayer myPlayer = null;
                 if (coopGC.Players.Any(x => x.Value.IsYourPlayer))
                     myPlayer = coopGC.Players.First(x => x.Value.IsYourPlayer).Value as EFT.LocalPlayer;
-                else if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x=>x.IsYourPlayer))
+                else if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.IsYourPlayer))
                     myPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer) as EFT.LocalPlayer;
                 //
                 // ----------------------------------------------------------------------------------------------------------
@@ -137,10 +129,10 @@ namespace SIT.Coop.Core.LocalGame
                 StaticManager.Instance.WaitSeconds(delay, delegate
                 {
                     var callback_0 = ReflectionHelpers.GetFieldOrPropertyFromInstance
-                                <Callback<ExitStatus, TimeSpan, Metrics>>(game, "callback_0", false);
+                                <Callback<ExitStatus, TimeSpan, object>>(game, "callback_0", false);
                     if (callback_0 != null)
                     {
-                        callback_0(new Result<ExitStatus, TimeSpan, Metrics>(exitStatus, new TimeSpan(), new Metrics()));
+                        callback_0(new Result<ExitStatus, TimeSpan, object>(exitStatus, new TimeSpan(), null));
                     }
                     UIEventSystem.Instance.Enable();
                 });
