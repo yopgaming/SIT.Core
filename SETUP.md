@@ -6,7 +6,7 @@
 ### READ THIS BEFORE YOU START!
 You need to purchase and have an active install of [Escape From Tarkov](https://www.escapefromtarkov.com/) for this to work.
 
-You need to install [Hamachi](https://www.vpn.net/) or something similiar in this guide I am going to use Hamachi.
+You need to install [Hamachi](https://www.vpn.net/) or something similiar. In this guide I am going to use Hamachi.
 
 This guide has been tested for SIT.Core.Release-64 and SIT-Launcher.Release-71
 
