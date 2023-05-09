@@ -14,15 +14,22 @@
 * Please be aware. The Ko-Fi link is literally buying me a coffee
 * I do not have some special subset of code that makes it work beyond what is here on GitHub 
 * Please do not hand over money expecting help or a solution
-* I will update this README / GitHub Wiki with instructions when things are at a point where you can join and play a game together
-
-## SPT-AKI Requirement
-Stay in Tarkov requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
+* This is a hobby, for fun, project. Please don't treat it seriously.
+* Pull Requests are encouraged!
 
 ## Summary
 
 The Stay in Tarkov project was born due to Battlestate Games' reluctance to create the pure PvE version of Escape from Tarkov that was outlined in its early cycle. 
 The project's aim is simple, create a Cooperation PvE experience that retains progression without the issues of Desync, Cheaters and dealing with other issues surrounding the live game right now.
+
+## SPT-AKI Requirement
+* Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
+* DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
+
+## Setup Manuals
+* HIMACHI [SETUP-Himachi.md Document by ppyLEK](https://github.com/paulov-t/SIT.Core/blob/master/SETUP-HIMACHI.md)
+* Standard (Port Forwarding) [SETUP-Standard.md Document](https://github.com/paulov-t/SIT.Core/blob/master/SETUP-STANDARD.md)
+* Extra Documentation [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/master/HOSTING.md)
 
 ## Coop
 
@@ -40,7 +47,7 @@ No. BSG server code is hidden from the client for obvious reasons. So BSG's impl
 
 ### How it will work and reason
 1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
-2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data. Initial movement tests work extremely well!
+2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data.
 
 ### Coding explanation
 - The project uses multiple methods of BepInEx Harmony patches coupled with Unity Components to achieve its aims.
