@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using Newtonsoft.Json;
+using SIT.Core.Core.Web;
 using SIT.Core.Misc;
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -67,6 +69,9 @@ namespace SIT.Tarkov.Core
 
         private ManualLogSource m_ManualLogSource;
 
+        WebSocketSharp.WebSocket WebSocket { get; set; }
+
+
         private Request(BepInEx.Logging.ManualLogSource logger = null)
         {
             // disable SSL encryption
@@ -81,8 +86,33 @@ namespace SIT.Tarkov.Core
 
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
+
             GetHeaders();
             PeriodicallySendPooledData();
+
+            //if (TarkovTransportWSInstanceHookPatch.TarkovRequestTransportWSInstance == null)
+            //{
+            //    m_ManualLogSource.LogDebug("Creating own Instance of TarkovRequestTransportWSInstance");
+            //    TarkovTransportWSInstanceHookPatch.TarkovRequestTransportWSInstance = new TarkovRequestTransportWS();
+            //    TarkovTransportWSInstanceHookPatch.TarkovRequestTransportWSInstance.EstablishConnectionToUrl(new Struct31() { EndpointUrl = RemoteEndPoint.Replace("http", "ws") })
+            //        .ContinueWith((t) => { 
+
+
+            //        });
+
+            //}
+
+            m_ManualLogSource.LogDebug("Request Instance is connecting to WebSocket");
+            var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws")}/{Session}?";
+            m_ManualLogSource.LogDebug(wsUrl);
+            WebSocket = new WebSocketSharp.WebSocket(wsUrl);
+            WebSocket.OnMessage += (sender, e) =>
+                      m_ManualLogSource.LogDebug("Laputa says: " + e.Data);
+            WebSocket.Connect();
+            WebSocket.Send("CONNECTED FROM SIT COOP");
+
+
+
 
             HttpClient = new HttpClient();
             foreach (var item in GetHeaders())
@@ -103,14 +133,12 @@ namespace SIT.Tarkov.Core
             return Request.Instance;
         }
 
-        ConcurrentQueue<KeyValuePair<string, Dictionary<string, object>>> m_PooledDictionariesToPost = new ConcurrentQueue<KeyValuePair<string, Dictionary<string, object>>>();
+        public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new BlockingCollection<KeyValuePair<string, Dictionary<string, object>>>(new ConcurrentQueue<KeyValuePair<string, Dictionary<string, object>>>());
         ConcurrentQueue<KeyValuePair<string, string>> m_PooledStringToPost = new ConcurrentQueue<KeyValuePair<string, string>>();
 
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
-            //PatchConstants.Logger.LogDebug($"SendDataToPool({url}, some data)");
-            m_PooledDictionariesToPost.Enqueue(new(url, data));
-            //PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost now has:{m_PooledDictionariesToPost.Count}:entries");
+            PooledDictionariesToPost.Add(new(url, data));
         }
 
         public void SendDataToPool(string url, string stringData)
@@ -118,7 +146,7 @@ namespace SIT.Tarkov.Core
             m_PooledStringToPost.Enqueue(new(url, stringData));
         }
 
-        public long PostPing { get; private set; }
+        public int PostPing { get; private set; }
 
         private Task PeriodicallySendPooledDataTask;
 
@@ -138,29 +166,33 @@ namespace SIT.Tarkov.Core
                 while (true)
                 {
                     swPing.Restart();
-                    await Task.Delay(33);
-                    //PatchConstants.Logger.LogDebug($"m_PooledDictionariesToPost:{m_PooledDictionariesToPost.Count}:entries");
-                    while (m_PooledDictionariesToPost.Any())
+                    //await Task.Delay(100);
+                    //while (PooledDictionariesToPost.Any())
                     {
                         KeyValuePair<string, Dictionary<string, object>> d;
-                        while (!m_PooledDictionariesToPost.TryDequeue(out d)) ;
-                        var url = d.Key;
-                        var json = JsonConvert.SerializeObject(d.Value);
-                        await PostJsonAsync(url, json, timeout: 3000, debug: true);
-
+                        if (PooledDictionariesToPost.TryTake(out d))
+                        {
+                            var url = d.Key;
+                            var json = JsonConvert.SerializeObject(d.Value);
+                            if(WebSocket != null)
+                            {
+                                if(WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                                {
+                                    WebSocket.Send(json);
+                                }
+                            }
+                            _ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
+                        }
                     }
 
                     //if (m_PooledStringToPost.Any())
                     //{
-                    //    //m_ManualLogSource.LogDebug($"m_PooledStringToPost:{m_PooledStringToPost.Count}:entries");
                     //    m_PooledStringToPost.TryDequeue(out var d);
                     //    var url = d.Key;
                     //    var json = d.Value;
-                    //    //await PostJsonAsync(url, json);
-                    //    await SendAndForgetAsync(url, "PUT", json, timeout: 999);
-
+                    //    await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
                     //}
-                    PostPing = swPing.ElapsedMilliseconds - 33;
+                    PostPing = (int)swPing.ElapsedMilliseconds - 100;
 
                 }
             });

@@ -75,6 +75,9 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>..\Tarkov.References\UnityEngine.UI.dll</HintPath>
     </Reference>
+	  <Reference Include="websocket-sharp">
+		  <HintPath>..\Tarkov.References\websocket-sharp.dll</HintPath>
+	  </Reference>
   </ItemGroup>
   
 </Project>
