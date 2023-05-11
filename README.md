@@ -1,4 +1,12 @@
-# SIT.Core
+<h1 style="text-align: center"> SIT.Core </h1>
+<div style="text-align: center">
+An Escape From Tarkov BepInEx module designed to be used with SPT-Aki with the ultimate goal of "Offline" Coop 
+</div>
+
+## About
+
+The Stay in Tarkov project was born due to Battlestate Games' (BSG) reluctance to create the pure PvE version of Escape from Tarkov. 
+The project's aim is simple, create a Cooperation PvE experience that retains progression. If BSG decide to create the ability to do this on live, this project will be shut down immediately.
 
 ## Disclaimer
 
@@ -6,21 +14,17 @@
 * This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
 * This is by no means designed for illegally downloading the game (and has blocks for people that do!)
 * This is purely for educational purposes (I am using this to learn Unity, Reverse Engineering & Networking)
-* I am in no way affiliated with BattleStateGames or others (on Reddit or Discord) claiming to be working on a project
+* I am in no way affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project
 
 ## Support
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* Please be aware. The Ko-Fi link is literally buying me a coffee
+* Please be aware. The Ko-Fi link is buying me a coffee, nothing else!
 * I do not have some special subset of code that makes it work beyond what is here on GitHub 
 * Please do not hand over money expecting help or a solution
 * This is a hobby, for fun, project. Please don't treat it seriously.
+* I do not BS the community. I know this is a semi-broken attempt but will attempt to fix as best I can.
 * Pull Requests are encouraged!
-
-## Summary
-
-The Stay in Tarkov project was born due to Battlestate Games' reluctance to create the pure PvE version of Escape from Tarkov that was outlined in its early cycle. 
-The project's aim is simple, create a Cooperation PvE experience that retains progression without the issues of Desync, Cheaters and dealing with other issues surrounding the live game right now.
 
 ## SPT-AKI Requirement
 * Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
@@ -33,10 +37,11 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 
 ## Coop
 
-### Coop Summary - BE AWARE
+### Coop Summary
+**BE AWARE**
 * Coop is in early stages of development. 
-* Most features now work and it is "playable". Playable and perfect are two very different things. Expect lag (desync) and bugs.
-* My tests have included all maps. The map that works best is Factory. Performance is very dependant on the CPU / Internet on the Server and Clients.
+* Most features  work and it is "playable with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
+* My tests have included all maps. The maps that work best are Factory and Labs. Performance is very dependant on the CPU / Internet on the Server and Clients and AI count on the Server
 * More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/master/HOSTING.md)
 
 ### PREREQUISITE
@@ -100,7 +105,7 @@ Place the built .dll in the BepInEx plugins folder
 - Save the config file
 - Run Tarkov through a launcher or bat file like this one (replacing the token with your ID)
 ```
-start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=AID062158106353313252ruc -config={"BackendUrl":"http://localhost:6969","Version":"live"}
+start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -config={"BackendUrl":"http://127.0.0.1:6969","Version":"live"}
 ```
 - If BepInEx is working a console should open and display the module "plugin" as started
 
