@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Comfort.Common;
 using System.Linq;
+using System.Collections.Concurrent;
 
 namespace SIT.Core.Coop
 {
@@ -18,30 +19,31 @@ namespace SIT.Core.Coop
 
         public static List<string> CallLocally = new();
 
+        static ConcurrentBag<long> ProcessedCalls = new ConcurrentBag<long>();
+
+        protected static bool HasProcessed(Dictionary<string, object> dict)
+        {
+            var timestamp = long.Parse(dict["t"].ToString());
+           
+            if (!ProcessedCalls.Contains(timestamp))
+            {
+                ProcessedCalls.Add(timestamp);
+                return false;
+            }
+
+            return true;
+        }
 
         public static void Replicated(Dictionary<string, object> packet)
         {
-            Logger.LogDebug("Door_Interact_Patch:Replicated");
+            if(HasProcessed(packet))
+                return;
+            
+            //Logger.LogDebug("Door_Interact_Patch:Replicated");
             if (Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType))
             {
 
                 WorldInteractiveObject door;
-                //try
-                //{
-                //    door = Singleton<GameWorld>.Instance.FindDoor(packet["doorId"].ToString());
-                //    if (door != null)
-                //    {
-                //        door.Interact(new InteractionResult(interactionType));
-                //        return;
-                //    }
-                //}
-                //catch
-                //{
-
-                //}
-
-                //Logger.LogDebug("Door_Interact_Patch:Replicated: Couldn't find Door in World?");
-
                 door = CoopGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString());
                 if (door != null)
                 {
@@ -97,7 +99,7 @@ namespace SIT.Core.Coop
             if (coopGC == null)
                 return;
 
-            Logger.LogDebug($"Door_Interact_Patch:Postfix:Door Id:{__instance.Id}");
+            //Logger.LogDebug($"Door_Interact_Patch:Postfix:Door Id:{__instance.Id}");
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
@@ -107,7 +109,7 @@ namespace SIT.Core.Coop
             dictionary.Add("m", Door_Interact_Patch.MethodName);
 
             var packetJson = dictionary.SITToJson();
-            Logger.LogDebug(packetJson);
+            //Logger.LogDebug(packetJson);
 
             Request.Instance.PostJsonAndForgetAsync("/coop/server/update", packetJson);
         }
