@@ -24,14 +24,8 @@ namespace SIT.Core.Coop.LocalGame
         public static void Postfix(string profileId)
         {
             Logger.LogDebug("PlayerLeavingGame.Postfix");
-            if(Singleton<GameWorld>.Instance != null) 
-            { 
-                if(Singleton<GameWorld>.Instance.TryGetComponent<CoopGameComponent>(out var component))
-                {
-                    GameObject.Destroy(component);
-                }
-            
-            }
+            var component = CoopGameComponent.GetCoopGameComponent();
+            GameObject.Destroy(component);
         }
     }
 }
