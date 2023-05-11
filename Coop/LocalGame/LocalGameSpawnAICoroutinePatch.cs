@@ -21,62 +21,8 @@ namespace SIT.Coop.Core.LocalGame
 {
     internal class LocalGameSpawnAICoroutinePatch : ModulePatch
     {
-        //        /*
-        //        protected virtual IEnumerator vmethod_3(float startDelay, GStruct252 controllerSettings, GInterface250 spawnSystem, Callback runCallback)
-        //        */
-        //        public static object BossSpawner;
-        //        public static object BossSpawnerWaves;
-        //        private static ConfigFile _config;
-        //        //private static MethodInfo MethodInfoBotCreation;
-        //        private static int maxCountOfBots = 20;
-        //        //private static LocationSettings.SelectedLocation LocationSettings;
-
-
-        //        public LocalGameSpawnAICoroutinePatch(ConfigFile config, BaseLocalGame<GamePlayerOwner> game)
-        //        {
-        //            _config = config;
-
-        //            var gameType = game.GetType().BaseType;
-        //            Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:gameType:{gameType.Name}");
-        //            var gameInstance = game;
-        //            Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:game:{gameInstance}");
-
-        //            Logger.LogInfo("LocalGameSpawnAICoroutinePatch:Get Boss Spawner");
-        //            BossSpawner = ReflectionHelpers.GetFieldFromTypeByFieldType(
-        //                    gameType,
-        //                    typeof(BossSpawnerClass)).GetValue(game);
-
-        //            Logger.LogInfo("LocalGameSpawnAICoroutinePatch:Get Location Settings");
-
-        //            //LocationSettings = (LocationSettings.SelectedLocation)ReflectionHelpers.GetFieldFromTypeByFieldType(
-        //            //        gameType,
-        //            //        typeof(LocationSettings.SelectedLocation)).GetValue(LocalGamePatches.LocalGameInstance);
-
-        //        }
-
         protected override MethodBase GetTargetMethod()
         {
-            //            //BossSpawner = ReflectionHelpers.GetFieldFromType(LocalGamePatches.LocalGameInstance.GetType().BaseType
-            //            //    , BotSystemHelpers.BossSpawnRunnerType.Name.ToLower() + "_0").GetValue(LocalGamePatches.LocalGameInstance);
-            //            //BossSpawner = ReflectionHelpers.GetFieldFromTypeByFieldType(
-            //            //        LocalGamePatches.LocalGameInstance.GetType(),
-            //            //        typeof(BossSpawnerClass)).GetValue(LocalGamePatches.LocalGameInstance);
-
-            //            //Logger.LogInfo("LocalGameSpawnAICoroutinePatch:Get Location Settings");
-
-            //            //LocationSettings = (LocationSettings.SelectedLocation)ReflectionHelpers.GetFieldFromTypeByFieldType(
-            //            //        LocalGamePatches.LocalGameInstance.GetType(),
-            //            //        typeof(LocationSettings.SelectedLocation)).GetValue(LocalGamePatches.LocalGameInstance); 
-
-
-            //            //ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(LocalGamePatches.LocalGameInstance, BotSystemHelpers.BossSpawnRunnerType.Name.ToLower() + "_0", false);
-            //            //Logger.LogInfo($"BossSpawner:{BossSpawner.GetType().Name}");
-
-            //            BossSpawnerWaves = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(BossSpawner, "BossSpawnWaves", false);
-            //            //Logger.LogInfo($"BossSpawnerWaves:{BossSpawnerWaves.GetType().Name}");
-
-            //            //MethodInfoBotCreation = ReflectionHelpers.GetMethodForType(LocalGamePatches.LocalGameInstance.GetType().BaseType, "method_8");
-
             var targetMethod = ReflectionHelpers.GetAllMethodsForType(typeof(EFT.LocalGame))
                 .LastOrDefault(
                 m =>
@@ -87,14 +33,15 @@ namespace SIT.Coop.Core.LocalGame
                 && m.GetParameters()[1].Name == "controllerSettings"
                 );
 
-            //Logger.LogInfo($"LocalGameSpawnAICoroutinePatch.TargetMethod:{targetMethod.Name}");
             return targetMethod;
         }
 
         [PatchPrefix]
         public static bool PatchPrefix(ref BotControllerSettings controllerSettings)
         {
-            if(controllerSettings.BotAmount != EBotAmount.NoBots)
+            Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:PatchPrefix");
+
+            if (controllerSettings.BotAmount != EBotAmount.NoBots)
                 controllerSettings.BotAmount = EBotAmount.Low; // Keep bots levels low for Coop, reduce performance lag
 
             return true;
@@ -111,7 +58,7 @@ namespace SIT.Coop.Core.LocalGame
         )
         {
             Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:PatchPostfix");
-            //__instance..SetSettings(maxCountOfBots, botPresets, botWeaponScatterings);
+
             yield return __result;
         }
 
