@@ -2,6 +2,7 @@
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
+using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -92,6 +93,11 @@ namespace SIT.Coop.Core.Player
                             player.CurrentState.Move(packetDirection);
                             player.InputDirection = packetDirection;
                             ReplicatedDirection = packetDirection;
+                        }
+
+                        if(packet.ContainsKey("tp"))
+                        {
+                            FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
                         }
 
                         return;
@@ -189,6 +195,7 @@ namespace SIT.Coop.Core.Player
         public DateTime LastSpeedSent { get; private set; }
         public float LastSpeed { get; private set; }
         public DateTime LastPlayerStateSent { get; private set; } = DateTime.Now;
+        public bool TriggerPressed { get; internal set; }
 
         public Dictionary<string, object> PreMadeMoveDataPacket = new()
         {
