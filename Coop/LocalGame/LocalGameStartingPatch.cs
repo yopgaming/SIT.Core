@@ -6,6 +6,8 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -28,6 +30,10 @@ namespace SIT.Coop.Core.LocalGame
             _config = config;
             //gameSpawnAICoroutinePatch = new SIT.Coop.Core.LocalGame.LocalGameSpawnAICoroutinePatch(_config);
         }
+
+        public static TimeAndWeatherSettings TimeAndWeather { get; internal set; }
+
+        
 
         protected override MethodBase GetTargetMethod()
         {
@@ -69,7 +75,8 @@ namespace SIT.Coop.Core.LocalGame
                 Logger.LogError("GameWorld is NULL");
                 return;
             }
-            if (gameWorld.TryGetComponent<CoopGameComponent>(out CoopGameComponent coopGameComponent))
+            var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            if(coopGameComponent != null)
             {
                 GameObject.Destroy(coopGameComponent);
             }
@@ -78,15 +85,38 @@ namespace SIT.Coop.Core.LocalGame
             if (__instance.GetType().Name.Contains("HideoutGame"))
                 return;
 
-            var coopGC = gameWorld.GetOrAddComponent<CoopGameComponent>();
+            if(CoopPatches.CoopGameComponentParent == null)
+                CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
+
+            coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
+
+            //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
             if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
-                coopGC.ServerId = MatchmakerAcceptPatches.GetGroupId();
+                coopGameComponent.ServerId = MatchmakerAcceptPatches.GetGroupId();
             else
             {
                 GameObject.Destroy(coopGameComponent);
-                coopGC = null;
-                Logger.LogInfo("No Server Id found, Deleting Coop Game Component");
+                coopGameComponent = null;
+                Logger.LogError("========== ERROR = COOP ========================");
+                Logger.LogError("No Server Id found, Deleting Coop Game Component");
+                Logger.LogError("================================================");
             }
+
+            if (!MatchmakerAcceptPatches.IsClient)
+            {
+                Dictionary<string, object> packet = new Dictionary<string, object>();
+                packet.Add("m", "timeAndWeather");
+                packet.Add("t", DateTime.Now.Ticks);
+                packet.Add("ct", TimeAndWeather.CloudinessType);
+                packet.Add("ft", TimeAndWeather.FogType);
+                packet.Add("hod", TimeAndWeather.HourOfDay);
+                packet.Add("rt", TimeAndWeather.RainType);
+                packet.Add("tft", TimeAndWeather.TimeFlowType);
+                packet.Add("wt", TimeAndWeather.WindType);
+                packet.Add("serverId", CoopGameComponent.GetServerId());
+                Request.Instance.PostJson("/coop/server/update", packet.ToJson(), debug: true);
+            }
+
             CoopPatches.EnableDisablePatches();
 
         }
