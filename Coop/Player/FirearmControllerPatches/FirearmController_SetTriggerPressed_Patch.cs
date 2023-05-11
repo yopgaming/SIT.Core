@@ -48,12 +48,18 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            var ticks = DateTime.Now.Ticks;
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", ticks);
-            dictionary.Add("pr", pressed.ToString());
-            dictionary.Add("m", "SetTriggerPressed");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            //var ticks = DateTime.Now.Ticks;
+            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            //dictionary.Add("t", ticks);
+            //dictionary.Add("pr", pressed.ToString());
+            //dictionary.Add("m", "SetTriggerPressed");
+            //ServerCommunication.PostLocalPlayerData(player, dictionary);
+
+            if(player.TryGetComponent<PlayerReplicatedComponent>(out var component))
+            {
+                component.TriggerPressed = pressed;
+            }
+
         }
 
 
@@ -82,6 +88,27 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
                     firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
                     //ReflectionHelpers.GetMethodForType(typeof(EFT.Player.FirearmController), "method_52").Invoke()
+                }
+                catch (Exception e)
+                {
+                    Logger.LogInfo(e);
+                }
+            }
+        }
+
+        public static void ReplicatePressed(EFT.Player player, bool pressed)
+        {
+            if (player.HandsController is EFT.Player.FirearmController firearmCont && pressed)
+            {
+                try
+                {
+                    var weaponEffectsManager
+                        = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
+                    if (weaponEffectsManager == null)
+                        return;
+
+                    weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                    firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
                 }
                 catch (Exception e)
                 {
