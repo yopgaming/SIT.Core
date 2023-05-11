@@ -98,7 +98,7 @@ namespace SIT.Coop.Core.LocalGame
             MonoBehaviourSingleton<PreloaderUI>.Instance.StartBlackScreenShow(1f, 1f, delegate
             {
                 // Get Coop Game Component to find profileid player
-                var coopGC = Singleton<GameWorld>.Instance.GetComponent<CoopGameComponent>();
+                var coopGC = CoopGameComponent.GetCoopGameComponent();
                 if (coopGC == null)
                 {
                     Logger.LogError("Couldn't find Coop Game Component");
