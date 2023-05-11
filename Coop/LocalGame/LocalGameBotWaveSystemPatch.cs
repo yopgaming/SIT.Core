@@ -22,11 +22,15 @@ namespace SIT.Coop.Core.LocalGame
         }
 
         [PatchPrefix]
-        public static void PatchPrefix(BotControllerSettings botsSettings, ISpawnSystem spawnSystem)
+        public static void PatchPrefix(ref BotControllerSettings botsSettings, ref ISpawnSystem spawnSystem)
         {
             if (Matchmaker.MatchmakerAcceptPatches.IsClient)
             {
                 botsSettings.BotAmount = EBotAmount.NoBots;
+            }
+            else
+            {
+                botsSettings.BotAmount = EBotAmount.Low;
             }
         }
     }
