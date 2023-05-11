@@ -42,7 +42,7 @@ namespace SIT.Core.Coop.Player
         {
             var player = __instance;
 
-            Logger.LogDebug($"OnItemAddedOrRemoved.PostPatch:{item.TemplateId}:{location.GetType()}:{location.ContainerName}:{added}");
+            //Logger.LogDebug($"OnItemAddedOrRemoved.PostPatch:{item.TemplateId}:{location.GetType()}:{location.ContainerName}:{added}");
             if (CallLocally.Contains(player.Profile.AccountId))
             {
                 CallLocally.Remove(player.Profile.AccountId);
@@ -55,6 +55,7 @@ namespace SIT.Core.Coop.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
+
             if (location is GridItemAddress gridItemAddress) 
             {
                 GridItemAddressDescriptor gridItemAddressDescriptor = new GridItemAddressDescriptor();
@@ -91,13 +92,13 @@ namespace SIT.Core.Coop.Player
 
             if (item != null) 
             {
-                Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Item[{item}]");
+                //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Item[{item}]");
 
                 // Grid Item stuff
                 if (dict.ContainsKey("grad"))
                 {
-                    Logger.LogDebug($"Has GridItemAddressDescriptor");
-                    Logger.LogDebug($"{dict["grad"]}");
+                    //Logger.LogDebug($"Has GridItemAddressDescriptor");
+                    //Logger.LogDebug($"{dict["grad"]}");
                     GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
                     var container1 = player.Equipment.FindContainer(gridItemAddressDescriptor.Container.ContainerId, gridItemAddressDescriptor.Container.ParentId);
                     //var container = player.Equipment.GetContainer(gridItemAddressDescriptor.Container.ContainerId);
@@ -105,7 +106,7 @@ namespace SIT.Core.Coop.Player
                     {
                         if (bool.Parse(dict["added"].ToString()))
                         {
-                            Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
+                            //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
                             ((GridContainer)container1).AddItemWithoutRestrictions(item, gridItemAddressDescriptor.LocationInGrid);
                         }
                     }
@@ -113,18 +114,18 @@ namespace SIT.Core.Coop.Player
                 // Slot Item stuff (Equip weapons, armor, backpack etc)
                 else
                 {
-                    Logger.LogDebug($"Has SlotItemAddressDescriptor");
-                    Logger.LogDebug($"{dict["sitad"]}");
+                    //Logger.LogDebug($"Has SlotItemAddressDescriptor");
+                    //Logger.LogDebug($"{dict["sitad"]}");
                     SlotItemAddressDescriptor slotItemAddressDescriptor = PatchConstants.SITParseJson<SlotItemAddressDescriptor>(dict["sitad"].ToString());
                     var container1 = player.Equipment.FindContainer(slotItemAddressDescriptor.Container.ContainerId, slotItemAddressDescriptor.Container.ParentId);
                     if (container1 != null)
                     {
                         if (bool.Parse(dict["added"].ToString()))
                         {
-                            Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
+                            //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
                             if (container1 is EFT.InventoryLogic.Slot slot) 
                             {
-                                Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
+                                //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
                                 if(slot.CanAccept(item))
                                     slot.AddWithoutRestrictions(item);
                             }
@@ -132,16 +133,7 @@ namespace SIT.Core.Coop.Player
                     }
                 }
 
-                //player.OnItemAddedOrRemoved(item, )
             }
-            //try
-            //{
-            //    player.CurrentState.Jump();
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.LogInfo(e);
-            //}
 
         }
     }
