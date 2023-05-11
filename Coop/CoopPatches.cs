@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace SIT.Core.Coop
@@ -42,6 +43,7 @@ namespace SIT.Core.Coop
             new LocalGameSpawnAICoroutinePatch().Enable();
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
+            new LocalGame_Weather_Patch().Enable();
 
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
@@ -55,6 +57,7 @@ namespace SIT.Core.Coop
         }
 
         public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
+        public static GameObject CoopGameComponentParent { get; internal set; }
 
         public static void EnableDisablePatches()
         {
@@ -87,7 +90,6 @@ namespace SIT.Core.Coop
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
-                NoMRPPatches.Add(new LocalGame_Weather_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
