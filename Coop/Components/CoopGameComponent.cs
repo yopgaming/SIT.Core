@@ -23,6 +23,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace SIT.Core.Coop
 {
@@ -36,25 +37,34 @@ namespace SIT.Core.Coop
         private Request RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
         public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
-        public ConcurrentQueue<Dictionary<string, object>> QueuedPackets { get; } = new();
-
         BepInEx.Logging.ManualLogSource Logger { get; set; }
-
-        public static Vector3? ClientSpawnLocation { get; set; }
-
         private long ReadFromServerLastActionsLastTime { get; set; } = -1;
         private long ApproximatePing { get; set; } = 1;
-
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
         public ConcurrentDictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
         public ConcurrentDictionary<string, Vector3> PlayersToSpawnPositions { get; private set; } = new();
-        public ulong LocalIndex { get; set; }
 
-        public double LocalTime => 0;
+        private string m_ActionsToValuesJson { get; set; }
+
+        /**
+         * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
+         */
+        private BlockingCollection<Dictionary<string, object>> m_ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>(new ConcurrentQueue<Dictionary<string, object>>());
+
+        int PacketQueueSize_Receive = 0;
+        int PacketQueueSize_Send = 0;
+
+        private ConcurrentBag<string> m_ProcessedActionPackets { get; } = new ConcurrentBag<string>();
+
+        private Dictionary<string, object>[] m_CharactersJson;
+
+        private bool RunAsyncTasks = true;
+
 
         public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
         public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
+        public int SETTING_Actions_TickRateInMS { get; private set; } = 999;
         public bool SETTING_Actions_AlwaysProcessAllActions { get; private set; }
         public int SETTING_Actions_CutoffTimeInSeconds { get; private set; }
         public int SETTING_PlayerStateTickRateInMS { get; set; } = -1000;
@@ -65,12 +75,16 @@ namespace SIT.Core.Coop
         #region Public Voids
         public static CoopGameComponent GetCoopGameComponent()
         {
-            var gameWorld = Singleton<GameWorld>.Instance;
-            if (gameWorld == null)
+            if (CoopPatches.CoopGameComponentParent == null)
                 return null;
+            //var gameWorld = Singleton<GameWorld>.Instance;
+            //if (gameWorld == null)
+            //    return null;
 
-            var coopGC = gameWorld.GetComponent<CoopGameComponent>();
-            return coopGC;
+            //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
+
+            CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent);
+            return coopGameComponent;
         }
         public static string GetServerId()
         {
@@ -97,6 +111,7 @@ namespace SIT.Core.Coop
         void Start()
         {
             Logger.LogDebug("CoopGameComponent:Start");
+            GetSettings();
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
@@ -106,7 +121,6 @@ namespace SIT.Core.Coop
 
             RequestingObj = Request.GetRequestInstance(true, Logger);
 
-            //StartCoroutine(ReadFromServerLastActions());
             StartCoroutine(ReadFromServerCharacters());
             StartCoroutine(ProcessServerCharacters());
             Task.Run(() => ReadFromServerLastActions());
@@ -118,8 +132,9 @@ namespace SIT.Core.Coop
             CoopPatches.EnableDisablePatches();
             //GCHelpers.EnableGC();
 
-            GetSettings();
             Player_Init_Patch.SendPlayerDataToServer((EFT.LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+
+            
         }
 
         void OnDestroy()
@@ -130,8 +145,6 @@ namespace SIT.Core.Coop
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
-            while(QueuedPackets.Count > 0)
-                QueuedPackets.TryDequeue(out var packet);
             StopCoroutine(ReadFromServerCharacters());
             StopCoroutine(ProcessServerCharacters());
             RunAsyncTasks = false;
@@ -139,11 +152,16 @@ namespace SIT.Core.Coop
             CoopPatches.EnableDisablePatches();
         }
 
+        TimeSpan LateUpdateSpan = TimeSpan.Zero;
+
         void LateUpdate()
         {
+            var DateTimeStart = DateTime.Now;
+
             if (m_ActionPackets.Count > 0)
             {
-                if (m_ActionPackets.TryDequeue(out var result))
+                Dictionary<string, object> result = null;
+                if (m_ActionPackets.TryTake(out result))
                 {
                     ReadFromServerLastActionsParseData(result);
                 }
@@ -160,6 +178,9 @@ namespace SIT.Core.Coop
                     if (prc.IsClientDrone)
                         continue;
 
+                    if (!player.HealthController.IsAlive)
+                        continue;
+
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
 
@@ -171,6 +192,9 @@ namespace SIT.Core.Coop
                     if (prc.IsClientDrone)
                         continue;
 
+                    if (!player.HealthController.IsAlive)
+                        continue;
+
                     // TODO: This needs to double check I dont send the same stuff twice!
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
@@ -180,6 +204,8 @@ namespace SIT.Core.Coop
 
                 LastPlayerStateSent = DateTime.Now;
             }
+
+            LateUpdateSpan = DateTime.Now - DateTimeStart;
         }
 
         #endregion
@@ -207,11 +233,17 @@ namespace SIT.Core.Coop
             SETTING_Actions_CutoffTimeInSeconds = Math.Max(1, SETTING_Actions_CutoffTimeInSeconds);
             SETTING_Actions_CutoffTimeInSeconds = Math.Min(10, SETTING_Actions_CutoffTimeInSeconds);
 
+            SETTING_Actions_TickRateInMS = Plugin.Instance.Config.Bind<int>
+            ("Coop", "LastActionTickRateInMS", SETTING_Actions_TickRateInMS, new BepInEx.Configuration.ConfigDescription("The tick rate at which actions acquired from Server. MIN = 250ms. MAX = 999ms")).Value;
+            SETTING_Actions_TickRateInMS = Math.Max(250, SETTING_Actions_TickRateInMS);
+            SETTING_Actions_TickRateInMS = Math.Min(999, SETTING_Actions_TickRateInMS);
+
             Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
             Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
             Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
             Logger.LogDebug($"SETTING_Actions_AlwaysProcessAllActions: {SETTING_Actions_AlwaysProcessAllActions}");
             Logger.LogDebug($"SETTING_Actions_CutoffTimeInSeconds: {SETTING_Actions_CutoffTimeInSeconds}");
+            Logger.LogDebug($"SETTING_Actions_TickRateInMS: {SETTING_Actions_TickRateInMS}");
         }
 
         private IEnumerator ReadFromServerCharacters()
@@ -659,14 +691,7 @@ namespace SIT.Core.Coop
             });
         }
 
-        private string m_ActionsToValuesJson { get; set; }
-        private ConcurrentQueue<string> m_ActionsToValuesJson2 { get; } = new ConcurrentQueue<string>();
-        private ConcurrentQueue<Dictionary<string, object>> m_ActionPackets { get; } = new ConcurrentQueue<Dictionary<string, object>>();
-        private ConcurrentBag<string> m_ProcessedActionPackets { get; } = new ConcurrentBag<string>();
-
-        private Dictionary<string, object>[] m_CharactersJson;
-
-        private bool RunAsyncTasks = true;
+        
 
         /// <summary>
         /// Gets the Last Actions Dictionary from the Server and stores them to ActionsToValuesJson
@@ -674,7 +699,7 @@ namespace SIT.Core.Coop
         /// <returns></returns>
         private async Task ReadFromServerLastActions(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var fTimeToWaitInMS = 250;
+            var fTimeToWaitInMS = SETTING_Actions_TickRateInMS;
             var jsonDataServerId = new Dictionary<string, object>
             {
                 { "serverId", GetServerId() },
@@ -706,12 +731,14 @@ namespace SIT.Core.Coop
         /// Process the ActionsToValuesJson every 1ms
         /// </summary>
         /// <returns></returns>
-        private async Task ProcessFromServerLastActions()
+        private void ProcessFromServerLastActions()
         {
             while (RunAsyncTasks)
             {
-                await Task.Delay(1);
+                Thread.Sleep(1);
+                //await Task.Run(() => { 
                 ReadFromServerLastActionsByAccountParseData(m_ActionsToValuesJson);
+                //});
             }
         }
 
@@ -762,6 +789,7 @@ namespace SIT.Core.Coop
                                     || packetToProcess["m"].ToString() == "TryProceed"
                                     || packetToProcess["m"].ToString() == "Door"
                                     || packetToProcess["m"].ToString() == "WIO_Interact"
+                                    || packetToProcess["m"].ToString() == "ApplyShot"
                                     || packetToProcess["m"].ToString() == "ApplyDamageInfo"
                                     )
                                 {
@@ -771,13 +799,19 @@ namespace SIT.Core.Coop
 
                             if (useTimestamp &&
                                     long.Parse(packetToProcess["t"].ToString()) 
-                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, 3).Ticks)
+                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, SETTING_Actions_CutoffTimeInSeconds).Ticks)
                                 continue;
                         }
 
+                        if (!m_ActionPackets.Contains(packetToProcess)
+                            && !m_ActionPackets.Any(x => x["m"] == packetToProcess["m"] && x["t"] == packetToProcess["t"]))
+                        {
+                            m_ActionPackets.TryAdd(packetToProcess);
+                            m_ProcessedActionPackets.Add(packetJson);
+                        }
 
-                        m_ActionPackets.Enqueue(packetToProcess);
-                        m_ProcessedActionPackets.Add(packetJson);
+                        PacketQueueSize_Receive = m_ActionPackets.Count;
+
                     }
                     catch (Exception)
                     { 
@@ -836,6 +870,9 @@ namespace SIT.Core.Coop
                 .Where(x => x.Key == accountId)
                 )
             {
+                if (!plyr.Value.HealthController.IsAlive)
+                    continue;
+
                 plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
 
                 if (prc == null)
@@ -853,6 +890,9 @@ namespace SIT.Core.Coop
                 foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
                     .Where(x => x.Profile != null && x.Profile.AccountId == accountId))
                 {
+                    if (!plyr.HealthController.IsAlive)
+                        continue;
+
                     if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
 
@@ -883,6 +923,7 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
             dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
             dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
+            dictPlayerState.Add("tp", prc.TriggerPressed);
             dictPlayerState.Add("accountId", player.Profile.AccountId);
             dictPlayerState.Add("serverId", GetServerId());
             dictPlayerState.Add("t", DateTime.Now.Ticks);
@@ -892,6 +933,9 @@ namespace SIT.Core.Coop
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
+        public ulong LocalIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public double LocalTime => throw new NotImplementedException();
 
         int GuiX = 10;
         int GuiWidth = 400;
@@ -917,6 +961,16 @@ namespace SIT.Core.Coop
                 var rtt = Math.Round(RTTQ.Average()); // ApproximatePing + Request.Instance.PostPing;
 
                 GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");
+                rect.y += 15;
+            }
+
+            {
+                GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
+                PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count;
+                rect.y += 15;
+                GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
+                rect.y += 15;
+                GUI.Label(rect, $"CGC LateUpdate Process (ms): {LateUpdateSpan.Milliseconds}");
                 rect.y += 15;
             }
 
