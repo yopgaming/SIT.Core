@@ -50,7 +50,7 @@ namespace SIT.Core.Coop
         /**
          * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
          */
-        private BlockingCollection<Dictionary<string, object>> m_ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>(new ConcurrentQueue<Dictionary<string, object>>());
+        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>(new ConcurrentQueue<Dictionary<string, object>>());
 
         int PacketQueueSize_Receive = 0;
         int PacketQueueSize_Send = 0;
@@ -73,6 +73,7 @@ namespace SIT.Core.Coop
         #endregion
 
         #region Public Voids
+
         public static CoopGameComponent GetCoopGameComponent()
         {
             if (CoopPatches.CoopGameComponentParent == null)
@@ -86,6 +87,13 @@ namespace SIT.Core.Coop
             CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent);
             return coopGameComponent;
         }
+
+        public static bool TryGetCoopGameComponent(out CoopGameComponent coopGameComponent)
+        {
+            coopGameComponent = GetCoopGameComponent();
+            return coopGameComponent != null;
+        }
+
         public static string GetServerId()
         {
             var coopGC = GetCoopGameComponent();
@@ -123,8 +131,8 @@ namespace SIT.Core.Coop
 
             StartCoroutine(ReadFromServerCharacters());
             StartCoroutine(ProcessServerCharacters());
-            Task.Run(() => ReadFromServerLastActions());
-            Task.Run(() => ProcessFromServerLastActions());
+            //Task.Run(() => ReadFromServerLastActions());
+            //Task.Run(() => ProcessFromServerLastActions());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
@@ -158,10 +166,10 @@ namespace SIT.Core.Coop
         {
             var DateTimeStart = DateTime.Now;
 
-            if (m_ActionPackets.Count > 0)
+            if (ActionPackets.Count > 0)
             {
                 Dictionary<string, object> result = null;
-                if (m_ActionPackets.TryTake(out result))
+                if (ActionPackets.TryTake(out result))
                 {
                     ReadFromServerLastActionsParseData(result);
                 }
@@ -774,7 +782,7 @@ namespace SIT.Core.Coop
                     if (m_ProcessedActionPackets.Contains(packetJson))
                         continue;
 
-                    if (m_ActionPackets.Any(x => x.SITToJson() == packetJson))
+                    if (ActionPackets.Any(x => x.SITToJson() == packetJson))
                         continue;
 
                     try
@@ -803,14 +811,14 @@ namespace SIT.Core.Coop
                                 continue;
                         }
 
-                        if (!m_ActionPackets.Contains(packetToProcess)
-                            && !m_ActionPackets.Any(x => x["m"] == packetToProcess["m"] && x["t"] == packetToProcess["t"]))
+                        if (!ActionPackets.Contains(packetToProcess)
+                            && !ActionPackets.Any(x => x["m"] == packetToProcess["m"] && x["t"] == packetToProcess["t"]))
                         {
-                            m_ActionPackets.TryAdd(packetToProcess);
+                            ActionPackets.TryAdd(packetToProcess);
                             m_ProcessedActionPackets.Add(packetJson);
                         }
 
-                        PacketQueueSize_Receive = m_ActionPackets.Count;
+                        PacketQueueSize_Receive = ActionPackets.Count;
 
                     }
                     catch (Exception)
@@ -836,6 +844,8 @@ namespace SIT.Core.Coop
                 PatchConstants.Logger.LogInfo("CoopGameComponent:No Data Returned from Last Actions!");
                 return;
             }
+
+            //Logger.LogInfo(packet.ToJson());
 
             ProcessPlayerPacket(packet);
             ProcessWorldPacket(packet);

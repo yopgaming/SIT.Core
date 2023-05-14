@@ -36,7 +36,7 @@ namespace SIT.Coop.Core.Player
             var accountId = player.Profile.AccountId;
 
             //await __result;
-            Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
+            //Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
 
             SendPlayerDataToServer(player);
 

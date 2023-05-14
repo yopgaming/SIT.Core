@@ -27,12 +27,12 @@ namespace SIT.Coop.Core.Player
 
         void Awake()
         {
-            PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
+            //PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
         }
 
         void Start()
         {
-            PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start");
+            //PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start");
 
             if (player == null)
             {

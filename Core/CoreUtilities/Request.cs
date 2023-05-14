@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using Newtonsoft.Json;
+using SIT.Core.Coop;
 using SIT.Core.Core.Web;
 using SIT.Core.Misc;
 using System;
@@ -69,7 +70,7 @@ namespace SIT.Tarkov.Core
 
         private ManualLogSource m_ManualLogSource;
 
-        WebSocketSharp.WebSocket WebSocket { get; set; }
+        static WebSocketSharp.WebSocket WebSocket { get; set; }
 
 
         private Request(BepInEx.Logging.ManualLogSource logger = null)
@@ -89,28 +90,18 @@ namespace SIT.Tarkov.Core
 
             GetHeaders();
             PeriodicallySendPooledData();
-
-            //if (TarkovTransportWSInstanceHookPatch.TarkovRequestTransportWSInstance == null)
-            //{
-            //    m_ManualLogSource.LogDebug("Creating own Instance of TarkovRequestTransportWSInstance");
-            //    TarkovTransportWSInstanceHookPatch.TarkovRequestTransportWSInstance = new TarkovRequestTransportWS();
-            //    TarkovTransportWSInstanceHookPatch.TarkovRequestTransportWSInstance.EstablishConnectionToUrl(new Struct31() { EndpointUrl = RemoteEndPoint.Replace("http", "ws") })
-            //        .ContinueWith((t) => { 
-
-
-            //        });
-
-            //}
-
-            m_ManualLogSource.LogDebug("Request Instance is connecting to WebSocket");
-            var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws")}/{Session}?";
-            m_ManualLogSource.LogDebug(wsUrl);
-            WebSocket = new WebSocketSharp.WebSocket(wsUrl);
-            WebSocket.OnMessage += (sender, e) =>
-                      m_ManualLogSource.LogDebug("Laputa says: " + e.Data);
-            WebSocket.Connect();
-            WebSocket.Send("CONNECTED FROM SIT COOP");
-
+            if (WebSocket == null)
+            {
+                m_ManualLogSource.LogDebug("Request Instance is connecting to WebSocket");
+                var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws").Replace("6969","6970")}/{Session}?";
+                m_ManualLogSource.LogDebug(wsUrl);
+           
+                WebSocket = new WebSocketSharp.WebSocket(wsUrl);
+                WebSocket.OnError += WebSocket_OnError;
+                WebSocket.OnMessage += WebSocket_OnMessage;
+                WebSocket.Connect();
+                WebSocket.Send("CONNECTED FROM SIT COOP");
+            }
 
 
 
@@ -121,6 +112,26 @@ namespace SIT.Tarkov.Core
             }
             HttpClient.MaxResponseContentBufferSize = long.MaxValue;
             HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+        }
+
+        private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        {
+            m_ManualLogSource.LogError($"WebSocket_OnError: {e.Message}");
+        }
+
+        private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
+        {
+            //m_ManualLogSource.LogDebug("WebSocket_OnMessage");
+            //m_ManualLogSource.LogDebug(e.Data);
+            var packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
+            if(CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                // This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
+                //coopGameComponent.ReadFromServerLastActionsParseData(packet);
+
+                coopGameComponent.ActionPackets.TryAdd(packet);
+
+            }
         }
 
         public static Request GetRequestInstance(bool createInstance = false, BepInEx.Logging.ManualLogSource logger = null)
@@ -156,6 +167,7 @@ namespace SIT.Tarkov.Core
 
             PeriodicallySendPooledDataTask = Task.Run(async () =>
             {
+                int awaitPeriod = 1;
                 //GCHelpers.EnableGC();
                 //GCHelpers.ClearGarbage();
                 //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
@@ -166,6 +178,7 @@ namespace SIT.Tarkov.Core
                 while (true)
                 {
                     swPing.Restart();
+                    await Task.Delay(awaitPeriod);
                     //await Task.Delay(100);
                     //while (PooledDictionariesToPost.Any())
                     {
@@ -178,10 +191,11 @@ namespace SIT.Tarkov.Core
                             {
                                 if(WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                                 {
+                                    //PatchConstants.Logger.LogDebug($"WS:Periodic Send");
                                     WebSocket.Send(json);
                                 }
                             }
-                            _ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
+                            //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
                         }
                     }
 
@@ -192,7 +206,7 @@ namespace SIT.Tarkov.Core
                     //    var json = d.Value;
                     //    await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
                     //}
-                    PostPing = (int)swPing.ElapsedMilliseconds - 100;
+                    PostPing = (int)swPing.ElapsedMilliseconds - awaitPeriod;
 
                 }
             });
