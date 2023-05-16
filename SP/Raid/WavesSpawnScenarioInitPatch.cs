@@ -5,7 +5,6 @@ using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
-using static GClass1649;
 
 namespace SIT.Core.SP.Raid
 {
@@ -36,7 +35,7 @@ namespace SIT.Core.SP.Raid
 
             var result = !SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem;
 
-            
+
             ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
             Wave[] spawnWaves;
             if (waves != null && result)

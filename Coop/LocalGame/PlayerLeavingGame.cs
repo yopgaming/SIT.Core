@@ -1,14 +1,6 @@
-﻿using Comfort.Common;
-using EFT;
-using SIT.Core.Misc;
-using SIT.Core.SP.PlayerPatches;
+﻿using SIT.Core.SP.PlayerPatches;
 using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.LocalGame

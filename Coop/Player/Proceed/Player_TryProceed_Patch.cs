@@ -16,8 +16,7 @@ namespace SIT.Coop.Core.Player
 
         public override string MethodName => "TryProceed";
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -62,7 +61,7 @@ namespace SIT.Coop.Core.Player
             }
 
             // Stop Spawning Client Drone sending a TryProceed back to the player
-            if(__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
                 if (prc.IsClientDrone)
                     return;

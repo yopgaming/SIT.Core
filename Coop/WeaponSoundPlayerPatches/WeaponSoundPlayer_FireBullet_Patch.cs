@@ -3,10 +3,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.WeaponSoundPlayerPatches
 {
@@ -16,8 +13,7 @@ namespace SIT.Core.Coop.WeaponSoundPlayerPatches
 
         public override string MethodName => "WSPFireBullet";
 
-        public static Dictionary<string, bool> CallLocally
-           = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
         [PatchPrefix]
         public static bool PrePatch()
@@ -48,9 +44,11 @@ namespace SIT.Core.Coop.WeaponSoundPlayerPatches
                 return;
             }
 
-            Dictionary<string, object> packet = new Dictionary<string, object>();
-            packet.Add("t", DateTime.Now.Ticks);
-            packet.Add("m", "WSPFireBullet");
+            Dictionary<string, object> packet = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "m", "WSPFireBullet" }
+            };
             ServerCommunication.PostLocalPlayerData(player, packet);
         }
 

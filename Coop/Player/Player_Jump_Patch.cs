@@ -3,10 +3,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {
@@ -42,9 +39,11 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("m", "Jump");
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "m", "Jump" }
+            };
             ServerCommunication.PostLocalPlayerData(player, dictionary, true);
         }
 

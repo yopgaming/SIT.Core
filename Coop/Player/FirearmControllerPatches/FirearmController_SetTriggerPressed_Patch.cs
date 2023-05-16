@@ -1,5 +1,4 @@
 ﻿using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -21,10 +20,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
-        public static Dictionary<string, bool> LastPress = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> LastPress = new();
 
 
         [PatchPrefix]
@@ -55,7 +53,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             //dictionary.Add("m", "SetTriggerPressed");
             //ServerCommunication.PostLocalPlayerData(player, dictionary);
 
-            if(player.TryGetComponent<PlayerReplicatedComponent>(out var component))
+            if (player.TryGetComponent<PlayerReplicatedComponent>(out var component))
             {
                 component.TriggerPressed = pressed;
             }

@@ -1,8 +1,8 @@
 ﻿using Comfort.Common;
-using EFT.InventoryLogic;
 using EFT;
-using Newtonsoft.Json.Linq;
+using EFT.InventoryLogic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -10,9 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static GClass936;
 
 namespace SIT.Core.Coop.Player
 {
@@ -54,10 +51,10 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> packet = new Dictionary<string, object>();
+            Dictionary<string, object> packet = new();
             damageInfo.HitCollider = null;
             damageInfo.HittedBallisticCollider = null;
-            Dictionary<string, string> playerDict = new Dictionary<string, string>();
+            Dictionary<string, string> playerDict = new();
             try
             {
                 if (damageInfo.Player != null)
@@ -70,7 +67,7 @@ namespace SIT.Core.Coop.Player
                 Logger.LogError(e);
             }
             damageInfo.Player = null;
-            Dictionary<string, string> weaponDict = new Dictionary<string, string>();
+            Dictionary<string, string> weaponDict = new();
 
             if (damageInfo.Weapon != null)
             {
@@ -118,7 +115,7 @@ namespace SIT.Core.Coop.Player
                 var damageInfo = BuildDamageInfoFromPacket(dict);
 
                 var shotId = new ShotID();
-                if(dict.ContainsKey("ammoid") && dict["ammoid"] != null)
+                if (dict.ContainsKey("ammoid") && dict["ammoid"] != null)
                 {
                     shotId = new ShotID(dict["ammoid"].ToString(), 1);
                 }

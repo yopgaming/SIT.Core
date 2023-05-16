@@ -1,13 +1,9 @@
 ﻿using EFT.InventoryLogic;
-using HarmonyLib;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Other.UI
 {
@@ -33,7 +29,7 @@ namespace SIT.Core.Other.UI
                 return;
 
             // Damage
-            if(template.Damage > 0)
+            if (template.Damage > 0)
             {
                 attributes.Add(
                     new ItemAttribute(Attributes.ENewItemAttributeId.Damage)
@@ -42,7 +38,7 @@ namespace SIT.Core.Other.UI
                         Base = (() => (float)template.Damage),
                         StringValue = (() => template.Damage.ToString()),
                         DisplayType = (() => EItemAttributeDisplayType.Compact)
-                    }   
+                    }
                 );
             }
 

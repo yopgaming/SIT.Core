@@ -2,7 +2,6 @@
 using EFT.UI;
 using HarmonyLib;
 using SIT.Tarkov.Core;
-using System;
 using System.Linq;
 using System.Reflection;
 
@@ -11,15 +10,11 @@ namespace SIT.Core.Misc
     public class VersionLabelPatch : ModulePatch
     {
         private static string _versionLabel;
-        private ConfigFile config;
-
         private static bool EnableSITVersionLabel { get; set; } = true;
 
         public VersionLabelPatch(ConfigFile config)
         {
-            this.config = config;
-
-            var EnableSITVersionLabel = config.Bind<bool>("SIT.SP", "EnableSITVersionLabel", true);
+            EnableSITVersionLabel = config.Bind<bool>("SIT.SP", "EnableSITVersionLabel", true).Value;
         }
 
         protected override MethodBase GetTargetMethod()
@@ -54,7 +49,7 @@ namespace SIT.Core.Misc
             if (string.IsNullOrEmpty(_versionLabel))
             {
                 _versionLabel = string.Empty;
-                _versionLabel = $"SIT | { Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version } | {major}";
+                _versionLabel = $"SIT | {Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version} | {major}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");

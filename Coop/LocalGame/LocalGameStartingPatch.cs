@@ -6,8 +6,8 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -33,7 +33,7 @@ namespace SIT.Coop.Core.LocalGame
 
         public static TimeAndWeatherSettings TimeAndWeather { get; internal set; }
 
-        
+
 
         protected override MethodBase GetTargetMethod()
         {
@@ -76,7 +76,7 @@ namespace SIT.Coop.Core.LocalGame
                 return;
             }
             var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
-            if(coopGameComponent != null)
+            if (coopGameComponent != null)
             {
                 GameObject.Destroy(coopGameComponent);
             }
@@ -85,7 +85,7 @@ namespace SIT.Coop.Core.LocalGame
             if (__instance.GetType().Name.Contains("HideoutGame"))
                 return;
 
-            if(CoopPatches.CoopGameComponentParent == null)
+            if (CoopPatches.CoopGameComponentParent == null)
                 CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
 
             coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
@@ -104,16 +104,18 @@ namespace SIT.Coop.Core.LocalGame
 
             if (!MatchmakerAcceptPatches.IsClient)
             {
-                Dictionary<string, object> packet = new Dictionary<string, object>();
-                packet.Add("m", "timeAndWeather");
-                packet.Add("t", DateTime.Now.Ticks);
-                packet.Add("ct", TimeAndWeather.CloudinessType);
-                packet.Add("ft", TimeAndWeather.FogType);
-                packet.Add("hod", TimeAndWeather.HourOfDay);
-                packet.Add("rt", TimeAndWeather.RainType);
-                packet.Add("tft", TimeAndWeather.TimeFlowType);
-                packet.Add("wt", TimeAndWeather.WindType);
-                packet.Add("serverId", CoopGameComponent.GetServerId());
+                Dictionary<string, object> packet = new Dictionary<string, object>
+                {
+                    { "m", "timeAndWeather" },
+                    { "t", DateTime.Now.Ticks },
+                    { "ct", TimeAndWeather.CloudinessType },
+                    { "ft", TimeAndWeather.FogType },
+                    { "hod", TimeAndWeather.HourOfDay },
+                    { "rt", TimeAndWeather.RainType },
+                    { "tft", TimeAndWeather.TimeFlowType },
+                    { "wt", TimeAndWeather.WindType },
+                    { "serverId", CoopGameComponent.GetServerId() }
+                };
                 Request.Instance.PostJson("/coop/server/update", packet.ToJson(), debug: true);
             }
 

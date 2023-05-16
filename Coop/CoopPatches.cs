@@ -1,6 +1,4 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
-using EFT;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;

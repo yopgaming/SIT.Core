@@ -3,28 +3,27 @@ using EFT.Interactive;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Comfort.Common;
-using System.Linq;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace SIT.Core.Coop
 {
     internal class Door_Interact_Patch : ModulePatch
     {
-        public static Type InstanceType => typeof(EFT.Interactive.Door);
+        public static Type InstanceType => typeof(Door);
 
         public static string MethodName => "Door_Interact";
 
         public static List<string> CallLocally = new();
 
-        static ConcurrentBag<long> ProcessedCalls = new ConcurrentBag<long>();
+        static ConcurrentBag<long> ProcessedCalls = new();
 
         protected static bool HasProcessed(Dictionary<string, object> dict)
         {
             var timestamp = long.Parse(dict["t"].ToString());
-           
+
             if (!ProcessedCalls.Contains(timestamp))
             {
                 ProcessedCalls.Add(timestamp);
@@ -36,9 +35,9 @@ namespace SIT.Core.Coop
 
         public static void Replicated(Dictionary<string, object> packet)
         {
-            if(HasProcessed(packet))
+            if (HasProcessed(packet))
                 return;
-            
+
             //Logger.LogDebug("Door_Interact_Patch:Replicated");
             if (Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType))
             {
@@ -52,7 +51,7 @@ namespace SIT.Core.Coop
                         //ReflectionHelpers.GetMethodForType(typeof(WorldInteractiveObject), "Unlock").Invoke(door, new object[] {});
                         ReflectionHelpers.InvokeMethodForObject(door, "Unlock");
                     }
-                    else 
+                    else
                     {
                         CallLocally.Add(packet["doorId"].ToString());
                         door.Interact(new InteractionResult(interactionType));
@@ -78,16 +77,16 @@ namespace SIT.Core.Coop
         }
 
         [PatchPrefix]
-        public static bool Prefix(EFT.Interactive.Door __instance)
+        public static bool Prefix(Door __instance)
         {
-            if(CallLocally.Contains(__instance.Id))
+            if (CallLocally.Contains(__instance.Id))
                 return true;
 
             return false;
         }
 
         [PatchPostfix]
-        public static void Postfix(EFT.Interactive.Door __instance, InteractionResult interactionResult)
+        public static void Postfix(Door __instance, InteractionResult interactionResult)
         {
             if (CallLocally.Contains(__instance.Id))
             {
@@ -101,12 +100,14 @@ namespace SIT.Core.Coop
 
             //Logger.LogDebug($"Door_Interact_Patch:Postfix:Door Id:{__instance.Id}");
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("serverId", CoopGameComponent.GetServerId());
-            dictionary.Add("doorId", __instance.Id);
-            dictionary.Add("type", interactionResult.InteractionType.ToString());
-            dictionary.Add("m", Door_Interact_Patch.MethodName);
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "serverId", CoopGameComponent.GetServerId() },
+                { "doorId", __instance.Id },
+                { "type", interactionResult.InteractionType.ToString() },
+                { "m", Door_Interact_Patch.MethodName }
+            };
 
             var packetJson = dictionary.SITToJson();
             //Logger.LogDebug(packetJson);

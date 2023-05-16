@@ -31,7 +31,7 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 * DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
 
 ## Setup Manuals
-* HIMACHI [SETUP-Himachi.md Document by ppyLEK](https://github.com/paulov-t/SIT.Core/blob/master/SETUP-HIMACHI.md)
+* HAMACHI [SETUP-Hamachi.md Document by ppyLEK](https://github.com/paulov-t/SIT.Core/blob/master/SETUP-HAMACHI.md)
 * Standard (Port Forwarding) [SETUP-Standard.md Document](https://github.com/paulov-t/SIT.Core/blob/master/SETUP-STANDARD.md)
 * Extra Documentation [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/master/HOSTING.md)
 
