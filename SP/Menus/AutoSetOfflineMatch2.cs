@@ -1,7 +1,6 @@
 ﻿using EFT;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using Newtonsoft.Json;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Linq;

@@ -1,5 +1,4 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
-using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
@@ -9,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace SIT.Coop.Core.Player
 {
@@ -95,7 +93,7 @@ namespace SIT.Coop.Core.Player
                             ReplicatedDirection = packetDirection;
                         }
 
-                        if(packet.ContainsKey("tp"))
+                        if (packet.ContainsKey("tp"))
                         {
                             FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
                         }

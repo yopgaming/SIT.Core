@@ -1,20 +1,16 @@
 ﻿using BepInEx.Logging;
 using Newtonsoft.Json;
 using SIT.Core.Coop;
-using SIT.Core.Core.Web;
 using SIT.Core.Misc;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace SIT.Tarkov.Core
 {
@@ -73,7 +69,7 @@ namespace SIT.Tarkov.Core
         static WebSocketSharp.WebSocket WebSocket { get; set; }
 
 
-        private Request(BepInEx.Logging.ManualLogSource logger = null)
+        private Request(ManualLogSource logger = null)
         {
             // disable SSL encryption
             ServicePointManager.Expect100Continue = true;
@@ -83,7 +79,7 @@ namespace SIT.Tarkov.Core
             if (logger != null)
                 m_ManualLogSource = logger;
             else
-                m_ManualLogSource = BepInEx.Logging.Logger.CreateLogSource("Request");
+                m_ManualLogSource = Logger.CreateLogSource("Request");
 
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
@@ -93,9 +89,10 @@ namespace SIT.Tarkov.Core
             if (WebSocket == null)
             {
                 m_ManualLogSource.LogDebug("Request Instance is connecting to WebSocket");
-                var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws").Replace("6969","6970")}/{Session}?";
+                //  Could be have a config where we can put the ws port?    -Slejm
+                var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws").Replace("6969", "6970")}/{Session}?";
                 m_ManualLogSource.LogDebug(wsUrl);
-           
+
                 WebSocket = new WebSocketSharp.WebSocket(wsUrl);
                 WebSocket.OnError += WebSocket_OnError;
                 WebSocket.OnMessage += WebSocket_OnMessage;
@@ -124,7 +121,7 @@ namespace SIT.Tarkov.Core
             //m_ManualLogSource.LogDebug("WebSocket_OnMessage");
             //m_ManualLogSource.LogDebug(e.Data);
             var packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
-            if(CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
                 //coopGameComponent.ReadFromServerLastActionsParseData(packet);
@@ -141,11 +138,11 @@ namespace SIT.Tarkov.Core
                 return new Request(logger);
             }
 
-            return Request.Instance;
+            return Instance;
         }
 
-        public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new BlockingCollection<KeyValuePair<string, Dictionary<string, object>>>(new ConcurrentQueue<KeyValuePair<string, Dictionary<string, object>>>());
-        ConcurrentQueue<KeyValuePair<string, string>> m_PooledStringToPost = new ConcurrentQueue<KeyValuePair<string, string>>();
+        public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
+        ConcurrentQueue<KeyValuePair<string, string>> m_PooledStringToPost = new();
 
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
@@ -187,9 +184,9 @@ namespace SIT.Tarkov.Core
                         {
                             var url = d.Key;
                             var json = JsonConvert.SerializeObject(d.Value);
-                            if(WebSocket != null)
+                            if (WebSocket != null)
                             {
-                                if(WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                                if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                                 {
                                     //PatchConstants.Logger.LogDebug($"WS:Periodic Send");
                                     WebSocket.Send(json);
@@ -214,7 +211,7 @@ namespace SIT.Tarkov.Core
 
         private Dictionary<string, string> GetHeaders()
         {
-            if(m_RequestHeaders != null && m_RequestHeaders.Count > 0)  
+            if (m_RequestHeaders != null && m_RequestHeaders.Count > 0)
                 return m_RequestHeaders;
 
             string[] args = Environment.GetCommandLineArgs();
@@ -242,7 +239,7 @@ namespace SIT.Tarkov.Core
                 throw new NotSupportedException("GET wont work on a SendAndForget call. It won't receive anything!");
             }
 
-            if(data == null)
+            if (data == null)
             {
                 throw new ArgumentNullException("data", "data value must be provided");
             }
@@ -342,7 +339,7 @@ namespace SIT.Tarkov.Core
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
                 request.ServerCertificateValidationCallback = delegate { return true; };
-             
+
                 foreach (var item in GetHeaders())
                 {
                     request.Headers.Add(item.Key, item.Value);
@@ -513,7 +510,7 @@ namespace SIT.Tarkov.Core
                 _ = await Task.Run(() => PostJson(url, data, compress, timeout, debug));
             }
             catch (Exception ex)
-            { 
+            {
                 PatchConstants.Logger.LogError(ex);
             }
         }

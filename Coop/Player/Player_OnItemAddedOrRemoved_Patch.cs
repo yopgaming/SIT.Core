@@ -1,17 +1,12 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using MonoMod.Utils;
-using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {
@@ -48,18 +43,20 @@ namespace SIT.Core.Coop.Player
                 CallLocally.Remove(player.Profile.AccountId);
                 return;
             }
-            SlotItemAddressDescriptor slotItemAddressDescriptor = new SlotItemAddressDescriptor();
-            slotItemAddressDescriptor.Container = new ContainerDescriptor();
+            SlotItemAddressDescriptor slotItemAddressDescriptor = new();
+            slotItemAddressDescriptor.Container = new();
             slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
             slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-
-            if (location is GridItemAddress gridItemAddress) 
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
-                GridItemAddressDescriptor gridItemAddressDescriptor = new GridItemAddressDescriptor();
-                gridItemAddressDescriptor.Container = new ContainerDescriptor();
+                { "t", DateTime.Now.Ticks }
+            };
+
+            if (location is GridItemAddress gridItemAddress)
+            {
+                GridItemAddressDescriptor gridItemAddressDescriptor = new();
+                gridItemAddressDescriptor.Container = new();
                 gridItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 gridItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
                 gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
@@ -84,13 +81,13 @@ namespace SIT.Core.Coop.Player
 
             // Get the Item and Clone it
             var itemFindResult = Singleton<GameWorld>.Instance.FindItemById(dict["id"].ToString());
-            if(itemFindResult.Succeeded)
+            if (itemFindResult.Succeeded)
             {
                 item = itemFindResult.Value;
                 item = item.CloneItem();
             }
 
-            if (item != null) 
+            if (item != null)
             {
                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Item[{item}]");
 
@@ -123,10 +120,10 @@ namespace SIT.Core.Coop.Player
                         if (bool.Parse(dict["added"].ToString()))
                         {
                             //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
-                            if (container1 is EFT.InventoryLogic.Slot slot) 
+                            if (container1 is Slot slot)
                             {
                                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
-                                if(slot.CanAccept(item))
+                                if (slot.CanAccept(item))
                                     slot.AddWithoutRestrictions(item);
                             }
                         }

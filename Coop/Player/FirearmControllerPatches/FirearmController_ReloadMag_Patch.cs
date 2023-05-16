@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -22,8 +21,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
 
         [PatchPrefix]
@@ -62,19 +60,21 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            Dictionary<string, object> magAddressDict = new Dictionary<string, object>();
+            Dictionary<string, object> magAddressDict = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(magazine.CurrentAddress, ref magAddressDict);
 
-            Dictionary<string, object> gridAddressDict = new Dictionary<string, object>();
+            Dictionary<string, object> gridAddressDict = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(gridItemAddress, ref gridAddressDict);
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("mg.id", magazine.Id);
-            dictionary.Add("mg.tpl", magazine.Template);
-            dictionary.Add("ma", magAddressDict);
-            dictionary.Add("ga", gridAddressDict);
-            dictionary.Add("m", "ReloadMag");
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "mg.id", magazine.Id },
+                { "mg.tpl", magazine.Template },
+                { "ma", magAddressDict },
+                { "ga", gridAddressDict },
+                { "m", "ReloadMag" }
+            };
             ServerCommunication.PostLocalPlayerData(player, dictionary);
             Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
 

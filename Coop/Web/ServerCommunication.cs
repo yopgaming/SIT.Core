@@ -73,7 +73,8 @@ namespace SIT.Coop.Core.Web
             if (useReliable)
             {
                 var req = Request.GetRequestInstance(true);
-                _ = req.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data), timeout: 9999).ContinueWith((str) => {
+                _ = req.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data), timeout: 9999).ContinueWith((str) =>
+                {
                     req = null;
                 });
             }

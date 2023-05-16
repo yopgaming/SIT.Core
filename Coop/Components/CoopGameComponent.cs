@@ -1,29 +1,21 @@
-﻿using Bsg.GameSettings;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
-using HarmonyLib;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sirenix.Utilities;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
-using SIT.Core.Coop.Player;
-using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace SIT.Core.Coop
 {
@@ -50,12 +42,12 @@ namespace SIT.Core.Coop
         /**
          * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
          */
-        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>(new ConcurrentQueue<Dictionary<string, object>>());
+        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new();
 
         int PacketQueueSize_Receive = 0;
         int PacketQueueSize_Send = 0;
 
-        private ConcurrentBag<string> m_ProcessedActionPackets { get; } = new ConcurrentBag<string>();
+        private ConcurrentBag<string> m_ProcessedActionPackets { get; } = new();
 
         private Dictionary<string, object>[] m_CharactersJson;
 
@@ -124,7 +116,7 @@ namespace SIT.Core.Coop
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
             Players = new ConcurrentDictionary<string, EFT.Player>();
-            var ownPlayer = (EFT.LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
+            var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
             Players.TryAdd(ownPlayer.Profile.AccountId, ownPlayer);
 
             RequestingObj = Request.GetRequestInstance(true, Logger);
@@ -140,9 +132,9 @@ namespace SIT.Core.Coop
             CoopPatches.EnableDisablePatches();
             //GCHelpers.EnableGC();
 
-            Player_Init_Patch.SendPlayerDataToServer((EFT.LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+            Player_Init_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
-            
+
         }
 
         void OnDestroy()
@@ -433,7 +425,7 @@ namespace SIT.Core.Coop
             // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
             if (!SETTING_DEBUGSpawnDronesOnServer)
             {
-                if(Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x=>x.Profile.AccountId == accountId))
+                if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == accountId))
                 {
                     if (PlayersToSpawn.ContainsKey(accountId))
                         PlayersToSpawn[accountId] = ESpawnState.Ignore;
@@ -456,7 +448,7 @@ namespace SIT.Core.Coop
             if (PlayersToSpawn.ContainsKey(accountId)
                 && PlayersToSpawnProfiles.ContainsKey(accountId)
                 && PlayersToSpawnProfiles[accountId] != null
-                ) 
+                )
             {
                 CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition);
                 return;
@@ -699,7 +691,7 @@ namespace SIT.Core.Coop
             });
         }
 
-        
+
 
         /// <summary>
         /// Gets the Last Actions Dictionary from the Server and stores them to ActionsToValuesJson
@@ -762,7 +754,7 @@ namespace SIT.Core.Coop
                 Logger.LogDebug("ReadFromServerLastActionsByAccountParseData: Has Array. This wont work!");
                 return;
             }
-            
+
             Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
             if (actionsToValues == null)
             {
@@ -774,7 +766,7 @@ namespace SIT.Core.Coop
                  .Where(x => x.Count > 0)
                  .Select(x => x.ToObject<Dictionary<string, object>>());
 
-            foreach (var packets2 in packets.Select(x=>x.Values))
+            foreach (var packets2 in packets.Select(x => x.Values))
             {
                 foreach (var packet in packets2)
                 {
@@ -788,12 +780,12 @@ namespace SIT.Core.Coop
                     try
                     {
                         var packetToProcess = JsonConvert.DeserializeObject<Dictionary<string, object>>(packetJson);
-                        if(packetToProcess.ContainsKey("t") && !SETTING_AlwaysProcessEverything)
+                        if (packetToProcess.ContainsKey("t") && !SETTING_AlwaysProcessEverything)
                         {
                             var useTimestamp = true;
                             if (packetToProcess.ContainsKey("m"))
                             {
-                                if (packetToProcess["m"].ToString() == "Proceed" 
+                                if (packetToProcess["m"].ToString() == "Proceed"
                                     || packetToProcess["m"].ToString() == "TryProceed"
                                     || packetToProcess["m"].ToString() == "Door"
                                     || packetToProcess["m"].ToString() == "WIO_Interact"
@@ -806,7 +798,7 @@ namespace SIT.Core.Coop
                             }
 
                             if (useTimestamp &&
-                                    long.Parse(packetToProcess["t"].ToString()) 
+                                    long.Parse(packetToProcess["t"].ToString())
                                     < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, SETTING_Actions_CutoffTimeInSeconds).Ticks)
                                 continue;
                         }
@@ -822,7 +814,7 @@ namespace SIT.Core.Coop
 
                     }
                     catch (Exception)
-                    { 
+                    {
                     }
                 }
             }
@@ -964,7 +956,7 @@ namespace SIT.Core.Coop
             rect.y += 15;
             if (Request.Instance != null)
             {
-                if (RTTQ.Count > 350) 
+                if (RTTQ.Count > 350)
                     RTTQ.TryDequeue(out _);
 
                 RTTQ.Enqueue(ApproximatePing + Request.Instance.PostPing);

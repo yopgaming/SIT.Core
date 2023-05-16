@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static Type GetThisType()
         {
-            return Tarkov.Core.PatchConstants.EftTypes
+            return PatchConstants.EftTypes
                  .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
         }
 

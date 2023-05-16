@@ -3,16 +3,12 @@ using Comfort.Common;
 using EFT;
 using EFT.EnvironmentEffect;
 using EFT.UI;
-using EFT.UI.Screens;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Coop.Core.LocalGame
 {

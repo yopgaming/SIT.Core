@@ -1,13 +1,9 @@
 ﻿using EFT;
-//using ScreenController = EFT.UI.Matchmaker.MatchMakerAcceptScreen.GClass2426;
-//using Grouping = GClass2434;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -19,8 +15,8 @@ namespace SIT.Coop.Core.Matchmaker
 
         public static Type GetThisType()
         {
-            return Tarkov.Core.PatchConstants.EftTypes
-                 .Single(x => x == typeof(EFT.UI.Matchmaker.MatchMakerAcceptScreen));
+            return PatchConstants.EftTypes
+                 .Single(x => x == typeof(MatchMakerAcceptScreen));
         }
 
         protected override MethodBase GetTargetMethod()

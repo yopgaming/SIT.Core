@@ -1,6 +1,4 @@
-﻿using Comfort.Common;
-using EFT.InventoryLogic;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -17,8 +15,7 @@ namespace SIT.Coop.Core.Player
 
         public override string MethodName => "ProceedMeds";
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -26,7 +23,7 @@ namespace SIT.Coop.Core.Player
             if (t == null)
                 Logger.LogInfo($"Player_Proceed_Meds_Patch:Type is NULL");
 
-            var method = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault( x => x.Name == "Proceed" && x.GetParameters()[0].Name == "meds");
+            var method = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed" && x.GetParameters()[0].Name == "meds");
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:{t.Name}:{method.Name}");
             return method;
@@ -57,13 +54,13 @@ namespace SIT.Coop.Core.Player
             }
 
             // Stop Client Drone sending a Proceed back to the player
-            if(__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            if (__instance.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
                 if (prc.IsClientDrone)
                     return;
             }
 
-            Dictionary<string, object> args = new Dictionary<string, object>();
+            Dictionary<string, object> args = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(meds.CurrentAddress, ref args);
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
@@ -91,10 +88,10 @@ namespace SIT.Coop.Core.Player
             if (item != null)
             {
                 var meds = item as Meds;
-                if(meds != null)
+                if (meds != null)
                 {
                     CallLocally.Add(player.Profile.AccountId, true);
-                    player.Proceed(meds, (EBodyPart)Enum.Parse(typeof(EBodyPart), dict["bodyPart"].ToString(), true), (IResult) => { } , 1, true);
+                    player.Proceed(meds, (EBodyPart)Enum.Parse(typeof(EBodyPart), dict["bodyPart"].ToString(), true), (IResult) => { }, 1, true);
                 }
             }
         }

@@ -1,11 +1,11 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
 using EFT.Interactive;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Comfort.Common;
 
 namespace SIT.Core.Coop
 {
@@ -39,11 +39,13 @@ namespace SIT.Core.Coop
         {
             Logger.LogDebug("WIO_Interact:Postfix");
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("doorId", __instance.Id);
-            dictionary.Add("type", interactionResult.InteractionType.ToString());
-            dictionary.Add("m", "WIO_Interact");
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "doorId", __instance.Id },
+                { "type", interactionResult.InteractionType.ToString() },
+                { "m", "WIO_Interact" }
+            };
             Request.Instance.SendDataToPool("/coop/server/update", dictionary.SITToJson());
         }
     }

@@ -4,7 +4,6 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Coop.Core.Player
@@ -15,8 +14,7 @@ namespace SIT.Coop.Core.Player
 
         public override string MethodName => "DropBackpack";
 
-        public static Dictionary<string, bool> CallLocally
-          = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -46,9 +44,11 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("m", "DropBackpack");
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "m", "DropBackpack" }
+            };
             ServerCommunication.PostLocalPlayerData(__instance, dictionary);
         }
 

@@ -97,10 +97,10 @@ namespace SIT.Core.Misc
             if (t == null)
                 return null;
 
-            if(findFirst)
-                return ReflectionHelpers.GetAllMethodsForType(t, debug).FirstOrDefault(x => x.Name.ToLower() == methodName.ToLower());
+            if (findFirst)
+                return GetAllMethodsForType(t, debug).FirstOrDefault(x => x.Name.ToLower() == methodName.ToLower());
             else
-                return ReflectionHelpers.GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower());
+                return GetAllMethodsForType(t, debug).LastOrDefault(x => x.Name.ToLower() == methodName.ToLower());
         }
 
         public static async Task<MethodInfo> GetMethodForTypeAsync(Type t, string methodName, bool debug = false)
@@ -152,7 +152,7 @@ namespace SIT.Core.Misc
 
         public static IEnumerable<MethodInfo> GetAllMethodsForObject(object ob)
         {
-            return ReflectionHelpers.GetAllMethodsForType(ob.GetType());
+            return GetAllMethodsForType(ob.GetType());
         }
 
         public static IEnumerable<PropertyInfo> GetAllPropertiesForObject(object o)

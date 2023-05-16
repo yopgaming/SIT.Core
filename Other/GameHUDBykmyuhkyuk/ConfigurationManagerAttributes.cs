@@ -1,36 +1,36 @@
-using System;
 using BepInEx.Configuration;
+using System;
 
 namespace GamePanelHUDCore
 {
-	public sealed class ConfigurationManagerAttributes
-	{
-		public bool? ShowRangeAsPercent;
+    public sealed class ConfigurationManagerAttributes
+    {
+        public bool? ShowRangeAsPercent;
 
-		public Action<ConfigEntryBase> CustomDrawer;
+        public Action<ConfigEntryBase> CustomDrawer;
 
-		public bool? Browsable;
+        public bool? Browsable;
 
-		public string Category;
+        public string Category;
 
-		public object DefaultValue;
+        public object DefaultValue;
 
-		public bool? HideDefaultButton;
+        public bool? HideDefaultButton;
 
-		public bool? HideSettingName;
+        public bool? HideSettingName;
 
-		public string Description;
+        public string Description;
 
-		public string DispName;
+        public string DispName;
 
-		public int? Order;
+        public int? Order;
 
-		public bool? ReadOnly;
+        public bool? ReadOnly;
 
-		public bool? IsAdvanced;
+        public bool? IsAdvanced;
 
-		public Func<object, string> ObjToStr;
+        public Func<object, string> ObjToStr;
 
-		public Func<string, object> StrToObj;
-	}
+        public Func<string, object> StrToObj;
+    }
 }

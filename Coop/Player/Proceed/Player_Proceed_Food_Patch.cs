@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player.Proceed
 {
@@ -17,8 +15,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
         public override string MethodName => "ProceedFood";
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
         public static MethodInfo method1 = null;
 
@@ -69,7 +66,7 @@ namespace SIT.Core.Coop.Player.Proceed
             }
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            Dictionary<string, object> args = new Dictionary<string, object>();
+            Dictionary<string, object> args = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(foodDrink.CurrentAddress, ref args);
 
             args.Add("m", "ProceedFood");

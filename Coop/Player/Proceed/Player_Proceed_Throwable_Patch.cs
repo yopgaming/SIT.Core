@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player.Proceed
 {
@@ -18,8 +16,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
         public override string MethodName => "ProceedThrowable";
 
-        public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> CallLocally = new();
 
         public static MethodInfo method1 = null;
 
@@ -29,7 +26,7 @@ namespace SIT.Core.Coop.Player.Proceed
             if (t == null)
                 Logger.LogInfo($"Player_Proceed_Throwable_Patch:Type is NULL");
 
-            method1 = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed" 
+            method1 = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed"
                 && x.GetParameters().Length == 3
                 && x.GetParameters()[0].Name == "throwWeap"
                 && x.GetParameters()[1].Name == "callback"
@@ -102,7 +99,7 @@ namespace SIT.Core.Coop.Player.Proceed
                 CallLocally.Add(player.Profile.AccountId, true);
                 //player.Proceed(throwable, callback: (IResult) => { }, scheduled: true);
 
-                var callback = new Comfort.Common.Callback<IThrowableCallback>((IResult) => { });
+                var callback = new Callback<IThrowableCallback>((IResult) => { });
                 method1.Invoke(player, new object[] { throwable, callback, true });
             }
         }
