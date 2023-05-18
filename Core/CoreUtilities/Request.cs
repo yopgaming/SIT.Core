@@ -111,6 +111,14 @@ namespace SIT.Tarkov.Core
             HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
         }
 
+        public async void PostDownWebSocketImmediately(Dictionary<string, object> packet)
+        {
+            await Task.Run(() =>
+            {
+                WebSocket.Send(packet.SITToJson());
+            });
+        }
+
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             m_ManualLogSource.LogError($"WebSocket_OnError: {e.Message}");
