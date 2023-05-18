@@ -199,8 +199,8 @@ namespace SIT.Core.Coop
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
 
-                RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
-
+                //RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
+                RequestingObj.SendDataToPool("/coop/server/update", playerStates.SITToJson());
 
                 LastPlayerStateSent = DateTime.Now;
             }
@@ -867,9 +867,13 @@ namespace SIT.Core.Coop
 
             var accountId = packet["accountId"].ToString();
 
+            if (!Players.Any())
+                return;
+
             foreach (var plyr in
                 Players.ToArray()
                 .Where(x => x.Key == accountId)
+                .Where(x => x.Value != null)
                 )
             {
                 if (!plyr.Value.HealthController.IsAlive)
