@@ -1,4 +1,5 @@
-﻿using SIT.Core.Misc;
+﻿using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
 
@@ -15,9 +16,16 @@ namespace SIT.Core.SP.Menus
         }
 
         [PatchPostfix]
-        public static void PatchPostfix(ref EFT.UI.DefaultUIButton ____readyButton)
+        public static void PatchPostfix(
+            ref EFT.UI.DefaultUIButton ____readyButton
+            , ref EFT.UI.DefaultUIButton ____acceptButton
+            , ref RaidSettings ___raidSettings_0)
         {
             ____readyButton.gameObject.SetActive(false);
+
+            ____acceptButton.gameObject.SetActive(true);
+
+            Logger.LogInfo("DEBUG::" + ___raidSettings_0.ToJson());
         }
 
         protected override MethodBase GetTargetMethod()
