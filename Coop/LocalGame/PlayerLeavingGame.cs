@@ -16,8 +16,11 @@ namespace SIT.Core.Coop.LocalGame
         public static void Postfix(string profileId)
         {
             Logger.LogDebug("PlayerLeavingGame.Postfix");
-            var component = CoopGameComponent.GetCoopGameComponent();
-            GameObject.Destroy(component);
+            if (CoopGameComponent.TryGetCoopGameComponent(out var component))
+            {
+                Logger.LogDebug("PlayerLeavingGame.Postfix.Destroying CoopGameComponent component");
+                GameObject.Destroy(component);
+            }
         }
     }
 }
