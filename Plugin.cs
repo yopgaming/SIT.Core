@@ -29,9 +29,12 @@ namespace SIT.Core
     {
         public static Plugin Instance;
 
+        public static PluginConfigSettings Settings { get; private set; }
+
         private void Awake()
         {
             Instance = this;
+            Settings = new PluginConfigSettings(Logger, Config);
 
             EnableCorePatches();
             EnableSPPatches();
@@ -123,6 +126,12 @@ namespace SIT.Core
             new InsuranceScreenPatch().Enable();
             new DisableReadyButtonOnLocationScreen_Patch().Enable();
             new VersionLabelPatch(config).Enable();
+
+            try
+            {
+                new MatchmakerLocationScreen_DisableLevelLock_Patch().Enable();
+            }
+            catch(Exception ex) { Plugin.Instance.Logger.LogError(ex.Message); }
         }
 
         private static void EnableSPPatches_PlayerProgression()
