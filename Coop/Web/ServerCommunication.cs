@@ -18,26 +18,6 @@ namespace SIT.Coop.Core.Web
             PostLocalPlayerData(player, data, useReliable, out _, out _);
         }
 
-        //public static void PostLocalPlayerData(
-        //   EFT.Player player
-        //   , Dictionary<string, object> data
-        //   , Request requestInstance
-        //   )
-        //{
-        //    if (!data.ContainsKey("t"))
-        //        data.Add("t", DateTime.Now.Ticks);
-        //    if (!data.ContainsKey("accountId"))
-        //    {
-        //        var profile = player.Profile; //  PatchConstants.GetPlayerProfile(player);
-        //        data.Add("accountId", profile.AccountId); // PatchConstants.GetPlayerProfileAccountId(profile));
-        //    }
-        //    if (!data.ContainsKey("serverId"))
-        //        data.Add("serverId", CoopGameComponent.GetServerId());
-
-        //    requestInstance.SendDataToPool("/coop/server/update", data);
-        //}
-
-
         /// <summary>
         /// Posts the data to the Udp Socket and returns the changed Dictionary for any extra use
         /// </summary>
@@ -72,11 +52,12 @@ namespace SIT.Coop.Core.Web
 
             if (useReliable)
             {
-                var req = Request.GetRequestInstance(true);
-                _ = req.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data), timeout: 9999).ContinueWith((str) =>
-                {
-                    req = null;
-                });
+                //var req = Request.GetRequestInstance(true);
+                //_ = req.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data), timeout: 9999).ContinueWith((str) =>
+                //{
+                //    req = null;
+                //});
+                Request.Instance.PostDownWebSocketImmediately(data);
             }
             else
                 Request.Instance.SendDataToPool("/coop/server/update", data);
