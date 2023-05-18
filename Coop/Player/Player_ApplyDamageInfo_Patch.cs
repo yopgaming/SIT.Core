@@ -360,11 +360,30 @@ namespace SIT.Core.Coop.Player
         }
 
         [PatchPrefix]
-        public static bool PrePatch(EFT.Player __instance)
+        public static bool PrePatch(EFT.Player __instance
+            , ref DamageInfo damageInfo
+            , EBodyPart bodyPartType)
         {
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
+
+            if(result)
+            {
+                if (PluginConfigSettings.Instance != null)
+                {
+                    if (PluginConfigSettings.Instance.CoopSettings.SETTING_HeadshotsAlwaysKill)
+                    {
+                        if (bodyPartType == EBodyPart.Head)
+                        {
+                            damageInfo.Damage = 999;
+                            damageInfo.DidBodyDamage = 999;
+                            damageInfo.DidArmorDamage = 0;
+                        }
+                    }
+                }
+            }
+
 
             return result;
         }
@@ -372,7 +391,8 @@ namespace SIT.Core.Coop.Player
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
-            DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null
+            ref DamageInfo damageInfo
+            , EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null
             )
         {
             var player = __instance;
@@ -382,6 +402,20 @@ namespace SIT.Core.Coop.Player
                 CallLocally.Remove(player.Profile.AccountId);
                 return;
             }
+
+            if (PluginConfigSettings.Instance != null)
+            {
+                if (PluginConfigSettings.Instance.CoopSettings.SETTING_HeadshotsAlwaysKill)
+                {
+                    if (bodyPartType == EBodyPart.Head)
+                    {
+                        damageInfo.Damage = 999;
+                        damageInfo.DidBodyDamage = 999;
+                        damageInfo.DidArmorDamage = 0;
+                    }
+                }
+            }
+
 
             Dictionary<string, object> packet = new();
             damageInfo.HitCollider = null;
