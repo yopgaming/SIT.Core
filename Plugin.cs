@@ -124,7 +124,7 @@ namespace SIT.Core
             //new OfflineRaidMenuPatch().Enable();
             new AutoSetOfflineMatch2().Enable();
             new InsuranceScreenPatch().Enable();
-            new DisableReadyButtonOnLocationScreen_Patch().Enable();
+            new MatchmakerLocationScreen_DisableReadyButton_Patch().Enable();
             new VersionLabelPatch(config).Enable();
 
             try
@@ -132,6 +132,7 @@ namespace SIT.Core
                 new MatchmakerLocationScreen_DisableLevelLock_Patch().Enable();
             }
             catch(Exception ex) { Plugin.Instance.Logger.LogError(ex.Message); }
+
         }
 
         private static void EnableSPPatches_PlayerProgression()
