@@ -76,7 +76,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "m", "ReloadMag" }
             };
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-            Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
 
         }
 
