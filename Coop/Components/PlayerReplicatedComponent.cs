@@ -93,6 +93,12 @@ namespace SIT.Coop.Core.Player
                             ReplicatedDirection = packetDirection;
                         }
 
+                        if (packet.ContainsKey("tilt"))
+                        {
+                            var tilt = float.Parse(packet["tilt"].ToString());
+                            player.MovementContext.SetTilt(tilt);
+                        }
+
                         if (packet.ContainsKey("tp"))
                         {
                             FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
