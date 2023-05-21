@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using UnityEngine;
 
 namespace SIT.Core.Coop
@@ -31,7 +32,6 @@ namespace SIT.Core.Coop
         public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
         BepInEx.Logging.ManualLogSource Logger { get; set; }
         private long ReadFromServerLastActionsLastTime { get; set; } = -1;
-        private long ApproximatePing { get; set; } = 1;
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
         public ConcurrentDictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
@@ -121,7 +121,7 @@ namespace SIT.Core.Coop
 
             RequestingObj = Request.GetRequestInstance(true, Logger);
 
-            StartCoroutine(ReadFromServerCharacters());
+            Task.Run(() => ReadFromServerCharacters());
             StartCoroutine(ProcessServerCharacters());
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
@@ -145,7 +145,6 @@ namespace SIT.Core.Coop
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
-            StopCoroutine(ReadFromServerCharacters());
             StopCoroutine(ProcessServerCharacters());
             RunAsyncTasks = false;
 
@@ -170,6 +169,8 @@ namespace SIT.Core.Coop
             List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(SETTING_PlayerStateTickRateInMS))
             {
+                //Logger.LogDebug("Creating PRC");
+
                 foreach (var player in Players.Values)
                 {
                     if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
@@ -178,8 +179,8 @@ namespace SIT.Core.Coop
                     if (prc.IsClientDrone)
                         continue;
 
-                    if (!player.HealthController.IsAlive)
-                        continue;
+                    //if (!player.HealthController.IsAlive)
+                    //    continue;
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
@@ -192,15 +193,16 @@ namespace SIT.Core.Coop
                     if (prc.IsClientDrone)
                         continue;
 
-                    if (!player.HealthController.IsAlive)
-                        continue;
+                    //if (!player.HealthController.IsAlive)
+                    //    continue;
 
                     // TODO: This needs to double check I dont send the same stuff twice!
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
 
+                //Logger.LogDebug(playerStates.SITToJson());
                 //RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
-                RequestingObj.SendDataToPool("/coop/server/update", playerStates.SITToJson());
+                RequestingObj.SendListDataToPool(string.Empty, playerStates);
 
                 LastPlayerStateSent = DateTime.Now;
             }
@@ -246,14 +248,10 @@ namespace SIT.Core.Coop
             Logger.LogDebug($"SETTING_Actions_TickRateInMS: {SETTING_Actions_TickRateInMS}");
         }
 
-        private IEnumerator ReadFromServerCharacters()
+        private async Task ReadFromServerCharacters()
         {
-            var waitEndOfFrame = new WaitForEndOfFrame();
-
             if (GetServerId() == null)
-                yield return waitEndOfFrame;
-
-            var waitSeconds = new WaitForSeconds(10f);
+                return;
 
             Dictionary<string, object> d = new Dictionary<string, object>();
             d.Add("serverId", GetServerId());
@@ -261,7 +259,7 @@ namespace SIT.Core.Coop
             d.Add("pL", playerList);
             while (RunAsyncTasks)
             {
-                yield return waitSeconds;
+                await Task.Delay(10000);
 
                 if (Players == null)
                     continue;
@@ -286,8 +284,7 @@ namespace SIT.Core.Coop
 
                 try
                 {
-                    m_CharactersJson = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend, 9999).Result;
-                    //m_CharactersJson = RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend).Result;
+                    m_CharactersJson = await RequestingObj.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/read/players", jsonDataToSend, 30000);
                     if (m_CharactersJson == null)
                         continue;
 
@@ -349,11 +346,6 @@ namespace SIT.Core.Coop
                 {
 
                 }
-
-
-
-                //actionsToValuesJson = null;
-                yield return waitEndOfFrame;
             }
         }
 
@@ -697,35 +689,35 @@ namespace SIT.Core.Coop
         /// Gets the Last Actions Dictionary from the Server and stores them to ActionsToValuesJson
         /// </summary>
         /// <returns></returns>
-        private async Task ReadFromServerLastActions(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var fTimeToWaitInMS = SETTING_Actions_TickRateInMS;
-            var jsonDataServerId = new Dictionary<string, object>
-            {
-                { "serverId", GetServerId() },
-                { "t", ReadFromServerLastActionsLastTime }
-            };
+        //private async Task ReadFromServerLastActions(CancellationToken cancellationToken = default(CancellationToken))
+        //{
+        //    var fTimeToWaitInMS = SETTING_Actions_TickRateInMS;
+        //    var jsonDataServerId = new Dictionary<string, object>
+        //    {
+        //        { "serverId", GetServerId() },
+        //        { "t", ReadFromServerLastActionsLastTime }
+        //    };
 
-            if (RequestingObj == null)
-                RequestingObj = Request.GetRequestInstance(true, Logger);
+        //    if (RequestingObj == null)
+        //        RequestingObj = Request.GetRequestInstance(true, Logger);
 
-            while (RunAsyncTasks)
-            {
+        //    while (RunAsyncTasks)
+        //    {
 
-                await Task.Delay(fTimeToWaitInMS);
+        //        await Task.Delay(fTimeToWaitInMS);
 
-                jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
-                if (Players == null)
-                {
-                    PatchConstants.Logger.LogError("CoopGameComponent:No Players Found! Nothing to process!");
-                    continue;
-                }
+        //        jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
+        //        if (Players == null)
+        //        {
+        //            PatchConstants.Logger.LogError("CoopGameComponent:No Players Found! Nothing to process!");
+        //            continue;
+        //        }
 
-                m_ActionsToValuesJson = await RequestingObj.GetJsonAsync($"/coop/server/read/lastActions/{GetServerId()}/{ReadFromServerLastActionsLastTime}");
-                ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
-                ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
-            }
-        }
+        //        m_ActionsToValuesJson = await RequestingObj.GetJsonAsync($"/coop/server/read/lastActions/{GetServerId()}/{ReadFromServerLastActionsLastTime}");
+        //        ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
+        //        ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
+        //    }
+        //}
 
         /// <summary>
         /// Process the ActionsToValuesJson every 1ms
@@ -837,8 +829,6 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            //Logger.LogInfo(packet.ToJson());
-
             ProcessPlayerPacket(packet);
             ProcessWorldPacket(packet);
 
@@ -847,6 +837,9 @@ namespace SIT.Core.Coop
         private void ProcessWorldPacket(Dictionary<string, object> packet)
         {
             if (packet.ContainsKey("accountId"))
+                return;
+
+            if (!packet.ContainsKey("m"))
                 return;
 
             switch (packet["m"].ToString())
@@ -876,8 +869,8 @@ namespace SIT.Core.Coop
                 .Where(x => x.Value != null)
                 )
             {
-                if (!plyr.Value.HealthController.IsAlive)
-                    continue;
+                //if (!plyr.Value.HealthController.IsAlive)
+                //    continue;
 
                 plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
 
@@ -896,8 +889,8 @@ namespace SIT.Core.Coop
                 foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
                     .Where(x => x.Profile != null && x.Profile.AccountId == accountId))
                 {
-                    if (!plyr.HealthController.IsAlive)
-                        continue;
+                    //if (!plyr.HealthController.IsAlive)
+                    //    continue;
 
                     if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
@@ -930,6 +923,9 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
             dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
             dictPlayerState.Add("tp", prc.TriggerPressed);
+            dictPlayerState.Add("alive", player.HealthController.IsAlive);
+            dictPlayerState.Add("tilt", player.MovementContext.Tilt);
+            dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
             dictPlayerState.Add("accountId", player.Profile.AccountId);
             dictPlayerState.Add("serverId", GetServerId());
             dictPlayerState.Add("t", DateTime.Now.Ticks);
@@ -956,19 +952,19 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
-            GUI.Label(rect, $"Ping:{(ApproximatePing >= 0 ? ApproximatePing : 0)}");
+            GUI.Label(rect, $"Ping:{(RequestingObj.ServerPing >= 0 ? RequestingObj.ServerPing : 1)}");
             rect.y += 15;
-            if (Request.Instance != null)
-            {
-                if (RTTQ.Count > 350)
-                    RTTQ.TryDequeue(out _);
+            //if (Request.Instance != null)
+            //{
+            //    if (RTTQ.Count > 350)
+            //        RTTQ.TryDequeue(out _);
 
-                RTTQ.Enqueue(ApproximatePing + Request.Instance.PostPing);
-                var rtt = Math.Round(RTTQ.Average()); // ApproximatePing + Request.Instance.PostPing;
+            //    RTTQ.Enqueue(ApproximatePing + Request.Instance.PostPing);
+            //    var rtt = Math.Round(RTTQ.Average()); // ApproximatePing + Request.Instance.PostPing;
 
-                GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");
-                rect.y += 15;
-            }
+            //    GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");
+            //    rect.y += 15;
+            //}
 
             {
                 GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");

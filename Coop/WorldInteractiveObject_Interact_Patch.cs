@@ -46,7 +46,7 @@ namespace SIT.Core.Coop
                 { "type", interactionResult.InteractionType.ToString() },
                 { "m", "WIO_Interact" }
             };
-            Request.Instance.SendDataToPool("/coop/server/update", dictionary.SITToJson());
+            Request.Instance.SendDataToPool(string.Empty, dictionary);
         }
     }
 }

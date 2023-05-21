@@ -126,13 +126,21 @@ namespace SIT.Tarkov.Core
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
+
             //m_ManualLogSource.LogDebug("WebSocket_OnMessage");
-            //m_ManualLogSource.LogDebug(e.Data);
+            m_ManualLogSource.LogDebug(e.Data);
             var packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
                 //coopGameComponent.ReadFromServerLastActionsParseData(packet);
+                if (packet.ContainsKey("ping"))
+                {
+                    var timeStampOfPing = new DateTime(long.Parse(packet["ping"].ToString()));
+                    this.ServerPing = ((timeStampOfPing - LastServerPing) - new TimeSpan(0, 0, 1)).Milliseconds;
+                    LastServerPing = timeStampOfPing;
+                    return;
+                }
 
                 coopGameComponent.ActionPackets.TryAdd(packet);
 
@@ -150,6 +158,8 @@ namespace SIT.Tarkov.Core
         }
 
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
+        public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
+
         ConcurrentQueue<KeyValuePair<string, string>> m_PooledStringToPost = new();
 
         public void SendDataToPool(string url, Dictionary<string, object> data)
@@ -157,12 +167,20 @@ namespace SIT.Tarkov.Core
             PooledDictionariesToPost.Add(new(url, data));
         }
 
-        public void SendDataToPool(string url, string stringData)
+        public void SendListDataToPool(string url, List<Dictionary<string, object>> data)
         {
-            m_PooledStringToPost.Enqueue(new(url, stringData));
+            PooledDictionaryCollectionToPost.Add(data);
         }
 
-        public int PostPing { get; private set; }
+        //public void SendDataToPool(string url, string stringData)
+        //{
+        //    m_PooledStringToPost.Enqueue(new(url, stringData));
+        //}
+
+        public DateTime LastServerPing { get; private set; } = DateTime.Now;
+        public int ServerPing { get; private set; } = 1;
+        public int PostPing { get; private set; } = 1;
+
 
         private Task PeriodicallySendPooledDataTask;
 
@@ -205,12 +223,25 @@ namespace SIT.Tarkov.Core
                     }
 
                     //if (m_PooledStringToPost.Any())
-                    //{
-                    //    m_PooledStringToPost.TryDequeue(out var d);
-                    //    var url = d.Key;
-                    //    var json = d.Value;
-                    //    await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
-                    //}
+                    //await Task.Delay(awaitPeriod);
+
+                    if (PooledDictionaryCollectionToPost.TryTake(out var d2))
+                    {
+                        var json = JsonConvert.SerializeObject(d2);
+                        if (WebSocket != null)
+                        {
+                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                            {
+                                //PatchConstants.Logger.LogDebug($"WS:Periodic Send:PooledDictionaryCollectionToPost");
+                                WebSocket.Send(json);
+                            }
+                            else
+                            {
+                                PatchConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
+                            }
+                        }
+                    }
+
                     PostPing = (int)swPing.ElapsedMilliseconds - awaitPeriod;
 
                 }
@@ -533,8 +564,8 @@ namespace SIT.Tarkov.Core
         /// <returns></returns>
         public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS)
         {
-            var json = await PostJsonAsync(url, data, timeout: timeout);
-            return await Task.FromResult(JsonConvert.DeserializeObject<T>(json));
+            var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug: true);
+            return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
         }
 
         //public Texture2D GetImage(string url, bool compress = true)
