@@ -3,6 +3,8 @@
 An Escape From Tarkov BepInEx module designed to be used with SPT-Aki with the ultimate goal of "Offline" Coop 
 </div>
 
+---
+
 ## About
 
 The Stay in Tarkov project was born due to Battlestate Games' (BSG) reluctance to create the pure PvE version of Escape from Tarkov. 
@@ -40,7 +42,7 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 ### Coop Summary
 **BE AWARE**
 * Coop is in early stages of development. 
-* Most features  work and it is "playable with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
+* Most features work (ish) and it is "playable (ish) with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
 * My tests have included all maps. The maps that work best are Factory and Labs. Performance is very dependant on the CPU / Internet on the Server and Clients and AI count on the Server
 * More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/blob/master/HOSTING.md)
 
@@ -50,15 +52,11 @@ You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) 
 ### Can Coop use BSG code?
 No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
 
-### How it will work and reason
-1. After rigourous testing in [SIT.Tarkov.Coop](https://github.com/paulov-t/SIT.Tarkov.Coop), I discovered that my UDP Web Socket implementation was much to unreliable and laggy.
-2. With point 1 in mind, I have reverted back to basic TCP JSON web calls back and forth to the SPT-Aki Server with a mod handling the data.
-
 ### Coding explanation
 - The project uses multiple methods of BepInEx Harmony patches coupled with Unity Components to achieve its aims.
-- Features/Methods that require constant polling between Client->Server->Client (Move, Rotate, Look, etc) use Components to send data (Harmony patches are too expensive, especially on AI!).
+- Features/Methods that require constant polling between Client->Server->Client (Move, Rotate, Look, etc) use Components to send data (AI code runs the Update/LateUpdate command and the function every tick, therefore causing network flood).
 - Features/Methods that can easily be "replicated" use ModuleReplicationPatch abstract class to easily round trip the call.
-- All server communication is via JSON TCP calls to the ["Web Server" developed by SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) using a [typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) to handle the "backend" work.
+- All server communication is via JSON TCP Http and Web Socket calls to the ["Web Server" developed by SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) using a [typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) to handle the "backend" work.
 - CoopGameComponent is attached to the GameWorld object when a Coop ready game is started (any game that isn't Hideout). CoopGameComponent polls the Server for information and passes the data to the PlayerReplicatedComponent.
 
 ## SPT-Aki
@@ -75,20 +73,7 @@ SPT-Aki DLLs are written specifically for their own Deobfuscation technique and 
 So I ported many of SPT-Aki features into this module. My end-goal would be to rely on SPT-Aki and for this to be solely focused on SIT only features.
 
 ## How to compile? 
-1. Create Working Directory for all Tarkov Modding {EFT_WORK}
-2. Clone this {SIT_CORE} to a {SIT_CORE} directory inside {EFT_WORK}
-3. Copy your Live Tarkov Directory somewhere else {EFT_OFFLINE}
-4. Deobfuscate latest Assembly-CSharp in {EFT_OFFLINE} via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher). Ensure to close and restart Launcher after Deobfuscation.
-5. Copy all of {EFT_OFFLINE}\EscapeFromTarkov_Data\Managed assemblies to Tarkov.References {TARKOV.REF} in the parent folder of this project {EFT_WORK}
-6. You will need BepInEx Nuget Feed installed on your PC by running the following command in a terminal. 
-```
-dotnet new -i BepInEx.Templates --nuget-source https://nuget.bepinex.dev/v3/index.json
-```
-7. Open the .sln with Visual Studio 2022
-8. Rebuild Solution (This should download and install all nuget packages on compilation)
-
-## Which version of BepInEx is this built for?
-Version 5
+[Compiling Document](COMPILE.md)
 
 # How to install BepInEx
 [https://docs.bepinex.dev/articles/user_guide/installation/index.html](https://docs.bepinex.dev/articles/user_guide/installation/index.html)
