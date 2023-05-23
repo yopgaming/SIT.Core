@@ -77,9 +77,9 @@ namespace SIT.Coop.Core.Player
                             , float.Parse(packet["pY"].ToString())
                             , float.Parse(packet["pZ"].ToString())
                             );
-                        //if (Vector3.Distance(packetPosition, player.Position) > 1)
-                        //    player.Teleport(packetPosition, true);
+
                         ReplicatedPosition = packetPosition;
+
                         // Move / Direction
                         if (packet.ContainsKey("dX"))
                         {
@@ -102,6 +102,23 @@ namespace SIT.Coop.Core.Player
                         if (packet.ContainsKey("tp"))
                         {
                             FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
+                        }
+
+                        if (packet.ContainsKey("spr"))
+                        {
+                            bool sprintEnabledFromPacket = bool.Parse(packet.ContainsKey("spr").ToString());
+                            //if (player.MovementContext.IsSprintEnabled != sprintEnabledFromPacket)
+                            //{
+                                player.MovementContext.EnableSprint(sprintEnabledFromPacket);
+                            //}
+                        }
+
+
+                        if (packet.ContainsKey("alive"))
+                        {
+                            bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
+                            if(!isCharAlive && player.ActiveHealthController.IsAlive)
+                                player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
                         }
 
                         return;

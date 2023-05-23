@@ -337,6 +337,7 @@
 
 #endregion
 using EFT.InventoryLogic;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -450,6 +451,20 @@ namespace SIT.Core.Coop.Player
             packet.Add("ab", absorbed.ToString());
             packet.Add("m", "ApplyDamageInfo");
             ServerCommunication.PostLocalPlayerData(player, packet, true);
+
+
+            // ---------------------------- KILL ------------------------------
+            //if (MatchmakerAcceptPatches.IsServer)  // should we do this on the server and send out to others only?
+            {
+                var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(bodyPartType);
+                if((bodyPartType == EBodyPart.Head || bodyPartType == EBodyPart.Common || bodyPartType == EBodyPart.Chest) && bodyPartHealth.AtMinimum)
+                {
+                    packet = new();
+                    packet.Add("dmt", damageInfo.DamageType.ToString());
+                    packet.Add("m", "Kill");
+                    ServerCommunication.PostLocalPlayerData(player, packet, true);
+                }
+            }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

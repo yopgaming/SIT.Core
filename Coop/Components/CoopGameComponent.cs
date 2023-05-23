@@ -44,8 +44,8 @@ namespace SIT.Core.Coop
          */
         public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new();
 
-        int PacketQueueSize_Receive = 0;
-        int PacketQueueSize_Send = 0;
+        int PacketQueueSize_Receive { get; set; } = 0;
+        int PacketQueueSize_Send { get; set; } = 0;
 
         private ConcurrentBag<string> m_ProcessedActionPackets { get; } = new();
 
@@ -935,14 +935,12 @@ namespace SIT.Core.Coop
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
-        public ulong LocalIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ulong LocalIndex { get; set; }
 
-        public double LocalTime => throw new NotImplementedException();
+        public double LocalTime => 0;
 
         int GuiX = 10;
         int GuiWidth = 400;
-
-        ConcurrentQueue<long> RTTQ = new ConcurrentQueue<long>();
 
         void OnGUI()
         {
@@ -968,12 +966,12 @@ namespace SIT.Core.Coop
 
             {
                 GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
-                PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count;
+                PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
                 rect.y += 15;
                 GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
                 rect.y += 15;
-                GUI.Label(rect, $"CGC LateUpdate Process (ms): {LateUpdateSpan.Milliseconds}");
-                rect.y += 15;
+                //GUI.Label(rect, $"CGC LateUpdate Process (ms): {LateUpdateSpan.Milliseconds}");
+                //rect.y += 15;
             }
 
             if (!SETTING_DEBUGShowPlayerList)
