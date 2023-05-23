@@ -128,20 +128,26 @@ namespace SIT.Tarkov.Core
         {
 
             //m_ManualLogSource.LogDebug("WebSocket_OnMessage");
-            m_ManualLogSource.LogDebug(e.Data);
+            //m_ManualLogSource.LogDebug(e.Data);
+
             var packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                // This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
-                //coopGameComponent.ReadFromServerLastActionsParseData(packet);
+                // -------------------------------------------------------
+                // WARNING: This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
+                // coopGameComponent.ReadFromServerLastActionsParseData(packet);
+                // -------------------------------------------------------
+
                 if (packet.ContainsKey("ping"))
                 {
                     var timeStampOfPing = new DateTime(long.Parse(packet["ping"].ToString()));
-                    this.ServerPing = ((timeStampOfPing - LastServerPing) - new TimeSpan(0, 0, 1)).Milliseconds;
+                    this.ServerPing = ((timeStampOfPing - LastServerPing) - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
                     LastServerPing = timeStampOfPing;
                     return;
                 }
 
+                // -------------------------------------------------------
+                // Add to the Coop Game Component Action Packets
                 coopGameComponent.ActionPackets.TryAdd(packet);
 
             }
