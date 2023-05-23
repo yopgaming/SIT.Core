@@ -1,5 +1,6 @@
+
+<div align=center style="text-align: center">
 <h1 style="text-align: center"> SIT.Core </h1>
-<div style="text-align: center">
 An Escape From Tarkov BepInEx module designed to be used with SPT-Aki with the ultimate goal of "Offline" Coop 
 </div>
 
