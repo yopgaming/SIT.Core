@@ -29,5 +29,8 @@ Please provide SIT.Core version here
 **SPT-Aki Version:**
 Please provide SPT-Aki version here
 
+**Logs**
+Please provide the log file(s) link here (upload into pastebin,etc)
+
 **Additional context**
 Add any other context about the problem here.
