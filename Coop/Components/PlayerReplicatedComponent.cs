@@ -7,6 +7,7 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using UnityEngine;
 
 namespace SIT.Coop.Core.Player
@@ -52,80 +53,7 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            switch (method)
-            {
-                case "PlayerState":
-                    if (IsClientDrone)
-                    {
-                        // Pose
-                        float poseLevel = float.Parse(packet["pose"].ToString());
-                        player.MovementContext.SetPoseLevel(poseLevel, true);
-                        // Speed
-                        float speed = float.Parse(packet["spd"].ToString());
-                        //player.ChangeSpeed(speed);
-                        player.MovementContext.CharacterMovementSpeed = speed;
-                        // Rotation
-                        Vector2 packetRotation = new Vector2(
-                        float.Parse(packet["rX"].ToString())
-                        , float.Parse(packet["rY"].ToString())
-                        );
-                        //player.Rotation = packetRotation;
-                        ReplicatedRotation = packetRotation;
-                        // Position
-                        Vector3 packetPosition = new Vector3(
-                            float.Parse(packet["pX"].ToString())
-                            , float.Parse(packet["pY"].ToString())
-                            , float.Parse(packet["pZ"].ToString())
-                            );
-
-                        ReplicatedPosition = packetPosition;
-
-                        // Move / Direction
-                        if (packet.ContainsKey("dX"))
-                        {
-                            Vector2 packetDirection = new Vector2(
-                            float.Parse(packet["dX"].ToString())
-                            , float.Parse(packet["dY"].ToString())
-                            );
-                            //player.Move(packetDirection);
-                            player.CurrentState.Move(packetDirection);
-                            player.InputDirection = packetDirection;
-                            ReplicatedDirection = packetDirection;
-                        }
-
-                        if (packet.ContainsKey("tilt"))
-                        {
-                            var tilt = float.Parse(packet["tilt"].ToString());
-                            player.MovementContext.SetTilt(tilt);
-                        }
-
-                        if (packet.ContainsKey("tp"))
-                        {
-                            FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
-                        }
-
-                        if (packet.ContainsKey("spr"))
-                        {
-                            bool sprintEnabledFromPacket = bool.Parse(packet.ContainsKey("spr").ToString());
-                            //if (player.MovementContext.IsSprintEnabled != sprintEnabledFromPacket)
-                            //{
-                                player.MovementContext.EnableSprint(sprintEnabledFromPacket);
-                            //}
-                        }
-
-
-                        if (packet.ContainsKey("alive"))
-                        {
-                            bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
-                            if(!isCharAlive && player.ActiveHealthController.IsAlive)
-                                player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
-                        }
-
-                        return;
-                    }
-                    break;
-
-            }
+            ProcessPlayerState(packet);
 
             var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
             if (packetHandlerComponents != null)
@@ -136,6 +64,82 @@ namespace SIT.Coop.Core.Player
                     packetHandlerComponent.ProcessPacket(packet);
                 }
             }
+        }
+
+        void ProcessPlayerState(Dictionary<string, object> packet)
+        {
+            var method = packet["m"].ToString();
+            if (method != "PlayerState")
+                return;
+
+
+            if (IsClientDrone)
+            {
+                // Pose
+                float poseLevel = float.Parse(packet["pose"].ToString());
+                player.MovementContext.SetPoseLevel(poseLevel, true);
+                // Speed
+                float speed = float.Parse(packet["spd"].ToString());
+                player.MovementContext.CharacterMovementSpeed = speed;
+                // Rotation
+                Vector2 packetRotation = new Vector2(
+                float.Parse(packet["rX"].ToString())
+                , float.Parse(packet["rY"].ToString())
+                );
+                //player.Rotation = packetRotation;
+                ReplicatedRotation = packetRotation;
+                // Position
+                Vector3 packetPosition = new Vector3(
+                    float.Parse(packet["pX"].ToString())
+                    , float.Parse(packet["pY"].ToString())
+                    , float.Parse(packet["pZ"].ToString())
+                    );
+
+                ReplicatedPosition = packetPosition;
+
+                // Move / Direction
+                if (packet.ContainsKey("dX"))
+                {
+                    Vector2 packetDirection = new Vector2(
+                    float.Parse(packet["dX"].ToString())
+                    , float.Parse(packet["dY"].ToString())
+                    );
+                    player.CurrentState.Move(packetDirection);
+                    player.InputDirection = packetDirection;
+                    ReplicatedDirection = packetDirection;
+                }
+
+                if (packet.ContainsKey("tilt"))
+                {
+                    var tilt = float.Parse(packet["tilt"].ToString());
+                    player.MovementContext.SetTilt(tilt);
+                }
+
+                if (packet.ContainsKey("tp"))
+                {
+                    FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
+                }
+
+                //if (packet.ContainsKey("spr"))
+                //{
+                //    bool sprintEnabledFromPacket = bool.Parse(packet.ContainsKey("spr").ToString());
+                //    //if (player.MovementContext.IsSprintEnabled != sprintEnabledFromPacket)
+                //    //{
+                //        player.MovementContext.EnableSprint(sprintEnabledFromPacket);
+                //    //}
+                //}
+
+
+                if (packet.ContainsKey("alive"))
+                {
+                    bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
+                    if (!isCharAlive && player.ActiveHealthController.IsAlive)
+                        player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
+                }
+
+                return;
+            }
+            
         }
 
         void LateUpdate()
