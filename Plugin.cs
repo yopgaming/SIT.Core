@@ -160,6 +160,7 @@ namespace SIT.Core
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
+            new BossSpawnChancePatch().Enable();
 
             var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
             if (!enabled.Value)
