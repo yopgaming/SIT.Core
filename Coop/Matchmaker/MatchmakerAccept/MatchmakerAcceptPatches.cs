@@ -38,6 +38,9 @@ namespace SIT.Coop.Core.Matchmaker
         public static int HostExpectedNumberOfPlayers { get; set; }
         private static string groupId;
         #endregion
+
+        #region Static Fields
+
         public static object MatchmakerScreenController
         {
             get
@@ -55,6 +58,14 @@ namespace SIT.Coop.Core.Matchmaker
         }
 
         public static GameObject EnvironmentUIRoot { get; internal set; }
+        #endregion
+
+        public static void Run()
+        {
+            new EnvironmentUIRootPatch().Enable();
+            new MatchmakerAcceptScreenAwakePatch().Enable();
+            new MatchmakerAcceptScreenShowPatch().Enable();
+        }
 
         public static string GetGroupId()
         {
@@ -93,13 +104,6 @@ namespace SIT.Coop.Core.Matchmaker
                 }
             }
             return false;
-        }
-
-        public static void Run()
-        {
-            new EnvironmentUIRootPatch().Enable();
-            new MatchmakerAcceptScreenAwakePatch().Enable();
-            new MatchmakerAcceptScreenShowPatch().Enable();
         }
 
         public static void CreateMatch(string accountId, RaidSettings rs)

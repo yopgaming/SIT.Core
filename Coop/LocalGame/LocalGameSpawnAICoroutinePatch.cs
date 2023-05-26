@@ -29,10 +29,11 @@ namespace SIT.Coop.Core.LocalGame
         [PatchPrefix]
         public static bool PatchPrefix(ref BotControllerSettings controllerSettings)
         {
-            Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:PatchPrefix");
-
-            if (controllerSettings.BotAmount != EBotAmount.NoBots)
-                controllerSettings.BotAmount = EBotAmount.Low; // Keep bots levels low for Coop, reduce performance lag
+            // Keep bots levels low for Coop, reduce performance lag
+            if (Matchmaker.MatchmakerAcceptPatches.IsClient)
+                controllerSettings.BotAmount = EBotAmount.NoBots;
+            else
+                controllerSettings.BotAmount = EBotAmount.Low;
 
             return true;
         }
@@ -48,6 +49,7 @@ namespace SIT.Coop.Core.LocalGame
         )
         {
             Logger.LogInfo($"LocalGameSpawnAICoroutinePatch:PatchPostfix");
+
 
             yield return __result;
         }

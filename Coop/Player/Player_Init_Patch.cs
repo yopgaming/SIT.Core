@@ -55,7 +55,7 @@ namespace SIT.Coop.Core.Player
                 {
                     if (!coopGC.Players.ContainsKey(accountId))
                     {
-                        coopGC.Players.TryAdd(accountId, player);
+                        coopGC.Players.Add(accountId, player);
                     }
                 }
             }

@@ -89,6 +89,7 @@ namespace SIT.Coop.Core.LocalGame
                 CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
 
             coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
+            coopGameComponent.LocalGameInstance = __instance;   
 
             //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
             if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
