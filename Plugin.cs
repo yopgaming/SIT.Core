@@ -1,5 +1,6 @@
 ﻿using Aki.Custom.Patches;
 using BepInEx;
+using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
 using SIT.Core.AkiSupport.Airdrops;
@@ -24,17 +25,19 @@ namespace SIT.Core
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     //[BepInDependency("com.spt-aki.core")] // Should probably be dependant on Aki right?
+    //IDK how to add a configuration file from PluginConfigSettings.cs. I can only add it here. Sorry! :P   -w123456w30w
     [BepInProcess("EscapeFromTarkov.exe")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance;
-
+        public static ConfigEntry<int> SETTING_SIT_Port;
         public static PluginConfigSettings Settings { get; private set; }
 
         private void Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
+            SETTING_SIT_Port = Config.Bind<int>("Coop", "SITPort", 6970, "SIT.Core Websocket Port DEFAULT = 6970");
 
             EnableCorePatches();
             EnableSPPatches();
