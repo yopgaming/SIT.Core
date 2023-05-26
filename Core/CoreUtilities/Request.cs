@@ -146,9 +146,12 @@ namespace SIT.Tarkov.Core
 
                 if (packet.ContainsKey("ping"))
                 {
-                    var timeStampOfPing = new DateTime(long.Parse(packet["ping"].ToString()));
-                    this.ServerPing = ((timeStampOfPing - LastServerPing) - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
-                    LastServerPing = timeStampOfPing;
+                    m_ManualLogSource.LogDebug(packet["ping"].ToString());
+                    var pingStrip = packet["ping"].ToString().Split(':');
+                    var timeStampOfPing = new TimeSpan(0, int.Parse(pingStrip[0]), int.Parse(pingStrip[1]), int.Parse(pingStrip[2]), int.Parse(pingStrip[3]));
+                    m_ManualLogSource.LogDebug(timeStampOfPing.ToString());
+                    coopGameComponent.ServerPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds; //  - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
+                    coopGameComponent.LastServerPing = timeStampOfPing;
                     return;
                 }
 
@@ -223,8 +226,6 @@ namespace SIT.Tarkov.Core
         //    m_PooledStringToPost.Enqueue(new(url, stringData));
         //}
 
-        public DateTime LastServerPing { get; private set; } = DateTime.Now;
-        public int ServerPing { get; private set; } = 1;
         public int PostPing { get; private set; } = 1;
 
 

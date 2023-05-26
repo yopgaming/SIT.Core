@@ -971,6 +971,10 @@ namespace SIT.Core.Coop
         int GuiX = 10;
         int GuiWidth = 400;
 
+        public int ServerPing { get; set; } = 1;
+        public TimeSpan LastServerPing { get; set; } = DateTime.Now.TimeOfDay;
+
+
         void OnGUI()
         {
             var rect = new Rect(GuiX, 5, GuiWidth, 100);
@@ -979,29 +983,15 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
-            GUI.Label(rect, $"Ping:{(RequestingObj.ServerPing >= 0 ? RequestingObj.ServerPing : 1)}");
+            GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
-            //if (Request.Instance != null)
-            //{
-            //    if (RTTQ.Count > 350)
-            //        RTTQ.TryDequeue(out _);
 
-            //    RTTQ.Enqueue(ApproximatePing + Request.Instance.PostPing);
-            //    var rtt = Math.Round(RTTQ.Average()); // ApproximatePing + Request.Instance.PostPing;
-
-            //    GUI.Label(rect, $"RTT:{(rtt >= 0 ? rtt : 0)}");
-            //    rect.y += 15;
-            //}
-
-            {
-                GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
-                PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
-                rect.y += 15;
-                GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
-                rect.y += 15;
-                //GUI.Label(rect, $"CGC LateUpdate Process (ms): {LateUpdateSpan.Milliseconds}");
-                //rect.y += 15;
-            }
+            PacketQueueSize_Receive = ActionPackets.Count;
+            GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
+            PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
+            rect.y += 15;
+            GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
+            rect.y += 15;
 
             if (!SETTING_DEBUGShowPlayerList)
                 return;
