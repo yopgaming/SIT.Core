@@ -58,6 +58,11 @@ namespace SIT.Core.Coop
         {
         }
 
+        public void OnGroupMemberConnected(Inventory inventory)
+        {
+
+        }
+
         public void OnInteractWithLootContainer(Item item)
         {
         }
