@@ -146,10 +146,10 @@ namespace SIT.Tarkov.Core
 
                 if (packet.ContainsKey("ping"))
                 {
-                    m_ManualLogSource.LogDebug(packet["ping"].ToString());
+                    //m_ManualLogSource.LogDebug(packet["ping"].ToString());
                     var pingStrip = packet["ping"].ToString().Split(':');
                     var timeStampOfPing = new TimeSpan(0, int.Parse(pingStrip[0]), int.Parse(pingStrip[1]), int.Parse(pingStrip[2]), int.Parse(pingStrip[3]));
-                    m_ManualLogSource.LogDebug(timeStampOfPing.ToString());
+                    //m_ManualLogSource.LogDebug(timeStampOfPing.ToString());
                     coopGameComponent.ServerPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds; //  - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
                     coopGameComponent.LastServerPing = timeStampOfPing;
                     return;
