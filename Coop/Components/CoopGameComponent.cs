@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using Sirenix.Utilities;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
@@ -29,7 +30,7 @@ namespace SIT.Core.Coop
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
         private Request RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
-        public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
+        public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         BepInEx.Logging.ManualLogSource Logger { get; set; }
         private long ReadFromServerLastActionsLastTime { get; set; } = -1;
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
@@ -115,9 +116,9 @@ namespace SIT.Core.Coop
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
-            Players = new ConcurrentDictionary<string, EFT.Player>();
+            Players = new Dictionary<string, EFT.Player>();
             var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
-            Players.TryAdd(ownPlayer.Profile.AccountId, ownPlayer);
+            Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
 
             RequestingObj = Request.GetRequestInstance(true, Logger);
 
@@ -193,6 +194,12 @@ namespace SIT.Core.Coop
                     if (prc.IsClientDrone)
                         continue;
 
+                    if (!player.enabled)
+                        continue;
+
+                    if (!player.isActiveAndEnabled)
+                        continue;
+
                     //if (!player.HealthController.IsAlive)
                     //    continue;
 
@@ -255,8 +262,7 @@ namespace SIT.Core.Coop
 
             Dictionary<string, object> d = new Dictionary<string, object>();
             d.Add("serverId", GetServerId());
-            var playerList = new List<string>();
-            d.Add("pL", playerList);
+            d.Add("pL", new List<string>());
             while (RunAsyncTasks)
             {
                 await Task.Delay(10000);
@@ -268,7 +274,8 @@ namespace SIT.Core.Coop
                 // -----------------------------------------------------------------------------------------------------------
                 // We must filter out characters that already exist on this match!
                 //
-                if (!SETTING_DEBUGSpawnDronesOnServer)
+                var playerList = new List<string>();
+                if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                 {
                     if (PlayersToSpawn.Count > 0)
                         playerList.AddRange(PlayersToSpawn.Keys.ToArray());
@@ -279,7 +286,7 @@ namespace SIT.Core.Coop
                 }
                 //
                 // -----------------------------------------------------------------------------------------------------------
-
+                d["pL"] = playerList.Distinct();
                 var jsonDataToSend = d.ToJson();
 
                 try
@@ -364,7 +371,7 @@ namespace SIT.Core.Coop
                 foreach (var p in PlayersToSpawn)
                 {
                     // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
-                    if (!SETTING_DEBUGSpawnDronesOnServer)
+                    if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                     {
                         if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == p.Key))
                         {
@@ -553,9 +560,12 @@ namespace SIT.Core.Coop
                     return;
                 }
 
+                // Move this here. Ensure that this is run before it attempts again on slow PCs
+                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
+
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                LocalPlayer localPlayer = LocalPlayer.Create(playerId
+                LocalPlayer otherPlayer = LocalPlayer.Create(playerId
                     , position
                     , Quaternion.identity
                     ,
@@ -573,28 +583,46 @@ namespace SIT.Core.Coop
                     , new CoopStatisticsManager()
                     , FilterCustomizationClass.Default
                     , null
-                    , isYourPlayer: false).Result;
+                    , isYourPlayer: false).Result;//.ContinueWith(x => {
 
-                if (localPlayer == null)
-                    return;
+                        //LocalPlayer otherPlayer = x.Result;
 
-                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
+                        if (otherPlayer == null)
+                            return;
 
-                // ----------------------------------------------------------------------------------------------------
-                // Add the player to the custom Players list
-                if (!Players.ContainsKey(profile.AccountId))
-                    Players.TryAdd(profile.AccountId, localPlayer);
+                        // ----------------------------------------------------------------------------------------------------
+                        // Add the player to the custom Players list
+                        if (!Players.ContainsKey(profile.AccountId))
+                            Players.Add(profile.AccountId, otherPlayer);
 
-                if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
-                    Singleton<GameWorld>.Instance.RegisteredPlayers.Add(localPlayer);
+                        if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                            Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
 
-                // Create/Add PlayerReplicatedComponent to the LocalPlayer
-                var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
-                prc.IsClientDrone = true;
+                        // Create/Add PlayerReplicatedComponent to the LocalPlayer
+                        var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                        prc.IsClientDrone = true;
 
-                Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
+                        if (MatchmakerAcceptPatches.IsServer)
+                        {
+                            //if (otherPlayer.Profile.Id.StartsWith("pmc"))
+                            {
+                                Logger.LogDebug("Adding Client Player to Enemy list");
+                                if (LocalGameInstance != null)
+                                {
+                                    var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
+                                    botController.AddActivePLayer(otherPlayer);
+                                }
+                            }
+                        }
 
-                SetWeaponInHandsOfNewPlayer(localPlayer);
+                        Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
+
+                        SetWeaponInHandsOfNewPlayer(otherPlayer);
+
+
+                    //});
+
+                
             }
             catch (Exception ex)
             {
@@ -723,99 +751,98 @@ namespace SIT.Core.Coop
         /// Process the ActionsToValuesJson every 1ms
         /// </summary>
         /// <returns></returns>
-        private void ProcessFromServerLastActions()
-        {
-            while (RunAsyncTasks)
-            {
-                Thread.Sleep(1);
-                //await Task.Run(() => { 
-                ReadFromServerLastActionsByAccountParseData(m_ActionsToValuesJson);
-                //});
-            }
-        }
+        //private void ProcessFromServerLastActions()
+        //{
+        //    while (RunAsyncTasks)
+        //    {
+        //        Thread.Sleep(1);
+        //        ReadFromServerLastActionsByAccountParseData(m_ActionsToValuesJson);
+        //    }
+        //}
 
         private long LastReadFromServerLastActionsByAccountParseData { get; set; } = DateTime.Now.Ticks;
 
-        public void ReadFromServerLastActionsByAccountParseData(string actionsToValuesJson)
-        {
-            if (string.IsNullOrEmpty(actionsToValuesJson))
-                return;
+        //public void ReadFromServerLastActionsByAccountParseData(string actionsToValuesJson)
+        //{
+        //    if (string.IsNullOrEmpty(actionsToValuesJson))
+        //        return;
 
-            if (actionsToValuesJson.StartsWith("["))
-            {
-                Logger.LogDebug("ReadFromServerLastActionsByAccountParseData: Has Array. This wont work!");
-                return;
-            }
+        //    if (actionsToValuesJson.StartsWith("["))
+        //    {
+        //        Logger.LogDebug("ReadFromServerLastActionsByAccountParseData: Has Array. This wont work!");
+        //        return;
+        //    }
 
-            Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-            if (actionsToValues == null)
-            {
-                return;
-            }
+        //    Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
+        //    if (actionsToValues == null)
+        //    {
+        //        return;
+        //    }
 
-            var packets = actionsToValues.Values
-                 .Where(x => x != null)
-                 .Where(x => x.Count > 0)
-                 .Select(x => x.ToObject<Dictionary<string, object>>());
+        //    var packets = actionsToValues.Values
+        //         .Where(x => x != null)
+        //         .Where(x => x.Count > 0)
+        //         .Select(x => x.ToObject<Dictionary<string, object>>());
 
-            foreach (var packets2 in packets.Select(x => x.Values))
-            {
-                foreach (var packet in packets2)
-                {
-                    var packetJson = packet.SITToJson();
-                    if (m_ProcessedActionPackets.Contains(packetJson))
-                        continue;
+        //    foreach (var packets2 in packets.Select(x => x.Values))
+        //    {
+        //        foreach (var packet in packets2)
+        //        {
+        //            var packetJson = packet.SITToJson();
+        //            if (m_ProcessedActionPackets.Contains(packetJson))
+        //                continue;
 
-                    if (ActionPackets.Any(x => x.SITToJson() == packetJson))
-                        continue;
+        //            if (ActionPackets.Any(x => x.SITToJson() == packetJson))
+        //                continue;
 
-                    try
-                    {
-                        var packetToProcess = JsonConvert.DeserializeObject<Dictionary<string, object>>(packetJson);
-                        if (packetToProcess.ContainsKey("t") && !SETTING_AlwaysProcessEverything)
-                        {
-                            var useTimestamp = true;
-                            if (packetToProcess.ContainsKey("m"))
-                            {
-                                if (packetToProcess["m"].ToString() == "Proceed"
-                                    || packetToProcess["m"].ToString() == "TryProceed"
-                                    || packetToProcess["m"].ToString() == "Door"
-                                    || packetToProcess["m"].ToString() == "WIO_Interact"
-                                    || packetToProcess["m"].ToString() == "ApplyShot"
-                                    || packetToProcess["m"].ToString() == "ApplyDamageInfo"
-                                    )
-                                {
-                                    useTimestamp = false;
-                                }
-                            }
+        //            try
+        //            {
+        //                var packetToProcess = JsonConvert.DeserializeObject<Dictionary<string, object>>(packetJson);
+        //                if (packetToProcess.ContainsKey("t") && !SETTING_AlwaysProcessEverything)
+        //                {
+        //                    var useTimestamp = true;
+        //                    if (packetToProcess.ContainsKey("m"))
+        //                    {
+        //                        if (packetToProcess["m"].ToString() == "Proceed"
+        //                            || packetToProcess["m"].ToString() == "TryProceed"
+        //                            || packetToProcess["m"].ToString() == "Door"
+        //                            || packetToProcess["m"].ToString() == "WIO_Interact"
+        //                            || packetToProcess["m"].ToString() == "ApplyShot"
+        //                            || packetToProcess["m"].ToString() == "ApplyDamageInfo"
+        //                            || packetToProcess["m"].ToString() == "Kill"
+        //                            )
+        //                        {
+        //                            useTimestamp = false;
+        //                        }
+        //                    }
 
-                            if (useTimestamp &&
-                                    long.Parse(packetToProcess["t"].ToString())
-                                    < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, SETTING_Actions_CutoffTimeInSeconds).Ticks)
-                                continue;
-                        }
+        //                    if (useTimestamp &&
+        //                            long.Parse(packetToProcess["t"].ToString())
+        //                            < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, SETTING_Actions_CutoffTimeInSeconds).Ticks)
+        //                        continue;
+        //                }
 
-                        if (!ActionPackets.Contains(packetToProcess)
-                            && !ActionPackets.Any(x => x["m"] == packetToProcess["m"] && x["t"] == packetToProcess["t"]))
-                        {
-                            ActionPackets.TryAdd(packetToProcess);
-                            m_ProcessedActionPackets.Add(packetJson);
-                        }
+        //                if (!ActionPackets.Contains(packetToProcess)
+        //                    && !ActionPackets.Any(x => x["m"] == packetToProcess["m"] && x["t"] == packetToProcess["t"]))
+        //                {
+        //                    ActionPackets.TryAdd(packetToProcess);
+        //                    m_ProcessedActionPackets.Add(packetJson);
+        //                }
 
-                        PacketQueueSize_Receive = ActionPackets.Count;
+        //                PacketQueueSize_Receive = ActionPackets.Count;
 
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
-            LastReadFromServerLastActionsByAccountParseData = DateTime.Now.Ticks;
-            packets = null;
-            actionsToValues = null;
+        //            }
+        //            catch (Exception)
+        //            {
+        //            }
+        //        }
+        //    }
+        //    LastReadFromServerLastActionsByAccountParseData = DateTime.Now.Ticks;
+        //    packets = null;
+        //    actionsToValues = null;
 
-            m_ActionsToValuesJson = null;
-        }
+        //    m_ActionsToValuesJson = null;
+        //}
 
 
         public void ReadFromServerLastActionsParseData(Dictionary<string, object> packet)
@@ -938,6 +965,8 @@ namespace SIT.Core.Coop
         public ulong LocalIndex { get; set; }
 
         public double LocalTime => 0;
+
+        public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
 
         int GuiX = 10;
         int GuiWidth = 400;
