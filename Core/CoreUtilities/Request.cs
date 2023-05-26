@@ -156,21 +156,21 @@ namespace SIT.Tarkov.Core
                 // Add to the Coop Game Component Action Packets
                 if (packet.ContainsKey("t") && !PluginConfigSettings.Instance.CoopSettings.SETTING_Actions_AlwaysProcessAllActions)
                 {
-                    var useTimestamp = true;
-                    if (!packet.ContainsKey("m"))
-                        return;
+                    //var useTimestamp = true;
+                    //if (!packet.ContainsKey("m"))
+                    //    return;
 
-                    if (packet["m"].ToString() == "Proceed"
-                        || packet["m"].ToString() == "TryProceed"
-                        || packet["m"].ToString() == "Door"
-                        || packet["m"].ToString() == "WIO_Interact"
-                        || packet["m"].ToString() == "ApplyShot"
-                        || packet["m"].ToString() == "ApplyDamageInfo"
-                        || packet["m"].ToString() == "Kill"
-                        )
-                    {
-                        useTimestamp = false;
-                    }
+                    //if (packet["m"].ToString() == "Proceed"
+                    //    || packet["m"].ToString() == "TryProceed"
+                    //    || packet["m"].ToString() == "Door"
+                    //    || packet["m"].ToString() == "WIO_Interact"
+                    //    || packet["m"].ToString() == "ApplyShot"
+                    //    || packet["m"].ToString() == "ApplyDamageInfo"
+                    //    || packet["m"].ToString() == "Kill"
+                    //    )
+                    //{
+                    //    useTimestamp = false;
+                    //}
 
                     //if (useTimestamp &&
                     //        long.Parse(packet["t"].ToString())
