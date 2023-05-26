@@ -83,6 +83,8 @@ namespace SIT.Tarkov.Core
         /// <summary>
         /// Method that returns the Backend Url (Example: https://127.0.0.1)
         /// </summary>
+        private static string RealWSURL;    //did i do this right?
+        //It appears to be successful :D
         public static string GetBackendUrl()
         {
             if (string.IsNullOrEmpty(backendUrl))
@@ -91,7 +93,20 @@ namespace SIT.Tarkov.Core
             }
             return backendUrl;
         }
-
+        public static string GetREALWSURL() //cut the server address obtained from GetBackendUrl and convert it to "ws://" w
+        {
+            if (string.IsNullOrEmpty(RealWSURL))
+            {
+                RealWSURL = BackendConnection.GetBackendConnection().BackendUrl;
+                int colonIndex = RealWSURL.LastIndexOf(':');
+                if (colonIndex != -1)
+                {
+                    RealWSURL = RealWSURL.Substring(0, colonIndex);
+                }
+                RealWSURL = RealWSURL.Replace("http", "ws");
+            }
+            return RealWSURL;
+        }
         public static string GetPHPSESSID()
         {
             if (BackendConnection.GetBackendConnection() == null)

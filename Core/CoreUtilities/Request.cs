@@ -92,7 +92,11 @@ namespace SIT.Tarkov.Core
             {
                 m_ManualLogSource.LogDebug("Request Instance is connecting to WebSocket");
                 //  Could be have a config where we can put the ws port?    -Slejm
-                var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws").Replace("6969", "6970")}/{Session}?";
+                //var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws").Replace("6969", "6970")}/{Session}?";
+                //IDK if I'm doing it right. This is my first time C#.  -w123456w39w
+                var wsUrl = $"{PatchConstants.GetREALWSURL()}:{Plugin.SETTING_SIT_Port.Value}/{Session}?"; //Obtain and transform the WebSocket address using a new method.    
+                m_ManualLogSource.LogDebug(Plugin.SETTING_SIT_Port.Value);
+                m_ManualLogSource.LogDebug(PatchConstants.GetREALWSURL());
                 m_ManualLogSource.LogDebug(wsUrl);
 
                 WebSocket = new WebSocketSharp.WebSocket(wsUrl);
