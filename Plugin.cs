@@ -30,14 +30,12 @@ namespace SIT.Core
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance;
-        public static ConfigEntry<int> SETTING_SIT_Port;
         public static PluginConfigSettings Settings { get; private set; }
 
         private void Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
-            SETTING_SIT_Port = Config.Bind<int>("Coop", "SITPort", 6970, "SIT.Core Websocket Port DEFAULT = 6970");
 
             EnableCorePatches();
             EnableSPPatches();

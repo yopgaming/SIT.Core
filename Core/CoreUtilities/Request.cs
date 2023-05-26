@@ -66,7 +66,7 @@ namespace SIT.Tarkov.Core
 
         public HttpClient HttpClient { get; set; }
 
-        private ManualLogSource m_ManualLogSource;
+        private ManualLogSource Logger;
 
         static WebSocketSharp.WebSocket WebSocket { get; set; }
 
@@ -79,9 +79,9 @@ namespace SIT.Tarkov.Core
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             if (logger != null)
-                m_ManualLogSource = logger;
+                Logger = logger;
             else
-                m_ManualLogSource = Logger.CreateLogSource("Request");
+                Logger = BepInEx.Logging.Logger.CreateLogSource("Request");
 
             if (string.IsNullOrEmpty(RemoteEndPoint))
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
@@ -90,14 +90,13 @@ namespace SIT.Tarkov.Core
             PeriodicallySendPooledData();
             if (WebSocket == null)
             {
-                m_ManualLogSource.LogDebug("Request Instance is connecting to WebSocket");
-                //  Could be have a config where we can put the ws port?    -Slejm
-                //var wsUrl = $"{PatchConstants.GetBackendUrl().Replace("http", "ws").Replace("6969", "6970")}/{Session}?";
-                //IDK if I'm doing it right. This is my first time C#.  -w123456w39w
-                var wsUrl = $"{PatchConstants.GetREALWSURL()}:{Plugin.SETTING_SIT_Port.Value}/{Session}?"; //Obtain and transform the WebSocket address using a new method.    
-                m_ManualLogSource.LogDebug(Plugin.SETTING_SIT_Port.Value);
-                m_ManualLogSource.LogDebug(PatchConstants.GetREALWSURL());
-                m_ManualLogSource.LogDebug(wsUrl);
+                Logger.LogDebug("Request Instance is connecting to WebSocket");
+
+                var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SETTING_SIT_Port;
+                var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{Session}?";
+                Logger.LogDebug(webSocketPort);
+                Logger.LogDebug(PatchConstants.GetREALWSURL());
+                Logger.LogDebug(wsUrl);
 
                 WebSocket = new WebSocketSharp.WebSocket(wsUrl);
                 WebSocket.OnError += WebSocket_OnError;
@@ -127,7 +126,7 @@ namespace SIT.Tarkov.Core
 
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            m_ManualLogSource.LogError($"WebSocket_OnError: {e.Message}");
+            Logger.LogError($"WebSocket_OnError: {e.Message}");
         }
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)

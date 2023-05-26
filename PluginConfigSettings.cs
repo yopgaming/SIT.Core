@@ -48,6 +48,7 @@ namespace SIT.Core
             public int SETTING_Actions_CutoffTimeInSeconds { get; private set; }
             public int SETTING_PlayerStateTickRateInMS { get; set; } = -1000;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = true;
+            public int SETTING_SIT_Port { get; set; } = 6970;
 
             public void GetSettings()
             {
@@ -79,6 +80,9 @@ namespace SIT.Core
 
                 SETTING_HeadshotsAlwaysKill = Plugin.Instance.Config.Bind<bool>
                   ("Coop", "HeadshotsAlwaysKill", true, new BepInEx.Configuration.ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
+
+                SETTING_SIT_Port = Plugin.Instance.Config.Bind<int>("Coop", "SITPort", 6970, new ConfigDescription("SIT.Core Websocket Port DEFAULT = 6970")).Value;
+
 
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
