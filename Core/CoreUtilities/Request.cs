@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using Newtonsoft.Json;
+using SIT.Core;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -148,7 +150,41 @@ namespace SIT.Tarkov.Core
 
                 // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
-                coopGameComponent.ActionPackets.TryAdd(packet);
+                if (packet.ContainsKey("t") && !PluginConfigSettings.Instance.CoopSettings.SETTING_Actions_AlwaysProcessAllActions)
+                {
+                    var useTimestamp = true;
+                    if (!packet.ContainsKey("m"))
+                        return;
+
+                    if (packet["m"].ToString() == "Proceed"
+                        || packet["m"].ToString() == "TryProceed"
+                        || packet["m"].ToString() == "Door"
+                        || packet["m"].ToString() == "WIO_Interact"
+                        || packet["m"].ToString() == "ApplyShot"
+                        || packet["m"].ToString() == "ApplyDamageInfo"
+                        || packet["m"].ToString() == "Kill"
+                        )
+                    {
+                        useTimestamp = false;
+                    }
+
+                    //if (useTimestamp &&
+                    //        long.Parse(packet["t"].ToString())
+                    //        < DateTime.Now.AddSeconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_Actions_CutoffTimeInSeconds).Ticks)
+                    //    return;
+
+                    if (!coopGameComponent.ActionPackets.Contains(packet))
+                    {
+                        coopGameComponent.ActionPackets.TryAdd(packet);
+                    }
+                    //coopGameComponent.ActionPackets.TryAdd(packet);
+                }
+                else
+                {
+                    coopGameComponent.ActionPackets.TryAdd(packet);
+                }
+
+
 
             }
         }
