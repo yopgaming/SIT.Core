@@ -47,7 +47,6 @@ namespace SIT.Core
             public bool SETTING_Actions_AlwaysProcessAllActions { get; private set; }
             public int SETTING_Actions_CutoffTimeInSeconds { get; private set; }
             public int SETTING_PlayerStateTickRateInMS { get; set; } = -1000;
-            public bool SETTING_AlwaysProcessEverything { get; set; } = false;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = true;
 
             public void GetSettings()
