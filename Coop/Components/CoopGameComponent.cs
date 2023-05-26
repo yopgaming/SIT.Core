@@ -509,6 +509,17 @@ namespace SIT.Core.Coop
         {
             try
             {
+                // A final check to stop duplicate clones spawning on Server
+                if (!SETTING_DEBUGSpawnDronesOnServer)
+                {
+                    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                        return;
+
+                    if (Players.Keys.Any(x => x == profile.AccountId))
+                        return;
+                }
+
+
                 if (Players == null)
                 {
                     Logger.LogError("Players is NULL!");
@@ -632,44 +643,11 @@ namespace SIT.Core.Coop
         }
 
         /// <summary>
-        /// Doesn't seem to work :(
-        /// </summary>
-        /// <param name="profile"></param>
-        //private void MakeOriginalPlayerInvisible(Profile profile)
-        //{
-        //    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
-        //    {
-        //        var originalPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == profile.AccountId);
-        //        if (originalPlayer != null)
-        //        {
-        //            Logger.LogDebug($"Make {profile.AccountId} invisible?");
-        //            originalPlayer.IsVisible = false;
-        //        }
-        //        else
-        //        {
-        //            Logger.LogDebug($"Unable to find {profile.AccountId} to make them invisible");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        Logger.LogDebug($"Unable to find {profile.AccountId} to make them invisible");
-        //    }
-        //}
-
-        /// <summary>
         /// Attempts to set up the New Player with the current weapon after spawning
         /// </summary>
         /// <param name="person"></param>
         public void SetWeaponInHandsOfNewPlayer(EFT.Player person)
         {
-            // Set first available item...
-            //person.SetFirstAvailableItem((IResult) =>
-            //{
-
-
-
-            //});
-
             Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
 
             var equipment = person.Profile.Inventory.Equipment;
@@ -710,140 +688,6 @@ namespace SIT.Core.Coop
 
             });
         }
-
-
-
-        /// <summary>
-        /// Gets the Last Actions Dictionary from the Server and stores them to ActionsToValuesJson
-        /// </summary>
-        /// <returns></returns>
-        //private async Task ReadFromServerLastActions(CancellationToken cancellationToken = default(CancellationToken))
-        //{
-        //    var fTimeToWaitInMS = SETTING_Actions_TickRateInMS;
-        //    var jsonDataServerId = new Dictionary<string, object>
-        //    {
-        //        { "serverId", GetServerId() },
-        //        { "t", ReadFromServerLastActionsLastTime }
-        //    };
-
-        //    if (RequestingObj == null)
-        //        RequestingObj = Request.GetRequestInstance(true, Logger);
-
-        //    while (RunAsyncTasks)
-        //    {
-
-        //        await Task.Delay(fTimeToWaitInMS);
-
-        //        jsonDataServerId["t"] = ReadFromServerLastActionsLastTime;
-        //        if (Players == null)
-        //        {
-        //            PatchConstants.Logger.LogError("CoopGameComponent:No Players Found! Nothing to process!");
-        //            continue;
-        //        }
-
-        //        m_ActionsToValuesJson = await RequestingObj.GetJsonAsync($"/coop/server/read/lastActions/{GetServerId()}/{ReadFromServerLastActionsLastTime}");
-        //        ApproximatePing = new DateTime(DateTime.Now.Ticks - ReadFromServerLastActionsLastTime).Millisecond - fTimeToWaitInMS;
-        //        ReadFromServerLastActionsLastTime = DateTime.Now.Ticks;
-        //    }
-        //}
-
-        /// <summary>
-        /// Process the ActionsToValuesJson every 1ms
-        /// </summary>
-        /// <returns></returns>
-        //private void ProcessFromServerLastActions()
-        //{
-        //    while (RunAsyncTasks)
-        //    {
-        //        Thread.Sleep(1);
-        //        ReadFromServerLastActionsByAccountParseData(m_ActionsToValuesJson);
-        //    }
-        //}
-
-        private long LastReadFromServerLastActionsByAccountParseData { get; set; } = DateTime.Now.Ticks;
-
-        //public void ReadFromServerLastActionsByAccountParseData(string actionsToValuesJson)
-        //{
-        //    if (string.IsNullOrEmpty(actionsToValuesJson))
-        //        return;
-
-        //    if (actionsToValuesJson.StartsWith("["))
-        //    {
-        //        Logger.LogDebug("ReadFromServerLastActionsByAccountParseData: Has Array. This wont work!");
-        //        return;
-        //    }
-
-        //    Dictionary<string, JObject> actionsToValues = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(actionsToValuesJson);
-        //    if (actionsToValues == null)
-        //    {
-        //        return;
-        //    }
-
-        //    var packets = actionsToValues.Values
-        //         .Where(x => x != null)
-        //         .Where(x => x.Count > 0)
-        //         .Select(x => x.ToObject<Dictionary<string, object>>());
-
-        //    foreach (var packets2 in packets.Select(x => x.Values))
-        //    {
-        //        foreach (var packet in packets2)
-        //        {
-        //            var packetJson = packet.SITToJson();
-        //            if (m_ProcessedActionPackets.Contains(packetJson))
-        //                continue;
-
-        //            if (ActionPackets.Any(x => x.SITToJson() == packetJson))
-        //                continue;
-
-        //            try
-        //            {
-        //                var packetToProcess = JsonConvert.DeserializeObject<Dictionary<string, object>>(packetJson);
-        //                if (packetToProcess.ContainsKey("t") && !SETTING_AlwaysProcessEverything)
-        //                {
-        //                    var useTimestamp = true;
-        //                    if (packetToProcess.ContainsKey("m"))
-        //                    {
-        //                        if (packetToProcess["m"].ToString() == "Proceed"
-        //                            || packetToProcess["m"].ToString() == "TryProceed"
-        //                            || packetToProcess["m"].ToString() == "Door"
-        //                            || packetToProcess["m"].ToString() == "WIO_Interact"
-        //                            || packetToProcess["m"].ToString() == "ApplyShot"
-        //                            || packetToProcess["m"].ToString() == "ApplyDamageInfo"
-        //                            || packetToProcess["m"].ToString() == "Kill"
-        //                            )
-        //                        {
-        //                            useTimestamp = false;
-        //                        }
-        //                    }
-
-        //                    if (useTimestamp &&
-        //                            long.Parse(packetToProcess["t"].ToString())
-        //                            < LastReadFromServerLastActionsByAccountParseData - new TimeSpan(0, 0, SETTING_Actions_CutoffTimeInSeconds).Ticks)
-        //                        continue;
-        //                }
-
-        //                if (!ActionPackets.Contains(packetToProcess)
-        //                    && !ActionPackets.Any(x => x["m"] == packetToProcess["m"] && x["t"] == packetToProcess["t"]))
-        //                {
-        //                    ActionPackets.TryAdd(packetToProcess);
-        //                    m_ProcessedActionPackets.Add(packetJson);
-        //                }
-
-        //                PacketQueueSize_Receive = ActionPackets.Count;
-
-        //            }
-        //            catch (Exception)
-        //            {
-        //            }
-        //        }
-        //    }
-        //    LastReadFromServerLastActionsByAccountParseData = DateTime.Now.Ticks;
-        //    packets = null;
-        //    actionsToValues = null;
-
-        //    m_ActionsToValuesJson = null;
-        //}
-
 
         public void ReadFromServerLastActionsParseData(Dictionary<string, object> packet)
         {
