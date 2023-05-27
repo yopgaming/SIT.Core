@@ -91,6 +91,7 @@ namespace SIT.Core
                 Logger.LogDebug($"SETTING_Actions_CutoffTimeInSeconds: {SETTING_Actions_CutoffTimeInSeconds}");
                 Logger.LogDebug($"SETTING_Actions_TickRateInMS: {SETTING_Actions_TickRateInMS}");
                 Logger.LogDebug($"SETTING_HeadshotsAlwaysKill: {SETTING_HeadshotsAlwaysKill}");
+                Logger.LogDebug($"SETTING_SIT_Port: {SETTING_SIT_Port}");
             }
         }
 

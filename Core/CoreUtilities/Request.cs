@@ -1,5 +1,9 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
+using EFT;
 using Newtonsoft.Json;
+using SIT.Coop.Core.LocalGame;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Core;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
@@ -151,6 +155,17 @@ namespace SIT.Tarkov.Core
                     //m_ManualLogSource.LogDebug(timeStampOfPing.ToString());
                     coopGameComponent.ServerPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds; //  - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
                     coopGameComponent.LastServerPing = timeStampOfPing;
+                    return;
+                }
+
+                if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
+                {
+                    Logger.LogDebug("Received EndSession from Server. Ending Game.");
+                    if(coopGameComponent.LocalGameInstance == null)
+                        return;
+
+                    coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                    //LocalGameEndingPatch.EndSession((LocalGame)coopGameComponent.LocalGameInstance, Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
                     return;
                 }
 
