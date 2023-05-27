@@ -28,15 +28,15 @@ namespace SIT.Core.Coop.Health
         [PatchPrefix]
         public static bool Prefix()
         {
-            if(MatchmakerAcceptPatches.IsServer)
-            {
-                Request.Instance.PostDownWebSocketImmediately(new Dictionary<string, object>() {
+            //if(MatchmakerAcceptPatches.IsServer)
+            //{
+            //    Request.Instance.PostDownWebSocketImmediately(new Dictionary<string, object>() {
 
-                    { "serverId", CoopGameComponent.GetServerId() }
-                    , { "m", "HostDied" }
+            //        { "serverId", CoopGameComponent.GetServerId() }
+            //        , { "m", "HostDied" }
                 
-                });
-            }
+            //    });
+            //}
             //Logger.LogDebug("HealthController_Kill_Patch:Prefix");
 
             //return !(MatchmakerAcceptPatches.IsClient);
