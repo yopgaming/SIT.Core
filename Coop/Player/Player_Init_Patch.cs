@@ -38,7 +38,6 @@ namespace SIT.Coop.Core.Player
             //await __result;
             //Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
 
-            SendPlayerDataToServer(player);
 
             var coopGC = CoopGameComponent.GetCoopGameComponent();
             if (coopGC == null)
@@ -51,15 +50,24 @@ namespace SIT.Coop.Core.Player
             if (Singleton<GameWorld>.Instance != null)
             {
                 // These are usually added to "RegisteredPlayers"
-                if (!Singleton<GameWorld>.Instance.Any(x => x.Profile.AccountId == accountId))
+                //if (!Singleton<GameWorld>.Instance.Any(x => x.Profile.AccountId == accountId))
                 {
                     if (!coopGC.Players.ContainsKey(accountId))
-                    {
                         coopGC.Players.Add(accountId, player);
-                    }
+
+                    if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == accountId))
+                        Singleton<GameWorld>.Instance.RegisterPlayer(player);
+
                 }
             }
+            else
+            {
+                Logger.LogError("Cannot add player because GameWorld is NULL");
+                return;
+            }
 
+
+            SendPlayerDataToServer(player);
         }
 
         public static void SendPlayerDataToServer(EFT.LocalPlayer player)
