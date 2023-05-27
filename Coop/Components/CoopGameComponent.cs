@@ -161,7 +161,7 @@ namespace SIT.Core.Coop
             if (ActionPackets.Count > 0)
             {
                 Dictionary<string, object> result = null;
-                if (ActionPackets.TryTake(out result))
+                while (ActionPackets.TryTake(out result))
                 {
                     ReadFromServerLastActionsParseData(result);
                 }
@@ -422,7 +422,7 @@ namespace SIT.Core.Coop
         private void ProcessPlayerBotSpawn(Dictionary<string, object> packet, string accountId, Vector3 newPosition, bool isBot)
         {
             // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
-            if (!SETTING_DEBUGSpawnDronesOnServer)
+            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
             {
                 if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == accountId))
                 {
@@ -510,15 +510,18 @@ namespace SIT.Core.Coop
             try
             {
                 // A final check to stop duplicate clones spawning on Server
-                if (!SETTING_DEBUGSpawnDronesOnServer)
+                if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                 {
                     if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                        return;
+
+
+                    if (Singleton<GameWorld>.Instance.AllPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
                         return;
 
                     if (Players.Keys.Any(x => x == profile.AccountId))
                         return;
                 }
-
 
                 if (Players == null)
                 {
@@ -832,13 +835,42 @@ namespace SIT.Core.Coop
 
             PacketQueueSize_Receive = ActionPackets.Count;
             GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
+            if (ActionPackets.Count > 100)
+            {
+                rect.y += 15;
+                GUI.Label(rect, $"Packet (Receive) Loss/Lag - Too many packets in queue");
+                Dictionary<string, int> countPerMethod = new();
+                foreach(var packet in ActionPackets)
+                {
+                    if (!packet.ContainsKey("m"))
+                        continue;
+
+                    if (!countPerMethod.ContainsKey(packet["m"].ToString()))
+                        countPerMethod[packet["m"].ToString()] = 0;
+
+                    countPerMethod[packet["m"].ToString()]++;
+                }
+                foreach (var cpm in countPerMethod.OrderByDescending(x => x.Value))
+                {
+                    rect.y += 15;
+                    GUI.Label(rect, $"Packet (Receive) Loss/Lag: {cpm.Key}:{cpm.Value}");
+                }
+            }
+
             PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
             rect.y += 15;
             GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
             rect.y += 15;
 
-            if (!SETTING_DEBUGShowPlayerList)
+            OnGUI_DrawPlayerList(rect);
+        }
+
+        private void OnGUI_DrawPlayerList(Rect rect)
+        {
+            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGShowPlayerList)
                 return;
+
+            rect.y += 15;
 
             if (PlayersToSpawn.Any(p => p.Value != ESpawnState.Spawned))
             {
@@ -869,7 +901,6 @@ namespace SIT.Core.Coop
                 players = null;
             }
         }
-
     }
 
     public enum ESpawnState
