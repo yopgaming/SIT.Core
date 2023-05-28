@@ -6,6 +6,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.Coop.Player
@@ -90,6 +91,17 @@ namespace SIT.Core.Coop.Player
             if (item != null)
             {
                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Item[{item}]");
+                var itemsInInventory = player.Profile.Inventory
+                        .GetAllItemByTemplate(item.TemplateId);
+                if (itemsInInventory.Any())
+                {
+                    if (itemsInInventory.Any(x => x.Id == item.Id))
+                    {
+                        Logger.LogError($"Item of Id {item.Id} already exists in the inventory. Stopping Duplication!");
+                        return;
+                    }
+                }
+
 
                 // Grid Item stuff
                 if (dict.ContainsKey("grad"))
