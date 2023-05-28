@@ -60,11 +60,11 @@ namespace SIT.Core
                    ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
                 SETTING_PlayerStateTickRateInMS = Plugin.Instance.Config.Bind<int>
-                  ("Coop", "PlayerStateTickRateInMS", 1000, new BepInEx.Configuration.ConfigDescription("The rate at which Player States will be sent to the Server. DEFAULT = 1000ms")).Value;
+                  ("Coop", "PlayerStateTickRateInMS", 66, new BepInEx.Configuration.ConfigDescription("The rate at which Player States will be sent to the Server")).Value;
                 if (SETTING_PlayerStateTickRateInMS > 0)
                     SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
                 else if (SETTING_PlayerStateTickRateInMS == 0)
-                    SETTING_PlayerStateTickRateInMS = -1000;
+                    SETTING_PlayerStateTickRateInMS = -66;
 
                 SETTING_Actions_AlwaysProcessAllActions = Plugin.Instance.Config.Bind<bool>
                    ("Coop", "AlwaysProcessAllActions", false, new BepInEx.Configuration.ConfigDescription("Whether to show process all actions, ignoring the time it was sent. This can cause EXTREME lag.")).Value;

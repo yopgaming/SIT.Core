@@ -183,6 +183,9 @@ namespace SIT.Core.Coop
                     if (!player.isActiveAndEnabled)
                         continue;
 
+                    if (playerStates.Any(x => x.ContainsKey("accountId") && x["accountId"].ToString() == player.Profile.AccountId))
+                        continue;
+
                     //if (!player.HealthController.IsAlive)
                     //    continue;
 
