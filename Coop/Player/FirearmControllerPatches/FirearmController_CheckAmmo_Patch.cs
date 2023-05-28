@@ -29,7 +29,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , EFT.Player ____player)
         {
             var player = ____player;
-            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return false;
 
