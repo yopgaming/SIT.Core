@@ -32,13 +32,13 @@ namespace SIT.Core.Coop
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         BepInEx.Logging.ManualLogSource Logger { get; set; }
-        private long ReadFromServerLastActionsLastTime { get; set; } = -1;
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
-        public ConcurrentDictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
+        public Dictionary<string, Profile> PlayersToSpawnProfiles { get; private set; } = new();
         public ConcurrentDictionary<string, Vector3> PlayersToSpawnPositions { get; private set; } = new();
 
-        private string m_ActionsToValuesJson { get; set; }
+        public List<EFT.LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
+
 
         /**
          * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
@@ -48,20 +48,9 @@ namespace SIT.Core.Coop
         int PacketQueueSize_Receive { get; set; } = 0;
         int PacketQueueSize_Send { get; set; } = 0;
 
-        private ConcurrentBag<string> m_ProcessedActionPackets { get; } = new();
-
         private Dictionary<string, object>[] m_CharactersJson;
 
         private bool RunAsyncTasks = true;
-
-
-        public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
-        public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
-        public int SETTING_Actions_TickRateInMS { get; private set; } = 999;
-        public bool SETTING_Actions_AlwaysProcessAllActions { get; private set; }
-        public int SETTING_Actions_CutoffTimeInSeconds { get; private set; }
-        public int SETTING_PlayerStateTickRateInMS { get; set; } = -1000;
-        public bool SETTING_AlwaysProcessEverything { get; set; } = false;
 
         #endregion
 
@@ -71,12 +60,7 @@ namespace SIT.Core.Coop
         {
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
-            //var gameWorld = Singleton<GameWorld>.Instance;
-            //if (gameWorld == null)
-            //    return null;
-
-            //var coopGC = gameWorld.GetComponent<CoopGameComponent>();
-
+          
             CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent);
             return coopGameComponent;
         }
@@ -112,7 +96,6 @@ namespace SIT.Core.Coop
         void Start()
         {
             Logger.LogDebug("CoopGameComponent:Start");
-            GetSettings();
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
@@ -168,7 +151,7 @@ namespace SIT.Core.Coop
             }
 
             List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
-            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(SETTING_PlayerStateTickRateInMS))
+            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
             {
                 //Logger.LogDebug("Creating PRC");
 
@@ -218,42 +201,6 @@ namespace SIT.Core.Coop
         }
 
         #endregion
-
-        void GetSettings()
-        {
-            SETTING_DEBUGSpawnDronesOnServer = Plugin.Instance.Config.Bind<bool>
-                ("Coop", "ShowDronesOnServer", false, new BepInEx.Configuration.ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
-
-            SETTING_DEBUGShowPlayerList = Plugin.Instance.Config.Bind<bool>
-               ("Coop", "ShowPlayerList", false, new BepInEx.Configuration.ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
-
-            SETTING_PlayerStateTickRateInMS = Plugin.Instance.Config.Bind<int>
-              ("Coop", "PlayerStateTickRateInMS", 1000, new BepInEx.Configuration.ConfigDescription("The rate at which Player States will be sent to the Server. DEFAULT = 1000ms")).Value;
-            if (SETTING_PlayerStateTickRateInMS > 0)
-                SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
-            else if (SETTING_PlayerStateTickRateInMS == 0)
-                SETTING_PlayerStateTickRateInMS = -1000;
-
-            SETTING_Actions_AlwaysProcessAllActions = Plugin.Instance.Config.Bind<bool>
-               ("Coop", "AlwaysProcessAllActions", false, new BepInEx.Configuration.ConfigDescription("Whether to show process all actions, ignoring the time it was sent. This can cause EXTREME lag.")).Value;
-
-            SETTING_Actions_CutoffTimeInSeconds = Plugin.Instance.Config.Bind<int>
-             ("Coop", "CutoffTimeInSeconds", 3, new BepInEx.Configuration.ConfigDescription("The time at which actions are ignored. DEFAULT = 3s. MIN = 1s. MAX = 10s")).Value;
-            SETTING_Actions_CutoffTimeInSeconds = Math.Max(1, SETTING_Actions_CutoffTimeInSeconds);
-            SETTING_Actions_CutoffTimeInSeconds = Math.Min(10, SETTING_Actions_CutoffTimeInSeconds);
-
-            SETTING_Actions_TickRateInMS = Plugin.Instance.Config.Bind<int>
-            ("Coop", "LastActionTickRateInMS", SETTING_Actions_TickRateInMS, new BepInEx.Configuration.ConfigDescription("The tick rate at which actions acquired from Server. MIN = 250ms. MAX = 999ms")).Value;
-            SETTING_Actions_TickRateInMS = Math.Max(250, SETTING_Actions_TickRateInMS);
-            SETTING_Actions_TickRateInMS = Math.Min(999, SETTING_Actions_TickRateInMS);
-
-            Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
-            Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
-            Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
-            Logger.LogDebug($"SETTING_Actions_AlwaysProcessAllActions: {SETTING_Actions_AlwaysProcessAllActions}");
-            Logger.LogDebug($"SETTING_Actions_CutoffTimeInSeconds: {SETTING_Actions_CutoffTimeInSeconds}");
-            Logger.LogDebug($"SETTING_Actions_TickRateInMS: {SETTING_Actions_TickRateInMS}");
-        }
 
         private async Task ReadFromServerCharacters()
         {
@@ -318,7 +265,7 @@ namespace SIT.Core.Coop
                                         continue;
 
                                     string accountId = queuedPacket["accountId"].ToString();
-                                    if (!SETTING_DEBUGSpawnDronesOnServer)
+                                    if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                                     {
                                         if (Players == null
                                             || Players.ContainsKey(accountId)
@@ -363,7 +310,7 @@ namespace SIT.Core.Coop
             if (GetServerId() == null)
                 yield return waitEndOfFrame;
 
-            var waitSeconds = new WaitForSeconds(1f);
+            var waitSeconds = new WaitForSeconds(0.5f);
 
             while (RunAsyncTasks)
             {
@@ -415,6 +362,19 @@ namespace SIT.Core.Coop
                         Logger.LogError($"ReadFromServerCharacters::PlayersToSpawnPacket does not have positional data for {p.Key}");
                     }
                 }
+
+                List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new List<LocalPlayer>();
+                foreach(var p in SpawnedPlayersToFinalize)
+                {
+                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
+
+                    SetWeaponInHandsOfNewPlayer(p);
+                    SpawnedPlayersToRemoveFromFinalizer.Add(p);
+                }
+                foreach(var p in SpawnedPlayersToRemoveFromFinalizer)
+                {
+                    SpawnedPlayersToFinalize.Remove(p);
+                }
                 yield return waitEndOfFrame;
             }
         }
@@ -456,7 +416,7 @@ namespace SIT.Core.Coop
             if (PlayersToSpawnProfiles.ContainsKey(accountId))
                 return;
 
-            PlayersToSpawnProfiles.TryAdd(accountId, null);
+            PlayersToSpawnProfiles.Add(accountId, null);
 
             Profile profile = MatchmakerAcceptPatches.Profile.Clone();
             profile.AccountId = accountId;
@@ -480,7 +440,11 @@ namespace SIT.Core.Coop
                     {
                         profile.Customization = new Customization(parsedCust);
                         //Logger.LogDebug("PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
-
+                    }
+                    else
+                    {
+                        Logger.LogError("ProcessPlayerBotSpawn:: Profile Customization for " + profile.Info.Nickname + " failed!");
+                        return;
                     }
                 }
                 if (packet.ContainsKey("p.equip"))
@@ -579,7 +543,7 @@ namespace SIT.Core.Coop
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                LocalPlayer otherPlayer = LocalPlayer.Create(playerId
+                LocalPlayer.Create(playerId
                     , position
                     , Quaternion.identity
                     ,
@@ -597,9 +561,9 @@ namespace SIT.Core.Coop
                     , new CoopStatisticsManager()
                     , FilterCustomizationClass.Default
                     , null
-                    , isYourPlayer: false).Result;//.ContinueWith(x => {
+                    , isYourPlayer: false).ContinueWith(x => {
 
-                        //LocalPlayer otherPlayer = x.Result;
+                        LocalPlayer otherPlayer = x.Result;
 
                         if (otherPlayer == null)
                             return;
@@ -629,14 +593,16 @@ namespace SIT.Core.Coop
                             }
                         }
 
-                        Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
+                        if(!SpawnedPlayersToFinalize.Any(x => otherPlayer))
+                            SpawnedPlayersToFinalize.Add(otherPlayer);
+                        //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
 
-                        SetWeaponInHandsOfNewPlayer(otherPlayer);
+                        //SetWeaponInHandsOfNewPlayer(otherPlayer);
 
 
-                    //});
+                    });
 
-                
+
             }
             catch (Exception ex)
             {
