@@ -1,4 +1,6 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
+using EFT;
+using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
@@ -49,7 +51,10 @@ namespace SIT.Coop.Core.Player
             var patch = ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == method);
             if (patch != null)
             {
-                patch.Replicated(player, packet);
+                // Early bird stop to processing the same item twice!
+                //if (!ModuleReplicationPatch.HasProcessed(patch.GetType(), player, packet))
+                    patch.Replicated(player, packet);
+
                 return;
             }
 
@@ -117,7 +122,7 @@ namespace SIT.Coop.Core.Player
 
                 if (packet.ContainsKey("tp"))
                 {
-                    FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
+                    //FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
                 }
 
                 //if (packet.ContainsKey("spr"))
@@ -133,7 +138,7 @@ namespace SIT.Coop.Core.Player
                 if (packet.ContainsKey("alive"))
                 {
                     bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
-                    if (!isCharAlive && player.ActiveHealthController.IsAlive)
+                    if (!isCharAlive)
                         player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
                 }
 
@@ -144,8 +149,28 @@ namespace SIT.Coop.Core.Player
 
         void LateUpdate()
         {
-            if (IsClientDrone)
+            LateUpdate_ClientDrone();
+
+            if(IsClientDrone)
+                return;
+
+            if (player.ActiveHealthController.IsAlive)
             {
+                var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
+                if (bodyPartHealth.AtMinimum)
+                {
+                    var packet = new Dictionary<string, object>();
+                    packet.Add("dmt", EDamageType.Undefined.ToString());
+                    packet.Add("m", "Kill");
+                    ServerCommunication.PostLocalPlayerData(player, packet, true);
+                }
+            }
+        }
+
+        private void LateUpdate_ClientDrone()
+        {
+            if (!IsClientDrone)
+                return;
                 // Replicate Position.
                 // If a short distance -> Smooth Lerp to the Desired Position
                 // If the other side of a wall -> Teleport to the correct side (TODO)
@@ -176,33 +201,6 @@ namespace SIT.Coop.Core.Player
                     player.CurrentState.Move(ReplicatedDirection.Value);
                     player.InputDirection = ReplicatedDirection.Value;
                 }
-            }
-
-            if (IsClientDrone)
-                return;
-
-            //if (LastPlayerStateSent < DateTime.Now.AddSeconds(-1))
-            //{
-
-            //    Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
-            //    if (ReplicatedDirection.HasValue)
-            //    {
-            //        dictPlayerState.Add("dX", ReplicatedDirection.Value.x);
-            //        dictPlayerState.Add("dY", ReplicatedDirection.Value.y);
-            //    }
-            //    dictPlayerState.Add("pX", player.Position.x);
-            //    dictPlayerState.Add("pY", player.Position.y);
-            //    dictPlayerState.Add("pZ", player.Position.z);
-            //    dictPlayerState.Add("rX", player.Rotation.x);
-            //    dictPlayerState.Add("rY", player.Rotation.y);
-            //    dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-            //    dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            //    dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
-            //    dictPlayerState.Add("m", "PlayerState");
-            //    ServerCommunication.PostLocalPlayerData(player, dictPlayerState);
-
-            //    LastPlayerStateSent = DateTime.Now;
-            //}
         }
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
