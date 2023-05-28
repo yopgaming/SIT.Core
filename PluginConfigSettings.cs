@@ -39,6 +39,7 @@ namespace SIT.Core
             {
                 Logger = logger;
                 Config = config;
+                GetSettings();
             }
 
             public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
