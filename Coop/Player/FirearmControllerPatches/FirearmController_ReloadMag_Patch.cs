@@ -13,7 +13,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
     {
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "ReloadMag";
-        //public override bool DisablePatch => true;
 
         protected override MethodBase GetTargetMethod()
         {
@@ -27,19 +26,18 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            return true;
-            //var player = ____player;
-            ////var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-            //if (player == null)
-            //    return false;
+            //return true;
+            var player = ____player;
+            if (player == null)
+                return false;
 
-            //var result = false;
-            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-            //    result = true;
+            var result = false;
+            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+                result = true;
 
-            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
+            Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
 
-            //return result;
+            return result;
         }
 
         [PatchPostfix]
@@ -69,14 +67,16 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
                 { "t", DateTime.Now.Ticks },
+                { "fa.id", __instance.Item.Id },
+                { "fa.tpl", __instance.Item.TemplateId },
                 { "mg.id", magazine.Id },
-                { "mg.tpl", magazine.Template },
+                { "mg.tpl", magazine.TemplateId },
                 { "ma", magAddressDict },
                 { "ga", gridAddressDict },
                 { "m", "ReloadMag" }
             };
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
+            Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
 
         }
 
@@ -85,48 +85,42 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (HasProcessed(GetType(), player, dict))
                 return;
 
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
+
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 try
                 {
+
                     var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
                     ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
+
+                    //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ma");
 
                     var ga = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ga"].ToString());
                     ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
 
-                    //player.ToUnloadMagOperation().
-                    var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString()).FirstOrDefault() as MagazineClass;
+                    //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ga");
+
+                    var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString())
+                        .FirstOrDefault(x => x.Id == dict["mg.id"].ToString()) as MagazineClass;
                     if (magazine == null)
+                    {
+                        Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find Magazine!");
                         return;
+                    }
 
                     StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
 
-                    // this is not working, maybe try and find it in the inventory instead???
-                    //var magazine = new MagazineClass(dict["mg.id"].ToString(), JObject.Parse(dict["mg.tpl"].ToString()).ToObject<MagazineTemplate>());
-                    //var gridItemAddressNewDesc = JObject.Parse(dict["a.new"].ToString()).ToObject<GridItemAddressDescriptor>();
-                    //var gridItemAddressNew = new GridItemAddress(
-                    //        (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressNewDesc.Container.ContainerId, gridItemAddressNewDesc.Container.ParentId)
-                    //        , gridItemAddressNewDesc.LocationInGrid
-                    //        );
+                    CallLocally.Add(player.Profile.AccountId, true);
 
-                    //var gridItemAddressOldDesc = JObject.Parse(dict["a.old"].ToString()).ToObject<GridItemAddressDescriptor>();
-                    //var gridItemAddressOld = new GridItemAddress(
-                    //        (Grid)player.Inventory.Equipment.FindContainer(gridItemAddressOldDesc.Container.ContainerId, gridItemAddressOldDesc.Container.ParentId)
-                    //        , gridItemAddressOldDesc.LocationInGrid
-                    //        );
+                    firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) => {
 
+                        //Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
 
+                    
+                    });
 
-                    firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) => { });
-
-                    //magazine.CurrentAddress = gridItemAddressOld;
-                    //CallLocally.Add(player.Profile.AccountId, true);
-                    //Logger.LogInfo("Replicated: Calling Reload Mag");
-                    //firearmCont.ReloadMag(magazine
-                    //    //, gridItemAddressNew
-                    //    , gridItemAddressOld
-                    //    , null);
                 }
                 catch (Exception e)
                 {
