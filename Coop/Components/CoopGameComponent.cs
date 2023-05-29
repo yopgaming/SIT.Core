@@ -210,6 +210,7 @@ namespace SIT.Core.Coop
             foreach (var p in SpawnedPlayersToFinalize)
             {
                 SetWeaponInHandsOfNewPlayer(p, () => {
+
                     Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
                     SpawnedPlayersToRemoveFromFinalizer.Add(p);
                 });
@@ -684,11 +685,17 @@ namespace SIT.Core.Coop
                     Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to set item {item} in hands for {person.Profile.AccountId}");
                 }
 
-                //if(IResult.Succeed == true)
-                //{
-                    if(successCallback != null)
+                if (IResult.Succeed == true)
+                {
+                    if (successCallback != null)
+                            successCallback();
+                }
+
+                if(person.TryGetItemInHands<Item>() != null)
+                {
+                    if (successCallback != null)
                         successCallback();
-                //}
+                }
 
             });
         }
