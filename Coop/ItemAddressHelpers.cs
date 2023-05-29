@@ -20,13 +20,15 @@ namespace SIT.Core.Coop
                 gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
                 dictionary.Add(DICTNAMES_GridItemAddressDescriptor, gridItemAddressDescriptor);
             }
+            else if (location is SlotItemAddress slotItemAddress)
+            {
+                SlotItemAddressDescriptor slotItemAddressDescriptor = new SlotItemAddressDescriptor();
+                slotItemAddressDescriptor.Container = new ContainerDescriptor();
+                slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
+                slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
 
-            SlotItemAddressDescriptor slotItemAddressDescriptor = new SlotItemAddressDescriptor();
-            slotItemAddressDescriptor.Container = new ContainerDescriptor();
-            slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
-            slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
-
-            dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
+                dictionary.Add(DICTNAMES_SlotItemAddressDescriptor, slotItemAddressDescriptor);
+            }
         }
 
         public static void ConvertDictionaryToAddress(
