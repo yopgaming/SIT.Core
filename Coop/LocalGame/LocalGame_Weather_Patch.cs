@@ -1,8 +1,11 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
+using EFT.Weather;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -25,6 +28,34 @@ namespace SIT.Core.Coop.LocalGame
         public static bool PatchPrefix(ref TimeAndWeatherSettings timeAndWeather)
         {
             Logger.LogDebug("LocalGame_Weather_Patch:PatchPrefix");
+
+            ///
+            /// /*
+            /// internal static GameDateTime smethod_0(DateTime realDateTime, ref string gameDate, ref string gameTime, ref float timeFactor, bool debug = false)
+            /// */
+            ///
+            ///
+            Singleton<GameWorld>.Instance.GameDateTime = (GameDateTime)ReflectionHelpers.GetAllMethodsForType(typeof(GameDateTime), true)
+                .First(
+                    x =>
+                    x.GetParameters().Length == 5
+                    && x.GetParameters()[0].Name == "realDateTime"
+                    && x.GetParameters()[1].Name == "gameDate"
+                    && x.GetParameters()[2].Name == "gameTime"
+                ).Invoke(null, new object[] { DateTime.Now, "2023-05-29", "09:00", 1f, true });
+
+            if (WeatherController.Instance != null)
+            {
+                TOD_Sky.Instance.Components.Time.GameDateTime = Singleton<GameWorld>.Instance.GameDateTime;
+                WeatherClass[] randomWeatherNodes = WeatherClass.GetRandomTestWeatherNodes(600, 12);
+                if (!timeAndWeather.IsRandomWeather)
+                {
+                    long time = randomWeatherNodes[0].Time;
+                    randomWeatherNodes[0] = new WeatherClass() { };
+                    randomWeatherNodes[0].Time = time;
+                }
+                ReflectionHelpers.GetMethodForType(typeof(WeatherController), "method_0").Invoke(WeatherController.Instance, new object[] { randomWeatherNodes });
+            }
 
             if (MatchmakerAcceptPatches.IsClient)
             {
