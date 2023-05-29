@@ -7,6 +7,7 @@ namespace SIT.Core.Coop
     internal static class ItemAddressHelpers
     {
         private static string DICTNAMES_SlotItemAddressDescriptor { get; } = "sitad";
+        private static string DICTNAMES_GridItemAddressDescriptor { get; } = "grad";
 
         public static void ConvertItemAddressToDescriptor(ItemAddress location, ref Dictionary<string, object> dictionary)
         {
@@ -17,7 +18,7 @@ namespace SIT.Core.Coop
                 gridItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 gridItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
                 gridItemAddressDescriptor.LocationInGrid = gridItemAddress.LocationInGrid;
-                dictionary.Add("grad", gridItemAddressDescriptor);
+                dictionary.Add(DICTNAMES_GridItemAddressDescriptor, gridItemAddressDescriptor);
             }
 
             SlotItemAddressDescriptor slotItemAddressDescriptor = new SlotItemAddressDescriptor();
@@ -36,9 +37,9 @@ namespace SIT.Core.Coop
         {
             gridItemAddressDescriptor = null;
             slotItemAddressDescriptor = null;
-            if (dict.ContainsKey("grad"))
+            if (dict.ContainsKey(DICTNAMES_GridItemAddressDescriptor))
             {
-                gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
+                gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict[DICTNAMES_GridItemAddressDescriptor].ToString());
             }
 
             if (dict.ContainsKey(DICTNAMES_SlotItemAddressDescriptor))
