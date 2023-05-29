@@ -84,6 +84,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             //if (!prc.IsClientDrone)
             //    return;
+
+            if (CallLocally.ContainsKey(player.Profile.AccountId))
+                return;
+
             CallLocally.Add(player.Profile.AccountId, true);
 
             bool pressed = bool.Parse(dict["pr"].ToString());
@@ -98,8 +102,26 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     //if (weaponEffectsManager == null)
                     //    return;
 
-                    //weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
-                    //firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
+                    if(pressed)
+                    {
+
+                        // weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                        //firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
+
+                        var weapon = player.TryGetItemInHands<EFT.InventoryLogic.Weapon>();
+                        if (weapon != null)
+                        {
+                            firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1, false, weapon.FireMode.FireMode == EFT.InventoryLogic.Weapon.EFireMode.fullauto);
+
+                            var weaponEffectsManager
+                                = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
+                            if (weaponEffectsManager == null)
+                                return;
+                            weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                        }
+
+
+                    }
                 }
                 catch (Exception e)
                 {
