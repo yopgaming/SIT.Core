@@ -83,7 +83,8 @@ namespace SIT.Core.Coop.Player
                 if (playerReplicatedComponent.IsClientDrone)
                 {
                     UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
-                    player.Move(direction);
+                    player.CurrentState.Move(direction);
+                    player.InputDirection = direction;
                 }
             }
         }

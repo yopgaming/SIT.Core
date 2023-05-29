@@ -200,6 +200,19 @@ namespace SIT.Core.Coop
                 LastPlayerStateSent = DateTime.Now;
             }
 
+            List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new List<LocalPlayer>();
+            foreach (var p in SpawnedPlayersToFinalize)
+            {
+                SetWeaponInHandsOfNewPlayer(p, () => {
+                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
+                    SpawnedPlayersToRemoveFromFinalizer.Add(p);
+                });
+            }
+            foreach (var p in SpawnedPlayersToRemoveFromFinalizer)
+            {
+                SpawnedPlayersToFinalize.Remove(p);
+            }
+
             LateUpdateSpan = DateTime.Now - DateTimeStart;
         }
 
@@ -366,18 +379,7 @@ namespace SIT.Core.Coop
                     }
                 }
 
-                List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new List<LocalPlayer>();
-                foreach(var p in SpawnedPlayersToFinalize)
-                {
-                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
-
-                    SetWeaponInHandsOfNewPlayer(p);
-                    SpawnedPlayersToRemoveFromFinalizer.Add(p);
-                }
-                foreach(var p in SpawnedPlayersToRemoveFromFinalizer)
-                {
-                    SpawnedPlayersToFinalize.Remove(p);
-                }
+                
                 yield return waitEndOfFrame;
             }
         }
@@ -558,7 +560,7 @@ namespace SIT.Core.Coop
                     , EUpdateQueue.Update
                     , EFT.Player.EUpdateMode.Auto
                     , EFT.Player.EUpdateMode.Auto
-                    , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+                    , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
                     , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                     , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                     , new CoopStatisticsManager()
@@ -583,7 +585,7 @@ namespace SIT.Core.Coop
                         var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
                         prc.IsClientDrone = true;
 
-                        if (MatchmakerAcceptPatches.IsServer)
+                        //if (MatchmakerAcceptPatches.IsServer)
                         {
                             //if (otherPlayer.Profile.Id.StartsWith("pmc"))
                             {
@@ -591,7 +593,8 @@ namespace SIT.Core.Coop
                                 if (LocalGameInstance != null)
                                 {
                                     var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
-                                    botController.AddActivePLayer(otherPlayer);
+                                    if(botController != null)
+                                        botController.AddActivePLayer(otherPlayer);
                                 }
                             }
                         }
@@ -618,7 +621,7 @@ namespace SIT.Core.Coop
         /// Attempts to set up the New Player with the current weapon after spawning
         /// </summary>
         /// <param name="person"></param>
-        public void SetWeaponInHandsOfNewPlayer(EFT.Player person)
+        public void SetWeaponInHandsOfNewPlayer(EFT.Player person, Action successCallback)
         {
             Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
 
@@ -626,7 +629,6 @@ namespace SIT.Core.Coop
             if (equipment == null)
             {
                 Logger.LogError($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} has no Equipment!");
-                return;
             }
             Item item = null;
 
@@ -645,7 +647,6 @@ namespace SIT.Core.Coop
             if (item == null)
             {
                 Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
-                return;
             }
 
             Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} {item.TemplateId}");
@@ -657,6 +658,12 @@ namespace SIT.Core.Coop
                 {
                     Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to set item {item} in hands for {person.Profile.AccountId}");
                 }
+
+                //if(IResult.Succeed == true)
+                //{
+                    if(successCallback != null)
+                        successCallback();
+                //}
 
             });
         }
