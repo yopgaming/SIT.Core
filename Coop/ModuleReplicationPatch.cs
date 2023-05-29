@@ -70,9 +70,8 @@ namespace SIT.Core.Coop
             var timestamp = long.Parse(dict["t"].ToString());
             if (!ProcessedCalls[type].ContainsKey(playerId))
             {
-                Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
+                //Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
                 ProcessedCalls[type].TryAdd(playerId, new ConcurrentBag<long>());
-                //ProcessedCalls[type][playerId].Add(timestamp);
             }
 
             if (!ProcessedCalls[type][playerId].Contains(timestamp))
