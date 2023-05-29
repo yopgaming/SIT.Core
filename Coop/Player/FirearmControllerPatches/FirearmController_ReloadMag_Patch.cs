@@ -35,7 +35,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
                 result = true;
 
-            Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
 
             return result;
         }
@@ -76,7 +76,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "m", "ReloadMag" }
             };
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-            Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
 
         }
 
@@ -110,16 +110,38 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         return;
                     }
 
+                    if (gridAddressGrid == null)
+                    {
+                        Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find gridAddressGrid!");
+                        return;
+                    }
+
                     StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
+                    if(grid == null)
+                    {
+                        Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
+                        return;
+                    }
 
-                    CallLocally.Add(player.Profile.AccountId, true);
+                    if(!CallLocally.ContainsKey(player.Profile.AccountId))
+                        CallLocally.Add(player.Profile.AccountId, true);
 
-                    firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) => {
+                    try
+                    {
 
-                        //Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
+                        firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) =>
+                        {
 
-                    
-                    });
+                            //Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
+
+
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
+                        return;
+                    }
 
                 }
                 catch (Exception e)
