@@ -82,9 +82,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                 return;
 
-            //if (!prc.IsClientDrone)
-            //    return;
-
             if (CallLocally.ContainsKey(player.Profile.AccountId))
                 return;
 
@@ -97,17 +94,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 try
                 {
                     firearmCont.SetTriggerPressed(pressed);
-                    //var weaponEffectsManager
-                    //    = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
-                    //if (weaponEffectsManager == null)
-                    //    return;
 
                     if(pressed)
                     {
-
-                        // weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
-                        //firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
-
                         var weapon = player.TryGetItemInHands<EFT.InventoryLogic.Weapon>();
                         if (weapon != null)
                         {
@@ -119,8 +108,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                                 return;
                             weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
                         }
-
-
                     }
                 }
                 catch (Exception e)
@@ -130,25 +117,5 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
         }
 
-        //public static void ReplicatePressed(EFT.Player player, bool pressed)
-        //{
-        //    if (player.HandsController is EFT.Player.FirearmController firearmCont && pressed)
-        //    {
-        //        try
-        //        {
-        //            var weaponEffectsManager
-        //                = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
-        //            if (weaponEffectsManager == null)
-        //                return;
-
-        //            weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
-        //            firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            Logger.LogInfo(e);
-        //        }
-        //    }
-        //}
     }
 }
