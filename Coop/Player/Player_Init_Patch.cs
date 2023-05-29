@@ -66,7 +66,7 @@ namespace SIT.Coop.Core.Player
 
         public static void SendPlayerDataToServer(EFT.LocalPlayer player)
         {
-            Dictionary<string, object> dictionary2 = new Dictionary<string, object>
+            Dictionary<string, object> packet = new Dictionary<string, object>
                     {
                         {
                             "serverId",
@@ -74,7 +74,7 @@ namespace SIT.Coop.Core.Player
                         },
                         {
                     "isAI",
-                            player.IsAI && !player.Profile.Id.StartsWith("pmc")
+                            player.IsAI || !player.Profile.Id.StartsWith("pmc")
                         },
                         {
                             "accountId",
@@ -117,9 +117,12 @@ namespace SIT.Coop.Core.Player
                         }
                     };
 
+
+            //Logger.LogDebug(packet.ToJson());
+
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
-            ServerCommunication.PostLocalPlayerData(player, dictionary2);
+            ServerCommunication.PostLocalPlayerData(player, packet);
         }
 
         public static void SendOrReceiveSpawnPoint(EFT.Player player)

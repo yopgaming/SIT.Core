@@ -51,7 +51,7 @@ namespace SIT.Core.SP.Raid
                 dogTagComponent.Level = victimProfileInfo.Level;
         }
 
-        private static object GetItemComponent(Item dogtagItem)
+        public static object GetItemComponent(Item dogtagItem)
         {
             MethodInfo method = ReflectionHelpers.GetAllMethodsForType(dogtagItem.GetType()).FirstOrDefault(x => x.Name == "GetItemComponent");
             MethodInfo generic = method.MakeGenericMethod(typeof(DogtagComponent));
@@ -59,7 +59,7 @@ namespace SIT.Core.SP.Raid
             return itemComponent;
         }
 
-        private static Item GetDogtagItem(Player __instance)
+        public static Item GetDogtagItem(Player __instance)
         {
             var equipment = ReflectionHelpers.GetAllPropertiesForObject(__instance).FirstOrDefault(x => x.Name == "Equipment").GetValue(__instance);
             var dogtagSlot = ReflectionHelpers.GetAllMethodsForType(equipment.GetType()).FirstOrDefault(x => x.Name == "GetSlot").Invoke(equipment, new object[] { EquipmentSlot.Dogtag });

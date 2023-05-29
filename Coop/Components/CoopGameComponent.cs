@@ -141,6 +141,9 @@ namespace SIT.Core.Coop
         {
             var DateTimeStart = DateTime.Now;
 
+            if (ActionPackets == null)
+                return;
+
             if (ActionPackets.Count > 0)
             {
                 Dictionary<string, object> result = null;
@@ -163,8 +166,12 @@ namespace SIT.Core.Coop
                     if (prc.IsClientDrone)
                         continue;
 
-                    //if (!player.HealthController.IsAlive)
-                    //    continue;
+                    if (!player.enabled)
+                        continue;
+
+                    if (!player.isActiveAndEnabled)
+                        continue;
+
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
@@ -186,12 +193,11 @@ namespace SIT.Core.Coop
                     if (playerStates.Any(x => x.ContainsKey("accountId") && x["accountId"].ToString() == player.Profile.AccountId))
                         continue;
 
-                    //if (!player.HealthController.IsAlive)
-                    //    continue;
-
-                    // TODO: This needs to double check I dont send the same stuff twice!
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
+
+                if (RequestingObj == null)
+                    return;
 
                 //Logger.LogDebug(playerStates.SITToJson());
                 //RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
@@ -464,6 +470,12 @@ namespace SIT.Core.Coop
                 {
                 }
 
+                if (packet.ContainsKey("profileId"))
+                {
+                    profile.Id = packet["profileId"].ToString();
+                    //Logger.LogDebug($"profile id {profile.Id}");
+                }
+
                 // Send to be loaded
                 PlayersToSpawnProfiles[accountId] = profile;
             }
@@ -518,12 +530,23 @@ namespace SIT.Core.Coop
                     }
 
                     Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, allPrefabPaths.ToArray(), JobPriority.General)
-                        .ContinueWith(delegate
+                        .ContinueWith(x=>
                         {
-                            PlayersToSpawn[profile.AccountId] = ESpawnState.Spawning;
-                            Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Complete.");
-                            return;
-                        });
+                            if (x.IsCompleted)
+                            {
+                                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawning;
+                                Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Complete.");
+                            }
+                            else if(x.IsFaulted)
+                            {
+                                Logger.LogError($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Failed.");
+                            }
+                            else if(x.IsCanceled)
+                            {
+                                Logger.LogError($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Cancelled?.");
+                            }
+                        })
+                        ;
 
                     return;
                 }
@@ -589,12 +612,14 @@ namespace SIT.Core.Coop
                         {
                             //if (otherPlayer.Profile.Id.StartsWith("pmc"))
                             {
-                                Logger.LogDebug("Adding Client Player to Enemy list");
                                 if (LocalGameInstance != null)
                                 {
                                     var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
-                                    if(botController != null)
+                                    if (botController != null)
+                                    {
+                                        Logger.LogDebug("Adding Client Player to Enemy list");
                                         botController.AddActivePLayer(otherPlayer);
+                                    }
                                 }
                             }
                         }

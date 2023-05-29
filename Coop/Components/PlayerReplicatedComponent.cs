@@ -1,10 +1,13 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
+using Comfort.Common;
 using EFT;
+using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Core.Misc;
+using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -30,7 +33,7 @@ namespace SIT.Coop.Core.Player
         {
             //PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
         }
-
+        
         void Start()
         {
             //PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start");
@@ -39,6 +42,17 @@ namespace SIT.Coop.Core.Player
             {
                 player = this.GetComponentInParent<EFT.LocalPlayer>();
                 PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}");
+            }
+
+            // ---------------------------------------------------------
+            // TODO: Add Dogtags to PMC Clients in match
+            if(player.ProfileId.StartsWith("pmc"))
+            {
+                if(UpdateDogtagPatch.GetDogtagItem(player) == null)
+                {
+                    var dogtagSlot = player.Inventory.Equipment.GetSlot(EFT.InventoryLogic.EquipmentSlot.Dogtag);
+                    //var dogtagItemComponent = dogtagSlot.Add(new DogtagComponent(new Item("")));
+                }
             }
 
             GCHelpers.EnableGC();
