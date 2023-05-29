@@ -85,7 +85,7 @@ namespace SIT.Core.Coop.Player
             if (itemFindResult.Succeeded)
             {
                 item = itemFindResult.Value;
-                item = item.CloneItem();
+                item = item.CloneItemWithSameId();
             }
 
             if (item != null)
@@ -97,7 +97,7 @@ namespace SIT.Core.Coop.Player
                 {
                     if (itemsInInventory.Any(x => x.Id == item.Id))
                     {
-                        Logger.LogError($"Item of Id {item.Id} already exists in the inventory. Stopping Duplication!");
+                        //Logger.LogError($"Item of Id {item.Id} already exists in the inventory. Stopping Duplication!");
                         return;
                     }
                 }
@@ -118,6 +118,11 @@ namespace SIT.Core.Coop.Player
                             //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
                             ((GridContainer)container1).AddItemWithoutRestrictions(item, gridItemAddressDescriptor.LocationInGrid);
                         }
+                        else
+                        {
+                            ((GridContainer)container1).RemoveItem(item, player.ProfileId, false);
+
+                        }
                     }
                 }
                 // Slot Item stuff (Equip weapons, armor, backpack etc)
@@ -137,6 +142,15 @@ namespace SIT.Core.Coop.Player
                                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
                                 if (slot.CanAccept(item))
                                     slot.AddWithoutRestrictions(item);
+                            }
+                            
+                        }
+                        else
+                        {
+                            if (container1 is Slot slot)
+                            {
+                                //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
+                                slot.RemoveItem();
                             }
                         }
                     }
