@@ -1,32 +1,45 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Core.Coop;
+﻿using Comfort.Common;
+using SIT.Coop.Core.Player;
+using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace SIT.Coop.Core.Player
+namespace SIT.Core.Coop.Player.Proceed
 {
-    internal class Player_Proceed_Meds_Patch : ModuleReplicationPatch
+    internal class Player_Proceed_Weapon_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player);
 
-        public override string MethodName => "ProceedMeds";
+        public override string MethodName => "ProceedWeapon";
 
         public static Dictionary<string, bool> CallLocally = new();
+
+        public static MethodInfo method1 = null;
 
         protected override MethodBase GetTargetMethod()
         {
             var t = typeof(EFT.Player);
             if (t == null)
-                Logger.LogInfo($"Player_Proceed_Meds_Patch:Type is NULL");
+                Logger.LogInfo($"Player_Proceed_Weapon_Patch:Type is NULL");
 
-            var method = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed" && x.GetParameters()[0].Name == "meds");
+            method1 = ReflectionHelpers.GetAllMethodsForType(t).FirstOrDefault(x => x.Name == "Proceed"
+                && x.GetParameters().Length == 3
+                && x.GetParameters()[0].Name == "weapon"
+                && x.GetParameters()[0].ParameterType == typeof(EFT.InventoryLogic.Weapon)
+                && x.GetParameters()[1].Name == "callback"
+                && x.GetParameters()[1].ParameterType == typeof(Callback<IShootController>)
+                && x.GetParameters()[2].Name == "scheduled"
 
-            //Logger.LogInfo($"PlayerOnTryProceedPatch:{t.Name}:{method.Name}");
-            return method;
+
+                );
+
+            return method1;
         }
 
 
@@ -35,17 +48,19 @@ namespace SIT.Coop.Core.Player
            EFT.Player __instance
             )
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-            {
-                return true;
-            }
+            //if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            //{
+            //    return true;
+            //}
 
-            return false;
+            // AI require this to ALWAYS run otherwise the AI won't start =(
+            return true;
         }
 
         [PatchPostfix]
         public static void PostPatch(EFT.Player __instance
-            , Meds meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
+            , EFT.InventoryLogic.Weapon weapon
+            , bool scheduled)
         {
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
             {
@@ -60,16 +75,14 @@ namespace SIT.Coop.Core.Player
                     return;
             }
 
-            Dictionary<string, object> args = new();
-            ItemAddressHelpers.ConvertItemAddressToDescriptor(meds.CurrentAddress, ref args);
-
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            args.Add("m", "ProceedMeds");
+            Dictionary<string, object> args = new Dictionary<string, object>();
+            ItemAddressHelpers.ConvertItemAddressToDescriptor(weapon.CurrentAddress, ref args);
+
+            args.Add("m", "ProceedWeapon");
             args.Add("t", DateTime.Now.Ticks);
-            args.Add("bodyPart", bodyPart.ToString());
-            args.Add("item.id", meds.Id);
-            args.Add("item.tpl", meds.TemplateId);
-            args.Add("variant", animationVariant);
+            args.Add("item.id", weapon.Id);
+            args.Add("item.tpl", weapon.TemplateId);
             args.Add("s", scheduled.ToString());
             ServerCommunication.PostLocalPlayerData(__instance, args);
         }
@@ -90,14 +103,12 @@ namespace SIT.Coop.Core.Player
 
             var item = allItemsOfTemplate.FirstOrDefault(x => x.Id == dict["item.id"].ToString());
 
-            if (item != null)
+            if (item != null && item is EFT.InventoryLogic.Weapon weapon)
             {
-                var meds = item as Meds;
-                if (meds != null)
-                {
-                    CallLocally.Add(player.Profile.AccountId, true);
-                    player.Proceed(meds, (EBodyPart)Enum.Parse(typeof(EBodyPart), dict["bodyPart"].ToString(), true), (IResult) => { }, 1, true);
-                }
+                CallLocally.Add(player.Profile.AccountId, true);
+
+                var callback = new Callback<IShootController>((IResult) => { });
+                method1.Invoke(player, new object[] { weapon, callback, true });
             }
         }
     }

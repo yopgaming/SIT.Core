@@ -88,7 +88,12 @@ namespace SIT.Core.Coop.Player.Proceed
             if (coopGC == null)
                 return;
 
-            var item = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString()).FirstOrDefault();
+            var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString());
+
+            if (!allItemsOfTemplate.Any())
+                return;
+
+            var item = allItemsOfTemplate.FirstOrDefault(x => x.Id == dict["item.id"].ToString());
 
             if (item != null)
             {
