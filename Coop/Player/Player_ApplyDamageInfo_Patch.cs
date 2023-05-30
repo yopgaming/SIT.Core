@@ -498,11 +498,19 @@ namespace SIT.Core.Coop.Player
                 Logger.LogInfo(e);
             }
 
-            var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
-            if (bodyPartHealth.AtMinimum || !player.ActiveHealthController.IsAlive)
+            if (player.HealthController == null)
+                return;
+
+            if (!player.HealthController.IsAlive)
             {
                 if (player.HandsController is EFT.Player.FirearmController firearmCont)
                 {
+                    if (firearmCont == null)
+                        return;
+
+                    if (firearmCont.WeaponSoundPlayer == null)
+                        return;
+
                     firearmCont.WeaponSoundPlayer.StopAllCoroutines();
                     GameObject.Destroy(firearmCont.WeaponSoundPlayer);
                 }
