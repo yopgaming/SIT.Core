@@ -144,6 +144,15 @@ namespace SIT.Core.Coop
             if (ActionPackets == null)
                 return;
 
+            if (Players == null)
+                return;
+
+            if (ActionPackets == null)
+                return;
+
+            if (Singleton<GameWorld>.Instance == null)
+                return;
+
             if (ActionPackets.Count > 0)
             {
                 Dictionary<string, object> result = null;
@@ -205,6 +214,9 @@ namespace SIT.Core.Coop
 
                 LastPlayerStateSent = DateTime.Now;
             }
+
+            if (SpawnedPlayersToFinalize == null)
+                return;
 
             List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new List<LocalPlayer>();
             foreach (var p in SpawnedPlayersToFinalize)
