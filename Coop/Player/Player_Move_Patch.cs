@@ -49,7 +49,7 @@ namespace SIT.Core.Coop.Player
             if (prc.IsClientDrone)
                 return false;
 
-            prc.ReplicatedDirection = direction;
+            //prc.ReplicatedDirection = direction;
 
             return true;
 
@@ -64,8 +64,8 @@ namespace SIT.Core.Coop.Player
             var player = __instance;
             var accountId = player.Profile.AccountId;
 
-            if (!player.IsYourPlayer)
-                return;
+            //if (!player.IsYourPlayer)
+            //    return;
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
