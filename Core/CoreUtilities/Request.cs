@@ -267,7 +267,7 @@ namespace SIT.Tarkov.Core
                     swPing.Restart();
                     await Task.Delay(awaitPeriod);
                     //await Task.Delay(100);
-                    //while (PooledDictionariesToPost.Any())
+                    while (PooledDictionariesToPost.Any())
                     {
                         KeyValuePair<string, Dictionary<string, object>> d;
                         if (PooledDictionariesToPost.TryTake(out d))
