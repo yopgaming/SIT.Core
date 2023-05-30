@@ -35,7 +35,7 @@ namespace SIT.Core.Coop.LocalGame
             /// */
             ///
             ///
-            Singleton<GameWorld>.Instance.GameDateTime = (GameDateTime)ReflectionHelpers.GetAllMethodsForType(typeof(GameDateTime), true)
+            Singleton<GameWorld>.Instance.GameDateTime = (GameDateTime)ReflectionHelpers.GetAllMethodsForType(typeof(GameDateTime), false)
                 .First(
                     x =>
                     x.GetParameters().Length == 5
