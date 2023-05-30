@@ -15,8 +15,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SIT.Tarkov.Core
 {
@@ -435,69 +438,75 @@ namespace SIT.Tarkov.Core
             }
             else if (method == "POST" || method == "PUT")
             {
+
                 var uri = new Uri(fullUri);
+                return SendAndReceivePostOld(uri, method, data, compress, timeout, debug);
+                //HttpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                //if (!debug && compress)
+                //{
+                //    HttpClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("deflate"));
+                //}
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-                request.ServerCertificateValidationCallback = delegate { return true; };
+                //if(debug)
+                //    HttpClient.DefaultRequestHeaders.Add("debug", "1");
 
-                foreach (var item in GetHeaders())
+                //Task<HttpResponseMessage> responseMessageTask;
+                //var inputDataBytes = Encoding.UTF8.GetBytes(data);
+                //if (compress && !debug)
+                //    responseMessageTask = HttpClient.PostAsync(uri, new ByteArrayContent(Zlib.Compress(inputDataBytes, ZlibCompression.Fastest)));
+                //else
+                //    responseMessageTask = HttpClient.PostAsync(uri, new ByteArrayContent(inputDataBytes));
+
+
+                //var responseMessageResult = responseMessageTask.Result;
+                //var resultBytes = responseMessageResult.Content.ReadAsByteArrayAsync().Result;
+
+                //return new MemoryStream(resultBytes);
+            }
+
+            throw new ArgumentException($"Unknown method {method}");
+        }
+
+        MemoryStream SendAndReceivePostOld(Uri uri, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.ServerCertificateValidationCallback = delegate { return true; };
+
+            foreach (var item in GetHeaders())
+            {
+                request.Headers.Add(item.Key, item.Value);
+            }
+
+            if (!debug && method == "POST")
+            {
+                request.Headers.Add("Accept-Encoding", "deflate");
+            }
+
+            request.Method = method;
+            request.Timeout = timeout;
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                if (debug && method == "POST")
                 {
-                    request.Headers.Add(item.Key, item.Value);
+                    compress = false;
+                    request.Headers.Add("debug", "1");
                 }
 
-                if (!debug && method == "POST")
-                {
-                    request.Headers.Add("Accept-Encoding", "deflate");
-                }
+                // set request body
+                var inputDataBytes = Encoding.UTF8.GetBytes(data);
+                byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
+                data = null;
+                request.ContentType = "application/json";
+                request.ContentLength = bytes.Length;
+                if (compress)
+                    request.Headers.Add("content-encoding", "deflate");
 
-                request.Method = method;
-                request.Timeout = timeout;
-                //request.Timeout = 60 * 100000;
-
-                if (!string.IsNullOrEmpty(data))
-                {
-                    if (debug && method == "POST")
-                    {
-                        compress = false;
-                        request.Headers.Add("debug", "1");
-                    }
-
-                    // set request body
-                    var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                    byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
-                    data = null;
-                    request.ContentType = "application/json";
-                    request.ContentLength = bytes.Length;
-                    if (compress)
-                        request.Headers.Add("content-encoding", "deflate");
-
-                    try
-                    {
-                        using (Stream stream = request.GetRequestStream())
-                        {
-                            stream.Write(bytes, 0, bytes.Length);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        PatchConstants.Logger.LogError(e);
-                    }
-                    finally
-                    {
-                        bytes = null;
-                        inputDataBytes = null;
-                    }
-                }
-
-                // get response stream
-                //WebResponse response = null;
-                var ms = new MemoryStream();
                 try
                 {
-                    using (var response = request.GetResponse())
+                    using (Stream stream = request.GetRequestStream())
                     {
-                        using (var responseStream = response.GetResponseStream())
-                            responseStream.CopyTo(ms);
+                        stream.Write(bytes, 0, bytes.Length);
                     }
                 }
                 catch (Exception e)
@@ -506,15 +515,32 @@ namespace SIT.Tarkov.Core
                 }
                 finally
                 {
-                    fullUri = null;
-                    request = null;
-                    uri = null;
+                    bytes = null;
+                    inputDataBytes = null;
                 }
-                return ms;
             }
 
-            throw new ArgumentException($"Unknown method {method}");
-
+            // get response stream
+            //WebResponse response = null;
+            var ms = new MemoryStream();
+            try
+            {
+                using (var response = request.GetResponse())
+                {
+                    using (var responseStream = response.GetResponseStream())
+                        responseStream.CopyTo(ms);
+                }
+            }
+            catch (Exception e)
+            {
+                PatchConstants.Logger.LogError(e);
+            }
+            finally
+            {
+                request = null;
+                uri = null;
+            }
+            return ms;
         }
 
         public byte[] GetData(string url, bool hasHost = false)
@@ -572,7 +598,7 @@ namespace SIT.Tarkov.Core
             return null;
         }
 
-        public string PostJson(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
+        public string PostJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
         {
             using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
             {
