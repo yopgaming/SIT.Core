@@ -223,7 +223,6 @@ namespace SIT.Core.Coop
             {
                 SetWeaponInHandsOfNewPlayer(p, () => {
 
-                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
                     SpawnedPlayersToRemoveFromFinalizer.Add(p);
                 });
             }
@@ -543,18 +542,18 @@ namespace SIT.Core.Coop
                     }
 
                     Singleton<PoolManager>.Instance.LoadBundlesAndCreatePools(PoolManager.PoolsCategory.Raid, PoolManager.AssemblyType.Local, allPrefabPaths.ToArray(), JobPriority.General)
-                        .ContinueWith(x=>
+                        .ContinueWith(x =>
                         {
                             if (x.IsCompleted)
                             {
                                 PlayersToSpawn[profile.AccountId] = ESpawnState.Spawning;
                                 Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Complete.");
                             }
-                            else if(x.IsFaulted)
+                            else if (x.IsFaulted)
                             {
                                 Logger.LogError($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Failed.");
                             }
-                            else if(x.IsCanceled)
+                            else if (x.IsCanceled)
                             {
                                 Logger.LogError($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Cancelled?.");
                             }
@@ -584,68 +583,9 @@ namespace SIT.Core.Coop
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                LocalPlayer.Create(playerId
-                    , position
-                    , Quaternion.identity
-                    ,
-                    "Player",
-                    ""
-                    , EPointOfView.ThirdPerson
-                    , profile
-                    , aiControl: false
-                    , EUpdateQueue.Update
-                    , EFT.Player.EUpdateMode.Auto
-                    , EFT.Player.EUpdateMode.Auto
-                    , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
-                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                    , new CoopStatisticsManager()
-                    , FilterCustomizationClass.Default
-                    , null
-                    , isYourPlayer: false).ContinueWith(x => {
-
-                        LocalPlayer otherPlayer = x.Result;
-
-                        if (otherPlayer == null)
-                            return;
-
-                        // ----------------------------------------------------------------------------------------------------
-                        // Add the player to the custom Players list
-                        if (!Players.ContainsKey(profile.AccountId))
-                            Players.Add(profile.AccountId, otherPlayer);
-
-                        if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
-                            Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
-
-                        // Create/Add PlayerReplicatedComponent to the LocalPlayer
-                        var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
-                        prc.IsClientDrone = true;
-
-                        //if (MatchmakerAcceptPatches.IsServer)
-                        {
-                            //if (otherPlayer.Profile.Id.StartsWith("pmc"))
-                            {
-                                if (LocalGameInstance != null)
-                                {
-                                    var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
-                                    if (botController != null)
-                                    {
-                                        Logger.LogDebug("Adding Client Player to Enemy list");
-                                        botController.AddActivePLayer(otherPlayer);
-                                    }
-                                }
-                            }
-                        }
-
-                        if(!SpawnedPlayersToFinalize.Any(x => otherPlayer))
-                            SpawnedPlayersToFinalize.Add(otherPlayer);
-                        //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
-
-                        //SetWeaponInHandsOfNewPlayer(otherPlayer);
-
-
-                    });
-
+                CreateLocalPlayer(profile, position, playerId);
+                // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
+                //CreateLocalPlayerAsync(profile, position, playerId);
 
             }
             catch (Exception ex)
@@ -653,6 +593,138 @@ namespace SIT.Core.Coop
                 Logger.LogError(ex.ToString());
             }
 
+        }
+
+        private void CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
+        {
+            var otherPlayer = LocalPlayer.Create(playerId
+               , position
+               , Quaternion.identity
+               ,
+               "Player",
+               ""
+               , EPointOfView.ThirdPerson
+               , profile
+               , aiControl: false
+               , EUpdateQueue.Update
+               , EFT.Player.EUpdateMode.Auto
+               , EFT.Player.EUpdateMode.Auto
+               , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+               , new CoopStatisticsManager()
+               , FilterCustomizationClass.Default
+               , null
+               , isYourPlayer: false).Result;
+
+
+            if (otherPlayer == null)
+                return;
+
+            // ----------------------------------------------------------------------------------------------------
+            // Add the player to the custom Players list
+            if (!Players.ContainsKey(profile.AccountId))
+                Players.Add(profile.AccountId, otherPlayer);
+
+            if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
+
+            // Create/Add PlayerReplicatedComponent to the LocalPlayer
+            var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+            prc.IsClientDrone = true;
+
+            //if (MatchmakerAcceptPatches.IsServer)
+            {
+                //if (otherPlayer.Profile.Id.StartsWith("pmc"))
+                {
+                    if (LocalGameInstance != null)
+                    {
+                        var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
+                        if (botController != null)
+                        {
+                            Logger.LogDebug("Adding Client Player to Enemy list");
+                            botController.AddActivePLayer(otherPlayer);
+                        }
+                    }
+                }
+            }
+
+            if (!SpawnedPlayersToFinalize.Any(x => otherPlayer))
+                SpawnedPlayersToFinalize.Add(otherPlayer);
+
+            Logger.LogDebug($"CreateLocalPlayer::{profile.Info.Nickname}::Spawned.");
+
+            SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
+
+
+        }
+
+        private void CreateLocalPlayerAsync(Profile profile, Vector3 position, int playerId)
+        {
+            LocalPlayer.Create(playerId
+                , position
+                , Quaternion.identity
+                ,
+                "Player",
+                ""
+                , EPointOfView.ThirdPerson
+                , profile
+                , aiControl: false
+                , EUpdateQueue.Update
+                , EFT.Player.EUpdateMode.Auto
+                , EFT.Player.EUpdateMode.Auto
+                , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
+                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                , new CoopStatisticsManager()
+                , FilterCustomizationClass.Default
+                , null
+                , isYourPlayer: false).ContinueWith(x =>
+                {
+
+                    LocalPlayer otherPlayer = x.Result;
+
+                    if (otherPlayer == null)
+                        return;
+
+                    // ----------------------------------------------------------------------------------------------------
+                    // Add the player to the custom Players list
+                    if (!Players.ContainsKey(profile.AccountId))
+                        Players.Add(profile.AccountId, otherPlayer);
+
+                    if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                        Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
+
+                    // Create/Add PlayerReplicatedComponent to the LocalPlayer
+                    var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                    prc.IsClientDrone = true;
+
+                    //if (MatchmakerAcceptPatches.IsServer)
+                    {
+                        //if (otherPlayer.Profile.Id.StartsWith("pmc"))
+                        {
+                            if (LocalGameInstance != null)
+                            {
+                                var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
+                                if (botController != null)
+                                {
+                                    Logger.LogDebug("Adding Client Player to Enemy list");
+                                    botController.AddActivePLayer(otherPlayer);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!SpawnedPlayersToFinalize.Any(x => otherPlayer))
+                        SpawnedPlayersToFinalize.Add(otherPlayer);
+
+                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
+                    //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
+
+                    //SetWeaponInHandsOfNewPlayer(otherPlayer);
+
+
+                });
         }
 
         /// <summary>
@@ -850,9 +922,14 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
             rect.y += 15;
 
+            // PING ------
+            GUI.contentColor = Color.white;
+            GUI.contentColor = ServerPing > 150 ? Color.red : ServerPing > 100 ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
+            GUI.contentColor = Color.white;
 
+            // Packet ------
             PacketQueueSize_Receive = ActionPackets.Count;
             GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
             if (ActionPackets.Count > 100)
@@ -932,4 +1009,6 @@ namespace SIT.Core.Coop
         Ignore = 98,
         Error = 99,
     }
+
+    
 }
