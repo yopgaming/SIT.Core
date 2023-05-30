@@ -199,7 +199,7 @@ namespace SIT.Coop.Core.Player
                     }
                     else
                     {
-                        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime);
+                        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 8);
                     }
                 }
 
@@ -210,11 +210,11 @@ namespace SIT.Coop.Core.Player
                     player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
                 }
 
-                if (ReplicatedDirection.HasValue)
-                {
-                    player.CurrentState.Move(ReplicatedDirection.Value);
-                    player.InputDirection = ReplicatedDirection.Value;
-                }
+                //if (ReplicatedDirection.HasValue)
+                //{
+                //    player.CurrentState.Move(ReplicatedDirection.Value);
+                //    player.InputDirection = ReplicatedDirection.Value;
+                //}
         }
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
