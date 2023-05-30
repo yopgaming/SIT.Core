@@ -98,7 +98,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     if(pressed)
                     {
                         var weapon = player.TryGetItemInHands<EFT.InventoryLogic.Weapon>();
-                        if (weapon != null)
+                        if (weapon != null && weapon.ChamberAmmoCount > 0)
                         {
                             firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1, false, weapon.FireMode.FireMode == EFT.InventoryLogic.Weapon.EFireMode.fullauto);
 
