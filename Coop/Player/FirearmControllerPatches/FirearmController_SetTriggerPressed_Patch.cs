@@ -98,15 +98,30 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     if(pressed)
                     {
                         var weapon = player.TryGetItemInHands<EFT.InventoryLogic.Weapon>();
-                        if (weapon != null && weapon.ChamberAmmoCount > 0)
+                        if (weapon != null)
                         {
-                            firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1, false, weapon.FireMode.FireMode == EFT.InventoryLogic.Weapon.EFireMode.fullauto);
+                            // Thanks Fullstack0verflow
+                            // Check whether a bullet can be fired 
+                            if (weapon.ChamberAmmoCount > 0)
+                            {
+                                if (firearmCont.WeaponSoundPlayer == null)
+                                    return;
 
-                            var weaponEffectsManager
-                                = (WeaponEffectsManager)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager)).GetValue(firearmCont);
-                            if (weaponEffectsManager == null)
-                                return;
-                            weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                                firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1, false, weapon.FireMode.FireMode == EFT.InventoryLogic.Weapon.EFireMode.fullauto);
+
+                                var weaponEffectsManager
+                                    = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager))
+                                    .GetValue(firearmCont) as WeaponEffectsManager;
+                                if (weaponEffectsManager == null)
+                                    return;
+
+                                weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+                            }
+                            else
+                            {
+                                ReflectionHelpers.GetMethodForType(firearmCont.GetType(), "DryShot", findFirst: true)
+                                    .Invoke(firearmCont, new object[] { 0, false });
+                            }
                         }
                     }
                 }
