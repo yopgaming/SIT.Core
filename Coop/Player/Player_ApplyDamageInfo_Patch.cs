@@ -344,6 +344,7 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace SIT.Core.Coop.Player
 {
@@ -495,6 +496,16 @@ namespace SIT.Core.Coop.Player
             catch (Exception e)
             {
                 Logger.LogInfo(e);
+            }
+
+            var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(EBodyPart.Common);
+            if (bodyPartHealth.AtMinimum || !player.ActiveHealthController.IsAlive)
+            {
+                if (player.HandsController is EFT.Player.FirearmController firearmCont)
+                {
+                    firearmCont.WeaponSoundPlayer.StopAllCoroutines();
+                    GameObject.Destroy(firearmCont.WeaponSoundPlayer);
+                }
             }
         }
     }

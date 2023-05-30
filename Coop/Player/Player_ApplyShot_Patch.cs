@@ -123,9 +123,9 @@ namespace SIT.Core.Coop.Player
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.ApplyShot(damageInfo, bodyPartType, shotId);
             }
-            catch (Exception e)
+            catch
             {
-                Logger.LogInfo(e);
+                //Logger.LogInfo(e);
             }
         }
 
