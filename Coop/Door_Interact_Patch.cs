@@ -100,7 +100,7 @@ namespace SIT.Core.Coop
 
             //Logger.LogDebug($"Door_Interact_Patch:Postfix:Door Id:{__instance.Id}");
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            Dictionary<string, object> packet = new Dictionary<string, object>
             {
                 { "t", DateTime.Now.Ticks },
                 { "serverId", CoopGameComponent.GetServerId() },
@@ -109,10 +109,11 @@ namespace SIT.Core.Coop
                 { "m", Door_Interact_Patch.MethodName }
             };
 
-            var packetJson = dictionary.SITToJson();
+            var packetJson = packet.SITToJson();
             //Logger.LogDebug(packetJson);
 
-            Request.Instance.PostJsonAndForgetAsync("/coop/server/update", packetJson);
+            //Request.Instance.PostJsonAndForgetAsync("/coop/server/update", packetJson);
+            Request.Instance.PostDownWebSocketImmediately(packet);
         }
     }
 }
