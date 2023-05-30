@@ -57,6 +57,7 @@ namespace SIT.Core.SP.PlayerPatches
                 UnityEngine.Object.Destroy(coopGC);
             }
 
+            HealthListener.Instance.MyHealthController = null;
             return true;
         }
 

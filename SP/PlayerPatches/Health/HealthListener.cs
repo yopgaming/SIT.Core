@@ -11,7 +11,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
         private static HealthListener _instance = null;
         private bool _inRaid;
         private readonly Request _request;
-        public object MyHealthController { get; private set; }
+        public object MyHealthController { get; set; }
 
         public PlayerHealth CurrentHealth { get; } = new PlayerHealth();
 
