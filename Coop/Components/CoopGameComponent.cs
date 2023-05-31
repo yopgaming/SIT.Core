@@ -911,6 +911,7 @@ namespace SIT.Core.Coop
         int GuiWidth = 400;
 
         public int ServerPing { get; set; } = 1;
+        public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
         public TimeSpan LastServerPing { get; set; } = DateTime.Now.TimeOfDay;
 
 
@@ -924,7 +925,7 @@ namespace SIT.Core.Coop
 
             // PING ------
             GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing > 150 ? Color.red : ServerPing > 100 ? Color.yellow : Color.green;
+            GUI.contentColor = ServerPing > 175 ? Color.red : ServerPing > 125 ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
             GUI.contentColor = Color.white;

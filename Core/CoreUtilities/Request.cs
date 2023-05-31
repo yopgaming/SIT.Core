@@ -156,8 +156,13 @@ namespace SIT.Tarkov.Core
                     var pingStrip = packet["ping"].ToString().Split(':');
                     var timeStampOfPing = new TimeSpan(0, int.Parse(pingStrip[0]), int.Parse(pingStrip[1]), int.Parse(pingStrip[2]), int.Parse(pingStrip[3]));
                     //m_ManualLogSource.LogDebug(timeStampOfPing.ToString());
-                    coopGameComponent.ServerPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds; //  - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
+                    var serverPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds;
+                    //coopGameComponent.ServerPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds; //  - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
                     coopGameComponent.LastServerPing = timeStampOfPing;
+                    if (coopGameComponent.ServerPingSmooth.Count > 30)
+                        coopGameComponent.ServerPingSmooth.TryDequeue(out _);
+                    coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
+                    coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
                     return;
                 }
 
