@@ -8,6 +8,7 @@ using Sirenix.Utilities;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Core.Misc;
+using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
@@ -231,6 +232,16 @@ namespace SIT.Core.Coop
                 SpawnedPlayersToFinalize.Remove(p);
             }
 
+            // In game ping system.
+            if (Singleton<FrameMeasurer>.Instantiated)
+            {
+                FrameMeasurer instance = Singleton<FrameMeasurer>.Instance;
+                instance.PlayerRTT = ServerPing;
+                instance.ServerFixedUpdateTime = ServerPing;
+                instance.ServerTime = ServerPing;
+                return;
+            }
+
             LateUpdateSpan = DateTime.Now - DateTimeStart;
         }
 
@@ -442,18 +453,28 @@ namespace SIT.Core.Coop
             PlayersToSpawnProfiles.Add(accountId, null);
 
             Profile profile = MatchmakerAcceptPatches.Profile.Clone();
+            profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
+            if (packet.ContainsKey("side"))
+            {
+                if (Enum.TryParse<EPlayerSide>(packet["side"].ToString(), out var side))
+                {
+                    profile.Info.Side = side;
+                }
+            }
             profile.AccountId = accountId;
+            profile.Skills.StartClientMode();
+            profile.QuestItems = new QuestItems[0];
+            profile.QuestsData.Clear();
 
             try
             {
                 //Logger.LogDebug("PlayerBotSpawn:: Adding " + accountId + " to spawner list");
                 profile.Id = accountId;
                 profile.Info.Nickname = "BSG Employee " + Players.Count;
-                profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
                 if (packet.ContainsKey("p.info"))
                 {
                     //Logger.LogDebug("PlayerBotSpawn:: Converting Profile data");
-                    profile.Info = packet["p.info"].ToString().ParseJsonTo<ProfileInfo>(Array.Empty<JsonConverter>());
+                    profile.Info = packet["p.info"].ToString().SITParseJson<ProfileInfo>();
                     //Logger.LogDebug("PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
                 }
                 if (packet.ContainsKey("p.cust"))
@@ -473,8 +494,20 @@ namespace SIT.Core.Coop
                 if (packet.ContainsKey("p.equip"))
                 {
                     var pEquip = packet["p.equip"].ToString();
-                    var equipment = packet["p.equip"].ToString().SITParseJson<Equipment>();
-                    profile.Inventory.Equipment = equipment;
+                    if(pEquip.TrySITParseJson<Equipment>(out Equipment equipment))
+                    {
+                        if (profile.Inventory.GetAllEquipmentItems().Any()
+                            )
+                            profile.Inventory.Equipment = equipment;
+                        else
+                        {
+                            Logger.LogError($"{accountId} Equipment could not be loaded!");
+                            PlayersToSpawn[accountId] = ESpawnState.Error;
+                        }
+                    }
+                    //var equipment = packet["p.equip"].ToString().SITParseJson<Equipment>();
+                    //profile.Inventory.Equipment = equipment;
+
                     //Logger.LogDebug("PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
 
                 }
@@ -621,6 +654,8 @@ namespace SIT.Core.Coop
             if (otherPlayer == null)
                 return;
 
+
+
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
             if (!Players.ContainsKey(profile.AccountId))
@@ -656,7 +691,13 @@ namespace SIT.Core.Coop
 
             SetWeaponInHandsOfNewPlayer(otherPlayer, () => { });
 
-
+            // Setup Dogtags for players
+            Item containedItem = otherPlayer.Equipment.GetSlot(EquipmentSlot.Dogtag).ContainedItem;
+            DogtagComponent dogtagComponent = (containedItem != null) ? (DogtagComponent)UpdateDogtagPatch.GetItemComponent(containedItem) : null;
+            if (dogtagComponent != null)
+            {
+                dogtagComponent.GroupId = otherPlayer.Profile.Info.GroupId;
+            }
         }
 
         private void CreateLocalPlayerAsync(Profile profile, Vector3 position, int playerId)
@@ -931,34 +972,34 @@ namespace SIT.Core.Coop
             GUI.contentColor = Color.white;
 
             // Packet ------
-            PacketQueueSize_Receive = ActionPackets.Count;
-            GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
-            if (ActionPackets.Count > 100)
-            {
-                rect.y += 15;
-                GUI.Label(rect, $"Packet (Receive) Loss/Lag - Too many packets in queue");
-                Dictionary<string, int> countPerMethod = new();
-                foreach(var packet in ActionPackets)
-                {
-                    if (!packet.ContainsKey("m"))
-                        continue;
+            //PacketQueueSize_Receive = ActionPackets.Count;
+            //GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
+            //if (ActionPackets.Count > 100)
+            //{
+            //    rect.y += 15;
+            //    GUI.Label(rect, $"Packet (Receive) Loss/Lag - Too many packets in queue");
+            //    Dictionary<string, int> countPerMethod = new();
+            //    foreach(var packet in ActionPackets)
+            //    {
+            //        if (!packet.ContainsKey("m"))
+            //            continue;
 
-                    if (!countPerMethod.ContainsKey(packet["m"].ToString()))
-                        countPerMethod[packet["m"].ToString()] = 0;
+            //        if (!countPerMethod.ContainsKey(packet["m"].ToString()))
+            //            countPerMethod[packet["m"].ToString()] = 0;
 
-                    countPerMethod[packet["m"].ToString()]++;
-                }
-                foreach (var cpm in countPerMethod.OrderByDescending(x => x.Value))
-                {
-                    rect.y += 15;
-                    GUI.Label(rect, $"Packet (Receive) Loss/Lag: {cpm.Key}:{cpm.Value}");
-                }
-            }
+            //        countPerMethod[packet["m"].ToString()]++;
+            //    }
+            //    foreach (var cpm in countPerMethod.OrderByDescending(x => x.Value))
+            //    {
+            //        rect.y += 15;
+            //        GUI.Label(rect, $"Packet (Receive) Loss/Lag: {cpm.Key}:{cpm.Value}");
+            //    }
+            //}
 
-            PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
-            rect.y += 15;
-            GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
-            rect.y += 15;
+            //PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
+            //rect.y += 15;
+            //GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
+            //rect.y += 15;
 
             OnGUI_DrawPlayerList(rect);
         }
