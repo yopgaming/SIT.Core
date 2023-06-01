@@ -226,6 +226,27 @@ namespace SIT.Tarkov.Core
                     );
         }
 
+        public static bool TrySITParseJson<T>(this string str, out T result)
+        {
+            try
+            {
+                result = (T)JsonConvert.DeserializeObject<T>(str
+                        , new JsonSerializerSettings()
+                        {
+                            Converters = JsonConverterDefault
+                            ,
+                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                        }
+                        );
+                return true;
+            }
+            catch
+            {
+                result = default(T);
+                return false;
+            }
+        }
+
         public static object GetPlayerProfile(object __instance)
         {
             var instanceProfile = __instance.GetType().GetProperty("Profile"
