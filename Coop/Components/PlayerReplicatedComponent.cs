@@ -97,6 +97,10 @@ namespace SIT.Coop.Core.Player
                 // Pose
                 float poseLevel = float.Parse(packet["pose"].ToString());
                 player.MovementContext.SetPoseLevel(poseLevel, true);
+                // Prone
+                bool prone = bool.Parse(packet["prn"].ToString());
+                if(prone)
+                    player.MovementContext.SetProneStateForce();
                 // Speed
                 float speed = float.Parse(packet["spd"].ToString());
                 player.MovementContext.CharacterMovementSpeed = speed;
@@ -134,10 +138,10 @@ namespace SIT.Coop.Core.Player
                     player.MovementContext.SetTilt(tilt);
                 }
 
-                if (packet.ContainsKey("tp"))
-                {
-                    //FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
-                }
+                //if (packet.ContainsKey("tp"))
+                //{
+                //    //FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
+                //}
 
                 //if (packet.ContainsKey("spr"))
                 //{
@@ -193,7 +197,7 @@ namespace SIT.Coop.Core.Player
                 {
                     var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
                     var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                    if (replicationDistance >= 3)
+                    if (replicationDistance >= 2)
                     {
                         player.Teleport(ReplicatedPosition.Value, true);
                     }
