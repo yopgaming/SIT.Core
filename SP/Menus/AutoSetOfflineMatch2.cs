@@ -31,6 +31,7 @@ namespace SIT.Core.SP.Menus
             , DefaultUIButton ____changeSettingsButton
             , UiElementBlocker ____onlineBlocker
             , DefaultUIButton ____readyButton
+            , DefaultUIButton ____nextButtonSpawner
            )
         {
             //Logger.LogInfo(JsonConvert.SerializeObject(raidSettings));
@@ -45,6 +46,7 @@ namespace SIT.Core.SP.Menus
               , ____changeSettingsButton
               , ____onlineBlocker
               , ____readyButton
+              , ____nextButtonSpawner
               );
             //return false;
             return true;
@@ -59,6 +61,7 @@ namespace SIT.Core.SP.Menus
             , DefaultUIButton ____changeSettingsButton
             , UiElementBlocker ____onlineBlocker
             , DefaultUIButton ____readyButton
+            , DefaultUIButton ____nextButtonSpawner
             )
         {
             var warningPanel = GameObject.Find("Warning Panel");
@@ -70,6 +73,7 @@ namespace SIT.Core.SP.Menus
              , ____changeSettingsButton
              , ____onlineBlocker
              , ____readyButton
+             , ____nextButtonSpawner
              );
 
             ____changeSettingsButton.OnPointerClick(new UnityEngine.EventSystems.PointerEventData(null) { });
@@ -86,20 +90,27 @@ namespace SIT.Core.SP.Menus
             , DefaultUIButton ____changeSettingsButton
             , UiElementBlocker ____onlineBlocker
             , DefaultUIButton ____readyButton
+            , DefaultUIButton ____nextButtonSpawner
             )
         {
             raidSettings.RaidMode = ERaidMode.Local;
+            raidSettings.BotSettings.IsEnabled = true;
+            raidSettings.Side = ESideType.Pmc;
+            raidSettings.BotSettings.BossType = EFT.Bots.EBossType.AsOnline;
+            raidSettings.WavesSettings.IsBosses = true;
+            //raidSettings.WavesSettings.BotAmount = EFT.Bots.EBotAmount.Low; // Low seemed too low.
+            raidSettings.WavesSettings.BotAmount = EFT.Bots.EBotAmount.Medium;
+
             ____onlineBlocker.RemoveBlock();
             ____onlineBlocker.enabled = false;
             ____offlineModeToggle.isOn = true;
-
-            raidSettings.RaidMode = ERaidMode.Local;
-            raidSettings.BotSettings.IsEnabled = true;
-            raidSettings.Side = ESideType.Pmc;
-            ____changeSettingsButton.Interactable = true;
-            ____changeSettingsButton.enabled = true;
+            ____offlineModeToggle.enabled = false;
+            ____changeSettingsButton.Interactable = false;
+            ____changeSettingsButton.enabled = false;
             ____readyButton.Interactable = false;
             ____readyButton.enabled = false;
+
+            ____nextButtonSpawner.OnClick.Invoke();
             //Logger.LogInfo("AutoSetOfflineMatch2.RemoveBlockers");
         }
     }
