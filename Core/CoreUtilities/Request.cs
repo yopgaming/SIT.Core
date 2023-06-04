@@ -155,9 +155,7 @@ namespace SIT.Tarkov.Core
                     //m_ManualLogSource.LogDebug(packet["ping"].ToString());
                     var pingStrip = packet["ping"].ToString().Split(':');
                     var timeStampOfPing = new TimeSpan(0, int.Parse(pingStrip[0]), int.Parse(pingStrip[1]), int.Parse(pingStrip[2]), int.Parse(pingStrip[3]));
-                    //m_ManualLogSource.LogDebug(timeStampOfPing.ToString());
                     var serverPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds;
-                    //coopGameComponent.ServerPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds; //  - new TimeSpan(0, 0, 0, 0, 1)).Milliseconds;
                     coopGameComponent.LastServerPing = timeStampOfPing;
                     if (coopGameComponent.ServerPingSmooth.Count > 30)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
@@ -173,48 +171,13 @@ namespace SIT.Tarkov.Core
                         return;
 
                     coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
-                    //LocalGameEndingPatch.EndSession((LocalGame)coopGameComponent.LocalGameInstance, Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
                     return;
                 }
 
                 // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
-                if (packet.ContainsKey("t") && !PluginConfigSettings.Instance.CoopSettings.SETTING_Actions_AlwaysProcessAllActions)
-                {
-                    //var useTimestamp = true;
-                    //if (!packet.ContainsKey("m"))
-                    //    return;
-
-                    //if (packet["m"].ToString() == "Proceed"
-                    //    || packet["m"].ToString() == "TryProceed"
-                    //    || packet["m"].ToString() == "Door"
-                    //    || packet["m"].ToString() == "WIO_Interact"
-                    //    || packet["m"].ToString() == "ApplyShot"
-                    //    || packet["m"].ToString() == "ApplyDamageInfo"
-                    //    || packet["m"].ToString() == "Kill"
-                    //    )
-                    //{
-                    //    useTimestamp = false;
-                    //}
-
-                    //if (useTimestamp &&
-                    //        long.Parse(packet["t"].ToString())
-                    //        < DateTime.Now.AddSeconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_Actions_CutoffTimeInSeconds).Ticks)
-                    //    return;
-
-                    if (!coopGameComponent.ActionPackets.Contains(packet))
-                    {
-                        coopGameComponent.ActionPackets.TryAdd(packet);
-                    }
-                    //coopGameComponent.ActionPackets.TryAdd(packet);
-                }
-                else
-                {
+                if (!coopGameComponent.ActionPackets.Contains(packet))
                     coopGameComponent.ActionPackets.TryAdd(packet);
-                }
-
-
-
             }
         }
 
