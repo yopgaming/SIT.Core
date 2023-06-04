@@ -1,18 +1,10 @@
 ﻿# HOSTING
 
 ## How to allow others to join your SPT-Aki Server?
-1) Install Aki-Server
-2) Open Aki_Data\Server\configs\http.json with your favourite text editor
-3) Change the `ip` setting to your internal network IP of your Computer Primary Network (Ethernet or Wi-Fi)
-4) Change the `logRequests` setting to `false` to prevent log spam
-5) Forward ports of your router to your Computer Primary Network on port 6969
-6) Install [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) in user\mods of your Server
-7) Get your IPv4 from https://www.whatismyip.com/
-8) Read and apply the README of SIT.Aki-Server-Mod!
-9) Start the Server and provide the others your IP and port to connect to
+* Follow [SETUP-STANDARD](SETUP-STANDARD.md) or [SETUP-HAMACHI](SETUP-HAMACHI.md)
 
 ## How to join each other's match
-THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME
+THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME AND LIKELY TO CHANGE
 
 ### HOST
 1) The HOST must select a Map, Time and Offline Settings - It is HIGHLY RECOMMENDED that you test on FACTORY first
