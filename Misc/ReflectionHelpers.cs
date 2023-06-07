@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
+using EFT;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,20 @@ namespace SIT.Core.Misc
 {
     public static class ReflectionHelpers
     {
+        private static Type[] _eftTypes;
+        public static Type[] EftTypes
+        {
+            get
+            {
+                if (_eftTypes == null)
+                {
+                    _eftTypes = typeof(AbstractGame).Assembly.GetTypes().OrderBy(t => t.Name).ToArray();
+                }
+
+                return _eftTypes;
+            }
+        }
+
         static ManualLogSource Logger;
         static ReflectionHelpers()
         {
@@ -245,6 +260,17 @@ namespace SIT.Core.Misc
             var property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == (name.ToLower()));
             if (property != null)
                 property.SetValue(o, v);
+        }
+
+        internal static Type SearchForType(string v, bool debug = false)
+        {
+            var typesFound = EftTypes.Where(x=>x.FullName.Contains(v)).ToList();
+            foreach(var type in typesFound)
+            {
+                if (debug)
+                    Console.WriteLine(type.FullName);
+            }
+            return typesFound.FirstOrDefault();
         }
     }
 }
