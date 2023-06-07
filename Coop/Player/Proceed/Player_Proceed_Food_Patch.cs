@@ -1,4 +1,7 @@
-﻿using SIT.Coop.Core.Player;
+﻿using Comfort.Common;
+using EFT;
+using EFT.InventoryLogic;
+using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -88,12 +91,9 @@ namespace SIT.Core.Coop.Player.Proceed
             if (coopGC == null)
                 return;
 
-            var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString());
-
-            if (!allItemsOfTemplate.Any())
-                return;
-
-            var item = allItemsOfTemplate.FirstOrDefault(x => x.Id == dict["item.id"].ToString());
+            Item item;
+            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
+                ItemFinder.TryFindItemInWorld(player, dict["item.id"].ToString(), out item);
 
             if (item != null)
             {
@@ -101,5 +101,7 @@ namespace SIT.Core.Coop.Player.Proceed
                 player.Proceed((FoodAndDrink)item, float.Parse(dict["amt"].ToString()), (IResult) => { }, 1, true);
             }
         }
+
+       
     }
 }

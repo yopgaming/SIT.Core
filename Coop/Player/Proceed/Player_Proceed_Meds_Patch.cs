@@ -1,4 +1,5 @@
-﻿using SIT.Coop.Core.Web;
+﻿using EFT.InventoryLogic;
+using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -83,12 +84,9 @@ namespace SIT.Coop.Core.Player
             if (coopGC == null)
                 return;
 
-            var allItemsOfTemplate = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString());
-
-            if (!allItemsOfTemplate.Any())
-                return;
-
-            var item = allItemsOfTemplate.FirstOrDefault(x => x.Id == dict["item.id"].ToString());
+            Item item;
+            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
+                ItemFinder.TryFindItemInWorld(player, dict["item.id"].ToString(), out item);
 
             if (item != null)
             {
