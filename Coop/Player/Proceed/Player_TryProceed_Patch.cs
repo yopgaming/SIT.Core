@@ -86,41 +86,37 @@ namespace SIT.Coop.Core.Player
             if (coopGC == null)
                 return;
 
-            var item = player.Profile.Inventory.GetAllItemByTemplate(dict["item.tpl"].ToString()).FirstOrDefault();
-            //if (item == null)
-            //{
-            //    Logger.LogError($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Item not found");
-            //    player.SetFirstAvailableItem((result) =>
-            //    {
-            //        Logger.LogDebug(result.ToString());
-            //    });
-            //    return;
-            //}
+            if (CallLocally.ContainsKey(player.Profile.AccountId))
+                return;
+
+            Item item;
+            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
+                ItemFinder.TryFindItemInWorld(player, dict["item.id"].ToString(), out item);
 
             if (item != null)
             {
                 //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Found Item");
 
-                if (item is Weapon weapon)
-                {
-                    player.Proceed(weapon, (IResult) =>
-                    {
-                        Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Weapon:Try Proceed Succeeded?:{IResult.Succeed}");
-                    }, true);
-                }
-                else
-                {
+                //if (item is Weapon weapon)
+                //{
+                //    player.Proceed(weapon, (IResult) =>
+                //    {
+                //        //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Weapon:Try Proceed Succeeded?:{IResult.Succeed}");
+                //    }, true);
+                //}
+                //else
+                //{
                     CallLocally.Add(player.Profile.AccountId, true);
 
                     player.TryProceed(item, (IResult) =>
                     {
-                        Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
+                        //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
                         if (!IResult.Succeed)
                         {
                         }
                     }, bool.Parse(dict["s"].ToString()));
 
-                }
+                //}
             }
         }
     }
