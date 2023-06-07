@@ -1,6 +1,8 @@
 ﻿using Comfort.Common;
+using HarmonyLib;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop.Player.GrenadeControllerPatches;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -102,9 +104,31 @@ namespace SIT.Core.Coop.Player.Proceed
             if (item != null && item is ThrowWeap throwable)
             {
                 CallLocally.Add(player.Profile.AccountId, true);
-                //player.Proceed(throwable, callback: (IResult) => { }, scheduled: true);
+                var callback = new Callback<IThrowableCallback>((IResult) => 
+                {
+                    if(IResult.Value != null)
+                    {
+                        //Logger.LogInfo($"Player_Proceed_Throwable_Patch. Found {IResult.Value.GetType().FullName}");
 
-                var callback = new Callback<IThrowableCallback>((IResult) => { });
+                        if (ModuleReplicationPatch.Patches.Any(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)))
+                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.First(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)));
+                        
+                        if (ModuleReplicationPatch.Patches.Any(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)))
+                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.First(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)));
+
+                        if (ModuleReplicationPatch.Patches.Any(x => x.InstanceType == typeof(GrenadeController_PullRingForHighThrow_Patch)))
+                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.First(x => x.InstanceType == typeof(GrenadeController_PullRingForHighThrow_Patch)));
+
+                        if (ModuleReplicationPatch.Patches.Any(x => x.InstanceType == typeof(GrenadeController_PullRingForLowThrow_Patch)))
+                            ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.First(x => x.InstanceType == typeof(GrenadeController_PullRingForLowThrow_Patch)));
+
+                        // Enable patches
+                        new GrenadeController_HighThrow_Patch(IResult.Value.GetType()).Enable();
+                        new GrenadeController_LowThrow_Patch(IResult.Value.GetType()).Enable();
+                        new GrenadeController_PullRingForHighThrow_Patch(IResult.Value.GetType()).Enable();
+                        new GrenadeController_PullRingForLowThrow_Patch(IResult.Value.GetType()).Enable();
+                    }
+                });
                 method1.Invoke(player, new object[] { throwable, callback, true });
             }
         }
