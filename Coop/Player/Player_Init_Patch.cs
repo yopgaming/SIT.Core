@@ -73,7 +73,7 @@ namespace SIT.Coop.Core.Player
                             MatchmakerAcceptPatches.GetGroupId()
                         },
                         {
-                    "isAI",
+                        "isAI",
                             player.IsAI || !player.Profile.Id.StartsWith("pmc")
                         },
                         {
@@ -100,7 +100,6 @@ namespace SIT.Coop.Core.Player
                             "sPz",
                             player.Transform.position.z
                         },
-                        { "m", "PlayerSpawn" },
                         {
                             "p.info",
                             JsonConvert.SerializeObject(player.Profile.Info
@@ -114,7 +113,12 @@ namespace SIT.Coop.Core.Player
                         {
                             "p.equip",
                             player.Profile.Inventory.Equipment.SITToJson()
-                        }
+                        },
+                        {
+                            "side",
+                            player.Profile.Side.ToString()
+                        },
+                        { "m", "PlayerSpawn" },
                     };
 
 
