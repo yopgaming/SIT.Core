@@ -113,6 +113,7 @@ namespace SIT.Core.Coop.Player
             packet.Add("d.w", weaponDict);
             packet.Add("bpt", bodyPartType.ToString());
             packet.Add("ab", absorbed.ToString());
+            packet.Add("hs", headSegment.ToString());
             packet.Add("m", "ApplyDamageInfo");
             ServerCommunication.PostLocalPlayerData(player, packet, true);
 
@@ -148,12 +149,13 @@ namespace SIT.Core.Coop.Player
             try
             {
                 Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+                Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
                 var absorbed = float.Parse(dict["ab"].ToString());
 
                 var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
 
                 CallLocally.Add(player.Profile.AccountId, true);
-                player.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, EHeadSegment.Eyes);
+                player.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
                 player.ShotReactions(damageInfo, bodyPartType);
             }
             catch (Exception e)
@@ -164,6 +166,7 @@ namespace SIT.Core.Coop.Player
             if (player.HealthController == null)
                 return;
 
+            // TODO: This dont work. If you pick this gun up afterward, it can't make a noise anymore. STOOPID.
             if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
                 if (!player.HealthController.IsAlive && prc.IsClientDrone)
@@ -176,8 +179,9 @@ namespace SIT.Core.Coop.Player
                         if (firearmCont.WeaponSoundPlayer == null)
                             return;
 
-                        firearmCont.WeaponSoundPlayer.StopAllCoroutines();
-                        GameObject.Destroy(firearmCont.WeaponSoundPlayer);
+                        var methodStopFiringLoop = ReflectionHelpers.GetMethodForType(firearmCont.GetType(), "StopFiringLoop");
+                        if(methodStopFiringLoop != null)
+                            methodStopFiringLoop.Invoke(firearmCont, new object[] { });
                     }
                 }
             }
