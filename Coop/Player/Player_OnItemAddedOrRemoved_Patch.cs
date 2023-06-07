@@ -85,11 +85,15 @@ namespace SIT.Core.Coop.Player
             if (itemFindResult.Succeeded)
             {
                 item = itemFindResult.Value;
-                item = item.CloneItemWithSameId();
+                //item = item.CloneItemWithSameId();
+                //item = item.CloneItem();
             }
+
 
             if (item != null)
             {
+                var added = bool.Parse(dict["added"].ToString());
+
                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Item[{item}]");
                 var itemsInInventory = player.Profile.Inventory
                         .GetAllItemByTemplate(item.TemplateId);
@@ -102,6 +106,8 @@ namespace SIT.Core.Coop.Player
                     }
                 }
 
+                if (added && item.CurrentAddress != null)
+                    item.CurrentAddress.Remove(item, player.ProfileId);
 
                 // Grid Item stuff
                 if (dict.ContainsKey("grad"))
@@ -116,10 +122,12 @@ namespace SIT.Core.Coop.Player
                         if (bool.Parse(dict["added"].ToString()))
                         {
                             //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]");
-                            ((GridContainer)container1).AddItemWithoutRestrictions(item, gridItemAddressDescriptor.LocationInGrid);
+                            //((GridContainer)container1).AddItemWithoutRestrictions(item, gridItemAddressDescriptor.LocationInGrid);
+                            ((GridContainer)container1).AddItem(item, gridItemAddressDescriptor.LocationInGrid, new string[] { player.ProfileId }, false);
                         }
                         else
                         {
+                            Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]:RemoveItem");
                             ((GridContainer)container1).RemoveItem(item, player.ProfileId, false);
 
                         }
@@ -141,7 +149,8 @@ namespace SIT.Core.Coop.Player
                             {
                                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
                                 if (slot.CanAccept(item))
-                                    slot.AddWithoutRestrictions(item);
+                                    slot.Add(item, false);
+                                    //slot.AddWithoutRestrictions(item);
                             }
                             
                         }
@@ -149,7 +158,7 @@ namespace SIT.Core.Coop.Player
                         {
                             if (container1 is Slot slot)
                             {
-                                //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
+                                Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]RemoveItem");
                                 slot.RemoveItem();
                             }
                         }
