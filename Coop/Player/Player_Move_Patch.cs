@@ -5,6 +5,8 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
+using static EFT.UI.CharacterSelectionStartScreen;
 
 namespace SIT.Core.Coop.Player
 {
@@ -34,7 +36,7 @@ namespace SIT.Core.Coop.Player
         [PatchPrefix]
         public static bool PrePatch(
           EFT.Player __instance,
-          UnityEngine.Vector2 direction
+          ref UnityEngine.Vector2 direction
            )
         {
             // FIX: Error that occurs when leaving a raid
@@ -49,23 +51,38 @@ namespace SIT.Core.Coop.Player
             if (prc.IsClientDrone)
                 return false;
 
-            //prc.ReplicatedDirection = direction;
+            direction.x = (float)Math.Round(direction.x, 3);
+            direction.y = (float)Math.Round(direction.y, 3);
 
             return true;
 
         }
 
+        public static Dictionary<string, Vector2> LastDirections { get; } = new();
+
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
-           UnityEngine.Vector2 direction
+           ref UnityEngine.Vector2 direction
             )
         {
             var player = __instance;
             var accountId = player.Profile.AccountId;
 
-            //if (!player.IsYourPlayer)
-            //    return;
+            if (!player.IsYourPlayer)
+            {
+                if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    prc.ReplicatedDirection = direction;
+                return;
+            }
+
+            direction.x = (float)Math.Round(direction.x, 3);
+            direction.y = (float)Math.Round(direction.y, 3);
+
+            if (!LastDirections.ContainsKey(accountId))
+                LastDirections.Add(accountId, direction);
+            else if (LastDirections[accountId] == direction)
+                return;
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
@@ -73,7 +90,7 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("dY", direction.y.ToString());
             dictionary.Add("m", "Move");
             ServerCommunication.PostLocalPlayerData(player, dictionary);
-
+            LastDirections[accountId] = direction;
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
