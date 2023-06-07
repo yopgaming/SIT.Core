@@ -85,7 +85,7 @@ namespace SIT.Tarkov.Core
         /// <summary>
         /// Apply patch to target
         /// </summary>
-        public void Enable()
+        public virtual void Enable()
         {
             var target = GetTargetMethod();
 
@@ -136,7 +136,7 @@ namespace SIT.Tarkov.Core
         /// <summary>
         /// Remove applied patch from target
         /// </summary>
-        public void Disable()
+        public virtual void Disable()
         {
             var target = GetTargetMethod();
 

@@ -19,11 +19,14 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            Patches.Add(this);
+            if(!DisablePatch)
+                Patches.Add(this);
+
             LastSent.TryAdd(GetType(), new Dictionary<string, object>());
         }
 
         public abstract Type InstanceType { get; }
+        public Type OverrideInstanceType { get; set; }
         public abstract string MethodName { get; }
 
         public virtual bool DisablePatch { get; } = false;
@@ -90,6 +93,29 @@ namespace SIT.Core.Coop
 
             var p = Patches.Single(x => x.GetType().Equals(type));
             p.Replicated(player, dict);
+        }
+
+        public override void Enable()
+        {
+            base.Enable();
+            if(!Patches.Contains(this))
+                Patches.Add(this);
+        }
+
+        public override void Disable() { base.Disable(); if(Patches.Contains(this)) Patches.Remove(this); }
+
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() == this.GetType())
+                return true;
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }
