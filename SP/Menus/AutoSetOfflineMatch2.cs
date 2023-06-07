@@ -16,8 +16,8 @@ namespace SIT.Core.SP.Menus
             var desiredType = typeof(MatchmakerOfflineRaidScreen);
             var desiredMethod = ReflectionHelpers.GetAllMethodsForType(desiredType).Single(x => x.Name == "Show" && x.GetParameters().Length == 2);
 
-            Logger.LogInfo($"{GetType().Name} Type: {desiredType?.Name}");
-            Logger.LogInfo($"{GetType().Name} Method: {desiredMethod?.Name}");
+            //Logger.LogInfo($"{GetType().Name} Type: {desiredType?.Name}");
+            //Logger.LogInfo($"{GetType().Name} Method: {desiredMethod?.Name}");
 
             return desiredMethod;
         }
@@ -105,12 +105,13 @@ namespace SIT.Core.SP.Menus
             ____onlineBlocker.enabled = false;
             ____offlineModeToggle.isOn = true;
             ____offlineModeToggle.enabled = false;
+            ____offlineModeToggle.interactable = false;
             ____changeSettingsButton.Interactable = false;
             ____changeSettingsButton.enabled = false;
             ____readyButton.Interactable = false;
             ____readyButton.enabled = false;
 
-            ____nextButtonSpawner.OnClick.Invoke();
+            //____nextButtonSpawner.OnClick.Invoke();
             //Logger.LogInfo("AutoSetOfflineMatch2.RemoveBlockers");
         }
     }
