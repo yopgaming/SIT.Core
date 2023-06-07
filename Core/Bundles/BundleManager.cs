@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 /***
@@ -12,22 +13,33 @@ namespace SIT.Tarkov.Core
     public class BundleManager
     {
         public const string CachePath = "user/cache/bundles/";
+
+        public const string CachedJsonPath = "user/cache/bundles.json";
+
         public static Dictionary<string, BundleInfo> Bundles { get; private set; }
 
         static BundleManager()
         {
             Bundles = new Dictionary<string, BundleInfo>();
-
-            if (VFS.Exists(CachePath))
-            {
-                VFS.DeleteDirectory(CachePath);
-            }
         }
 
         public static void GetBundles()
         {
             var json = Request.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
-            //PatchConstants.Logger.LogDebug($"GetBundles Json: {json}");
+            PatchConstants.Logger.LogDebug($"[Bundle Manager] Bundles Json: {json}");
+
+            bool bundlesAreSame = File.Exists(CachedJsonPath) 
+                && File.ReadAllText(CachedJsonPath) == json
+                && File.Exists(CachePath + "bundles.json")
+                ;
+            if(bundlesAreSame) 
+            {
+                PatchConstants.Logger.LogInfo($"[Bundle Manager] Bundles are same. Using cached Bundles");
+                Bundles = Json.Deserialize<Dictionary<string, BundleInfo>>(File.ReadAllText(CachePath + "bundles.json"));
+
+                return;
+            }
+
 
             var jArray = JArray.Parse(json);
 
@@ -66,6 +78,7 @@ namespace SIT.Tarkov.Core
                 Bundles.Add(key, bundle);
             }
 
+            File.WriteAllText(CachedJsonPath, json);
             VFS.WriteTextFile(CachePath + "bundles.json", Json.Serialize<Dictionary<string, BundleInfo>>(Bundles));
         }
     }
