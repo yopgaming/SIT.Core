@@ -54,11 +54,16 @@ namespace SIT.Core
                 Logger.LogInfo("SIT Core Patches has been disabled! Ignoring Patches.");
                 return;
             }
-
+            // SIT Legal Game Checker
             LegalGameCheck.LegalityCheck();
+            // File Checker
             new ConsistencySinglePatch().Enable();
             new ConsistencyMultiPatch().Enable();
+            // BattlEye
             new BattlEyePatch().Enable();
+            new BattlEyePatchFirstPassRun().Enable();
+            new BattlEyePatchFirstPassUpdate().Enable();
+            // Web Requests
             new SslCertificatePatch().Enable();
             new UnityWebRequestPatch().Enable();
             new TransportPrefixPatch().Enable();
@@ -128,11 +133,14 @@ namespace SIT.Core
             new MatchmakerLocationScreen_DisableReadyButton_Patch().Enable();
             new VersionLabelPatch(config).Enable();
 
-            try
-            {
-                new MatchmakerLocationScreen_DisableLevelLock_Patch().Enable();
-            }
-            catch(Exception ex) { Plugin.Instance.Logger.LogError(ex.Message); }
+            //try
+            //{
+            //    new MatchmakerLocationScreen_DisableLevelLock_Patch().Enable();
+            //}
+            //catch(Exception ex) { Plugin.Instance.Logger.LogError(ex.Message); }
+
+            new LighthouseBridgePatch().Enable();
+            new LighthouseTransmitterPatch().Enable();
 
         }
 
