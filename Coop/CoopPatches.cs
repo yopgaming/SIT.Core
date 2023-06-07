@@ -3,6 +3,7 @@ using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Core.Coop.LocalGame;
+using SIT.Core.Coop.Player.GrenadeControllerPatches;
 using SIT.Core.Coop.Sounds;
 using SIT.Tarkov.Core;
 using System;
@@ -55,6 +56,7 @@ namespace SIT.Core.Coop
         }
 
         public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();
+
         public static GameObject CoopGameComponentParent { get; internal set; }
 
         public static void EnableDisablePatches()
@@ -111,7 +113,13 @@ namespace SIT.Core.Coop
 
                 ModuleReplicationPatch mrp = null;
                 if (!ModuleReplicationPatch.Patches.Any(x => x.GetType() == module))
+                {
                     mrp = (ModuleReplicationPatch)Activator.CreateInstance(module);
+                    if (mrp.DisablePatch)
+                    {
+                        mrp = null;
+                    }
+                }
                 else
                     mrp = ModuleReplicationPatch.Patches.SingleOrDefault(x => x.GetType() == module);
 
