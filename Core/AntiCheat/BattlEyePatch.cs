@@ -1,3 +1,4 @@
+using SIT.Core.Misc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,6 +21,49 @@ namespace SIT.Tarkov.Core
         {
             ___bool_0 = true;
             __result = Task.CompletedTask;
+            return false;
+        }
+    }
+
+    public class BattlEyePatchFirstPassRun : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return ReflectionHelpers.GetMethodForType(typeof(BattlEye.BEClient), "Run", false, false);
+        }
+
+        [PatchPrefix]
+        private static bool PatchPrefix()
+        {
+            return false;
+        }
+    }
+
+    public class BattlEyePatchFirstPassUpdate : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return ReflectionHelpers.GetMethodForType(typeof(BattlEye.BEClient), "Update", false, false);
+        }
+
+        [PatchPrefix]
+        private static bool PatchPrefix()
+        {
+            return false;
+        }
+    }
+
+    public class BattlEyePatchFirstPassReceivedPacket : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return ReflectionHelpers.GetMethodForType(typeof(BattlEye.BEClient), "ReceivedPacket", false, false);
+        }
+
+        [PatchPrefix]
+        private static bool PatchPrefix()
+        {
+            Logger.LogInfo("BattlEyePatchFirstPassReceivedPacket:PatchPrefix");
             return false;
         }
     }
