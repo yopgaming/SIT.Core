@@ -131,6 +131,14 @@ namespace SIT.Tarkov.Core
             });
         }
 
+        public async void PostDownWebSocketImmediately(string packet)
+        {
+            await Task.Run(() =>
+            {
+                WebSocket.Send(packet);
+            });
+        }
+
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             Logger.LogError($"WebSocket_OnError: {e.Message}");
@@ -191,11 +199,14 @@ namespace SIT.Tarkov.Core
             return Instance;
         }
 
+        public BlockingCollection<string> PooledJsonToPost { get; } = new();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
 
-        ConcurrentQueue<KeyValuePair<string, string>> m_PooledStringToPost = new();
-
+        public void SendDataToPool(string json)
+        {
+            PooledJsonToPost.Add(json);
+        }
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
             PooledDictionariesToPost.Add(new(url, data));
@@ -206,13 +217,8 @@ namespace SIT.Tarkov.Core
             PooledDictionaryCollectionToPost.Add(data);
         }
 
-        //public void SendDataToPool(string url, string stringData)
-        //{
-        //    m_PooledStringToPost.Enqueue(new(url, stringData));
-        //}
-
         public int PostPing { get; private set; } = 1;
-
+        public ConcurrentQueue<int> PostPingSmooth { get; } = new();
 
         private Task PeriodicallySendPooledDataTask;
 
@@ -222,7 +228,7 @@ namespace SIT.Tarkov.Core
 
             PeriodicallySendPooledDataTask = Task.Run(async () =>
             {
-                int awaitPeriod = 1;
+                int awaitPeriod = 2;
                 //GCHelpers.EnableGC();
                 //GCHelpers.ClearGarbage();
                 //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
@@ -274,7 +280,26 @@ namespace SIT.Tarkov.Core
                         }
                     }
 
-                    PostPing = (int)swPing.ElapsedMilliseconds - awaitPeriod;
+                    while (PooledJsonToPost.Any())
+                    {
+                        if (PooledJsonToPost.TryTake(out var json))
+                        {
+                            if (WebSocket != null)
+                            {
+                                if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                                {
+                                    this.PostDownWebSocketImmediately(json);
+                                }
+                            }
+                            //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
+                        }
+                    }
+
+                    if (PostPingSmooth.Any() && PostPingSmooth.Count > 30)
+                        PostPingSmooth.TryDequeue(out _);
+
+                    PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
+                    PostPing = (int)Math.Round(PostPingSmooth.Average());
 
                 }
             });
@@ -389,7 +414,8 @@ namespace SIT.Tarkov.Core
             // Force to DEBUG mode if not Compressing.
             debug = debug || !compress;
 
-            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, timeout);
+            HttpClient.Timeout = TimeSpan.FromMilliseconds(timeout);
+
 
             method = method.ToUpper();
 
@@ -517,12 +543,12 @@ namespace SIT.Tarkov.Core
                 return dataStream.ToArray();
         }
 
-        public void PutJson(string url, string data, bool compress = true, int timeout = 1000, bool debug = false)
+        public void PutJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
         {
             using (Stream stream = SendAndReceive(url, "PUT", data, compress, timeout, debug)) { }
         }
 
-        public string GetJson(string url, bool compress = true, int timeout = 1000)
+        public string GetJson(string url, bool compress = true, int timeout = 9999)
         {
             using (MemoryStream stream = SendAndReceive(url, "GET", null, compress, timeout))
             {
@@ -537,7 +563,7 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public async Task<string> GetJsonAsync(string url, bool compress = true, int timeout = 1000)
+        public async Task<string> GetJsonAsync(string url, bool compress = true, int timeout = 9999)
         {
             try
             {
