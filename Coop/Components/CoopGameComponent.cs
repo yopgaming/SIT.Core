@@ -14,6 +14,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -137,6 +138,8 @@ namespace SIT.Core.Coop
         }
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
+        Stopwatch swActionPackets { get; } = new Stopwatch();
+        bool PerformanceCheck_ActionPackets { get; set; } = false; 
 
         void LateUpdate()
         {
@@ -157,10 +160,13 @@ namespace SIT.Core.Coop
             if (ActionPackets.Count > 0)
             {
                 Dictionary<string, object> result = null;
+                swActionPackets.Restart();
                 while (ActionPackets.TryTake(out result))
                 {
                     ReadFromServerLastActionsParseData(result);
                 }
+                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > 33);
+
             }
 
             List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
@@ -170,6 +176,9 @@ namespace SIT.Core.Coop
 
                 foreach (var player in Players.Values)
                 {
+                    if (player == null)
+                        continue;
+
                     if (!player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent prc))
                         continue;
 
@@ -188,6 +197,9 @@ namespace SIT.Core.Coop
 
                 foreach (var player in Singleton<GameWorld>.Instance.RegisteredPlayers)
                 {
+                    if (player == null)
+                        continue;
+
                     if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                         continue;
 
@@ -210,7 +222,6 @@ namespace SIT.Core.Coop
                     return;
 
                 //Logger.LogDebug(playerStates.SITToJson());
-                //RequestingObj.PostJsonAndForgetAsync("/coop/server/update", playerStates.SITToJson());
                 RequestingObj.SendListDataToPool(string.Empty, playerStates);
 
                 LastPlayerStateSent = DateTime.Now;
@@ -435,7 +446,6 @@ namespace SIT.Core.Coop
                 }
             }
 
-            Logger.LogDebug($"ProcessPlayerBotSpawn:{accountId}");
 
             // If CreatePhysicalOtherPlayerOrBot has been done before. Then ignore the Deserialization section and continue.
             if (PlayersToSpawn.ContainsKey(accountId)
@@ -451,6 +461,8 @@ namespace SIT.Core.Coop
                 return;
 
             PlayersToSpawnProfiles.Add(accountId, null);
+
+            Logger.LogDebug($"ProcessPlayerBotSpawn:{accountId}");
 
             Profile profile = MatchmakerAcceptPatches.Profile.Clone();
             profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
@@ -774,7 +786,7 @@ namespace SIT.Core.Coop
         /// <param name="person"></param>
         public void SetWeaponInHandsOfNewPlayer(EFT.Player person, Action successCallback)
         {
-            Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
+            //Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
 
             var equipment = person.Profile.Inventory.Equipment;
             if (equipment == null)
@@ -800,7 +812,7 @@ namespace SIT.Core.Coop
                 Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
             }
 
-            Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} {item.TemplateId}");
+            //Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} {item.TemplateId}");
 
             person.SetItemInHands(item, (IResult) =>
             {
@@ -969,37 +981,16 @@ namespace SIT.Core.Coop
             GUI.contentColor = ServerPing > 175 ? Color.red : ServerPing > 125 ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
+            GUI.Label(rect, $"Ping RTT:{(ServerPing + Request.Instance.PostPing)}");
+            rect.y += 15;
             GUI.contentColor = Color.white;
 
-            // Packet ------
-            //PacketQueueSize_Receive = ActionPackets.Count;
-            //GUI.Label(rect, $"Packet Queue Size (Receive): {PacketQueueSize_Receive}");
-            //if (ActionPackets.Count > 100)
-            //{
-            //    rect.y += 15;
-            //    GUI.Label(rect, $"Packet (Receive) Loss/Lag - Too many packets in queue");
-            //    Dictionary<string, int> countPerMethod = new();
-            //    foreach(var packet in ActionPackets)
-            //    {
-            //        if (!packet.ContainsKey("m"))
-            //            continue;
-
-            //        if (!countPerMethod.ContainsKey(packet["m"].ToString()))
-            //            countPerMethod[packet["m"].ToString()] = 0;
-
-            //        countPerMethod[packet["m"].ToString()]++;
-            //    }
-            //    foreach (var cpm in countPerMethod.OrderByDescending(x => x.Value))
-            //    {
-            //        rect.y += 15;
-            //        GUI.Label(rect, $"Packet (Receive) Loss/Lag: {cpm.Key}:{cpm.Value}");
-            //    }
-            //}
-
-            //PacketQueueSize_Send = Request.Instance.PooledDictionariesToPost.Count + Request.Instance.PooledDictionaryCollectionToPost.Count;
-            //rect.y += 15;
-            //GUI.Label(rect, $"Packet Queue Size (Send): {PacketQueueSize_Send}");
-            //rect.y += 15;
+            if (PerformanceCheck_ActionPackets)
+            {
+                GUI.contentColor = Color.red;
+                GUI.Label(rect, $"BAD PERFORMANCE!");
+                GUI.contentColor = Color.white;
+            }
 
             OnGUI_DrawPlayerList(rect);
         }
