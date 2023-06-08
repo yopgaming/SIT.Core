@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
+using EFT.Interactive;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
@@ -89,7 +90,7 @@ namespace SIT.Coop.Core.LocalGame
                 CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
 
             coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
-            coopGameComponent.LocalGameInstance = __instance;   
+            coopGameComponent.LocalGameInstance = __instance;
 
             //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
             if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
@@ -101,6 +102,7 @@ namespace SIT.Coop.Core.LocalGame
                 Logger.LogError("========== ERROR = COOP ========================");
                 Logger.LogError("No Server Id found, Deleting Coop Game Component");
                 Logger.LogError("================================================");
+                throw new Exception("No Server Id found");
             }
 
             if (!MatchmakerAcceptPatches.IsClient)
@@ -117,16 +119,63 @@ namespace SIT.Coop.Core.LocalGame
                     { "wt", TimeAndWeather.WindType },
                     { "serverId", CoopGameComponent.GetServerId() }
                 };
-                Request.Instance.PostJson("/coop/server/update", packet.ToJson(), debug: true);
+                Request.Instance.PostJson("/coop/server/update", packet.ToJson(), timeout: 9999, debug: true);
             }
+
+            SendOrReceiveSpawnPoint(Singleton<GameWorld>.Instance.MainPlayer);
 
             CoopPatches.EnableDisablePatches();
 
         }
 
-        private static void EchoGameServer_OnLog(string text)
+        public static void SendOrReceiveSpawnPoint(EFT.Player player)
         {
-            Logger.LogInfo(text);
+            Logger.LogDebug(player.ProfileId + " " + player.Profile.Nickname);
+            if (!player.ProfileId.StartsWith("pmc"))
+                return;
+
+            var position = player.Transform.position;
+            if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
+            {
+                Dictionary<string, object> packet = new Dictionary<string, object>
+                {
+                    {
+                        "m",
+                        "SpawnPointForCoop"
+                    },
+                    {
+                        "serverId",
+                        CoopGameComponent.GetServerId()
+                    },
+                    {
+                        "x",
+                        position.x
+                    },
+                    {
+                        "y",
+                        position.y
+                    },
+                    {
+                        "z",
+                        position.z
+                    }
+                };
+                Logger.LogInfo("Setting Spawn Point to " + position);
+                Request.Instance.PostJson("/coop/server/update", packet.ToJson());
+                //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
+                //Logger.LogInfo("Retreived Spawn Point " + json);
+            }
+            //else
+            //{
+                var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
+                Logger.LogInfo("Retreived Spawn Point " + json);
+                var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
+                var x = float.Parse(retrievedPacket["x"].ToString());
+                var y = float.Parse(retrievedPacket["y"].ToString());
+                var z = float.Parse(retrievedPacket["z"].ToString());
+                var teleportPosition = new Vector3(x, y, z);
+                player.Teleport(teleportPosition, true);
+            //}
         }
 
     }

@@ -44,6 +44,7 @@ namespace SIT.Core.Coop
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LocalGame_Weather_Patch().Enable();
 
+
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
 
@@ -90,6 +91,7 @@ namespace SIT.Core.Coop
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
+                NoMRPPatches.Add(new ExfiltrationExpansion());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");

@@ -32,6 +32,10 @@
       <HintPath>..\Tarkov.References\Assembly-CSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\Tarkov.References\Assembly-CSharp-firstpass.dll</HintPath>
+	    <Private>False</Private>
+	</Reference>
     <Reference Include="bsg.componentace.compression.libs.zlib">
       <HintPath>..\Tarkov.References\bsg.componentace.compression.libs.zlib.dll</HintPath>
       <Private>False</Private>
@@ -99,6 +103,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Folder Include="Coop\WeaponSoundPlayerPatches\" />
     <Folder Include="Other\UI\" />
   </ItemGroup>
   
