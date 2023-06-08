@@ -15,7 +15,7 @@ namespace SIT.Core.Coop
         {
             if (Patches.Any(x => x.GetType() == this.GetType()))
             {
-                Logger.LogError($"Attempted to recreate {this.GetType()} Patch");
+                //Logger.LogError($"Attempted to recreate {this.GetType()} Patch");
                 return;
             }
 
