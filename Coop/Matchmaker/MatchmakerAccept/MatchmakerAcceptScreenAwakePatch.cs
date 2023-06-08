@@ -45,38 +45,6 @@ namespace SIT.Coop.Core.Matchmaker
             return true;
         }
 
-        //public static void DoCreateAndCheck()
-        //{
-        //    if (MatchmakerAcceptPatches.Profile == null)
-        //    {
-        //        Logger.LogError("MatchmakerAcceptScreenAwakePatch::DoCreateAndCheck::MatchmakerAcceptPatches.Profile == null");
-        //        return;
-        //    }
-        //    MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId);
-        //    MatchmakerAcceptPatches.CheckForMatch();
-        //}
-
-        //public static void GoToRaid()
-        //{
-        //    MatchmakerAcceptPatches.CheckForMatch();
-
-        //    if (MatchmakerAcceptPatches.IsSinglePlayer)
-        //    {
-        //        DisplayMessageNotifications.DisplayMessageNotification("Starting Singleplayer Game...");
-        //    }
-        //    // SendInvitePatch sets up the Host
-        //    else if (MatchmakerAcceptPatches.IsServer)
-        //    {
-        //        DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Host");
-        //        MatchmakerAcceptPatches.SetGroupId(PatchConstants.GetPHPSESSID());
-        //    }
-        //    // MatchmakerAcceptPatches.CheckForMatch sets up the Client
-        //    else if (MatchmakerAcceptPatches.IsClient)
-        //    {
-        //        DisplayMessageNotifications.DisplayMessageNotification("Starting Coop Game as Client");
-        //    }
-
-        //}
     }
 }
 

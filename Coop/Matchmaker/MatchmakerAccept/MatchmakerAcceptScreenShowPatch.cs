@@ -29,9 +29,6 @@ namespace SIT.Coop.Core.Matchmaker
 
         }
 
-
-        //private static Button _updateListButton;
-
         private static DateTime LastClickedTime { get; set; } = DateTime.MinValue;
 
         [PatchPrefix]
@@ -43,7 +40,7 @@ namespace SIT.Coop.Core.Matchmaker
             DefaultUIButton ____acceptButton
             )
         {
-            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix");
+            //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix");
 
             var rs = raidSettings;
             ____acceptButton.OnClick.AddListener(() =>
@@ -52,7 +49,7 @@ namespace SIT.Coop.Core.Matchmaker
                 {
                     LastClickedTime = DateTime.Now;
 
-                    Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
+                    //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
                     if (MatchmakerAcceptPatches.CheckForMatch(rs, out string returnedJson))
                     {
                         Logger.LogDebug(returnedJson);

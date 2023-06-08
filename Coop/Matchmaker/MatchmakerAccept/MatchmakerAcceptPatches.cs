@@ -119,6 +119,7 @@ namespace SIT.Coop.Core.Matchmaker
             {
                 PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {accountId}");
                 SetGroupId(accountId);
+                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
                 return;
             }
 
