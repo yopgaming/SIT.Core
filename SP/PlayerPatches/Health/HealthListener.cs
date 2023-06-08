@@ -104,7 +104,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
         }
 
-        private void SetCurrentHealth(object healthController, IReadOnlyDictionary<EBodyPart, BodyPartHealth> dictionary, EBodyPart bodyPart)
+        public static void SetCurrentHealth(object healthController, IReadOnlyDictionary<EBodyPart, BodyPartHealth> dictionary, EBodyPart bodyPart)
         {
             if (healthController == null)
             {
