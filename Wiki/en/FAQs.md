@@ -1,4 +1,3 @@
-
 ## Infinite "Loading profile data..." screen
 
 Caused by: 
@@ -13,7 +12,22 @@ See:
 - [Discussion#139](https://github.com/paulov-t/SIT.Core/discussions/139)
 - [Discussion#24](https://github.com/paulov-t/SIT.Core/discussions/24)
 - [Issue#115](https://github.com/paulov-t/SIT.Core/issues/115)
+- [Issue#60](https://github.com/paulov-t/SIT.Core/issues/60#issuecomment-1560461446)
 
 ---
 
-[TBC]
+## Where do I install mods?
+
+### Client mods
+
+Install client mods in `<game folder>/BepInEx/plugins/`.
+
+### Server mods
+
+Install server mods in `<server folder>/user/mods/`.
+
+See:
+- [Discussion#111](https://github.com/paulov-t/SIT.Core/discussions/111)
+- [Discussion#134](https://github.com/paulov-t/SIT.Core/discussions/134)
+
+---
