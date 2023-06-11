@@ -1,5 +1,7 @@
 # Installation guide 
 
+** This guide expects users to be able to have access to their ISP Router Port Forwarding and Firewall settings **
+
 ## HOST
 
 1. Download and Extract latest SPT Aki (3.5.7. right now)

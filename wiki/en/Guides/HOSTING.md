@@ -1,7 +1,7 @@
 ﻿# HOSTING
 
 ## How to allow others to join your SPT-Aki Server?
-* Follow [SETUP-STANDARD](SETUP-STANDARD.md) or [SETUP-HAMACHI](SETUP-HAMACHI.md)
+* Follow [SETUP-STANDARD](SETUP-STANDARD) or [SETUP-HAMACHI](SETUP-HAMACHI)
 
 ## How to join each other's match
 THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME AND LIKELY TO CHANGE
