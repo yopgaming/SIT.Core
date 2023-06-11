@@ -9,8 +9,6 @@ namespace SIT.Core.SP.PlayerPatches.Health
     {
         private static object _lock = new object();
         private static HealthListener _instance = null;
-        private bool _inRaid;
-        private readonly Request _request;
         public object MyHealthController { get; set; }
 
         public PlayerHealth CurrentHealth { get; } = new PlayerHealth();
@@ -37,7 +35,6 @@ namespace SIT.Core.SP.PlayerPatches.Health
         // ctor
         private HealthListener()
         {
-            _request = Request.Instance;
         }
 
         /// <summary>
@@ -54,9 +51,6 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
             // init dependencies
             MyHealthController = healthController;
-            _inRaid = inRaid;
-
-            //_simpleTimer.isSyncHealthEnabled = !inRaid;
 
             CurrentHealth.IsAlive = true;
 
