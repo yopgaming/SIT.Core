@@ -13,3 +13,4 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 
 ## [Guides](./en/Guides.md)
 ## [FAQs](./en/FAQs.md)
+## [中文WIKI](./cn/Home.md)
