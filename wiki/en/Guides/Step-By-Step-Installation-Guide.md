@@ -104,4 +104,4 @@ Launch the game via the `SIT Launcher`.
 
 ## 3. Create a Lobby
 
-See [How to join each other's match](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING.md#how-to-join-each-others-match) for in-game instructions.
+See [How to join each other's match](https://github.com/paulov-t/SIT.Core/wiki/HOSTING.md#how-to-join-each-others-match) for in-game instructions.

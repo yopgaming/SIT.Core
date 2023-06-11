@@ -11,6 +11,6 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki with the u
 The Stay in Tarkov project was born due to Battlestate Games' (BSG) reluctance to create the pure PvE version of Escape from Tarkov. 
 The project's aim is simple, create a Cooperation PvE experience that retains progression. If BSG decide to create the ability to do this on live, this project will be shut down immediately.
 
-## [Guides](./Guides)
-## [FAQs](./FAQs)
+## [Guides](https://github.com/paulov-t/SIT.Core/wiki/Guides)
+## [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs)
 ## [中文WIKI](家 - Home)
