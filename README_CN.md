@@ -49,7 +49,7 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 * 但是“可以玩”与“完美运行”是完全不同的概念，玩家间的数据不同步，各种问题与bug是预期范围内的。
 * 我测试了所有地图，目前效果最好的两张图是`工厂`与`实验室` 。
 * 服务器与客户的的网络/CPU，以及服务器上的AI数量会剧烈影响游戏性能
-* 更多有关运行服务器与游戏合作注意事项在 [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING.md)这里
+* 更多有关运行服务器与游戏合作注意事项在 [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/cn/Guides/HOSTING.md)这里
 
 ### 预先准备
 你必须将 [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) 安装到你的SPT-AKi服务器上来让mod工作。
