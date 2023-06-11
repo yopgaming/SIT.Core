@@ -1,0 +1,111 @@
+
+<div align=center style="text-align: center">
+<h1 style="text-align: center"> SIT.Core </h1>
+逃离塔科夫的BepInEx MOD，为了配合SPT-Aki在逃离塔科夫离线模式下进行合作游戏。
+ 
+[English](README.md) **|** [简体中文](README_CN.md)
+ 
+</div>
+
+---
+## 关于这个项目
+
+SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生啦。
+
+该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在正式版本中实现PVE合作模式，该项目会立刻关停。
+
+## Disclaimer
+
+* You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
+* This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
+* This is by no means designed for illegally downloading the game (and has blocks for people that do!)
+* This is purely for educational purposes (I am using this to learn Unity, Reverse Engineering & Networking)
+* I am in no way affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project
+
+## Support
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
+* Please be aware. The Ko-Fi link is buying me a coffee, nothing else!
+* I do not have some special subset of code that makes it work beyond what is here on GitHub 
+* Please do not hand over money expecting help or a solution
+* This is a hobby, for fun, project. Please don't treat it seriously.
+* I do not BS the community. I know this is a semi-broken attempt but will attempt to fix as best I can.
+* Pull Requests are encouraged!
+
+## SPT-AKI Requirement
+* Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
+* DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
+
+## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
+  - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/Guides)
+  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs)
+
+## Coop
+
+### Coop Summary
+**BE AWARE**
+* Coop is in early stages of development. 
+* Most features work (ish) and it is "playable (ish) with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
+* My tests have included all maps. The maps that work best are Factory and Labs. Performance is very dependant on the CPU / Internet on the Server and Clients and AI count on the Server
+* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING.md)
+
+### PREREQUISITE
+You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
+
+### Can Coop use BSG code?
+No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
+
+### Coding explanation
+- The project uses multiple methods of BepInEx Harmony patches coupled with Unity Components to achieve its aims.
+- Features/Methods that require constant polling between Client->Server->Client (Move, Rotate, Look, etc) use Components to send data (AI code runs the Update/LateUpdate command and the function every tick, therefore causing network flood).
+- Features/Methods that can easily be "replicated" use ModuleReplicationPatch abstract class to easily round trip the call.
+- All server communication is via JSON TCP Http and Web Socket calls to the ["Web Server" developed by SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) using a [typescript mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) to handle the "backend" work.
+- CoopGameComponent is attached to the GameWorld object when a Coop ready game is started (any game that isn't Hideout). CoopGameComponent polls the Server for information and passes the data to the PlayerReplicatedComponent.
+
+## SPT-Aki
+
+### Are Aki Modules supported?
+The following Aki Modules are supported.
+- aki-core
+- Aki.Common
+- Aki.Reflection
+- 50/50 on SPT-AKI Client mods. This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
+
+### Why don't you use Aki Module DLLs?
+SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.
+So I ported many of SPT-Aki features into this module. My end-goal would be to rely on SPT-Aki and for this to be solely focused on SIT only features.
+
+## How to compile? 
+[Compiling Document](COMPILE.md)
+
+# How to install BepInEx
+[https://docs.bepinex.dev/articles/user_guide/installation/index.html](https://docs.bepinex.dev/articles/user_guide/installation/index.html)
+
+## Install to Tarkov
+BepInEx 5 must be installed and configured first (see How to install BepInEx)
+Place the built .dll in the BepInEx plugins folder
+
+## Test in Tarkov
+- Browse to where BepInEx is installed within your Tarkov folder
+- Open config
+- Open BepInEx.cfg
+- Change the following setting [Logging.Console] Enabled to True
+- Save the config file
+- Run Tarkov through a launcher or bat file like this one (replacing the token with your ID)
+```
+start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -config={"BackendUrl":"http://127.0.0.1:6969","Version":"live"}
+```
+- If BepInEx is working a console should open and display the module "plugin" as started
+
+
+## Thanks List
+- SPT-Aki team
+- MTGA team
+- SPT-Aki Modding Community
+- Props (AIBushPatch, AIAwakeOrSleepPatch - Currently unused)
+- kmyuhkyuk (GamePanulHUD - Unused)
+
+## License
+
+- 95% of the original core and single-player functionality completed by SPT-Aki teams. There may be licenses pertaining to them within this source.
+- None of my own work is Licensed. This is solely a just for fun project. I don't care what you do with it.
