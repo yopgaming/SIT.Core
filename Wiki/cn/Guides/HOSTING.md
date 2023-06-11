@@ -1,7 +1,7 @@
 ﻿# 架设服务器
 
 ## 如何让其他玩家加入你的服务器？
-* 遵循这两种架设方式： [端口映射或公网方式架设服务器](SETUP-STANDARD.md) or [使用HAMACH架设服务器](SETUP-HAMACHI.md)
+* 遵循这两种架设方式： [端口映射或公网方式架设服务器](SETUP-STANDARD.md) or [使用HAMACH架设服务器](../../en/Guides/SETUP-HAMACHI.md)
 
 ## 如何加入其它玩家的战局？
 这是一个极其实验性的功能，很有可能会被改变。
