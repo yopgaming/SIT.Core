@@ -874,10 +874,22 @@ namespace SIT.Core.Coop
 
         private void ProcessPlayerPacket(Dictionary<string, object> packet)
         {
+            if (packet == null)
+                return;
+
             if (!packet.ContainsKey("accountId"))
                 return;
 
+            if (packet["accountId"] == null || packet["accountId"].ToString() == "null")
+            {
+                Logger.LogError("Account Id is null for Packet");
+                return;
+            }
+
             var accountId = packet["accountId"].ToString();
+
+            if (Players == null)
+                return;
 
             if (!Players.Any())
                 return;
@@ -891,15 +903,14 @@ namespace SIT.Core.Coop
                 //if (!plyr.Value.HealthController.IsAlive)
                 //    continue;
 
-                plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc);
-
-                if (prc == null)
+                if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                {
+                    prc.ProcessPacket(packet);
+                }
+                else
                 {
                     Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                    continue;
                 }
-
-                prc.ProcessPacket(packet);
             }
 
             try
@@ -911,14 +922,14 @@ namespace SIT.Core.Coop
                     //if (!plyr.HealthController.IsAlive)
                     //    continue;
 
-                    if (!plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
-
-                        Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                        continue;
+                        prc.ProcessPacket(packet);
                     }
-
-                    prc.ProcessPacket(packet);
+                    else
+                    {
+                        Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                    }
                 }
             }
             catch (Exception) { }
