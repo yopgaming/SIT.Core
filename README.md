@@ -34,8 +34,8 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 * DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
 
 ## [Wiki](https://github.com/paulov-t/SIT.Core/wiki/Home)
-## [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/en/Guides)
-## [FAQs](https://github.com/paulov-t/SIT.Core/wiki/en/FAQs)
+  - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/en/Guides)
+  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/en/FAQs)
 
 ## Coop
 
