@@ -33,7 +33,7 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 * Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
 * DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
 
-## [Wiki](https://github.com/paulov-t/SIT.Core/wiki/Home)
+## [Wiki](./wiki/Home)
   - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/en/Guides)
   - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/en/FAQs)
 
