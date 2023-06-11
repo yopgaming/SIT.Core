@@ -30,10 +30,25 @@ See:
 
 ---
 
-## Port Forwarding by using Ddns technology?
+## DDNS Setup step. If you don't have a static public IP address and you want to use a domain name to connect to the server.
 
-Type 0.0.0.0 for http.json and server.json.
+### Step 1
+Replace `"ip": "127.0.0.1"` in these two files with the IP Address of your computer's NIC address(__NOT YOUR PUBLIC IP ADDRESS__) 
+or use 0.0.0.0 instead.
 
-Type your domain address for CoopConfig.json.
+`<Server folder>/Aki_Data/Server/configs/http.json`
+
+`<Server folder>/Aki_Data/Server/database/server.json`
+
+and make sure these two file have same IP Address.
+
+### Step 2
+Locate the SIT.Aki-Server-Mod `coopConfig.json` in the `<Server folder>/user/mods/SIT.Aki-Server-Mod/config/` directory.
+
+Change "externalIP": "http://127.0.0.1:6969" to your domain name. For example: "externalIP": "http://yourdomain.com:6969".
+
+__Set useExternalIPFinder to false__
+
+__Now you are good to go. Have some fun~__
 
 ---
