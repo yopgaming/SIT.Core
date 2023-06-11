@@ -17,5 +17,11 @@ namespace SIT.Core.Coop.NetworkPacket
 
         [JsonProperty(PropertyName = "m")]
         public virtual string Method { get; set; } = null;
+
+        public BasePacket()
+        {
+            Time = DateTime.Now.Ticks;
+            ServerId = CoopGameComponent.GetServerId();
+        }
     }
 }
