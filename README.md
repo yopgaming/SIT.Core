@@ -34,8 +34,8 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 * DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
 
 ## [Wiki](./Wiki/Home.md)
-## [Setup Manuals](./Wiki/en/Guides.md)
-## [FAQs](./Wiki/en/FAQs.md)
+- ### [Setup Manuals](./Wiki/en/Guides.md)
+- ### [FAQs](./Wiki/en/FAQs.md)
 
 ## Coop
 
