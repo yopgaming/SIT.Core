@@ -16,7 +16,7 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 
 ## 免责声明
 
-* 你必须购买一份游戏才能使用这个项目，你可以在这里购买这个游戏[https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
+* 你必须购买一份游戏才能使用这个项目，你可以在这里购买游戏[https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 * 该项目不是为了在游戏中作弊开发的 (正相反，因为正版多人环境中泛滥的作弊者催生了该项目)
 * 这个项目也不是为了让人获取盗版/非法的副本存在的 (而且也会阻止非正规途径获取的游戏启动)
 * 这个项目仅仅是为了学习目的 (我以此来学习Unity, 反向工程与网络开发)
@@ -58,7 +58,7 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 
 
 ### 合作mod可以使用BSG官方的代码吗?
-不行。因为BSG的Coop与PvPvE共享相同的服务器代码，而且BSG官方服务器明显是不会开放任何代码的，所有我们用不了。
+不行。因为BSG的Coop与PvPvE共享相同的服务器代码，而且BSG官方服务器明显是不会开放任何代码的，所以我们用不了。
 
 ### 代码相关解释
 - 项目使用多种BepInEx Harmony补丁对Unity组件修改来实现功能
