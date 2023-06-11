@@ -29,3 +29,11 @@ See:
 - [Discussion#134](https://github.com/paulov-t/SIT.Core/discussions/134)
 
 ---
+
+## Port Forwarding by using Ddns technology?
+
+Type 0.0.0.0 for http.json and server.json.
+
+Type your domain address for CoopConfig.json.
+
+---
