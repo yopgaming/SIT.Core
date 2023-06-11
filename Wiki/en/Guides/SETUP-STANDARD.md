@@ -1,5 +1,11 @@
 # Installation guide 
 
+This guide expects the user to be able to:
+1. Have access to and understand router settings
+2. Have access and the ability to port forward to a singular network PC
+3. Have access and the ability to router firewall
+4. Have access to PC firewall
+
 ## HOST
 
 1. Download and Extract latest SPT Aki (3.5.7. right now)
