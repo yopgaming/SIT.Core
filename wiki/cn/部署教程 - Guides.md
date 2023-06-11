@@ -1,4 +1,4 @@
-实用教程(小夜初译):
+部署教程:
 
 - [端口映射或公网方式架设服务器](./Guides/SETUP-STANDARD.md)
 - [使用HAMACH架设服务器](../en/Guides/SETUP-HAMACHI.md) 源于 [ppyLEK](https://github.com/ppyLEK) （在国内不常使用该方法，故使用英文原文）
