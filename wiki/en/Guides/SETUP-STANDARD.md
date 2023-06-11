@@ -18,11 +18,10 @@
 
 ## CLIENT
 
-1. Download and Extract latest SPT Aki (3.5.5. right now)
-2. Delete all your current copies of Offline EFT
-3. Download SIT-Launcher
-4. Let SIT-Launcher create a copy of your Live EFT (or do it manually, thats up to you)
-5. Let SIT-Launcher install SIT / Assemblies
-6. Connect to IP given by the HOST
-7. DO NOT USE USERNAME AND PASSWORDS FROM OTHER SOURCES, ALL PASSWORDS ARE SAVED IN PLAIN TEXT!
+1. Delete all your current copies of Offline EFT
+2. Download SIT-Launcher
+3. Let SIT-Launcher create a copy of your Live EFT (or do it manually, thats up to you)
+4. Let SIT-Launcher install SIT / Assemblies
+5. Connect to IP given by the HOST
+6. DO NOT USE USERNAME AND PASSWORDS FROM OTHER SOURCES, ALL PASSWORDS ARE SAVED IN PLAIN TEXT!
 
