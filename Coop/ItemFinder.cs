@@ -23,7 +23,7 @@ namespace SIT.Core.Coop
             return item != null;
         }
 
-        public static bool TryFindItemInWorld(EFT.Player player, string itemId, out EFT.InventoryLogic.Item item)
+        public static bool TryFindItemInWorld(string itemId, out EFT.InventoryLogic.Item item)
         {
             item = null;
 

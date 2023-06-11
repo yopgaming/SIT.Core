@@ -43,7 +43,7 @@ namespace SIT.Core.Coop.Player
                         {
                             damageInfo.Damage = 999;
                             damageInfo.DidBodyDamage = 999;
-                            damageInfo.DidArmorDamage = 0;
+                            damageInfo.DidArmorDamage = 999;
                         }
                     }
                 }
@@ -76,7 +76,7 @@ namespace SIT.Core.Coop.Player
                     {
                         damageInfo.Damage = 999;
                         damageInfo.DidBodyDamage = 999;
-                        damageInfo.DidArmorDamage = 0;
+                        damageInfo.DidArmorDamage = 999;
                     }
                 }
             }
@@ -166,7 +166,6 @@ namespace SIT.Core.Coop.Player
             if (player.HealthController == null)
                 return;
 
-            // TODO: This dont work. If you pick this gun up afterward, it can't make a noise anymore. STOOPID.
             if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
                 if (!player.HealthController.IsAlive && prc.IsClientDrone)

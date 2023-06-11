@@ -91,7 +91,7 @@ namespace SIT.Coop.Core.Player
 
             Item item;
             if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
-                ItemFinder.TryFindItemInWorld(player, dict["item.id"].ToString(), out item);
+                ItemFinder.TryFindItemInWorld(dict["item.id"].ToString(), out item);
 
             if (item != null)
             {

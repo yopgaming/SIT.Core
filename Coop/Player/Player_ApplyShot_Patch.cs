@@ -158,20 +158,17 @@ namespace SIT.Core.Coop.Player
                 }
             }
 
-            if (dict.ContainsKey("d.w.tpl") && dict["d.w.tpl"] != null)
+            if (dict.ContainsKey("d.w.tpl") || dict.ContainsKey("d.w.id"))
             {
-                //Logger.LogDebug("Apply Damage: Found d.w.tpl");
                 if (aggressorPlayer != null)
                 {
-                    if (aggressorPlayer.Inventory.GetAllItemByTemplate(dict["d.w.tpl"].ToString()).Any())
+                    Item item = null;
+                    if (!ItemFinder.TryFindItemOnPlayer(aggressorPlayer, dict["d.w.tpl"].ToString(), dict["d.w.id"].ToString(), out item))
+                        ItemFinder.TryFindItemInWorld(dict["d.w.id"].ToString(), out item);
+
+                    if (item is Weapon w)
                     {
-                        //Logger.LogDebug("Apply Damage: Found Template in Player Inventory");
-                        var w = aggressorPlayer.Inventory.GetAllItemByTemplate(dict["d.w.tpl"].ToString()).First() as Weapon;
-                        if (w != null)
-                        {
-                            //Logger.LogDebug("Apply Damage: Found Weapon in Player Inventory");
-                            damageInfo.Weapon = w;
-                        }
+                        damageInfo.Weapon = w;
                     }
                 }
             }
