@@ -29,9 +29,7 @@
 4. 第1次启动时,会有以下安装提示跳出:
     
     *"No OFFLINE install found. Would you like to install now?"* 
-
-    Click "Yes".
-
+    
     点击"Yes"
 5. 将安装根目录设置为 `SIT_DIR/game`
 6. 启动器会自动安装,请耐心等待
@@ -43,9 +41,7 @@
 ## 3. [SIT服务器Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)
 1. 从[GitHub](https://github.com/paulov-t/SIT.Aki-Server-Mod)下载服务器mod的zip文件 (那个大绿按钮底下: *Code > Download Zip*).
 2. 解压缩文件至 `SIT_DIR/server/user/mods`.
-
-    *The `user/mods` directory is automatically created when the server is run the first time. Run `Aki.Server.exe` to create the folder. Stop and close the server once the directory has been created so we can continue the installation process.*
-
+3. 
         *`user/mods` 目录会在服务器第1次运行时自动创建. 运行`Aki.Server.exe` 即可创建此文件夹. 在目录被创建后,请停止并关闭服务器,并继续进行安装.*
 
 # 服务器设置
