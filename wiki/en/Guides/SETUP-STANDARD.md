@@ -22,6 +22,6 @@
 2. Download SIT-Launcher
 3. Let SIT-Launcher create a copy of your Live EFT (or do it manually, thats up to you)
 4. Let SIT-Launcher install SIT / Assemblies
-5. Connect to IP given by the HOST
+5. Connect to IP and port given by the HOST (e.g. http://111.222.255.255:6969)
 6. DO NOT USE USERNAME AND PASSWORDS FROM OTHER SOURCES, ALL PASSWORDS ARE SAVED IN PLAIN TEXT!
 
