@@ -39,7 +39,7 @@ namespace SIT.Core.Coop.Player
                 {
                     if (PluginConfigSettings.Instance.CoopSettings.SETTING_HeadshotsAlwaysKill)
                     {
-                        if (bodyPartType == EBodyPart.Head)
+                        if (bodyPartType == EBodyPart.Head && damageInfo.DamageType == EFT.EDamageType.Bullet)
                         {
                             damageInfo.Damage = 999;
                             damageInfo.DidBodyDamage = 999;
@@ -72,7 +72,7 @@ namespace SIT.Core.Coop.Player
             {
                 if (PluginConfigSettings.Instance.CoopSettings.SETTING_HeadshotsAlwaysKill)
                 {
-                    if (bodyPartType == EBodyPart.Head)
+                    if (bodyPartType == EBodyPart.Head && damageInfo.DamageType == EFT.EDamageType.Bullet)
                     {
                         damageInfo.Damage = 999;
                         damageInfo.DidBodyDamage = 999;
