@@ -44,7 +44,7 @@ Sobald der Servermod drinnen ist starte den Server noch einmal kurz damit alle C
 ## Server-Config
 
 ### Ohne Hamachi
-Der Server hat einen automatischen IP-Finder, du müsstest theoretisch nur die Kommunikation über deine Firewall erlauben und den Port `6969` in deinem Router freischalten und deine IP mit deinen Freunden teilen. Vergiss aber nicht, dass sich deine Adresse öfter mal ändern kann!
+Der Server hat einen automatischen IP-Finder, du müsstest theoretisch nur die Kommunikation über deine Firewall erlauben,<br> den Port `6969` in deinem Router freischalten und deine IP mit deinen Freunden teilen. Vergiss aber nicht, dass sich deine Adresse öfter mal ändern kann!
 
 ### Mit Hamachi
 1. Versichere dich, dass Hamachi läuft.
@@ -55,11 +55,9 @@ Der Server hat einen automatischen IP-Finder, du müsstest theoretisch nur die K
 6. Öffne die Serverconnection-Config im Server-Ordner in `.../Aki_Data/Server/configs/http.json`.
 7. Setze bei `ip` deine Hamachi-Adresse ein z.B. `5.0.0.1`.
 8. Optional kannst du noch `logRequests` auf `false` setzen um Log-Spam zu verhindern.
+9. Server starten und daddeln!
 
 ### Remote/Root-Server
-nachui
-
-
-## [Guides](./Guides)
-## [FAQs](./FAQs)
+Im Prinzip müsstest du nur Firewall-Ausnahmen für den Server und/oder Port erstellen und die IP teilen.<br>
+Du kannst auch, wie beim Hamachi-Setup die Serveradresse direkt in die Configs eintragen.
 
