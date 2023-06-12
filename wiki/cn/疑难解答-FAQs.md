@@ -1,6 +1,7 @@
 ## 无限卡在'正在加载配置文件'界面
 
 可能的原因:
+
 - 游戏文件有问题.
 - 与服务器连接有问题,与你的网络设置相关.
 
@@ -21,11 +22,11 @@
 
 ### 客户端mod
 
-安装在 `<game folder>/BepInEx/plugins/`.
+安装在 `<游戏目录>/BepInEx/plugins/`.
 
 ### 服务器mod
 
-安装在 `<server folder>/user/mods/`
+安装在 `<服务器目录>/user/mods/`
 
 详见:
 - [Discussion#111](https://github.com/paulov-t/SIT.Core/discussions/111)
@@ -37,7 +38,7 @@
 
 ### 步骤 1
 
-将这2个文件中的 `"ip": "127.0.0.1"` 替换为你电脑的NIC地址(__不是你的公网IP__) 或者直接使用0.0.0.0
+将这2个文件中的 `"ip": "127.0.0.1"` 替换为你电脑的网卡地址(__不是你的公网IP__) 或者直接使用0.0.0.0
 
 `<Server folder>/Aki_Data/Server/configs/http.json`
 
