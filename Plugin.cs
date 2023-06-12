@@ -178,6 +178,7 @@ namespace SIT.Core
             //new BotSelfEnemyPatch().Enable();
             new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
             new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
+            new CheckAndAddEnemyPatch().Enable();
         }
 
         private void EnableCoopPatches()
