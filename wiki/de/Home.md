@@ -12,7 +12,7 @@ Das Projekt wurde ins Leben gerufen da Battlestate Games (BSG) bisher keine rein
 Das Ziel ist einfach: Ein PvE Spielmodus in dem du mit Freunden spielen kannst und deine/eure Items und Fortschritt erhalten bleiben.
 <br>Sobald BSG allerdings solch einen Spielmodus anbietet wird das Projekt sofort eingestampft!
 
-## Installation
+## Client-Installation
 
 Zu aller erst: Du musst eine aktuelle, legitime Version von Tarkov auf deinem System installiert haben. <br>SIT funktioniert nicht mit alten und/oder gecrackten Versionen!
 <br><br>
@@ -30,7 +30,7 @@ Wähle irgendwas anderes, der Account gilt nur für den emulierten Tarkov-Server
 Beim ersten einloggen wird dir angezeigt, dass der Account nicht existiert und ob du ihn anlegen möchtest, einfach bestätigen. <br>
 Im Anschluss sollte dein Tarkov starten und bereit für Coop sein! :)
 
-## Server-Setup
+## Server-Installation
 
 Hier findest du den aktuellen SPT-AKI-Server -> [Download](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases)
 <br>
@@ -60,4 +60,11 @@ Der Server hat einen automatischen IP-Finder, du müsstest theoretisch nur die K
 ### Remote/Root-Server
 Im Prinzip müsstest du nur Firewall-Ausnahmen für den Server und/oder Port erstellen und die IP teilen.<br>
 Du kannst auch, wie beim Hamachi-Setup die Serveradresse direkt in die Configs eintragen.
+
+### DDNS/Domain Setup
+
+1. Tausche die Adresse bei `"ip": "127.0.0.1"` in den Dateien `<Server-Ordner>/Aki_Data/Server/configs/http.json`&
+`<Server-Ordner>/Aki_Data/Server/database/server.json` mit der NIC-Adresse deines Servers aus oder nutze `0.0.0.0`
+2. Tausche die Adresse bei `externalIP` in der `coopConfig.json` unter `<Server-Ordner>/user/mods/SIT.Aki-Server-Mod/config/` mit deiner Domain aus. z.B. `https://deinedomain.de:6969`
+3. Schalte  `useExternalIPFinder` auf `false`.
 
