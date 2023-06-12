@@ -20,7 +20,9 @@ In dem neuen Ordner wird eine Kopie deiner Tarkov-Installation angelegt und alle
 Der ganze Prozess dauert ein paar Minuten. 
 
 Sobald alles aufgesetzt ist kannst du im Launcher die Serveradresse, deine Accountnamen und Passwort eingeben und dich verbinden.
-NICHT deine BSG-Accountdaten!!!! Wähle irgendwas anderes, der Account gilt nur für den emulierten Tarkov-Server und alle Daten werden im Klartext gespeichert!!!
+<br>
+NICHT deine BSG-Accountdaten!!!!
+<br> Wähle irgendwas anderes, der Account gilt nur für den emulierten Tarkov-Server und alle Daten werden im Klartext gespeichert!!!
 Beim ersten einloggen wird dir angezeigt, dass der Account nicht existiert und ob du ihn anlegen möchtest, einfach bestätigen. 
 Im Anschluss sollte dein Tarkov starten und bereit für Coop sein! :)
 
