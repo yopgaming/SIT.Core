@@ -44,7 +44,7 @@ Sobald der Servermod drinnen ist starte den Server noch einmal kurz damit alle C
 ## Server-Config
 
 ### Ohne Hamachi
-Der Server hat einen automatischen IP-Finder, du müsstest theoretisch nur die Kommunikation über deine Firewall erlauben,<br> den Port `6969` in deinem Router freischalten und deine IP mit deinen Freunden teilen. Vergiss aber nicht, dass sich deine Adresse öfter mal ändern kann!
+Der Server hat einen automatischen IP-Finder, du müsstest theoretisch nur die Kommunikation über deine Firewall erlauben,<br> den Port `6969` in deinem Router freischalten und deine IP mit deinen Freunden teilen. <br>Vergiss aber nicht, dass sich deine Adresse öfter mal ändern kann!<br><br>Deine IP kannst du z.B. hier herausfinden -> [WieIstMeineIP](https://wieistmeineip.de)
 
 ### Mit Hamachi
 1. Versichere dich, dass Hamachi läuft.
