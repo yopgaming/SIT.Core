@@ -19,7 +19,7 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 * 你必须购买一份游戏才能使用这个项目，你可以在这里购买游戏[https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 * 该项目不是为了在游戏中作弊开发的 (正相反，因为正版多人环境中泛滥的作弊者催生了该项目)
 * 这个项目也不是为了让人获取盗版/非法的副本存在的 (而且也会阻止非正规途径获取的游戏启动)
-* 这个项目仅仅是为了学习目的 (我以此来学习Unity, 反向工程与网络开发)
+* 这个项目仅仅是为了学习目的 (我以此来学习Unity, 逆向工程与网络开发)
 * 我也与BSG或其他 (在Reddit或Discord或Bilibili) 声称自己在进行的项目毫无关系
 
 ## 支持我
@@ -62,7 +62,7 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 
 ### 代码相关解释
 - 项目使用多种BepInEx Harmony补丁对Unity组件修改来实现功能
-- 那些需要不断在客户端与服务器之间同步的数据 (移动，转型，观察周围等等) 使用组件来传输数据 (AI的代码在每一帧都执行一遍Update/LateUpdate命令和函数，从而导致大量的网络数据传输)
+- 那些需要不断在客户端与服务器之间同步的数据 (移动，视角变换等等) 使用组件来传输数据 (AI的代码在每一帧都执行一遍Update/LateUpdate命令和函数，从而导致大量的网络数据传输)
 - 那些可以被轻松 "复现" 的功能与方法则使用 ModuleReplicationPatch 抽象类处理 以实现双向调用。
 - 服务器所有的通信都通过JSON TCP Http 与 Web Socket 调用名为 ["Web Server" developed by SPT-Aki](https://dev.sp-tarkov.com/SPT-AKI/Server) 来处理，使用[typescript mod: SIT.Aki-Server-Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) 来处理后端相关工作
 - 当一个合作游戏开始时（除了藏身处），CoopGameComponent会附加到GameWorld对象上，并轮询数据传递给PlayerReplicatedComponent

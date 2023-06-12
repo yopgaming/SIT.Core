@@ -15,7 +15,7 @@
 10. 在你的光猫/路由器上转发配置的SPT-Aki服务器端口与SIT.Aki-Server-Mod端口，默认为6969与6970，并确认服务端的防火墙已经放行配置的端口
 12. 和你的小伙伴找点乐子吧
 
-## CLIENT
+## 客户端
 
 1. 删除你已有的所有的离线塔科夫文件
 2. 下载最新的 [SIT-Launcher](https://github.com/paulov-t/SIT.Launcher/releases)
