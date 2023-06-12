@@ -48,7 +48,9 @@
 ### 步骤 2
 在`<Server folder>/user/mods/SIT.Aki-Server-Mod/config/`目录下找到SIT.Aki-Server-Mod `coopConfig.json`
 
-将"externalIP": "http://127.0.0.1:6969"替换为你的域名.栗子:"externalIP": "http://yourdomain.com:6969"
+将"externalIP": "http://127.0.0.1:6969" 替换为你的域名.
+
+栗子: "externalIP": "http://yourdomain.com:6969"
 
 __将useExternalIPFinder设置为false__
 
