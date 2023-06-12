@@ -5,6 +5,8 @@ Ein Escape From Tarkov BepInEx Modul für SPT-Aki mit dem Ziel einen "Offline" C
 </div>
 
 ---
+[FAQ](./FAQs.md)
+---
 
 ## Über
 
