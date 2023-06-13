@@ -128,9 +128,14 @@ namespace SIT.Tarkov.Core
         {
             get
             {
-                if (_backEndSession == null)
+                if (_backEndSession == null && Singleton<TarkovApplication>.Instantiated)
                 {
                     _backEndSession = Singleton<TarkovApplication>.Instance.GetClientBackEndSession();
+                }
+
+                if (_backEndSession == null && Singleton<ClientApplication<ISession>>.Instantiated)
+                {
+                    _backEndSession = Singleton<ClientApplication<ISession>>.Instance.GetClientBackEndSession();
                 }
 
                 return _backEndSession;
@@ -173,6 +178,8 @@ namespace SIT.Tarkov.Core
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                FloatFormatHandling = FloatFormatHandling.DefaultValue,
+                FloatParseHandling = FloatParseHandling.Double,
                 Error = (serializer, err) =>
                 {
                     Logger.LogError(err.ErrorContext.Error.ToString());
