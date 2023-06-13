@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using EFT;
+using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
@@ -24,10 +25,8 @@ namespace SIT.Coop.Core.LocalGame
         [PatchPrefix]
         public static bool PatchPrefix(NonWavesSpawnScenario __instance)
         {
-            var EnableAISpawnWaveSystem = _config.Bind("Coop", "EnableAISpawnWaveSystem", true
-                        , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
-
-            var result = !Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem;
+            var result = !Matchmaker.MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
+            ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);
             return result;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using EFT;
+using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -30,10 +31,8 @@ namespace SIT.Core.SP.Raid
         public static bool PrePatch(EFT.WavesSpawnScenario __instance, WildSpawnWave[] waves)
         {
             CurrentInstance = __instance;
-            var EnableAISpawnWaveSystem = _config.Bind("Coop", "EnableAISpawnWaveSystem", true
-                  , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
-
-            var result = !SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient && EnableAISpawnWaveSystem;
+          
+            var result = !SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
 
 
             ReflectionHelpers.SetFieldOrPropertyFromInstance(__instance, "Enabled", result);

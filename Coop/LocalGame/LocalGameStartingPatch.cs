@@ -4,6 +4,7 @@ using Comfort.Common;
 using EFT;
 using EFT.Interactive;
 using SIT.Coop.Core.Matchmaker;
+using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -167,6 +168,9 @@ namespace SIT.Coop.Core.LocalGame
             }
             //else
             //{
+
+            if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
+            {
                 var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
                 Logger.LogInfo("Retreived Spawn Point " + json);
                 var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
@@ -175,6 +179,7 @@ namespace SIT.Coop.Core.LocalGame
                 var z = float.Parse(retrievedPacket["z"].ToString());
                 var teleportPosition = new Vector3(x, y, z);
                 player.Teleport(teleportPosition, true);
+            }
             //}
         }
 
