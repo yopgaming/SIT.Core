@@ -1,6 +1,7 @@
 ﻿using EFT;
 using EFT.HealthSystem;
 using HarmonyLib;
+using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
@@ -11,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using static SIT.Core.Coop.Player.Health.ChangeHealthPatch;
 
 namespace SIT.Core.Coop.Player.Health
@@ -31,7 +33,7 @@ namespace SIT.Core.Coop.Player.Health
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            Logger.LogDebug("RestoreBodyPartPatch:PrePatch");
+            //Logger.LogDebug("RestoreBodyPartPatch:PrePatch");
             var result = false;
             return result;
         }
@@ -43,17 +45,15 @@ namespace SIT.Core.Coop.Player.Health
             , float healthPenalty
             )
         {
-            Logger.LogDebug("RestoreBodyPartPatch:PatchPostfix");
+            //Logger.LogDebug("RestoreBodyPartPatch:PatchPostfix");
 
-            var player = __instance.Player; // ReflectionHelpers.GetFieldOrPropertyFromInstance<EFT.Player>(__instance, "Player", false);
+            var player = __instance.Player; 
             RestoreBodyPartPacket restoreBodyPartPacket = new RestoreBodyPartPacket();
             restoreBodyPartPacket.AccountId = player.Profile.AccountId;
             restoreBodyPartPacket.BodyPart = bodyPart;
             restoreBodyPartPacket.HealthPenalty = healthPenalty;
-            restoreBodyPartPacket.Time = DateTime.Now.Ticks;
-            restoreBodyPartPacket.Method = "RestoreBodyPart";
             var json = restoreBodyPartPacket.ToJson();
-            Logger.LogInfo(json);
+            //Logger.LogInfo(json);
             Request.Instance.SendDataToPool(json);
         }
 
@@ -63,60 +63,44 @@ namespace SIT.Core.Coop.Player.Health
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if(player.HealthController != null && player.HealthController.IsAlive)
+            if (player.HealthController != null && player.HealthController.IsAlive)
             {
-                Logger.LogDebug("Replicated: Calling RestoreBodyPart");
-                if(dict == null)
+                //Logger.LogDebug("Replicated: Calling RestoreBodyPart");
+                if (dict == null)
                 {
                     Logger.LogError($"Dictionary packet is null?");
                     return;
 
                 }
-                Logger.LogInfo(dict.ToJson());
+                //Logger.LogInfo(dict.ToJson());
 
                 RestoreBodyPartPacket restoreBodyPartPacket = Json.Deserialize<RestoreBodyPartPacket>(dict.ToJson());
-                //phc.RestoreBodyPart(restoreBodyPartPacket.BodyPart, restoreBodyPartPacket.HealthPenalty);
                 var bodyPartDict = GetBodyPartDictionary(player);
-                /*
-                 * protected sealed class BodyPartState
-	                {
-		                public bool IsDestroyed;
-
-		                public HealthValue Health;
-	                }
-                 */
+                
                 var state = bodyPartDict[restoreBodyPartPacket.BodyPart];
                 if (state == null)
                 {
-                    Logger.LogError($"Could not retreive {player.ProfileId}'s Health State for Body Part {restoreBodyPartPacket.BodyPart.ToString()}");
+                    Logger.LogError($"Could not retreive {player.ProfileId}'s Health State for Body Part {restoreBodyPartPacket.BodyPart}");
                     return;
                 }
-                Logger.LogInfo(state.ToJson());
-
-                var health = ReflectionHelpers.GetFieldOrPropertyFromInstance<HealthValue>(state, "Health", false);
-                if (health == null)
-                {
-                    Logger.LogError($"Could not retreive {player.ProfileId}'s Body Part {restoreBodyPartPacket.BodyPart.ToString()} Health");
-                    return;
-                }
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(state, "IsDestroyed", false);
-                health.Current = 1;
-                ReflectionHelpers.SetFieldOrPropertyFromInstance(state, "Health", health);
-
+                bodyPartDict[restoreBodyPartPacket.BodyPart].IsDestroyed = false;
+                bodyPartDict[restoreBodyPartPacket.BodyPart].Health 
+                    = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartDict[restoreBodyPartPacket.BodyPart].Health.Maximum * restoreBodyPartPacket.HealthPenalty)), 0f);
             }
 
 
         }
 
-        private IReadOnlyDictionary<EBodyPart, object> GetBodyPartDictionary(EFT.Player player)
+        private IReadOnlyDictionary<EBodyPart, AHealthController<AbstractActiveHealthController.AbstractHealthEffect>.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
-            var bodyPartDict = ReflectionHelpers.GetFieldOrPropertyFromInstance<IReadOnlyDictionary<EBodyPart, object>>(player.HealthController, "IReadOnlyDictionary_0", true);
+            IReadOnlyDictionary<EBodyPart, AHealthController<AbstractActiveHealthController.AbstractHealthEffect>.BodyPartState> bodyPartDict
+    = ReflectionHelpers.GetFieldOrPropertyFromInstance<IReadOnlyDictionary<EBodyPart, AHealthController<AbstractActiveHealthController.AbstractHealthEffect>.BodyPartState>>(player.PlayerHealthController, "IReadOnlyDictionary_0", false);
             if (bodyPartDict == null)
             {
                 Logger.LogError($"Could not retreive {player.Id}'s Health State Dictionary");
                 return null;
             }
-            Logger.LogInfo(bodyPartDict.ToJson());
+            //Logger.LogInfo(bodyPartDict.ToJson());
             return bodyPartDict;
         }
 
@@ -125,10 +109,17 @@ namespace SIT.Core.Coop.Player.Health
             public EBodyPart BodyPart { get; set; }
             public float HealthPenalty { get; set; }
 
-            public RestoreBodyPartPacket() : base() 
+            public RestoreBodyPartPacket() : base()
             {
                 Method = "RestoreBodyPart";
             }
         }
+
+        //protected sealed class BodyPartState
+        //{
+        //    public bool IsDestroyed;
+
+        //    public HealthValue Health;
+        //}
     }
 }
