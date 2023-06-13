@@ -4,7 +4,7 @@ using EFT;
 using Newtonsoft.Json;
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
-using SIT.Core;
+using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using System;
@@ -99,7 +99,7 @@ namespace SIT.Tarkov.Core
             {
                 Logger.LogDebug("Request Instance is connecting to WebSocket");
 
-                var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SETTING_SIT_Port;
+                var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
                 var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{Session}?";
                 Logger.LogDebug(webSocketPort);
                 Logger.LogDebug(PatchConstants.GetREALWSURL());
@@ -141,15 +141,13 @@ namespace SIT.Tarkov.Core
 
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            Logger.LogError($"WebSocket_OnError: {e.Message}");
+            Logger.LogError($"WebSocket_OnError: {e.Message} {Environment.NewLine}");
+            Logger.LogError($"Your PC has failed to connect to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {PatchConstants.GetBackendUrl()}! Application will now close.");
+            Application.Quit();
         }
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
-
-            //m_ManualLogSource.LogDebug("WebSocket_OnMessage");
-            //m_ManualLogSource.LogDebug(e.Data);
-
             var packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
