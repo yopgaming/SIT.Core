@@ -13,15 +13,21 @@ namespace SIT.Core.Coop.NetworkPacket
         public string ServerId { get; set; } = CoopGameComponent.GetServerId();
 
         [JsonProperty(PropertyName = "t")]
-        public float Time { get; set; } = DateTime.Now.Ticks;
+        public string TimeSerializedBetter
+        {
+            get
+            {
+                return DateTime.Now.Ticks.ToString("G");
+            }
+        }
 
         [JsonProperty(PropertyName = "m")]
         public virtual string Method { get; set; } = null;
 
         public BasePacket()
         {
-            Time = DateTime.Now.Ticks;
             ServerId = CoopGameComponent.GetServerId();
         }
+
     }
 }
