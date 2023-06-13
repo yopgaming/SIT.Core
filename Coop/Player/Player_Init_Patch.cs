@@ -128,38 +128,5 @@ namespace SIT.Coop.Core.Player
             prc.player = player;
             ServerCommunication.PostLocalPlayerData(player, packet);
         }
-
-        public static void SendOrReceiveSpawnPoint(EFT.Player player)
-        {
-            var position = player.Transform.position;
-            if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
-            {
-                Dictionary<string, object> value2 = new Dictionary<string, object>
-                {
-                    {
-                        "m",
-                        "SpawnPointForCoop"
-                    },
-                    {
-                        "playersSpawnPointx",
-                        position.x
-                    },
-                    {
-                        "playersSpawnPointy",
-                        position.y
-                    },
-                    {
-                        "playersSpawnPointz",
-                        position.z
-                    }
-                };
-                Logger.LogInfo("Setting Spawn Point to " + position);
-                ServerCommunication.PostLocalPlayerData(player, value2);
-            }
-            else
-            {
-
-            }
-        }
     }
 }

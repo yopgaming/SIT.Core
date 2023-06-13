@@ -2,6 +2,7 @@
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
+using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
