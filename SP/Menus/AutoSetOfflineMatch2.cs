@@ -64,8 +64,12 @@ namespace SIT.Core.SP.Menus
             , DefaultUIButton ____nextButtonSpawner
             )
         {
-            var warningPanel = GameObject.Find("Warning Panel");
-            Object.Destroy(warningPanel);
+            var warningPanel = GameObject.Find("WarningPanelHorLayout");
+            warningPanel.active = false;
+            var settingslayoutcon = GameObject.Find("NonLayoutContainer");
+            settingslayoutcon.active = false;
+            var settingslist = GameObject.Find("RaidSettingsSummary");
+            settingslist.active = false;
             RemoveBlockers(__instance
              , profileInfo
              , raidSettings
