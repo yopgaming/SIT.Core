@@ -5,7 +5,9 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
+using UnityEngine;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -66,6 +68,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             Dictionary<string, object> packet = new Dictionary<string, object>();
             packet.Add("t", ticks);
             packet.Add("pr", pressed.ToString());
+            if (pressed)
+            {
+                packet.Add("rX", player.Rotation.x.ToString());
+                packet.Add("rY", player.Rotation.y.ToString());
+            }
             packet.Add("m", "SetTriggerPressed");
             ServerCommunication.PostLocalPlayerData(player, packet);
             //Logger.LogInfo("Pressed:PostPatch");
@@ -94,42 +101,54 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 try
                 {
                     firearmCont.SetTriggerPressed(pressed);
-
-                    if(pressed)
+                    if (pressed && dict.ContainsKey("rX"))
                     {
-                        var weapon = player.TryGetItemInHands<EFT.InventoryLogic.Weapon>();
-                        if (weapon != null)
-                        {
-                            // Thanks Fullstack0verflow
-                            // Check whether a bullet can be fired 
-                            if (weapon.ChamberAmmoCount > 0)
-                            {
-                                if (firearmCont.WeaponSoundPlayer == null)
-                                    return;
-
-                                firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1, false, weapon.FireMode.FireMode == EFT.InventoryLogic.Weapon.EFireMode.fullauto);
-
-                                var weaponEffectsManager
-                                    = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager))
-                                    .GetValue(firearmCont) as WeaponEffectsManager;
-                                if (weaponEffectsManager == null)
-                                    return;
-
-                                weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
-                            }
-                            else
-                            {
-                                ReflectionHelpers.GetMethodForType(firearmCont.GetType(), "DryShot", findFirst: true)
-                                    .Invoke(firearmCont, new object[] { 0, false });
-                            }
-                        }
+                        var rotat = new Vector2(float.Parse(dict["rX"].ToString()), float.Parse(dict["rY"].ToString()));
+                        player.Rotation = rotat;
                     }
+
+                    ReplicatedShotEffects(player, pressed);
+
+
                 }
                 catch (Exception e)
                 {
                     Logger.LogInfo(e);
                 }
             }
+        }
+
+        void ReplicatedShotEffects(EFT.Player player, bool pressed)
+        {
+            //if(pressed)
+            //{
+            //    var weapon = player.TryGetItemInHands<EFT.InventoryLogic.Weapon>();
+            //    if (weapon != null)
+            //    {
+            //        // Thanks Fullstack0verflow
+            //        // Check whether a bullet can be fired 
+            //        if (weapon.ChamberAmmoCount > 0)
+            //        {
+            //            if (firearmCont.WeaponSoundPlayer == null)
+            //                return;
+
+            //            firearmCont.WeaponSoundPlayer.FireBullet(null, player.Position, UnityEngine.Vector3.zero, 1, false, weapon.FireMode.FireMode == EFT.InventoryLogic.Weapon.EFireMode.fullauto);
+
+            //            var weaponEffectsManager
+            //                = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(EFT.Player.FirearmController), typeof(WeaponEffectsManager))
+            //                .GetValue(firearmCont) as WeaponEffectsManager;
+            //            if (weaponEffectsManager == null)
+            //                return;
+
+            //            weaponEffectsManager.PlayShotEffects(player.IsVisible, player.Distance);
+            //        }
+            //        else
+            //        {
+            //            ReflectionHelpers.GetMethodForType(firearmCont.GetType(), "DryShot", findFirst: true)
+            //                .Invoke(firearmCont, new object[] { 0, false });
+            //        }
+            //    }
+            //}
         }
 
     }
