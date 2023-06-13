@@ -162,8 +162,9 @@ namespace SIT.Core.Coop
             {
                 Dictionary<string, object> result = null;
                 swActionPackets.Restart();
-                var indexOfPacketsHandled = 0;
-                while (ActionPackets.TryTake(out result) && indexOfPacketsHandled++ < 20)
+                //var indexOfPacketsHandled = 0;
+                //while (ActionPackets.TryTake(out result) && indexOfPacketsHandled++ < 20)
+                while (ActionPackets.TryTake(out result))
                 {
                     ReadFromServerLastActionsParseData(result);
                 }
