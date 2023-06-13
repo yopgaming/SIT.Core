@@ -7,6 +7,7 @@ using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
 using SIT.Core.AkiSupport.Singleplayer;
 using SIT.Core.AkiSupport.SITFixes;
+using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Core;
 using SIT.Core.Core.Web;
@@ -18,6 +19,7 @@ using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
+using SIT.Tarkov.Core.AI;
 using System;
 using UnityEngine.SceneManagement;
 
@@ -176,9 +178,10 @@ namespace SIT.Core
                 return;
 
             //new BotSelfEnemyPatch().Enable();
-            new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
-            new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
-            new CheckAndAddEnemyPatch().Enable();
+            //new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
+            //new AkiSupport.Custom.AddEnemyToAllGroupsInBotZonePatch().Enable();
+            //new CheckAndAddEnemyPatch().Enable();
+            //new AddEnemyPatch().Enable();
         }
 
         private void EnableCoopPatches()
