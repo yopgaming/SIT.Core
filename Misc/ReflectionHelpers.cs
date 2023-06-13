@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace SIT.Core.Misc
@@ -76,7 +77,8 @@ namespace SIT.Core.Misc
 
         public static FieldInfo GetFieldFromType(Type t, string name)
         {
-            var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            var fields = GetAllFieldsForType(t);
+            
             return fields.FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
 
         }
@@ -102,7 +104,7 @@ namespace SIT.Core.Misc
         /// <returns>Found PropertyInfo or NULL</returns>
         public static PropertyInfo GetPropertyFromTypeByPropertyType(Type objectType, Type propertyType)
         {
-            var fields = objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            var fields = GetAllPropertiesForType(objectType);// objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
             return fields.FirstOrDefault(x => x.PropertyType == propertyType);
 
         }
@@ -176,6 +178,11 @@ namespace SIT.Core.Misc
                 return new List<PropertyInfo>();
 
             var t = o.GetType();
+            return GetAllPropertiesForType(t);
+        }
+
+        public static IEnumerable<PropertyInfo> GetAllPropertiesForType(Type t)
+        {
             var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public).ToList();
             props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic));
             props.AddRange(t.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
@@ -196,6 +203,11 @@ namespace SIT.Core.Misc
         public static IEnumerable<FieldInfo> GetAllFieldsForObject(object o)
         {
             var t = o.GetType();
+            return GetAllFieldsForType(t);
+        }
+
+        public static IEnumerable<FieldInfo> GetAllFieldsForType(Type t)
+        {
             var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public).ToList();
             fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic));
             fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
