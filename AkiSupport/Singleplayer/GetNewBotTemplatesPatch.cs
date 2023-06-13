@@ -34,6 +34,12 @@ namespace SIT.Core.AkiSupport.Singleplayer
         [PatchPrefix]
         private static bool PatchPrefix(ref Task<Profile> __result, BotsPresets __instance, IBotData data)
         {
+            if (PatchConstants.BackEndSession == null)
+            {
+                Logger.LogDebug("GetNewBotTemplatesPatch BackEndSession is NULL?");
+                return true;
+            }
+
             /*
                 in short when client wants new bot and GetNewProfile() return null (if not more available templates or they don't satisfy by Role and Difficulty condition)
                 then client gets new piece of WaveInfo collection (with Limit = 30 by default) and make request to server
@@ -54,7 +60,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
             taskAwaiter = PatchConstants.BackEndSession.LoadBots(source).ContinueWith(GetFirstResult, taskScheduler);
 
             // load bundles for bot profile
-            var continuation = new BundleLoader(taskScheduler);
+            var continuation = new Aki.Custom.Models.BundleLoader(taskScheduler);
             __result = taskAwaiter.ContinueWith(continuation.LoadBundles, taskScheduler).Unwrap();
             return false;
         }
@@ -62,7 +68,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
         private static Profile GetFirstResult(Task<Profile[]> task)
         {
             var result = task.Result[0];
-            Logger.LogInfo($"Loading bot profile from server. role: {result.Info.Settings.Role} side: {result.Side}");
+            Logger.LogDebug($"Loading bot profile from server. role: {result.Info.Settings.Role} side: {result.Side}");
             return result;
         }
     }

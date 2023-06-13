@@ -95,11 +95,11 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public BindableState LoadState
+        public object LoadState
         {
             get
             {
-                return (BindableState)_loadStateProperty.GetValue(_instance);
+                return _loadStateProperty.GetValue(_instance);
             }
             set
             {
