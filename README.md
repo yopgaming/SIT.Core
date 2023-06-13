@@ -104,7 +104,6 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -con
 - MTGA team
 - SPT-Aki Modding Community
 - Props (AIBushPatch, AIAwakeOrSleepPatch - Currently unused)
-- kmyuhkyuk (GamePanulHUD - Unused)
 
 ## License
 
