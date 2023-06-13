@@ -30,7 +30,9 @@ Please provide SIT.Core version here
 Please provide SPT-Aki version here
 
 **Logs**
-Please provide the log file(s) link here (upload into pastebin,etc)
+Please provide the following log file(s) link here (upload into pastebin,etc)
+- LogOutput.log from (Game_DIR/BepInEx/)
+- All Log files from (GAME_DIR/Logs/{date game was run})
 
 **Additional context**
 Add any other context about the problem here.
