@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using Sirenix.Utilities;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
@@ -161,11 +162,12 @@ namespace SIT.Core.Coop
             {
                 Dictionary<string, object> result = null;
                 swActionPackets.Restart();
-                while (ActionPackets.TryTake(out result))
+                var indexOfPacketsHandled = 0;
+                while (ActionPackets.TryTake(out result) && indexOfPacketsHandled++ < 20)
                 {
                     ReadFromServerLastActionsParseData(result);
                 }
-                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > 33);
+                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > 22);
 
             }
 
@@ -475,7 +477,7 @@ namespace SIT.Core.Coop
             }
             profile.AccountId = accountId;
             profile.Skills.StartClientMode();
-            profile.QuestItems = new QuestItems[0];
+            //profile.QuestItems = new QuestItems[0];
             profile.QuestsData.Clear();
 
             try
@@ -939,7 +941,7 @@ namespace SIT.Core.Coop
         {
             Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
 
-            if (prc.ReplicatedDirection.HasValue)
+            if (prc.ReplicatedDirection.HasValue && !player.IsYourPlayer)
             {
                 dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
                 dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);

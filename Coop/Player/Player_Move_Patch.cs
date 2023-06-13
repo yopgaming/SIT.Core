@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -51,8 +52,8 @@ namespace SIT.Core.Coop.Player
             if (prc.IsClientDrone)
                 return false;
 
-            direction.x = (float)Math.Round(direction.x, 3);
-            direction.y = (float)Math.Round(direction.y, 3);
+            //direction.x = (float)Math.Round(direction.x, 3);
+            //direction.y = (float)Math.Round(direction.y, 3);
 
             return true;
 
@@ -76,20 +77,29 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            direction.x = (float)Math.Round(direction.x, 3);
-            direction.y = (float)Math.Round(direction.y, 3);
+            //direction.x = (float)Math.Round(direction.x, 3);
+            //direction.y = (float)Math.Round(direction.y, 3);
 
             if (!LastDirections.ContainsKey(accountId))
                 LastDirections.Add(accountId, direction);
-            else if (LastDirections[accountId] == direction)
+            else if (LastDirections[accountId] == direction && direction == Vector2.zero)
                 return;
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
-            dictionary.Add("dX", direction.x.ToString());
-            dictionary.Add("dY", direction.y.ToString());
-            dictionary.Add("m", "Move");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            //dictionary.Add("t", DateTime.Now.Ticks);
+            //dictionary.Add("dX", direction.x.ToString());
+            //dictionary.Add("dY", direction.y.ToString());
+            //dictionary.Add("spd", player.MovementContext.CharacterMovementSpeed);
+            //dictionary.Add("m", "Move");
+            //ServerCommunication.PostLocalPlayerData(player, dictionary);
+
+            PlayerMovePacket playerMovePacket = new PlayerMovePacket();
+            playerMovePacket.AccountId = accountId;
+            playerMovePacket.dX = direction.x;
+            playerMovePacket.dY = direction.y;
+            playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
+            playerMovePacket.spr = player.MovementContext.IsSprintEnabled;
+            Request.Instance.SendDataToPool(playerMovePacket.ToJson());
             LastDirections[accountId] = direction;
         }
 
@@ -100,10 +110,28 @@ namespace SIT.Core.Coop.Player
                 if (playerReplicatedComponent.IsClientDrone)
                 {
                     UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
+                    float spd = float.Parse(dict["spd"].ToString());
+                    playerReplicatedComponent.ReplicatedDirection = null;
+                    playerReplicatedComponent.ReplicatedPosition = null;
+                    player.MovementContext.CharacterMovementSpeed = spd;
                     player.CurrentState.Move(direction);
                     player.InputDirection = direction;
                 }
             }
+        }
+
+        public class PlayerMovePacket : BasePlayerPacket
+        {
+            public float dX { get; set; }
+            public float dY { get; set; }
+            public float spd { get; set; }
+            public bool spr { get; set; }
+
+            public PlayerMovePacket() : base() 
+            {
+                Method = "Move";
+            }
+
         }
     }
 }
