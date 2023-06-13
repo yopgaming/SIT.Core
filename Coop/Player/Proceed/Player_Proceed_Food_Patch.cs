@@ -50,7 +50,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
         [PatchPostfix]
         public static void PostPatch(EFT.Player __instance
-            , FoodAndDrink foodDrink
+            , FoodDrink foodDrink
             , float amount
             , int animationVariant
             , bool scheduled)
@@ -91,14 +91,13 @@ namespace SIT.Core.Coop.Player.Proceed
             if (coopGC == null)
                 return;
 
-            Item item;
-            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
+            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out Item item))
                 ItemFinder.TryFindItemInWorld(dict["item.id"].ToString(), out item);
 
             if (item != null)
             {
                 CallLocally.Add(player.Profile.AccountId, true);
-                player.Proceed((FoodAndDrink)item, float.Parse(dict["amt"].ToString()), (IResult) => { }, 1, true);
+                player.Proceed((FoodDrink)item, float.Parse(dict["amt"].ToString()), (IResult) => { }, 1, true);
             }
         }
 
