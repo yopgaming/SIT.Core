@@ -52,3 +52,7 @@ __Set useExternalIPFinder to false__
 __Now you are good to go. Have some fun~__
 
 ---
+
+### Using the SPT-Aki Server in Linux
+
+If you are using the SPT-Aki server with the mod attached in Linux, please refer to [this issue](https://github.com/paulov-t/SIT.Core/issues/132) for more information on how to fix problems if they arise
