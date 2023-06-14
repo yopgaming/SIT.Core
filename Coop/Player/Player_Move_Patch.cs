@@ -114,7 +114,6 @@ namespace SIT.Core.Coop.Player
                     bool spr = bool.Parse(dict["spr"].ToString());
                     playerReplicatedComponent.ReplicatedDirection = null;
                     playerReplicatedComponent.ReplicatedPosition = null;
-                    player.MovementContext.CharacterMovementSpeed = spd;
                     if (player.IsSprintEnabled) 
                     {
                         if (!spr)
