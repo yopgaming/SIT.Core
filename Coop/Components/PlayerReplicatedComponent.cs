@@ -174,7 +174,10 @@ namespace SIT.Coop.Core.Player
                 {
                     bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
                     if (!isCharAlive)
+                    {
                         player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
+                        player.PlayerHealthController.Kill(EFT.EDamageType.Undefined);
+                    }
                 }
 
                 return;

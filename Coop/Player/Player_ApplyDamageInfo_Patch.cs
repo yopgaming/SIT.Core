@@ -109,7 +109,7 @@ namespace SIT.Core.Coop.Player
             }
             damageInfo.Weapon = null;
 
-            packet.Add("t", DateTime.Now.Ticks);
+            packet.Add("t", DateTime.Now.Ticks.ToString("G"));
             packet.Add("d", SerializeObject(damageInfo));
             packet.Add("d.p", playerDict);
             packet.Add("d.w", weaponDict);
@@ -124,12 +124,19 @@ namespace SIT.Core.Coop.Player
             //if (MatchmakerAcceptPatches.IsServer)  // should we do this on the server and send out to others only?
             {
                 var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(bodyPartType);
-                if((bodyPartType == EBodyPart.Head || bodyPartType == EBodyPart.Common || bodyPartType == EBodyPart.Chest) && bodyPartHealth.AtMinimum)
+                if(
+                    ((bodyPartType == EBodyPart.Head || bodyPartType == EBodyPart.Common || bodyPartType == EBodyPart.Chest) && bodyPartHealth.AtMinimum)
+                    || !player.ActiveHealthController.IsAlive
+                    || !player.PlayerHealthController.IsAlive
+                    )
                 {
                     packet = new();
+                    packet.Add("accountId", player.Profile.AccountId);
+                    packet.Add("serverId", CoopGameComponent.GetServerId());
+                    packet.Add("t", DateTime.Now.Ticks.ToString("G"));
                     packet.Add("dmt", damageInfo.DamageType.ToString());
                     packet.Add("m", "Kill");
-                    ServerCommunication.PostLocalPlayerData(player, packet, true);
+                    Request.Instance.SendDataToPool(packet.ToJson());
                 }
             }
         }

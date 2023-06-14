@@ -130,7 +130,7 @@ namespace SIT.Core
         private static void EnableSPPatches_Screens(BepInEx.Configuration.ConfigFile config)
         {
             //new OfflineRaidMenuPatch().Enable();
-            new AutoSetOfflineMatch2().Enable();
+            new OfflineSettingsScreenPatch().Enable();
             new InsuranceScreenPatch().Enable();
             new MatchmakerLocationScreen_DisableReadyButton_Patch().Enable();
             new VersionLabelPatch(config).Enable();
