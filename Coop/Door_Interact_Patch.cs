@@ -38,24 +38,32 @@ namespace SIT.Core.Coop
             if (HasProcessed(packet))
                 return;
 
-            //Logger.LogDebug("Door_Interact_Patch:Replicated");
             if (Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType))
             {
-
                 WorldInteractiveObject door;
                 door = CoopGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString());
                 if (door != null)
                 {
-                    if (interactionType == EInteractionType.Unlock)
+                    string methodName = string.Empty;
+                    switch (interactionType)
                     {
-                        //ReflectionHelpers.GetMethodForType(typeof(WorldInteractiveObject), "Unlock").Invoke(door, new object[] {});
-                        ReflectionHelpers.InvokeMethodForObject(door, "Unlock");
+                        case EInteractionType.Open:
+                            methodName = "Open";
+                            break;
+                        case EInteractionType.Close:
+                            methodName = "Close";
+                            break;
+                        case EInteractionType.Unlock:
+                            methodName = "Unlock";
+                            break;
+                        case EInteractionType.Breach:
+                            methodName = "Breach";
+                            break;
+                        case EInteractionType.Lock:
+                            methodName = "Lock";
+                            break;
                     }
-                    else
-                    {
-                        CallLocally.Add(packet["doorId"].ToString());
-                        door.Interact(new InteractionResult(interactionType));
-                    }
+                    ReflectionHelpers.InvokeMethodForObject(door, methodName);
                 }
                 else
                 {
