@@ -111,9 +111,24 @@ namespace SIT.Core.Coop.Player
                 {
                     UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
                     float spd = float.Parse(dict["spd"].ToString());
+                    bool spr = bool.Parse(dict["spr"].ToString());
                     playerReplicatedComponent.ReplicatedDirection = null;
                     playerReplicatedComponent.ReplicatedPosition = null;
                     player.MovementContext.CharacterMovementSpeed = spd;
+                    if (player.IsSprintEnabled) 
+                    {
+                        if (!spr)
+                        {
+                            player.MovementContext.EnableSprint(false);
+                        }
+                    } else
+                    {
+                        if (spr)
+                        {
+                            player.MovementContext.EnableSprint(true);
+                        }
+                    }
+                    player.CurrentState.ChangeSpeed(spd);
                     player.CurrentState.Move(direction);
                     player.InputDirection = direction;
                 }
