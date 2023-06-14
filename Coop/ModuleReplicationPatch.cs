@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SIT.Core.Coop.NetworkPacket;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
@@ -71,6 +72,28 @@ namespace SIT.Core.Coop
 
             var playerId = player.Id.ToString();
             var timestamp = long.Parse(dict["t"].ToString());
+            if (!ProcessedCalls[type].ContainsKey(playerId))
+            {
+                //Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
+                ProcessedCalls[type].TryAdd(playerId, new ConcurrentBag<long>());
+            }
+
+            if (!ProcessedCalls[type][playerId].Contains(timestamp))
+            {
+                ProcessedCalls[type][playerId].Add(timestamp);
+                return false;
+            }
+
+            return true;
+        }
+
+        protected static bool HasProcessed(Type type, EFT.Player player, BasePlayerPacket playerPacket)
+        {
+            if (!ProcessedCalls.ContainsKey(type))
+                ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
+
+            var playerId = player.Id.ToString();
+            var timestamp = long.Parse(playerPacket.TimeSerializedBetter);
             if (!ProcessedCalls[type].ContainsKey(playerId))
             {
                 //Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");

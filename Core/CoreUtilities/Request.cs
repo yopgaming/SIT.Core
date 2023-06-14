@@ -156,6 +156,7 @@ namespace SIT.Tarkov.Core
                 // coopGameComponent.ReadFromServerLastActionsParseData(packet);
                 // -------------------------------------------------------
 
+                // If this is a ping packet, resolve and create a smooth ping
                 if (packet.ContainsKey("ping"))
                 {
                     //m_ManualLogSource.LogDebug(packet["ping"].ToString());
@@ -170,6 +171,7 @@ namespace SIT.Tarkov.Core
                     return;
                 }
 
+                // If this is an endSession packet, end the session for the clients
                 if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
                 {
                     Logger.LogDebug("Received EndSession from Server. Ending Game.");
@@ -178,6 +180,20 @@ namespace SIT.Tarkov.Core
 
                     coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
                     return;
+                }
+
+                // If this is a SIT serialization packet
+                if (packet.ContainsKey("data") && packet.ContainsKey("m"))
+                {
+                    Logger.LogDebug("Received SIT Serialization packet");
+                    Logger.LogDebug(packet["m"]);
+                    Logger.LogDebug(packet["data"].ToString());
+                    Logger.LogDebug(packet["data"].ToString().Length);
+                    if (!packet.ContainsKey("accountId"))
+                    {
+                        packet.Add("accountId", packet["data"].ToString().Split(',')[0]);
+                        Logger.LogDebug(packet["accountId"].ToString());
+                    }
                 }
 
                 // -------------------------------------------------------

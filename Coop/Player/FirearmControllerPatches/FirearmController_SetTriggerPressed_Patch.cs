@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -7,7 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -64,58 +68,90 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            var ticks = DateTime.Now.Ticks;
-            Dictionary<string, object> packet = new Dictionary<string, object>();
-            packet.Add("t", ticks);
-            packet.Add("pr", pressed.ToString());
+            //var ticks = DateTime.Now.Ticks;
+            //Dictionary<string, object> packet = new Dictionary<string, object>();
+            //packet.Add("t", ticks);
+            //packet.Add("pr", pressed.ToString());
+            //if (pressed)
+            //{
+            //    packet.Add("rX", player.Rotation.x.ToString());
+            //    packet.Add("rY", player.Rotation.y.ToString());
+            //}
+            //packet.Add("m", "SetTriggerPressed");
+            //ServerCommunication.PostLocalPlayerData(player, packet);
+
+            TriggerPressedPacket triggerPressedPacket = new TriggerPressedPacket();
+            triggerPressedPacket.AccountId = player.Profile.AccountId;
+            triggerPressedPacket.pr = pressed;
             if (pressed)
             {
-                packet.Add("rX", player.Rotation.x.ToString());
-                packet.Add("rY", player.Rotation.y.ToString());
+                triggerPressedPacket.rX = player.Rotation.x;
+                triggerPressedPacket.rY = player.Rotation.y;
             }
-            packet.Add("m", "SetTriggerPressed");
-            ServerCommunication.PostLocalPlayerData(player, packet);
+            var serialized = triggerPressedPacket.Serialize();
+            //Logger.LogInfo($"SENDING: Serialized length: {serialized.Length} vs json length: {triggerPressedPacket.ToJson().Length}");
+            //Logger.LogInfo($"EXPECTED RECEIVE: Serialized length: {serialized.Split('?')[1].Length} vs json length: {triggerPressedPacket.ToJson().Length}");
+            //Logger.LogInfo(serialized);
+            Request.Instance.SendDataToPool(serialized);
+            //Request.Instance.SendDataToPool(triggerPressedPacket.ToJson());
             //Logger.LogInfo("Pressed:PostPatch");
         }
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo("Pressed:Replicated");
-
-            if (HasProcessed(GetType(), player, dict))
-                return;
-
-            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                return;
-
-            if (CallLocally.ContainsKey(player.Profile.AccountId))
-                return;
-
-            CallLocally.Add(player.Profile.AccountId, true);
-
-            bool pressed = bool.Parse(dict["pr"].ToString());
-
-            if (player.HandsController is EFT.Player.FirearmController firearmCont)
+            var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            taskScheduler.Do((s) =>
             {
-                try
+                TriggerPressedPacket tpp = new();
+
+                //Logger.LogInfo("Pressed:Replicated");
+                if (dict.ContainsKey("data"))
                 {
-                    firearmCont.SetTriggerPressed(pressed);
-                    if (pressed && dict.ContainsKey("rX"))
+                    tpp = tpp.DeserializePacketSIT(dict["data"].ToString());
+                    Logger.LogInfo("packet deserialized, really? tidy!");
+                    Logger.LogInfo(tpp.ToJson());
+                    //return;
+                }
+
+                if (HasProcessed(GetType(), player, tpp))
+                    return;
+
+                //if (HasProcessed(GetType(), player, dict))
+                //    return;
+
+                if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    return;
+
+                if (CallLocally.ContainsKey(player.Profile.AccountId))
+                    return;
+
+                CallLocally.Add(player.Profile.AccountId, true);
+
+                bool pressed = tpp.pr; // bool.Parse(dict["pr"].ToString());
+
+                if (player.HandsController is EFT.Player.FirearmController firearmCont)
+                {
+                    try
                     {
-                        var rotat = new Vector2(float.Parse(dict["rX"].ToString()), float.Parse(dict["rY"].ToString()));
-                        player.Rotation = rotat;
+                        firearmCont.SetTriggerPressed(pressed);
+                        //if (pressed && dict.ContainsKey("rX"))
+                        if (pressed && tpp.rX != 0)
+                        {
+                            var rotat = new Vector2(tpp.rX, tpp.rY);
+                            player.Rotation = rotat;
+                        }
+
+                        //ReplicatedShotEffects(player, pressed);
+
+
                     }
-
-                    ReplicatedShotEffects(player, pressed);
-
-
+                    catch (Exception e)
+                    {
+                        Logger.LogInfo(e);
+                    }
                 }
-                catch (Exception e)
-                {
-                    Logger.LogInfo(e);
-                }
-            }
+            });
         }
 
         void ReplicatedShotEffects(EFT.Player player, bool pressed)
@@ -149,6 +185,19 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             //        }
             //    }
             //}
+        }
+
+        public class TriggerPressedPacket : BasePlayerPacket
+        {
+            public bool pr { get; set; }
+            public float rX { get; set; }
+            public float rY { get; set; }
+
+            public TriggerPressedPacket() : base()
+            {
+                Method = "SetTriggerPressed";
+            }
+
         }
 
     }
