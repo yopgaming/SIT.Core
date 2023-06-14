@@ -2,6 +2,7 @@
 using EFT.HealthSystem;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
+using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
@@ -13,7 +14,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static SIT.Core.Coop.Player.Health.ChangeHealthPatch;
 
 namespace SIT.Core.Coop.Player.Health
 {
@@ -47,7 +47,16 @@ namespace SIT.Core.Coop.Player.Health
         {
             //Logger.LogDebug("RestoreBodyPartPatch:PatchPostfix");
 
-            var player = __instance.Player; 
+            var player = __instance.Player;
+
+            // If it is a client Drone, do not resend the packet again!
+            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            {
+                if (prc.IsClientDrone)
+                    return;
+            }
+
+
             RestoreBodyPartPacket restoreBodyPartPacket = new RestoreBodyPartPacket();
             restoreBodyPartPacket.AccountId = player.Profile.AccountId;
             restoreBodyPartPacket.BodyPart = bodyPart;
