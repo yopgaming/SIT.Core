@@ -101,9 +101,26 @@ namespace SIT.Coop.Core.Player
                 bool prone = bool.Parse(packet["prn"].ToString());
                 if(prone)
                     player.MovementContext.SetProneStateForce();
+                // Sprint
+                bool sprint = bool.Parse(packet["spr"].ToString());
+                if (player.IsSprintEnabled)
+                {
+                    if (!sprint)
+                    {
+                        player.MovementContext.EnableSprint(false);
+                    }
+                }
+                else
+                {
+                    if (sprint)
+                    {
+                        player.MovementContext.EnableSprint(true);
+                    }
+                }
                 // Speed
                 float speed = float.Parse(packet["spd"].ToString());
-                player.MovementContext.CharacterMovementSpeed = speed;
+                player.CurrentState.ChangeSpeed(speed);
+                //player.MovementContext.CharacterMovementSpeed = speed;
                 // Rotation
                 Vector2 packetRotation = new Vector2(
                 float.Parse(packet["rX"].ToString())
