@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace SIT.Core.SP.Menus
 {
-    public class AutoSetOfflineMatch2 : ModulePatch
+    public class OfflineSettingsScreenPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
