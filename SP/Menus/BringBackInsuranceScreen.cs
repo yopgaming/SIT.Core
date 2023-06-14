@@ -1,6 +1,7 @@
 ﻿using EFT;
 using SIT.Tarkov.Core;
 using System.Reflection;
+using UnityEngine;
 
 /***
  * Full Credit for this patch goes to SPT-Aki team
@@ -40,6 +41,8 @@ namespace SIT.Core.SP.Menus
         private static void PostfixPatch(RaidSettings ___raidSettings_0)
         {
             ___raidSettings_0.RaidMode = ERaidMode.Local;
+            var insuranceReadyButton = GameObject.Find("ReadyButton");
+            insuranceReadyButton.active = false;
         }
     }
 }
