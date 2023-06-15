@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Core.Configuration;
+using SIT.Core.Coop.World;
 using SIT.Core.Misc;
 using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
@@ -473,87 +474,104 @@ namespace SIT.Core.Coop
 
             Logger.LogDebug($"ProcessPlayerBotSpawn:{accountId}");
 
-            Profile profile = MatchmakerAcceptPatches.Profile.Clone();
-            profile.AccountId = accountId;
-            profile.BackendCounters.Clear();
-            profile.CheckedChambers.Clear();
-            profile.CheckedMagazines.Clear();
-            profile.ConditionCounters.Counters.Clear();
-            profile.Encyclopedia.Clear();
-            profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
-            if (packet.ContainsKey("side"))
+            Profile profile = new Profile();
+            if (packet.ContainsKey("profileJson"))
             {
-                if (Enum.TryParse<EPlayerSide>(packet["side"].ToString(), out var side))
+                if (packet["profileJson"].ToString().TrySITParseJson(out profile))
                 {
-                    profile.Info.Side = side;
+                    Logger.LogInfo("Obtained Profile");
+                    // Send to be loaded
+                    PlayersToSpawnProfiles[accountId] = profile;
+                }
+                else
+                {
+                    Logger.LogError("Unable to Parse Profile");
+                    PlayersToSpawn[accountId] = ESpawnState.Error;
+                    return;
                 }
             }
-            profile.Skills.StartClientMode();
-            //profile.QuestItems = new QuestItems[0];
-            profile.QuestsData.Clear();
+            //profile.AccountId = accountId;
+            //profile.BackendCounters.Clear();
+            //profile.CheckedChambers.Clear();
+            //profile.CheckedMagazines.Clear();
+            //profile.ConditionCounters.Counters.Clear();
+            //profile.Encyclopedia.Clear();
+            //profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
+            //if (packet.ContainsKey("side"))
+            //{
+            //    if (Enum.TryParse<EPlayerSide>(packet["side"].ToString(), out var side))
+            //    {
+            //        profile.Info.Side = side;
+            //    }
+            //}
+            //profile.Skills.StartClientMode();
+            ////profile.QuestItems = new QuestItems[0];
+            //profile.QuestsData.Clear();
 
-            try
-            {
-                //Logger.LogDebug("PlayerBotSpawn:: Adding " + accountId + " to spawner list");
-                profile.Id = accountId;
-                profile.Info.Nickname = "BSG Employee " + Players.Count;
-                if (packet.ContainsKey("p.info"))
-                {
-                    //Logger.LogDebug("PlayerBotSpawn:: Converting Profile data");
-                    profile.Info = packet["p.info"].ToString().SITParseJson<ProfileInfo>();
-                    //Logger.LogDebug("PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
-                }
-                if (packet.ContainsKey("p.cust"))
-                {
-                    var parsedCust = packet["p.cust"].ToString().ParseJsonTo<Dictionary<EBodyModelPart, string>>(Array.Empty<JsonConverter>());
-                    if (parsedCust != null && parsedCust.Any())
-                    {
-                        profile.Customization = new Customization(parsedCust);
-                        //Logger.LogDebug("PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
-                    }
-                    else
-                    {
-                        Logger.LogError("ProcessPlayerBotSpawn:: Profile Customization for " + profile.Info.Nickname + " failed!");
-                        return;
-                    }
-                }
-                if (packet.ContainsKey("p.equip"))
-                {
-                    var pEquip = packet["p.equip"].ToString();
-                    if(pEquip.TrySITParseJson<Equipment>(out Equipment equipment))
-                    {
-                        if (profile.Inventory.GetAllEquipmentItems().Any()
-                            )
-                            profile.Inventory.Equipment = equipment;
-                        else
-                        {
-                            Logger.LogError($"{accountId} Equipment could not be loaded!");
-                            PlayersToSpawn[accountId] = ESpawnState.Error;
-                        }
-                    }
-                    //var equipment = packet["p.equip"].ToString().SITParseJson<Equipment>();
-                    //profile.Inventory.Equipment = equipment;
+            //try
+            //{
+            //    //Logger.LogDebug("PlayerBotSpawn:: Adding " + accountId + " to spawner list");
+            //    profile.Id = accountId;
+            //    profile.Info.Nickname = "BSG Employee " + Players.Count;
+            //    if (packet.ContainsKey("p.info"))
+            //    {
+            //        //Logger.LogDebug("PlayerBotSpawn:: Converting Profile data");
+            //        profile.Info = packet["p.info"].ToString().SITParseJson<ProfileInfo>();
+            //        //Logger.LogDebug("PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
+            //    }
+            //    if (packet.ContainsKey("p.cust"))
+            //    {
+            //        var parsedCust = packet["p.cust"].ToString().ParseJsonTo<Dictionary<EBodyModelPart, string>>(Array.Empty<JsonConverter>());
+            //        if (parsedCust != null && parsedCust.Any())
+            //        {
+            //            profile.Customization = new Customization(parsedCust);
+            //            //Logger.LogDebug("PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
+            //        }
+            //        else
+            //        {
+            //            Logger.LogError("ProcessPlayerBotSpawn:: Profile Customization for " + profile.Info.Nickname + " failed!");
+            //            return;
+            //        }
+            //    }
+            //    if (packet.ContainsKey("p.equip"))
+            //    {
+            //        var pEquip = packet["p.equip"].ToString();
+            //        if(pEquip.TrySITParseJson<Equipment>(out Equipment equipment))
+            //        {
+            //            if (profile.Inventory.GetAllEquipmentItems().Any()
+            //                )
+            //                profile.Inventory.Equipment = equipment;
+            //            else
+            //            {
+            //                Logger.LogError($"{accountId} Equipment could not be loaded!");
+            //                PlayersToSpawn[accountId] = ESpawnState.Error;
+            //            }
+            //        }
+            //        //var equipment = packet["p.equip"].ToString().SITParseJson<Equipment>();
+            //        //profile.Inventory.Equipment = equipment;
 
-                    //Logger.LogDebug("PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
+            //        //Logger.LogDebug("PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
 
-                }
-                if (packet.ContainsKey("isHost"))
-                {
-                }
+            //    }
+            //    if (packet.ContainsKey("isHost"))
+            //    {
+            //    }
 
-                if (packet.ContainsKey("profileId"))
-                {
-                    profile.Id = packet["profileId"].ToString();
-                    //Logger.LogDebug($"profile id {profile.Id}");
-                }
+            //    if (packet.ContainsKey("profileId"))
+            //    {
+            //        profile.Id = packet["profileId"].ToString();
+            //        //Logger.LogDebug($"profile id {profile.Id}");
+            //    }
 
-                // Send to be loaded
-                PlayersToSpawnProfiles[accountId] = profile;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"PlayerBotSpawn::ERROR::" + ex.Message);
-            }
+                
+
+            //    // Send to be loaded
+            //    PlayersToSpawnProfiles[accountId] = profile;
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.LogError($"PlayerBotSpawn::ERROR::" + ex.Message);
+            //}
 
         }
 
@@ -680,32 +698,6 @@ namespace SIT.Core.Coop
             if (otherPlayer == null)
                 return;
 
-            // Set PMC-Skills to reflect profile data
-            otherPlayer.Skills.Endurance.SetCurrent(profile.Skills.Endurance.Current);
-            otherPlayer.Skills.Strength.SetCurrent(profile.Skills.Strength.Current);
-            otherPlayer.Skills.Vitality.SetCurrent(profile.Skills.Vitality.Current);
-            otherPlayer.Skills.Health.SetCurrent(profile.Skills.Health.Current);
-            otherPlayer.Skills.StressResistance.SetCurrent(profile.Skills.StressResistance.Current);
-            otherPlayer.Skills.Metabolism.SetCurrent(profile.Skills.Metabolism.Current);
-            otherPlayer.Skills.Immunity.SetCurrent(profile.Skills.Immunity.Current);
-            otherPlayer.Skills.Pistol.SetCurrent(profile.Skills.Pistol.Current);
-            otherPlayer.Skills.Revolver.SetCurrent(profile.Skills.Revolver.Current);
-            otherPlayer.Skills.SMG.SetCurrent(profile.Skills.SMG.Current);
-            otherPlayer.Skills.Assault.SetCurrent(profile.Skills.Assault.Current);
-            otherPlayer.Skills.Shotgun.SetCurrent(profile.Skills.Shotgun.Current);
-            otherPlayer.Skills.Sniper.SetCurrent(profile.Skills.Sniper.Current);
-            otherPlayer.Skills.LMG.SetCurrent(profile.Skills.LMG.Current);
-            otherPlayer.Skills.HMG.SetCurrent(profile.Skills.HMG.Current);
-            otherPlayer.Skills.Throwing.SetCurrent(profile.Skills.Throwing.Current);
-            otherPlayer.Skills.Melee.SetCurrent(profile.Skills.Melee.Current);
-            otherPlayer.Skills.DMR.SetCurrent(profile.Skills.DMR.Current);
-            otherPlayer.Skills.RecoilControl.SetCurrent(profile.Skills.RecoilControl.Current);
-            otherPlayer.Skills.AimDrills.SetCurrent(profile.Skills.AimDrills.Current);
-            otherPlayer.Skills.Surgery.SetCurrent(profile.Skills.Surgery.Current);
-            otherPlayer.Skills.CovertMovement.SetCurrent(profile.Skills.CovertMovement.Current);
-            otherPlayer.Skills.LightVests.SetCurrent(profile.Skills.LightVests.Current);
-            otherPlayer.Skills.HeavyVests.SetCurrent(profile.Skills.HeavyVests.Current);
-
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
             if (!Players.ContainsKey(profile.AccountId))
@@ -720,7 +712,7 @@ namespace SIT.Core.Coop
 
             //if (MatchmakerAcceptPatches.IsServer)
             {
-                //if (otherPlayer.Profile.Id.StartsWith("pmc"))
+                if (otherPlayer.ProfileId.StartsWith("pmc"))
                 {
                     if (LocalGameInstance != null)
                     {
@@ -748,74 +740,6 @@ namespace SIT.Core.Coop
             {
                 dogtagComponent.GroupId = otherPlayer.Profile.Info.GroupId;
             }
-        }
-
-        private void CreateLocalPlayerAsync(Profile profile, Vector3 position, int playerId)
-        {
-            LocalPlayer.Create(playerId
-                , position
-                , Quaternion.identity
-                ,
-                "Player",
-                ""
-                , EPointOfView.ThirdPerson
-                , profile
-                , aiControl: false
-                , EUpdateQueue.Update
-                , EFT.Player.EUpdateMode.Auto
-                , EFT.Player.EUpdateMode.Auto
-                , BackendConfigManager.Config.CharacterController.ObservedPlayerMode
-                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                , new CoopStatisticsManager()
-                , FilterCustomizationClass.Default
-                , null
-                , isYourPlayer: false).ContinueWith(x =>
-                {
-
-                    LocalPlayer otherPlayer = x.Result;
-
-                    if (otherPlayer == null)
-                        return;
-
-                    // ----------------------------------------------------------------------------------------------------
-                    // Add the player to the custom Players list
-                    if (!Players.ContainsKey(profile.AccountId))
-                        Players.Add(profile.AccountId, otherPlayer);
-
-                    if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
-                        Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
-
-                    // Create/Add PlayerReplicatedComponent to the LocalPlayer
-                    var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
-                    prc.IsClientDrone = true;
-
-                    //if (MatchmakerAcceptPatches.IsServer)
-                    {
-                        //if (otherPlayer.Profile.Id.StartsWith("pmc"))
-                        {
-                            if (LocalGameInstance != null)
-                            {
-                                var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
-                                if (botController != null)
-                                {
-                                    Logger.LogDebug("Adding Client Player to Enemy list");
-                                    botController.AddActivePLayer(otherPlayer);
-                                }
-                            }
-                        }
-                    }
-
-                    if (!SpawnedPlayersToFinalize.Any(x => otherPlayer))
-                        SpawnedPlayersToFinalize.Add(otherPlayer);
-
-                    Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Spawned.");
-                    //Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{p.Profile.Info.Nickname}::Spawned.");
-
-                    //SetWeaponInHandsOfNewPlayer(otherPlayer);
-
-
-                });
         }
 
         /// <summary>
@@ -899,6 +823,18 @@ namespace SIT.Core.Coop
             if (!packet.ContainsKey("m"))
                 return;
 
+            foreach(var coopPatch in CoopPatches.NoMRPPatches)
+            {
+                var imrwp = coopPatch as IModuleReplicationWorldPatch;
+                if(imrwp != null)
+                {
+                    if(imrwp.MethodName == packet["m"].ToString())
+                    {
+                        imrwp.Replicated(packet);
+                    }
+                }
+            }
+
             switch (packet["m"].ToString())
             {
                 case "WIO_Interact":
@@ -907,6 +843,7 @@ namespace SIT.Core.Coop
                 case "Door_Interact":
                     Door_Interact_Patch.Replicated(packet);
                     break;
+                    
             }
         }
 
