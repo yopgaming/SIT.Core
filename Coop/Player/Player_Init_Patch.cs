@@ -66,6 +66,9 @@ namespace SIT.Coop.Core.Player
 
         public static void SendPlayerDataToServer(EFT.LocalPlayer player)
         {
+            //var profileJson = player.Profile.SITToJson();
+
+
             Dictionary<string, object> packet = new Dictionary<string, object>
                     {
                         {
@@ -118,6 +121,10 @@ namespace SIT.Coop.Core.Player
                             "side",
                             player.Profile.Side.ToString()
                         },
+                        //{
+                        //    "profileJson",
+                        //    profileJson
+                        //},
                         { "m", "PlayerSpawn" },
                     };
 
