@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SIT.Core.Coop
+namespace SIT.Core.Coop.World
 {
     internal class Door_Interact_Patch : ModulePatch
     {
@@ -38,7 +38,7 @@ namespace SIT.Core.Coop
             if (HasProcessed(packet))
                 return;
 
-            if (Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType))
+            if (Enum.TryParse(packet["type"].ToString(), out EInteractionType interactionType))
             {
                 WorldInteractiveObject door;
                 door = CoopGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString());
@@ -114,7 +114,7 @@ namespace SIT.Core.Coop
                 { "serverId", CoopGameComponent.GetServerId() },
                 { "doorId", __instance.Id },
                 { "type", interactionResult.InteractionType.ToString() },
-                { "m", Door_Interact_Patch.MethodName }
+                { "m", MethodName }
             };
 
             var packetJson = packet.SITToJson();

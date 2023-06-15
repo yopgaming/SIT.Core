@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace SIT.Core.Coop
+namespace SIT.Core.Coop.World
 {
     internal class WorldInteractiveObject_Interact_Patch : ModulePatch
     {
@@ -18,7 +18,7 @@ namespace SIT.Core.Coop
         public static void Replicated(Dictionary<string, object> packet)
         {
             Logger.LogDebug("WIO_Interact:Replicated");
-            Enum.TryParse<EInteractionType>(packet["type"].ToString(), out EInteractionType interactionType);
+            Enum.TryParse(packet["type"].ToString(), out EInteractionType interactionType);
             var door = Singleton<GameWorld>.Instance.FindDoor(packet["doorId"].ToString());
             door.Interact(new InteractionResult(interactionType));
         }
