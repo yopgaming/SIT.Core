@@ -4,9 +4,15 @@
 An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server with the ultimate goal of "Offline" Coop 
 </div>
 
+---
+
+<div align=center>
+
 ![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
 
 [English](README.md) **|** [简体中文](README_CN.md)
+
+</div>
 
 ---
 
