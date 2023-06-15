@@ -5,6 +5,7 @@ using SIT.Coop.Core.Player;
 using SIT.Core.Coop.LocalGame;
 using SIT.Core.Coop.Player.GrenadeControllerPatches;
 using SIT.Core.Coop.Sounds;
+using SIT.Core.Coop.World;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -91,6 +92,7 @@ namespace SIT.Core.Coop
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
+                NoMRPPatches.Add(new ItemController_ToggleItem_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
