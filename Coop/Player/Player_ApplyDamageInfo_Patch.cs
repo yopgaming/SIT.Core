@@ -33,7 +33,6 @@ namespace SIT.Core.Coop.Player
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
-
             if(result)
             {
                 if (PluginConfigSettings.Instance != null)
@@ -42,15 +41,15 @@ namespace SIT.Core.Coop.Player
                     {
                         if (bodyPartType == EBodyPart.Head && damageInfo.DamageType == EFT.EDamageType.Bullet)
                         {
-                            damageInfo.Damage = 999;
-                            damageInfo.DidBodyDamage = 999;
-                            damageInfo.DidArmorDamage = 999;
+                            if (damageInfo.DidArmorDamage == 0)
+                            {
+                                damageInfo.Damage = 999;
+                                damageInfo.DidBodyDamage = 999;
+                            }
                         }
                     }
                 }
             }
-
-
             return result;
         }
 
@@ -75,9 +74,11 @@ namespace SIT.Core.Coop.Player
                 {
                     if (bodyPartType == EBodyPart.Head && damageInfo.DamageType == EFT.EDamageType.Bullet)
                     {
-                        damageInfo.Damage = 999;
-                        damageInfo.DidBodyDamage = 999;
-                        damageInfo.DidArmorDamage = 999;
+                        if(damageInfo.DidArmorDamage == 0)
+                        {
+                            damageInfo.Damage = 999;
+                            damageInfo.DidBodyDamage = 999;
+                        }
                     }
                 }
             }

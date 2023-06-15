@@ -680,6 +680,31 @@ namespace SIT.Core.Coop
             if (otherPlayer == null)
                 return;
 
+            // Set PMC-Skills to reflect profile data
+            otherPlayer.Skills.Endurance.SetCurrent(profile.Skills.Endurance.Current);
+            otherPlayer.Skills.Strength.SetCurrent(profile.Skills.Strength.Current);
+            otherPlayer.Skills.Vitality.SetCurrent(profile.Skills.Vitality.Current);
+            otherPlayer.Skills.Health.SetCurrent(profile.Skills.Health.Current);
+            otherPlayer.Skills.StressResistance.SetCurrent(profile.Skills.StressResistance.Current);
+            otherPlayer.Skills.Metabolism.SetCurrent(profile.Skills.Metabolism.Current);
+            otherPlayer.Skills.Immunity.SetCurrent(profile.Skills.Immunity.Current);
+            otherPlayer.Skills.Pistol.SetCurrent(profile.Skills.Pistol.Current);
+            otherPlayer.Skills.Revolver.SetCurrent(profile.Skills.Revolver.Current);
+            otherPlayer.Skills.SMG.SetCurrent(profile.Skills.SMG.Current);
+            otherPlayer.Skills.Assault.SetCurrent(profile.Skills.Assault.Current);
+            otherPlayer.Skills.Shotgun.SetCurrent(profile.Skills.Shotgun.Current);
+            otherPlayer.Skills.Sniper.SetCurrent(profile.Skills.Sniper.Current);
+            otherPlayer.Skills.LMG.SetCurrent(profile.Skills.LMG.Current);
+            otherPlayer.Skills.HMG.SetCurrent(profile.Skills.HMG.Current);
+            otherPlayer.Skills.Throwing.SetCurrent(profile.Skills.Throwing.Current);
+            otherPlayer.Skills.Melee.SetCurrent(profile.Skills.Melee.Current);
+            otherPlayer.Skills.DMR.SetCurrent(profile.Skills.DMR.Current);
+            otherPlayer.Skills.RecoilControl.SetCurrent(profile.Skills.RecoilControl.Current);
+            otherPlayer.Skills.AimDrills.SetCurrent(profile.Skills.AimDrills.Current);
+            otherPlayer.Skills.Surgery.SetCurrent(profile.Skills.Surgery.Current);
+            otherPlayer.Skills.CovertMovement.SetCurrent(profile.Skills.CovertMovement.Current);
+            otherPlayer.Skills.LightVests.SetCurrent(profile.Skills.LightVests.Current);
+            otherPlayer.Skills.HeavyVests.SetCurrent(profile.Skills.HeavyVests.Current);
 
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
