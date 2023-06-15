@@ -109,8 +109,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 if (dict.ContainsKey("data"))
                 {
                     tpp = tpp.DeserializePacketSIT(dict["data"].ToString());
-                    Logger.LogInfo("packet deserialized, really? tidy!");
-                    Logger.LogInfo(tpp.ToJson());
+                    //Logger.LogInfo("packet deserialized, really? tidy!");
+                    //Logger.LogInfo(tpp.ToJson());
                     //return;
                 }
 
