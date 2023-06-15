@@ -76,7 +76,7 @@ namespace SIT.Core.Coop.Player.Health
 
             CallLocally.Add(player.Profile.AccountId, true);
             player.ActiveHealthController.Kill(killPacket.DamageType);
-            player.PlayerHealthController.Kill(killPacket.DamageType);
+            //player.PlayerHealthController.Kill(killPacket.DamageType);
         }
 
         class KillPacket : BasePlayerPacket
