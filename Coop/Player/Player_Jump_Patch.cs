@@ -1,9 +1,11 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using static SIT.Core.Coop.Player.FirearmControllerPatches.FirearmController_SetTriggerPressed_Patch;
 
 namespace SIT.Core.Coop.Player
 {
@@ -44,13 +46,22 @@ namespace SIT.Core.Coop.Player
                 { "t", DateTime.Now.Ticks },
                 { "m", "Jump" }
             };
-            ServerCommunication.PostLocalPlayerData(player, dictionary, true);
+
+            BasePlayerPacket playerPacket = new BasePlayerPacket();
+            playerPacket.Method = "Jump";
+            playerPacket.AccountId = player.Profile.AccountId;
+            //ServerCommunication.PostLocalPlayerData(player, dictionary, true);
+            var serialized = playerPacket.Serialize();
+            Request.Instance.SendDataToPool(serialized);
         }
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            BasePlayerPacket bpp = new BasePlayerPacket();
+            bpp.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, bpp))
                 return;
 
             try
@@ -63,5 +74,6 @@ namespace SIT.Core.Coop.Player
             }
 
         }
+
     }
 }
