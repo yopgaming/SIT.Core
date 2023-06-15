@@ -1,8 +1,10 @@
 
 <div align=center style="text-align: center">
 <h1 style="text-align: center"> SIT.Core </h1>
-An Escape From Tarkov BepInEx module designed to be used with SPT-Aki with the ultimate goal of "Offline" Coop 
-
+An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server with the ultimate goal of "Offline" Coop 
+<br>
+https://img.shields.io/github/downloads/paulov-t/SIT.Core/total https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total
+<br>
 [English](README.md) **|** [简体中文](README_CN.md)
 
 </div>
