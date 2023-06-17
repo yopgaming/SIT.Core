@@ -185,14 +185,14 @@ namespace SIT.Tarkov.Core
                 // If this is a SIT serialization packet
                 if (packet.ContainsKey("data") && packet.ContainsKey("m"))
                 {
-                    Logger.LogDebug("Received SIT Serialization packet");
-                    Logger.LogDebug(packet["m"]);
-                    Logger.LogDebug(packet["data"].ToString());
-                    Logger.LogDebug(packet["data"].ToString().Length);
+                    //Logger.LogDebug("Received SIT Serialization packet");
+                    //Logger.LogDebug(packet["m"]);
+                    //Logger.LogDebug(packet["data"].ToString());
+                    //Logger.LogDebug(packet["data"].ToString().Length);
                     if (!packet.ContainsKey("accountId"))
                     {
                         packet.Add("accountId", packet["data"].ToString().Split(',')[0]);
-                        Logger.LogDebug(packet["accountId"].ToString());
+                        //Logger.LogDebug(packet["accountId"].ToString());
                     }
                 }
 
