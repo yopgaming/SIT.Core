@@ -280,9 +280,17 @@ namespace SIT.Core.Misc
             foreach(var type in typesFound)
             {
                 if (debug)
-                    Console.WriteLine(type.FullName);
+                    Logger.LogDebug(type.FullName);
             }
-            return typesFound.FirstOrDefault();
+            if(typesFound.Count == 1)
+                return typesFound.FirstOrDefault();
+            else
+            {
+                if(typesFound.Count(x=>x.FullName.Equals(v)) == 1)
+                    return typesFound.FirstOrDefault(x => x.FullName.Equals(v));
+                else
+                    return typesFound.FirstOrDefault();
+            }
         }
     }
 }

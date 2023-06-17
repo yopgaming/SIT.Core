@@ -112,6 +112,14 @@ namespace SIT.Core.Coop.NetworkPacket
                     case "String":
                         prop.SetValue(obj, separatedPacket[index]);
                         break;
+                    case "Integer":
+                    case "Int":
+                    case "Int32":
+                        prop.SetValue(obj, int.Parse(separatedPacket[index].ToString()));
+                        break;
+                    default:
+                        PatchConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");
+                        break;
                 }
                 index++;
             }
