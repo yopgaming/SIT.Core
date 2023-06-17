@@ -81,7 +81,7 @@ namespace SIT.Core.Configuration
                   ("Coop", "HeadshotsAlwaysKill", true, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
 
                 SETTING_ShowFeed = Plugin.Instance.Config.Bind
-                  ("Coop", "ShowFeed", true, new ConfigDescription("Enble the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
+                  ("Coop", "ShowFeed", true, new ConfigDescription("Enable the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
 
                 SITWebSocketPort = Plugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT.Core Websocket Port DEFAULT = 6970")).Value;
 
