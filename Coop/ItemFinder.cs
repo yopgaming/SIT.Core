@@ -1,9 +1,12 @@
 ﻿using ChartAndGraph;
 using Comfort.Common;
 using EFT;
+using EFT.InventoryLogic;
+using SIT.Core.Misc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -64,6 +67,14 @@ namespace SIT.Core.Coop
             }
 
             return false;
+        }
+
+        public static IEnumerable<object> GetItemComponentsInChildren(Item item, Type componentType)
+        {
+            MethodInfo method = ReflectionHelpers.GetMethodForType(item.GetType(), "GetItemComponentsInChildren");
+            MethodInfo generic = method.MakeGenericMethod(componentType);
+            var itemComponent = (IEnumerable<object>)generic.Invoke(item, null);
+            return itemComponent;
         }
     }
 }
