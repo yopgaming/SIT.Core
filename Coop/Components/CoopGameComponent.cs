@@ -115,10 +115,12 @@ namespace SIT.Core.Coop
             //Task.Run(() => ProcessFromServerLastActions());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
-            PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
+            //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
             //GCHelpers.EnableGC();
+
+            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
 
             Player_Init_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
@@ -145,6 +147,10 @@ namespace SIT.Core.Coop
         void LateUpdate()
         {
             var DateTimeStart = DateTime.Now;
+
+            if(!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
+                HighPingMode = ServerPing > PING_LIMIT_HIGH;
+
 
             if (ActionPackets == null)
                 return;
@@ -948,9 +954,14 @@ namespace SIT.Core.Coop
         int GuiX = 10;
         int GuiWidth = 400;
 
+        public const int PING_LIMIT_HIGH = 175;
+        public const int PING_LIMIT_MID = 125;
+
         public int ServerPing { get; set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
         public TimeSpan LastServerPing { get; set; } = DateTime.Now.TimeOfDay;
+
+        public bool HighPingMode { get; set; } = false;
 
 
         void OnGUI()
@@ -963,7 +974,7 @@ namespace SIT.Core.Coop
 
             // PING ------
             GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing > 175 ? Color.red : ServerPing > 125 ? Color.yellow : Color.green;
+            GUI.contentColor = ServerPing > PING_LIMIT_HIGH ? Color.red : ServerPing > PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
             GUI.Label(rect, $"Ping RTT:{(ServerPing + Request.Instance.PostPing)}");
@@ -975,6 +986,15 @@ namespace SIT.Core.Coop
                 GUI.contentColor = Color.red;
                 GUI.Label(rect, $"BAD PERFORMANCE!");
                 GUI.contentColor = Color.white;
+                rect.y += 15;
+            }
+
+            if (HighPingMode)
+            {
+                GUI.contentColor = Color.red;
+                GUI.Label(rect, $"!HIGH PING MODE!");
+                GUI.contentColor = Color.white;
+                rect.y += 15;
             }
 
             OnGUI_DrawPlayerList(rect);

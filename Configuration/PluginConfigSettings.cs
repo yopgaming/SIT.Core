@@ -54,6 +54,7 @@ namespace SIT.Core.Configuration
             public bool ArenaMode { get; set; } = false;
             public bool EnableAISpawnWaveSystem { get; set; } = true;
 
+            public bool ForceHighPingMode { get; set; } = false;
 
             public void GetSettings()
             {
@@ -89,7 +90,11 @@ namespace SIT.Core.Configuration
                 EnableAISpawnWaveSystem = Plugin.Instance.Config.Bind("Coop", "EnableAISpawnWaveSystem", true
                         , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
 
-                Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
+                ForceHighPingMode = Plugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
+                        , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
+
+
+            Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
                 Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
                 Logger.LogDebug($"SETTING_Actions_TickRateInMS: {SETTING_Actions_TickRateInMS}");
@@ -97,8 +102,9 @@ namespace SIT.Core.Configuration
                 Logger.LogDebug($"SITWebSocketPort: {SITWebSocketPort}");
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
+                Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
 
-                if(ArenaMode)
+                if (ArenaMode)
                 {
                     Logger.LogInfo($"x!Arena Mode Activated!x");
                     AllPlayersSpawnTogether = false;

@@ -24,6 +24,11 @@ namespace SIT.Core.Coop.Player
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
+            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && __instance.IsYourPlayer)
+            {
+                return true;
+            }
+
             var result = false;
             return result;
         }
@@ -58,6 +63,11 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+            {
+                return;
+            }
+
             BasePlayerPacket bpp = new BasePlayerPacket();
             bpp.DeserializePacketSIT(dict["data"].ToString());
 

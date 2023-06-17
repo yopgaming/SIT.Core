@@ -40,6 +40,14 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , bool pressed
             )
         {
+            if (CoopGameComponent.GetCoopGameComponent() == null)
+                return false;
+
+            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && ____player.IsYourPlayer)
+            {
+                return true;
+            }
+
             var player = ____player;
             if (player == null)
                 return false;
@@ -100,6 +108,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+            {
+                // You would have already run this. Don't bother
+                return;
+            }
+
             var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             taskScheduler.Do((s) =>
             {
