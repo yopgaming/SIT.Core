@@ -16,17 +16,17 @@ using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace SIT.Core.Coop.Player
 {
-    internal class PlayerInventoryController_LoadMagazine_Patch : ModuleReplicationPatch
+    internal class PlayerInventoryController_UnloadMagazine_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => ReflectionHelpers.SearchForType("EFT.Player+PlayerInventoryController", false);
 
-        public override string MethodName => "PlayerInventoryController_LoadMagazine";
+        public override string MethodName => "PlayerInventoryController_UnloadMagazine";
 
         public static Dictionary<string, bool> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, "LoadMagazine", false, true);
+            var method = ReflectionHelpers.GetMethodForType(InstanceType, "UnloadMagazine", false, true);
             return method;
         }
 
@@ -34,11 +34,11 @@ namespace SIT.Core.Coop.Player
         public static bool PrePatch(
             object __instance
             , ref Task<IResult> __result
-            , BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions
+            , MagazineClass magazine
             , Profile ___profile_0
             )
         {
-            //Logger.LogInfo("PlayerInventoryController_LoadMagazine_Patch:PrePatch");
+            //Logger.LogInfo("PlayerInventoryController_UnloadMagazine:PrePatch");
             var result = false;
 
             if (CallLocally.TryGetValue(___profile_0.AccountId, out _))
@@ -51,10 +51,10 @@ namespace SIT.Core.Coop.Player
         [PatchPostfix]
         public static void PostPatch(
             ItemController __instance
-            , BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions
+            , MagazineClass magazine
             , Profile ___profile_0)
         {
-            //Logger.LogInfo("PlayerInventoryController_LoadMagazine_Patch:PostPatch");
+            //Logger.LogInfo("PlayerInventoryController_UnloadMagazine:PostPatch");
 
             if (CallLocally.TryGetValue(___profile_0.AccountId, out _))
             {
@@ -62,15 +62,8 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            LoadMagazinePacket itemPacket = new LoadMagazinePacket
-                (___profile_0.AccountId, sourceAmmo.Id, sourceAmmo.TemplateId, magazine.Id, magazine.TemplateId
-                , loadCount > 0 ? loadCount : sourceAmmo.StackObjectsCount
-                , ignoreRestrictions);
-
-          
-
-            var serialized = itemPacket.Serialize();
-            //Logger.LogInfo(serialized);
+            UnloadMagazinePacket unloadMagazinePacket = new UnloadMagazinePacket(___profile_0.AccountId, magazine.Id, magazine.TemplateId);
+            var serialized = unloadMagazinePacket.Serialize();
             Request.Instance.SendDataToPool(serialized);
         }
 
@@ -81,7 +74,7 @@ namespace SIT.Core.Coop.Player
             {
                 //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated");
 
-                LoadMagazinePacket itemPacket = new LoadMagazinePacket(null, null, null, null, null, 0, false);
+                UnloadMagazinePacket itemPacket = new UnloadMagazinePacket(null, null, null);
 
                 if (dict.ContainsKey("data"))
                 {
@@ -106,22 +99,15 @@ namespace SIT.Core.Coop.Player
                     var invController = (InventoryController)fieldInfoInvController.GetValue(player);
                     if (invController != null)
                     {
-                        if (ItemFinder.TryFindItem(itemPacket.SourceAmmoId, out Item bullet))
+                        if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
                         {
-                            if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
-                            {
-                                CallLocally.Add(player.Profile.AccountId, true);
-                                //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Calling LoadMagazine ({bullet.Id}:{magazine.Id}:{itemPacket.LoadCount})");
-                                invController.LoadMagazine((BulletClass)bullet, (MagazineClass)magazine, itemPacket.LoadCount);
-                            }
-                            else
-                            {
-                                Logger.LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
-                            }
+                            CallLocally.Add(player.Profile.AccountId, true);
+                            //Logger.LogInfo($"PlayerInventoryController_UnloadMagazine.Replicated. Calling UnloadMagazine ({magazine.Id})");
+                            invController.UnloadMagazine((MagazineClass)magazine);
                         }
                         else
                         {
-                            Logger.LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.SourceAmmoId}");
+                            Logger.LogError($"PlayerInventoryController_UnloadMagazine.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
                         }
 
                     }
@@ -132,41 +118,27 @@ namespace SIT.Core.Coop.Player
                 }
                 else
                 {
-                    Logger.LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller");
+                    Logger.LogError("PlayerInventoryController_UnloadMagazine.Replicated. Unable to find Inventory Controller");
                 }
             });
 
         }
 
-        public class LoadMagazinePacket : BasePlayerPacket
+        public class UnloadMagazinePacket : BasePlayerPacket
         {
-            public string SourceAmmoId { get; set; }
-            public string SourceTemplateId { get; set; }
-
             public string MagazineId { get; set; }
             public string MagazineTemplateId { get; set; }
 
-            public int LoadCount { get; set; }
-            
-            public bool IgnoreRestrictions { get; set; }
-
-            public LoadMagazinePacket(
+            public UnloadMagazinePacket(
                 string accountId
-                , string sourceAmmoId
-                , string sourceTemplateId
                 , string magazineId
                 , string magazineTemplateId
-                , int loadCount
-                , bool ignoreRestrictions)
+                )
             {
                 AccountId = accountId;
-                Method = "PlayerInventoryController_LoadMagazine";
-                this.SourceAmmoId = sourceAmmoId;
-                this.SourceTemplateId = sourceTemplateId;
+                Method = "PlayerInventoryController_UnloadMagazine";
                 this.MagazineId = magazineId;
                 this.MagazineTemplateId = magazineTemplateId;
-                this.LoadCount = loadCount;
-                this.IgnoreRestrictions = ignoreRestrictions;
             }
         }
 
