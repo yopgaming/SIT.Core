@@ -174,7 +174,7 @@ namespace SIT.Core.Coop
                 {
                     ProcessLastActionDataPacket(result);
                 }
-                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > 22);
+                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > 14);
 
             }
 
@@ -954,8 +954,8 @@ namespace SIT.Core.Coop
         int GuiX = 10;
         int GuiWidth = 400;
 
-        public const int PING_LIMIT_HIGH = 175;
-        public const int PING_LIMIT_MID = 125;
+        public const int PING_LIMIT_HIGH = 125;
+        public const int PING_LIMIT_MID = 100;
 
         public int ServerPing { get; set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
@@ -974,7 +974,7 @@ namespace SIT.Core.Coop
 
             // PING ------
             GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing > PING_LIMIT_HIGH ? Color.red : ServerPing > PING_LIMIT_MID ? Color.yellow : Color.green;
+            GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
             GUI.Label(rect, $"Ping RTT:{(ServerPing + Request.Instance.PostPing)}");
@@ -996,6 +996,9 @@ namespace SIT.Core.Coop
                 GUI.contentColor = Color.white;
                 rect.y += 15;
             }
+
+            var numberOfPlayers = Players.Count(x => x.Value.ProfileId.StartsWith("pmc"));
+            GUI.Label(rect, $"Players: {numberOfPlayers}");
 
             OnGUI_DrawPlayerList(rect);
         }
