@@ -29,6 +29,9 @@ namespace SIT.Coop.Core.Player
         public bool IsMyPlayer { get { return player != null && player.IsYourPlayer; } }
         public bool IsClientDrone { get; internal set; }
 
+        private float PoseLevelDesired { get; set; } = 1;
+        private float PoseLevelSmoothed { get; set; } = 1;
+
         void Awake()
         {
             //PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
@@ -74,15 +77,15 @@ namespace SIT.Coop.Core.Player
 
             ProcessPlayerState(packet);
 
-            var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
-            if (packetHandlerComponents != null)
-            {
-                packetHandlerComponents = packetHandlerComponents.Where(x => x.GetType() != typeof(PlayerReplicatedComponent)).ToArray();
-                foreach (var packetHandlerComponent in packetHandlerComponents)
-                {
-                    packetHandlerComponent.ProcessPacket(packet);
-                }
-            }
+            //var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
+            //if (packetHandlerComponents != null)
+            //{
+            //    packetHandlerComponents = packetHandlerComponents.Where(x => x.GetType() != typeof(PlayerReplicatedComponent)).ToArray();
+            //    foreach (var packetHandlerComponent in packetHandlerComponents)
+            //    {
+            //        packetHandlerComponent.ProcessPacket(packet);
+            //    }
+            //}
         }
 
         void ProcessPlayerState(Dictionary<string, object> packet)
@@ -96,7 +99,7 @@ namespace SIT.Coop.Core.Player
             {
                 // Pose
                 float poseLevel = float.Parse(packet["pose"].ToString());
-                player.MovementContext.SetPoseLevel(poseLevel, true);
+                PoseLevelDesired = poseLevel;
                 // Prone
                 bool prone = bool.Parse(packet["prn"].ToString());
                 if(prone)
@@ -209,36 +212,41 @@ namespace SIT.Coop.Core.Player
         {
             if (!IsClientDrone)
                 return;
-                // Replicate Position.
-                // If a short distance -> Smooth Lerp to the Desired Position
-                // If the other side of a wall -> Teleport to the correct side (TODO)
-                // If far away -> Teleport
-                if (ReplicatedPosition.HasValue)
+            // Replicate Position.
+            // If a short distance -> Smooth Lerp to the Desired Position
+            // If the other side of a wall -> Teleport to the correct side (TODO)
+            // If far away -> Teleport
+            if (ReplicatedPosition.HasValue)
+            {
+                var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
+                var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
+                if (replicationDistance >= 2)
                 {
-                    var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
-                    var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                    if (replicationDistance >= 2)
-                    {
-                        player.Teleport(ReplicatedPosition.Value, true);
-                    }
-                    else
-                    {
-                        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 8);
-                    }
+                    player.Teleport(ReplicatedPosition.Value, true);
                 }
+                else
+                {
+                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 8);
+                }
+            }
 
-                // Replicate Rotation.
-                // Smooth Lerp to the Desired Rotation
-                if (ReplicatedRotation.HasValue)
-                {
-                    player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
-                }
+            // Replicate Rotation.
+            // Smooth Lerp to the Desired Rotation
+            if (ReplicatedRotation.HasValue)
+            {
+                player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
+            }
 
-                if (ReplicatedDirection.HasValue)
-                {
-                    player.CurrentState.Move(ReplicatedDirection.Value);
-                    player.InputDirection = ReplicatedDirection.Value;
-                }
+            if (ReplicatedDirection.HasValue)
+            {
+                player.CurrentState.Move(ReplicatedDirection.Value);
+                player.InputDirection = ReplicatedDirection.Value;
+            }
+
+            PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
+            player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+
+
         }
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
