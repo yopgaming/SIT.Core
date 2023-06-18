@@ -48,6 +48,7 @@ namespace SIT.Core.Configuration
             public int SETTING_Actions_TickRateInMS { get; private set; } = 999;
             public int SETTING_PlayerStateTickRateInMS { get; set; } = -100;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = true;
+            public bool SETTING_ShowFeed { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
 
             public bool AllPlayersSpawnTogether { get; set; } = true;
@@ -78,6 +79,9 @@ namespace SIT.Core.Configuration
 
                 SETTING_HeadshotsAlwaysKill = Plugin.Instance.Config.Bind
                   ("Coop", "HeadshotsAlwaysKill", true, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
+
+                SETTING_ShowFeed = Plugin.Instance.Config.Bind
+                  ("Coop", "ShowFeed", true, new ConfigDescription("Enable the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
 
                 SITWebSocketPort = Plugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT.Core Websocket Port DEFAULT = 6970")).Value;
 
