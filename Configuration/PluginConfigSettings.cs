@@ -45,7 +45,6 @@ namespace SIT.Core.Configuration
 
             public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
             public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
-            public int SETTING_Actions_TickRateInMS { get; private set; } = 999;
             public int SETTING_PlayerStateTickRateInMS { get; set; } = -100;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = true;
             public bool SETTING_ShowFeed { get; set; } = true;
@@ -72,11 +71,6 @@ namespace SIT.Core.Configuration
                 else if (SETTING_PlayerStateTickRateInMS == 0)
                     SETTING_PlayerStateTickRateInMS = -100;
 
-                SETTING_Actions_TickRateInMS = Plugin.Instance.Config.Bind
-                ("Coop", "LastActionTickRateInMS", SETTING_Actions_TickRateInMS, new ConfigDescription("The tick rate at which actions acquired from Server. MIN = 250ms. MAX = 999ms")).Value;
-                SETTING_Actions_TickRateInMS = Math.Max(250, SETTING_Actions_TickRateInMS);
-                SETTING_Actions_TickRateInMS = Math.Min(999, SETTING_Actions_TickRateInMS);
-
                 SETTING_HeadshotsAlwaysKill = Plugin.Instance.Config.Bind
                   ("Coop", "HeadshotsAlwaysKill", true, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
 
@@ -98,11 +92,11 @@ namespace SIT.Core.Configuration
                         , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
 
 
-            Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
+                Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
                 Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
-                Logger.LogDebug($"SETTING_Actions_TickRateInMS: {SETTING_Actions_TickRateInMS}");
                 Logger.LogDebug($"SETTING_HeadshotsAlwaysKill: {SETTING_HeadshotsAlwaysKill}");
+                Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowFeed}");
                 Logger.LogDebug($"SITWebSocketPort: {SITWebSocketPort}");
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
