@@ -28,7 +28,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
            , LightsStates[] lightsStates, bool force
             )
         {
-            Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
+            //Logger.LogInfo("FirearmController_SetLightsState_Patch.PrePatch");
             var player = ____player;
             if (player == null)
                 return false;
@@ -47,7 +47,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
            , LightsStates[] lightsStates, bool force
            )
         {
-            Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
+            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Postfix");
             var player = ____player;
             if (player == null)
                 return;
@@ -69,7 +69,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
+            //Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
             LightStatePacket lsp = new(null,false, 0, null);
 
             if (dict.ContainsKey("data"))
