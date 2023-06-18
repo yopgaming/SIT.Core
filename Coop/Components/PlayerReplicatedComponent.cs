@@ -100,30 +100,15 @@ namespace SIT.Coop.Core.Player
                 // Pose
                 float poseLevel = float.Parse(packet["pose"].ToString());
                 PoseLevelDesired = poseLevel;
-                // Prone
-                bool prone = bool.Parse(packet["prn"].ToString());
-                if(prone)
-                    player.MovementContext.SetProneStateForce();
+
+                // ------------------------------------------------------
+                // Prone -- With fixes. Thanks @TehFl0w
+                ProcessPlayerStateProne(packet);
                 // Sprint
-                bool sprint = bool.Parse(packet["spr"].ToString());
-                if (player.IsSprintEnabled)
-                {
-                    if (!sprint)
-                    {
-                        player.MovementContext.EnableSprint(false);
-                    }
-                }
-                else
-                {
-                    if (sprint)
-                    {
-                        player.MovementContext.EnableSprint(true);
-                    }
-                }
+                ProcessPlayerStateSprint(packet);
                 // Speed
                 float speed = float.Parse(packet["spd"].ToString());
                 player.CurrentState.ChangeSpeed(speed);
-                //player.MovementContext.CharacterMovementSpeed = speed;
                 // Rotation
                 Vector2 packetRotation = new Vector2(
                 float.Parse(packet["rX"].ToString())
@@ -185,7 +170,46 @@ namespace SIT.Coop.Core.Player
 
                 return;
             }
-            
+
+        }
+
+        private void ProcessPlayerStateSprint(Dictionary<string, object> packet)
+        {
+            bool sprint = bool.Parse(packet["spr"].ToString());
+            if (player.IsSprintEnabled)
+            {
+                if (!sprint)
+                {
+                    player.MovementContext.EnableSprint(false);
+                }
+            }
+            else
+            {
+                if (sprint)
+                {
+                    player.MovementContext.EnableSprint(true);
+                }
+            }
+        }
+
+        private void ProcessPlayerStateProne(Dictionary<string, object> packet)
+        {
+            bool prone = bool.Parse(packet["prn"].ToString());
+            if (!player.IsInPronePose)
+            {
+                if (prone)
+                {
+                    player.CurrentState.Prone();
+                }
+            }
+            else
+            {
+                if (!prone)
+                {
+                    player.ToggleProne();
+                    player.MovementContext.UpdatePoseAfterProne();
+                }
+            }
         }
 
         void LateUpdate()
