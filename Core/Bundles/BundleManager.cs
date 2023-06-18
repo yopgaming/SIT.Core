@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
+using SIT.Core.Misc;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 /***
@@ -16,6 +19,8 @@ namespace SIT.Tarkov.Core
 
         public const string CachedJsonPath = "user/cache/bundles.json";
 
+        public const string CachedVersionTxtPath = "user/cache/sit.version.txt";
+
         public static Dictionary<string, BundleInfo> Bundles { get; private set; }
 
         static BundleManager()
@@ -30,7 +35,9 @@ namespace SIT.Tarkov.Core
 
             bool bundlesAreSame = File.Exists(CachedJsonPath) 
                 && File.ReadAllText(CachedJsonPath) == json
-                && File.Exists(CachePath + "bundles.json")
+                && VFS.Exists(CachePath + "bundles.json")
+                && File.Exists(CachedVersionTxtPath)
+                && File.ReadAllText(CachedVersionTxtPath) == Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString()
                 ;
             if(bundlesAreSame) 
             {
@@ -53,7 +60,9 @@ namespace SIT.Tarkov.Core
                 var dependencyKeys = jObj["dependencyKeys"].ToObject<string[]>();
                 var bundle = new BundleInfo(key, path, dependencyKeys);
 
-                if (path.Contains("http"))
+                PatchConstants.Logger.LogInfo($"Adding Custom Bundle : {path}");
+
+                if (path.Contains("http://") || path.Contains("https://"))
                 {
                     var filepath = CachePath + Regex.Split(path, "bundle/", RegexOptions.IgnoreCase)[1];
                     try
@@ -65,7 +74,7 @@ namespace SIT.Tarkov.Core
                             continue;
                         }
                         VFS.WriteFile(filepath, data);
-                        //PatchConstants.Logger.LogInfo($"Adding Custom Bundle : {filepath}");
+                        PatchConstants.Logger.LogInfo($"Writing Custom Bundle : {filepath}");
                         bundle.Path = filepath;
                     }
                     catch
@@ -73,12 +82,17 @@ namespace SIT.Tarkov.Core
 
                     }
                 }
+                else
+                {
+
+                }
 
                 //PatchConstants.Logger.LogInfo($"Adding Custom Bundle : {key} : {path} : dp={dependencyKeys.Length}");
                 Bundles.Add(key, bundle);
             }
 
             File.WriteAllText(CachedJsonPath, json);
+            File.WriteAllText(CachedVersionTxtPath, Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString());
             VFS.WriteTextFile(CachePath + "bundles.json", Json.Serialize<Dictionary<string, BundleInfo>>(Bundles));
         }
     }
