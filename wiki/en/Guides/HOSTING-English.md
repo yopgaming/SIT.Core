@@ -15,8 +15,7 @@ THIS IS EXTREMELY EXPERIMENTAL AT THIS TIME AND LIKELY TO CHANGE
 ## CLIENT
 1) The CLIENT must wait until the HOST has loaded the match and is in Raid
 2) The CLIENT must select the same Map & Time
-3) The CLIENT must ensure Bot Amount is None in the OFFLINE SETTINGS
-4) The CLIENT clicks "JOIN MATCH"
+3) The CLIENT clicks "JOIN MATCH"
 
 ## NOTES / ISSUES
 - Both HOST and CLIENT should spawn on each others game after a few seconds
