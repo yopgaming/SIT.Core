@@ -13,3 +13,4 @@ The project's aim is simple, create a Cooperation PvE experience that retains pr
 
 - [Chinese Home](https://github.com/paulov-t/SIT.Core/wiki/介绍(Intro)-Home)
 - [Deutsch Home](https://github.com/paulov-t/SIT.Core/wiki/Home-Deutsch)
+- [Portuguese Home](https://github.com/paulov-t/SIT.Core/wiki/Home-Portuguese)
