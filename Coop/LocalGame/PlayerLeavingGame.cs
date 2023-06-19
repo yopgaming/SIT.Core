@@ -1,4 +1,5 @@
 ﻿using SIT.Coop.Core.Matchmaker;
+using SIT.Coop.Core.Player;
 using SIT.Core.SP.PlayerPatches;
 using SIT.Tarkov.Core;
 using System.Linq;
@@ -48,7 +49,25 @@ namespace SIT.Core.Coop.LocalGame
                 }
 
                 Logger.LogDebug("PlayerLeavingGame.Postfix.Destroying CoopGameComponent component");
-                GameObject.Destroy(component);
+                foreach (var p in component.Players)
+                {
+                    if (p.Value == null)
+                        continue;
+
+                    if(p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    {
+                        GameObject.Destroy(prc);
+                    }
+                }
+
+                if (component != null)
+                {
+                    foreach(var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
+                    {
+                        GameObject.Destroy(prc);
+                    }
+                    GameObject.Destroy(component);
+                }
             }
         }
     }

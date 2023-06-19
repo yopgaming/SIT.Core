@@ -236,6 +236,10 @@ namespace SIT.Coop.Core.Player
         {
             if (!IsClientDrone)
                 return;
+
+            if (!CoopGameComponent.TryGetCoopGameComponent(out _))
+                return;
+
             // Replicate Position.
             // If a short distance -> Smooth Lerp to the Desired Position
             // If the other side of a wall -> Teleport to the correct side (TODO)

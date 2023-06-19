@@ -130,6 +130,19 @@ namespace SIT.Core.Coop
         {
             PatchConstants.Logger.LogDebug($"CoopGameComponent:OnDestroy");
 
+            if (Players != null)
+            {
+                foreach (var pl in Players)
+                {
+                    if (pl.Value == null)
+                        continue;
+
+                    if (pl.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    {
+                        GameObject.Destroy(prc);
+                    }
+                }
+            }
             Players.Clear();
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
@@ -317,6 +330,14 @@ namespace SIT.Core.Coop
 
                 if (!m_CharactersJson.Any())
                     return;
+
+                if(m_CharactersJson[0].ContainsKey("notFound"))
+                {
+                    // Game is broken and doesn't exist!
+                    if(LocalGameInstance != null)
+                        LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                    return;
+                }
 
                 //Logger.LogDebug($"CoopGameComponent.ReadFromServerCharacters:{actionsToValues.Length}");
 
