@@ -69,6 +69,9 @@ namespace SIT.Core.Coop.Player.Health
         {
             KillPacket killPacket = Json.Deserialize<KillPacket>(dict.ToJson());
 
+            if (HasProcessed(GetType(), player, killPacket))
+                return;
+
             if (CallLocally.ContainsKey(player.Profile.AccountId))
                 return;
 
