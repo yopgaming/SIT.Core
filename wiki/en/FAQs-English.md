@@ -1,8 +1,9 @@
 ## Infinite "Loading profile data..." screen
 
-Caused by: 
+Caused by:
 - A broken installation.
 - An issue with the server connection, related to your IP settings.
+- Windows proxy blocking connection.
 
 Make sure port forwarding is setup correctly so that you can connect to your external IP.
 
