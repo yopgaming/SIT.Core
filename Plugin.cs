@@ -143,7 +143,7 @@ namespace SIT.Core
 
             new LighthouseBridgePatch().Enable();
             new LighthouseTransmitterPatch().Enable();
-
+            //new PostRaidHealScreenPatch().Enable();
         }
 
         private static void EnableSPPatches_PlayerProgression()
@@ -163,6 +163,7 @@ namespace SIT.Core
             new ChangeHydrationPatch().Enable();
             new ChangeEnergyPatch().Enable();
             new OnDeadPatch(Config).Enable();
+            new MainMenuControllerForHealthListenerPatch().Enable();
         }
 
         private static void EnableSPPatches_Bots(BepInEx.Configuration.ConfigFile config)

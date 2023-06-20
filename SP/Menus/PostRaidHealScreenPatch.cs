@@ -1,4 +1,5 @@
 ﻿//using EFT;
+//using SIT.Core.Misc;
 //using SIT.Tarkov.Core;
 //using System.Linq;
 //using System.Reflection;
@@ -14,13 +15,12 @@
 //    {
 //        protected override MethodBase GetTargetMethod()
 //        {
-//            var desiredType = PatchConstants.EftTypes.Single(x => x.Name == "PostRaidHealthScreenClass");
-//            var desiredMethod = desiredType.GetMethods(BindingFlags.Static | BindingFlags.NonPublic).Single(IsTargetMethod);
+//            var desiredType = typeof(PostRaidHealthScreenClass); 
 
 //            Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
-//            Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
+//            //Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
 
-//            return desiredMethod;
+//            return ReflectionHelpers.GetAllMethodsForType(desiredType).FirstOrDefault(x=> IsTargetMethod(x));
 //        }
 
 //        private static bool IsTargetMethod(MethodInfo mi)

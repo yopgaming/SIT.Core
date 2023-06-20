@@ -13,10 +13,10 @@ using System.Reflection;
 
 namespace SIT.Coop.Core.Player
 {
-    internal class Player_Init_Patch : ModulePatch
+    internal class Player_Init_Coop_Patch : ModulePatch
     {
         private static ConfigFile _config;
-        public Player_Init_Patch(ConfigFile config)
+        public Player_Init_Coop_Patch(ConfigFile config)
         {
             _config = config;
         }

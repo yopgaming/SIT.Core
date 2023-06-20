@@ -32,9 +32,9 @@ namespace SIT.Core.SP.PlayerPatches
             await __result;
 
             var listener = HealthListener.Instance;
-            if (profile?.Id.StartsWith("pmc") == true && listener.MyHealthController == null)
+            if (profile?.Id.StartsWith("pmc") == true && __instance.IsYourPlayer)
             {
-                //Logger.LogInfo($"Hooking up health listener to profile: {profile.Id}");
+                Logger.LogInfo($"Hooking up health listener to profile: {profile.Id}");
                 listener.Init(__instance.HealthController, true);
                 //Logger.LogInfo($"HealthController instance: {__instance.HealthController.GetHashCode()}");
             }

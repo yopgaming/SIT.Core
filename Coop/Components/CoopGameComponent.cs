@@ -113,6 +113,7 @@ namespace SIT.Core.Coop
             StartCoroutine(ProcessServerCharacters());
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
+            StartCoroutine(SendWeatherToClients());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
@@ -122,9 +123,11 @@ namespace SIT.Core.Coop
 
             HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
 
-            Player_Init_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
+            Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
         }
+
+      
 
         void OnDestroy()
         {
@@ -963,6 +966,17 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
+        }
+
+        private IEnumerator SendWeatherToClients()
+        {
+            var waitSeconds = new WaitForSeconds(60f);
+
+            while (RunAsyncTasks)
+            {
+                yield return waitSeconds;
+
+            }
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
