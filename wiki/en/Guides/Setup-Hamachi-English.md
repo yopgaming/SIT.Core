@@ -44,7 +44,7 @@ C:\SPCOOP\Launcher\AkiSupport\Managed\
 6. If your friend is hosting the server copy their Hamachi Ipv4 from the Hamachi client, if you are the host copy your own Hamachi Ipv4, **127.0.0.1 wont work!**
 7. Start the launcher and change the server field to have your friends Ip in it.\
 Example: http://100.100.100.100:6969
-8. Input desired username and password. 
+8. Input desired username and password.
 
 **The username and password is stored as a plain text on the host's computer, do not use any username / password you use somewhere else or do not wish for the host to see!**
 
