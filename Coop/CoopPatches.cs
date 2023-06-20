@@ -38,6 +38,7 @@ namespace SIT.Core.Coop
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
+            //new TarkovApplication_LocalGameCreator_Patch().Enable();
             new LocalGameStartingPatch(m_Config).Enable();
             //new LocalGameEndingPatch(m_Config).Enable();
             new LocalGameSpawnAICoroutinePatch().Enable();
@@ -87,7 +88,7 @@ namespace SIT.Core.Coop
             // ------ PLAYER -------------------------
             if (!NoMRPPatches.Any())
             {
-                NoMRPPatches.Add(new Player_Init_Patch(m_Config));
+                NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Door_Interact_Patch());
