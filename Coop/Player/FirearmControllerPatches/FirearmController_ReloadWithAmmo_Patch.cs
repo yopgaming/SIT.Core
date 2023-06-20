@@ -1,4 +1,5 @@
 ﻿using EFT;
+using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
@@ -27,99 +28,92 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            return false;
+            var player = ____player;
+            if (player == null)
+                return false;
 
-            //var player = ____player;
-            //if (player == null)
-            //    return false;
+            var result = false;
+            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+                result = true;
 
-            //var result = false;
-            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-            //    result = true;
+            //Logger.LogInfo("FirearmController_ReloadWithAmmo_Patch:PrePatch");
 
-            ////Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
+            //return true;
 
-            //return result;
+            return result;
         }
 
-        //[PatchPostfix]
-        //public static void PostPatch(
-        //    EFT.Player.FirearmController __instance
-        //    , AmmoPack ammoPack
-        //    , EFT.Player ____player)
-        //{
-        //    var player = ____player;
-        //    //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
-        //    if (player == null)
-        //        return;
+        [PatchPostfix]
+        public static void PostPatch(
+            EFT.Player.FirearmController __instance
+            , AmmoPack ammoPack
+            , EFT.Player ____player)
+        {
+            var player = ____player;
+            //var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
+            if (player == null)
+                return;
 
-        //    if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-        //    {
-        //        CallLocally.Remove(player.Profile.AccountId);
-        //        return;
-        //    }
+            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            {
+                CallLocally.Remove(player.Profile.AccountId);
+                return;
+            }
 
-        //    Dictionary<string, object> magAddressDict = new();
-        //    ItemAddressHelpers.ConvertItemAddressToDescriptor(magazine.CurrentAddress, ref magAddressDict);
 
-        //    Dictionary<string, object> gridAddressDict = new();
-        //    ItemAddressHelpers.ConvertItemAddressToDescriptor(gridItemAddress, ref gridAddressDict);
+            foreach(var item in ammoPack.GetReloadingAmmoIds())
+            {
+                Logger.LogInfo($"FirearmController_ReloadWithAmmo_Patch:PostPatch:{item}");
+            }
 
-        //    Dictionary<string, object> dictionary = new Dictionary<string, object>
-        //    {
-        //        { "t", DateTime.Now.Ticks },
-        //        { "fa.id", __instance.Item.Id },
-        //        { "fa.tpl", __instance.Item.TemplateId },
-        //        { "ap.id", ammoPack..Id },
-        //        { "ap.tpl", magazine.TemplateId },
-        //        { "ma", magAddressDict },
-        //        { "ga", gridAddressDict },
-        //        { "m", "ReloadMag" }
-        //    };
-        //    ServerCommunication.PostLocalPlayerData(player, dictionary);
-        //    //Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "t", DateTime.Now.Ticks },
+                { "ammo", ammoPack.GetReloadingAmmoIds().ToJson() },
+                { "m", "ReloadWithAmmo" }
+            };
+            ServerCommunication.PostLocalPlayerData(player, dictionary);
 
-        //}
+        }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
+            Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
 
-            //if (player.HandsController is EFT.Player.FirearmController firearmCont)
-            //{
-            //    try
-            //    {
+            if (player.HandsController is EFT.Player.FirearmController firearmCont)
+            {
+                try
+                {
+                    var ammoIds = dict["ammo"].ToString().ParseJsonTo<string[]>();
+                    List<BulletClass> list = new List<BulletClass>();
+                    foreach (string text in ammoIds)
+                    {
+                        var findItem = player.FindItemById(text, false, true);
+                        if (findItem.Failed)
+                        {
+                            Logger.LogInfo("There is no item with id " + text + " in the GameWorld");
+                        }
+                        Item item = player.FindItemById(text, false, true).Value;
+                        BulletClass bulletClass = findItem.Value as BulletClass;
+                        if (bulletClass == null)
+                            continue;
+                        list.Add(bulletClass);
+                    }
 
-            //        var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
-            //        ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
+                    if (!CallLocally.ContainsKey(player.Profile.AccountId))
+                        CallLocally.Add(player.Profile.AccountId, true);
 
-            //        //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ma");
-
-            //        var ga = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ga"].ToString());
-            //        ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
-
-            //        //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ga");
-
-            //        var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString())
-            //            .FirstOrDefault(x => x.Id == dict["mg.id"].ToString()) as MagazineClass;
-            //        if (magazine == null)
-            //        {
-            //            Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find Magazine!");
-            //            return;
-            //        }
-
-            //        if(!ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, magazine))
-            //            ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, magazine);
-
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Logger.LogError(e);
-            //    }
-            //}
+                    AmmoPack ammoPack = new AmmoPack(list);
+                    firearmCont.ReloadWithAmmo(ammoPack, (c) => { });
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e);
+                }
+            }
         }
 
         //bool ReplicatedGridAddressGrid(EFT.Player player, EFT.Player.FirearmController firearmCont, GridItemAddressDescriptor gridAddressGrid, MagazineClass magazine)
