@@ -3,7 +3,7 @@
 <h1 style="text-align: center"> SIT.Core </h1>
 逃离塔科夫的BepInEx MOD，为了配合SPT-Aki在逃离塔科夫离线模式下进行合作游戏。
  
-[English](README.md) **|** [简体中文](README_CN.md)
+[English](README.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [简体中文](README_CN.md)
  
 </div>
 
