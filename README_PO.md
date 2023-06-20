@@ -44,8 +44,8 @@ O objetivo do projeto é simples: criar uma experiência de coop PvE que mantenh
 
 ## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
 **A Wiki está em construção por vários colaboradores. Ela pode estar incompleta! Todas as instruções também estão disponíveis no código-fonte, no diretório wiki.**
-  - ### [Manuais de Configuração](https://github.com/paulov-t/SIT.Core/wiki/Guides-Portugues)
-  - ### [Perguntas Frequentes](https://github.com/paulov-t/SIT.Core/wiki/FAQs-Portugues)
+  - ### [Manuais de Configuração](https://github.com/paulov-t/SIT.Core/wiki/Guides-Portuguese)
+  - ### [Perguntas Frequentes](https://github.com/paulov-t/SIT.Core/wiki/FAQs-Portuguese)
 
 ## Coop
 
@@ -54,7 +54,7 @@ O objetivo do projeto é simples: criar uma experiência de coop PvE que mantenh
 * O coop está em estágios iniciais de desenvolvimento.
 * A maioria dos recursos funciona (mais ou menos) e é "jogável (mais ou menos) com prováveis bugs". "Jogável" e perfeito são duas coisas muito diferentes. Espere lag (dessincronia), problemas e bugs.
 * Meus testes incluíram todos os mapas. Os mapas que funcionam melhor são Factory e Labs. O desempenho depende muito da CPU/Internet do servidor e dos clientes e do número de IAs no servidor.
-* Mais informações sobre HOSPEDAGEM & COOP estão no [Documento HOSTING.md](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-Portugues.md)
+* Mais informações sobre HOSPEDAGEM & COOP estão no [Documento HOSTING.md](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-Portuguese.md)
 
 ### PRÉ-REQUISITO
 Você deve ter o mod [SPT-Aki](https://github.com/paulov-t/SIT.Aki-Server-Mod) instalado em seu servidor para que este módulo funcione. Se você não deseja usar o módulo Coop, você deve desativá-lo no arquivo de configuração do BepInEx.
