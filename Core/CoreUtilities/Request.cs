@@ -178,7 +178,8 @@ namespace SIT.Tarkov.Core
                     if(coopGameComponent.LocalGameInstance == null)
                         return;
 
-                    coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                    coopGameComponent.ServerHasStopped = true;
+                    //coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
                     return;
                 }
 

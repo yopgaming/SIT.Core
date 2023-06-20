@@ -162,6 +162,17 @@ namespace SIT.Core.Coop
 
         void LateUpdate()
         {
+            if(ServerHasStopped && !ServerHasStoppedActioned)
+            {
+                ServerHasStoppedActioned = true;
+                try
+                {
+                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                }
+                catch { }
+                return;
+            }
+
             var DateTimeStart = DateTime.Now;
 
             if(!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
@@ -338,7 +349,9 @@ namespace SIT.Core.Coop
                 {
                     // Game is broken and doesn't exist!
                     if(LocalGameInstance != null)
-                        LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                    {
+                        this.ServerHasStopped = true;
+                    }
                     return;
                 }
 
@@ -963,6 +976,8 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("accountId", player.Profile.AccountId);
             dictPlayerState.Add("serverId", GetServerId());
             dictPlayerState.Add("t", DateTime.Now.Ticks);
+            dictPlayerState.Add("phys.hs.current", player.Physical.HandsStamina.Current);
+            dictPlayerState.Add("phys.hs.total", player.Physical.HandsStamina.TotalCapacity.Value);
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
@@ -997,7 +1012,8 @@ namespace SIT.Core.Coop
         public TimeSpan LastServerPing { get; set; } = DateTime.Now.TimeOfDay;
 
         public bool HighPingMode { get; set; } = false;
-
+        public bool ServerHasStopped { get; set; }
+        private bool ServerHasStoppedActioned { get; set; }
 
         void OnGUI()
         {

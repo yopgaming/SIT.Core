@@ -131,7 +131,7 @@ namespace SIT.Core.Misc
             GetMethodForType(o.GetType(), methodName).Invoke(o, args);
         }
 
-        public static IEnumerable<MethodInfo> GetAllMethodsForType(Type t, bool debug = false)
+        public static IEnumerable<MethodInfo> GetAllMethodsForType(Type t, bool debug = false, bool excludeBaseType = false)
         {
             foreach (var m in t.GetMethods(
                 BindingFlags.NonPublic
@@ -147,6 +147,9 @@ namespace SIT.Core.Misc
 
                 yield return m;
             }
+
+            if (excludeBaseType)
+                yield break;
 
             if (t.BaseType != null)
             {

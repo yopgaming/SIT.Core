@@ -44,6 +44,7 @@ namespace SIT.Core.Coop.Player
                 CallLocally.Remove(player.Profile.AccountId);
                 return;
             }
+
             SlotItemAddressDescriptor slotItemAddressDescriptor = new();
             slotItemAddressDescriptor.Container = new();
             slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
@@ -85,6 +86,12 @@ namespace SIT.Core.Coop.Player
             if (itemFindResult.Succeeded)
             {
                 item = itemFindResult.Value;
+
+                // Item isn't in a box?
+                if(item.CurrentAddress == null || item.CurrentAddress.Container == null)
+                {
+                    Logger.LogInfo($"Item of Id {item.Id} isn't in a box");
+                }
                 //item = item.CloneItemWithSameId();
                 //item = item.CloneItem();
             }
@@ -158,7 +165,7 @@ namespace SIT.Core.Coop.Player
                         {
                             if (container1 is Slot slot)
                             {
-                                Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]RemoveItem");
+                                //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]RemoveItem");
                                 slot.RemoveItem();
                             }
                         }

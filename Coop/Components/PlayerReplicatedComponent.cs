@@ -101,14 +101,15 @@ namespace SIT.Coop.Core.Player
                 float poseLevel = float.Parse(packet["pose"].ToString());
                 PoseLevelDesired = poseLevel;
 
+                // Speed
+                float speed = float.Parse(packet["spd"].ToString());
+                player.CurrentState.ChangeSpeed(speed);
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
                 // Sprint
                 ProcessPlayerStateSprint(packet);
-                // Speed
-                float speed = float.Parse(packet["spd"].ToString());
-                player.CurrentState.ChangeSpeed(speed);
+                
                 // Rotation
                 Vector2 packetRotation = new Vector2(
                 float.Parse(packet["rX"].ToString())
@@ -161,7 +162,7 @@ namespace SIT.Coop.Core.Player
                 if (packet.ContainsKey("alive"))
                 {
                     bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
-                    if (!isCharAlive)
+                    if (!isCharAlive && (player.PlayerHealthController.IsAlive || player.ActiveHealthController.IsAlive))
                     {
                         player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
                         player.PlayerHealthController.Kill(EFT.EDamageType.Undefined);
@@ -173,22 +174,28 @@ namespace SIT.Coop.Core.Player
 
         }
 
+        public bool ShouldSprint { get; set; }
+        public bool IsSprinting { get; set; }
+
         private void ProcessPlayerStateSprint(Dictionary<string, object> packet)
         {
-            bool sprint = bool.Parse(packet["spr"].ToString());
+            ShouldSprint = bool.Parse(packet["spr"].ToString());
             if (player.IsSprintEnabled)
             {
-                if (!sprint)
+                if (!ShouldSprint)
                 {
-                    player.MovementContext.EnableSprint(false);
+                    player.Physical.Sprint(false);
+                    //player.MovementContext.EnableSprint(false);
+                    IsSprinting = false;
                 }
             }
-            else
+            else if (ShouldSprint && !IsSprinting)
             {
-                if (sprint)
-                {
-                    player.MovementContext.EnableSprint(true);
-                }
+                player.Physical.Sprint(true);
+                player.Physical.StaminaCapacity = 100;
+                player.Physical.StaminaRestoreRate = 100; 
+                //player.MovementContext.EnableSprint(true);
+                IsSprinting = true;
             }
         }
 
