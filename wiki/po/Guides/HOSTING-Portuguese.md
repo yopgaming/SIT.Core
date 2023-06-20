@@ -1,7 +1,7 @@
 ﻿# HOSPEDAGEM
 
 ## Como permitir que outras pessoas se juntem ao seu servidor SPT-Aki?
-* Siga [CONFIGURAÇÃO PADRÃO](https://github.com/paulov-t/SIT.Core/wiki/Setup-Standard-English) ou [CONFIGURAÇÃO HAMACHI](https://github.com/paulov-t/SIT.Core/wiki/Setup-Hamachi-English)
+* Siga [CONFIGURAÇÃO PADRÃO](https://github.com/paulov-t/SIT.Core/wiki/Setup-Standard-Portuguese) ou [CONFIGURAÇÃO HAMACHI](https://github.com/paulov-t/SIT.Core/wiki/Setup-Hamachi-Portuguese)
 
 ## Como se juntar à partida de outras pessoas
 ISSO É EXTREMAMENTE EXPERIMENTAL NESTE MOMENTO E PODE MUDAR
