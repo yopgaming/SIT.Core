@@ -10,8 +10,7 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 ![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
 
-[English](README.md) **|** [简体中文](README_CN.md)
-
+[English](README.md) **|** [Deutsch](README_DE.md) **|** [简体中文](README_CN.md) **|** [Português-Brasil](README_PO.md)
 </div>
 
 ---
