@@ -21,7 +21,7 @@ Ein Escape From Tarkov BepInEx Modul für SPT-Aki mit dem Ziel einen "Offline" C
 Das Projekt wurde ins Leben gerufen da Battlestate Games (BSG) bisher keine reine PvE-Erfahrung mit gespeichertem Fortschritt bietet. Das Ziel ist einfach: Ein PvE Spielmodus in dem du mit Freunden spielen kannst und deine/eure Items und Fortschritt erhalten bleiben.
 Sobald BSG allerdings solch einen Spielmodus anbietet wird das Projekt sofort eingestampft!
 
-## Disclaimer
+## Haftungsausschluss
 
 * Du brauchst eine legitime Version von Escape from Tarkov. Kaufen kannst du es hier: [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 * Das Projekt stellt keine Grundlage zum cheaten dar! (Es wurde unter anderem ins Leben gerufen da Cheater die Live-Server verpesten)
@@ -97,10 +97,11 @@ Platziere die kompilierte .dll in deinen BepInEx plugin Ordner.
 - Öffne deine BepInEx config
 - Ändere [Logging.Console] von Enabled to True
 - Speichern
-- Starte Tarkov über den SIT-Launcher oder eine Batch-Datei z.B.
+- Starte Tarkov über den SIT-Launcher oder eine Batch-Datei z.B.:
 ```
 start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -config={"BackendUrl":"http://127.0.0.1:6969","Version":"live"}
 ```
+- 
 - Wenn du alles richtig gemacht hast sollte ein BepInEx Konsolenfenster aufgehen und anzeigen, dass das Plugin geladen/gestartet wurde.
 
 
