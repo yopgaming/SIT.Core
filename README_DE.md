@@ -10,7 +10,7 @@ Ein Escape From Tarkov BepInEx Modul für SPT-Aki mit dem Ziel einen "Offline" C
 
 ![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/SIT.Core/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/SIT.Core/latest/total)
 
-[English](README.md) **|** [Deutsch](README_DE.md)  **|** [简体中文](README_CN.md)
+[English](README.md) **|** [Deutsch](README_DE.md) **|** [Português-Brasil](README_PO.md) **|** [简体中文](README_CN.md)
 
 </div>
 
