@@ -24,7 +24,7 @@ SITCOOP/Server
 O caminho da pasta do mod deve ser assim:\
 C:\SITCOOP\Server\user\mods\SIT.Aki-Server-Mod-master\
 Para ter certeza de que não há pastas extras, o SIT.Aki-Server-Mod-master deve ter o arquivo package.json dentro dela.
-5. Configure http.json e coopconfig.json conforme descrito em [HOSTING.md](https://github.com/paulov-t/SIT.Core/blob/master/HOSTING.md) de Paulov-t.
+5. Configure http.json e coopconfig.json conforme descrito em [Hospedagem](https://github.com/paulov-t/SIT.Core/wiki/Hosting-Portuguese) de Paulov-t.
 Se você estiver usando o Hamachi, use o IPv4 do Hamachi para ambos http.json e coopconfig.json.\
 *E não use 127.0.0.1 ou Localhost!*
 6. Inicie o servidor (como administrador) e vá para a seção de instalação do cliente.
