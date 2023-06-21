@@ -1,3 +1,4 @@
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
 
@@ -14,7 +15,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
         protected override MethodBase GetTargetMethod()
         {
             var desiredType = typeof(MainMenuController);
-            var desiredMethod = desiredType.GetMethod("method_1", PatchConstants.PrivateFlags);
+            var desiredMethod = ReflectionHelpers.GetMethodForType(desiredType, "ShowScreen");
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
             Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
@@ -28,6 +29,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
             var healthController = __instance.HealthController;
             var listener = HealthListener.Instance;
 
+            Logger.LogInfo("MainMenuControllerForHealthListenerPatch:PatchPostfix");
             if (healthController == null)
             {
                 Logger.LogInfo("MainMenuControllerPatch() - healthController is null");
@@ -42,7 +44,12 @@ namespace SIT.Core.SP.PlayerPatches.Health
             {
                 listener.Init(healthController, false);
             }
-                
+
+
+            if(HealthListener.Instance != null)
+                Request.Instance.PostJson("/player/health/sync", HealthListener.Instance.CurrentHealth.ToJson());
+
+
         }
     }
 }

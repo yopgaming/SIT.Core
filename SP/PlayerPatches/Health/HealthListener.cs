@@ -49,6 +49,8 @@ namespace SIT.Core.SP.PlayerPatches.Health
             if (healthController != null && healthController == MyHealthController)
                 return;
 
+            PatchConstants.Logger.LogInfo("HealthListener.Init");
+
             // init dependencies
             MyHealthController = healthController;
 
