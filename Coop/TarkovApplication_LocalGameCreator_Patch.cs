@@ -54,6 +54,10 @@ namespace SIT.Core.Coop
             )
         {
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
+            if (Singleton<NotificationManagerClass>.Instantiated)
+            {
+                Singleton<NotificationManagerClass>.Instance.Deactivate();
+            }
 
             var session = __instance.GetClientBackEndSession();
             session.Profile.Inventory.Stash = null;
@@ -78,20 +82,23 @@ namespace SIT.Core.Coop
 
                     Logger.LogInfo("Callback Metrics. Invoke method 45");
                     ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
-                    session.Profile.Id, null, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
+                    session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
                     });
                 })
                 , ____fixedDeltaTime
                 , EUpdateQueue.Update
                 , session
-                , new TimeSpan(1, 0, 0));
+                , TimeSpan.FromSeconds((double)(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)));
             Singleton<AbstractGame>.Create(localGame);
                 await localGame.method_3(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
                 {
 
-                    using (GClass21.StartWithToken("LoadingScreen.LoadComplete"))
+                    //using (GClass21.StartWithToken("LoadingScreen.LoadComplete"))
                     {
                         UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
+                        MainMenuController mmc =
+                            (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
+                        mmc.Unsubscribe();
                         Singleton<GameWorld>.Instance.OnGameStarted();
                     }
 

@@ -38,10 +38,10 @@ namespace SIT.Core.Coop
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-            //new TarkovApplication_LocalGameCreator_Patch().Enable();
+            new TarkovApplication_LocalGameCreator_Patch().Enable();
             new LocalGameStartingPatch(m_Config).Enable();
             //new LocalGameEndingPatch(m_Config).Enable();
-            new LocalGameSpawnAICoroutinePatch().Enable();
+            //new LocalGameSpawnAICoroutinePatch().Enable(); // No longer needed. Handled by CoopGame
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
             new LocalGame_Weather_Patch().Enable();

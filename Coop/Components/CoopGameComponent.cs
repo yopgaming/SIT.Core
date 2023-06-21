@@ -142,7 +142,7 @@ namespace SIT.Core.Coop
 
                     if (pl.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
-                        GameObject.Destroy(prc);
+                        GameObject.DestroyImmediate(prc);
                     }
                 }
             }

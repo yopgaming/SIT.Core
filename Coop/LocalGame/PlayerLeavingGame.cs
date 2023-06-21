@@ -64,9 +64,9 @@ namespace SIT.Core.Coop.LocalGame
                 {
                     foreach(var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
                     {
-                        GameObject.Destroy(prc);
+                        GameObject.DestroyImmediate(prc);
                     }
-                    GameObject.Destroy(component);
+                    GameObject.DestroyImmediate(component);
                 }
             }
         }

@@ -123,12 +123,12 @@ namespace SIT.Core.Coop
 
         public override IEnumerator vmethod_4(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
         {
-            if(MatchmakerAcceptPatches.IsClient)
-            {
-                yield return new WaitForSeconds(startDelay);
-                yield return this.method_17(startDelay, controllerSettings, spawnSystem, runCallback);
-                yield break;
-            }
+            //if(MatchmakerAcceptPatches.IsClient)
+            //{
+            //    yield return new WaitForSeconds(startDelay);
+            //    yield return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
+            //    yield break;
+            //}
 
             BotsPresets botsPresets =
                 new BotsPresets(BackEndSession
@@ -138,45 +138,24 @@ namespace SIT.Core.Coop
                 , false);
             BotCreator botCreator = new BotCreator(this, botsPresets, new Func<Profile, Vector3, Task<LocalPlayer>>(this.method_16));
             BotZone[] array = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
-            //    bool flag = controllerSettings.BotAmount == EBotAmount.Horde;
             this.PBotsController.Init(this, botCreator, array, spawnSystem, this.wavesSpawnScenario_0.BotLocationModifier, controllerSettings.IsEnabled, controllerSettings.IsScavWars, false, false, false, Singleton<GameWorld>.Instance, base.Location_0.OpenZones);
-            //    int num;
-            //    switch (controllerSettings.BotAmount)
-            //    {
-            //        case EBotAmount.AsOnline:
-            //            num = 20;
-            //            goto IL_12C;
-            //        case EBotAmount.Low:
-            //            num = 15;
-            //            goto IL_12C;
-            //        case EBotAmount.Medium:
-            //            num = 20;
-            //            goto IL_12C;
-            //        case EBotAmount.High:
-            //            num = 25;
-            //            goto IL_12C;
-            //        case EBotAmount.Horde:
-            //            num = 35;
-            //            goto IL_12C;
-            //    }
-            //    num = 15;
-            //IL_12C:
-            this.PBotsController.SetSettings(17, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
+            int numberOfBots = !MatchmakerAcceptPatches.IsClient ? 12 : 0;
+            this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.gparam_0.Player);
             yield return new WaitForSeconds(startDelay);
-            //    if (!base.Location_0.NewSpawn)
-            //    {
-            if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
+            if (!MatchmakerAcceptPatches.IsClient)
             {
-                this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
+                {
+                    this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
+                }
+                else
+                {
+                    this.nonWavesSpawnScenario_0.Run();
+                }
+                this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
             }
-            else
-            {
-                this.nonWavesSpawnScenario_0.Run();
-            }
-            //    }
-            this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
-            yield return this.method_17(startDelay, controllerSettings, spawnSystem, runCallback);
+            yield return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
             yield break;
         }
 
@@ -205,114 +184,115 @@ namespace SIT.Core.Coop
             {
                 return new BossLocationSpawn[0];
             }
-            int i = 0;
-            while (i < bossLocationSpawn.Length)
+            foreach (BossLocationSpawn bossLocationSpawn2 in bossLocationSpawn)
             {
-                BossLocationSpawn bossLocationSpawn2 = bossLocationSpawn[i];
-                List<int> list;
+                List<int> source;
                 try
                 {
-                    list = bossLocationSpawn2.BossEscortAmount.Split(new char[] { ',' }).Select(new Func<string, int>(int.Parse)).ToList<int>();
+                    source = bossLocationSpawn2.BossEscortAmount.Split(',').Select(int.Parse).ToList();
                     bossLocationSpawn2.ParseMainTypesTypes();
                 }
                 catch (Exception)
                 {
-                    goto IL_1A2;
+                    continue;
                 }
-                goto IL_57;
-            IL_1A2:
-                i++;
-                continue;
-            IL_57:
-                float num = ((bossLocationSpawn2.BossChance > 0f) ? 100f : (-1f));
+                float bossChance = ((bossLocationSpawn2.BossChance > 0f) ? 100f : (-1f));
                 if (bossLocationSpawn2.BossType == WildSpawnType.sectantPriest || bossLocationSpawn2.BossType == WildSpawnType.sectantWarrior || bossLocationSpawn2.BossType == WildSpawnType.bossZryachiy || bossLocationSpawn2.BossType == WildSpawnType.followerZryachiy)
                 {
-                    num = -1f;
+                    bossChance = -1f;
                 }
-                bossLocationSpawn2.BossChance = num;
+                bossLocationSpawn2.BossChance = bossChance;
                 switch (wavesSettings.BotAmount)
                 {
                     case EBotAmount.Low:
-                        bossLocationSpawn2.BossEscortAmount = "1";
-                        goto IL_1A2;
+                        bossLocationSpawn2.BossEscortAmount = source.Min((int x) => x).ToString();
+                        break;
                     case EBotAmount.Medium:
                         {
-                            bossLocationSpawn2.BossEscortAmount = "3";
-                            goto IL_1A2;
+                            int num = source.Max((int x) => x);
+                            int num2 = source.Min((int x) => x);
+                            bossLocationSpawn2.BossEscortAmount = ((num - num2) / 2).ToString();
+                            break;
                         }
                     case EBotAmount.High:
                     case EBotAmount.Horde:
-                        bossLocationSpawn2.BossEscortAmount = "5";
-                        goto IL_1A2;
-                    default:
-                        goto IL_1A2;
+                        bossLocationSpawn2.BossEscortAmount = source.Max((int x) => x).ToString();
+                        break;
                 }
             }
             return bossLocationSpawn;
         }
 
-        public Dictionary<string, EFT.Player> Players { get; set; } = new Dictionary<string, EFT.Player>();
+        public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 
         private async Task<LocalPlayer> method_16(Profile profile, Vector3 position)
         {
+            if (MatchmakerAcceptPatches.IsClient)
+                return null;
+
             LocalPlayer localPlayer;
             if (!base.Status.IsRunned())
             {
                 localPlayer = null;
             }
-            else if (this.Players.ContainsKey(profile.Id))
+            else if (this.Bots.ContainsKey(profile.Id))
             {
-                GClass656 gclass656_ = this.gclass656_0;
-                if (gclass656_ != null)
-                {
-                    gclass656_.LogError("Bot already registered. ProfileId:" + profile.Id + " bots:" + string.Join(", ", this.Players.Keys), Array.Empty<object>());
-                }
                 localPlayer = null;
             }
             else
             {
                 int num = base.method_11();
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
-                LocalPlayer localPlayer2 = await LocalPlayer.Create(num, position, Quaternion.identity, "Player", "", EPointOfView.ThirdPerson, profile, true, base.UpdateQueue, EUpdateMode.Auto, EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.BotPlayerMode
+                LocalPlayer botPlayer 
+                    = await LocalPlayer.Create(num, position, Quaternion.identity, "Player", "", EPointOfView.ThirdPerson, profile, true, base.UpdateQueue, EUpdateMode.Auto, EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.BotPlayerMode
                     , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                     , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                     , new StatisticsManager(), FilterCustomizationClass1.Default, null, false);
-                localPlayer2.Location = base.Location_0.Id;
-                if (this.Players.ContainsKey(localPlayer2.ProfileId))
+                botPlayer.Location = base.Location_0.Id;
+                if (this.Bots.ContainsKey(botPlayer.ProfileId))
                 {
-                    GClass656 gclass656_2 = this.gclass656_0;
-                    if (gclass656_2 != null)
-                    {
-                        gclass656_2.LogError("Bot duplication ProfileId:" + localPlayer2.ProfileId + " bots:" + string.Join(", ", this.Players.Keys), Array.Empty<object>());
-                    }
+                    return null;
                 }
                 else
                 {
-                    this.Players.Add(localPlayer2.ProfileId, localPlayer2);
+                    this.Bots.Add(botPlayer.ProfileId, botPlayer);
                 }
-                localPlayer = localPlayer2;
+                localPlayer = botPlayer;
             }
             return localPlayer;
         }
 
+        public override void vmethod_0()
+        {
+            //gclass656_0 = (GClass656)ReflectionHelpers.GetAllMethodsForType(typeof(GClass656))
+            //    .FirstOrDefault(x => x.IsConstructor).Invoke(null, new object[] { LoggerMode.None, dictionary_0, Bots });
+        }
+
+
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
-            this.BossWaveManager.Stop();
-            this.nonWavesSpawnScenario_0.Stop();
-            this.wavesSpawnScenario_0.Stop();
+            if(this.BossWaveManager != null)
+                this.BossWaveManager.Stop();
+
+            if (this.nonWavesSpawnScenario_0 != null)
+                this.nonWavesSpawnScenario_0.Stop();
+
+            if (this.wavesSpawnScenario_0 != null)
+                this.wavesSpawnScenario_0.Stop();
+
             base.Stop(profileId, exitStatus, exitName, delay);
         }
 
         public override void CleanUp()
         {
             base.CleanUp();
-            BaseLocalGame<GamePlayerOwner>.smethod_3(this.Players);
+            BaseLocalGame<GamePlayerOwner>.smethod_3(this.Bots);
         }
 
-        private IEnumerator method_17(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
-        {
-            return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
-        }
+        //private IEnumerator method_17(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
+        //{
+        //    return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
+        //}
 
         private BossWaveManager BossWaveManager;
 
