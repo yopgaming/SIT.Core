@@ -72,6 +72,7 @@ namespace SIT.Core
             new WebSocketPatch().Enable();
             new TarkovTransportWSInstanceHookPatch().Enable();
             new TarkovTransportHttpInstanceHookPatch().Enable();
+            new SendCommandsPatch().Enable();
         }
 
         private void EnableSPPatches()
