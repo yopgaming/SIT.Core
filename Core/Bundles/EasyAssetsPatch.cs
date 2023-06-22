@@ -89,6 +89,12 @@ namespace Aki.Custom.Patches
 
         private static async Task<CompatibilityAssetBundleManifest> GetManifestBundle(string filepath)
         {
+            if (!File.Exists(filepath))
+            {
+                Logger.LogError($"GetManifestBundle: Cant find {filepath}");
+                throw new FileNotFoundException(filepath);
+            }
+
             var manifestLoading = AssetBundle.LoadFromFileAsync(filepath);
             await manifestLoading.Await();
 
@@ -102,6 +108,11 @@ namespace Aki.Custom.Patches
         private static async Task<CompatibilityAssetBundleManifest> GetManifestJson(string filepath)
         {
             var text = string.Empty;
+            if(!File.Exists($"{filepath}.json"))
+            {
+                Logger.LogError($"GetManifestJson: Cant find {filepath}.json");
+                throw new FileNotFoundException(filepath);
+            }
 
             using (var reader = File.OpenText($"{filepath}.json"))
             {

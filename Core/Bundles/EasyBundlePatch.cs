@@ -34,8 +34,11 @@ namespace SIT.Tarkov.Core
 
             if (BundleManager.Bundles.TryGetValue(key, out BundleInfo bundle))
             {
+                Logger.LogInfo(path);
                 dependencyKeys = (dependencyKeys.Length > 0) ? dependencyKeys.Union(bundle.DependencyKeys).ToArray() : bundle.DependencyKeys;
                 path = bundle.Path;
+                Logger.LogInfo(path);
+
             }
 
             _ = new EasyBundleHelper(__instance)
