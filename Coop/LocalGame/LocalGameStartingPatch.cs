@@ -6,6 +6,7 @@ using EFT.Interactive;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
+using SIT.Core.Coop.FreeCamera;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -103,6 +104,11 @@ namespace SIT.Coop.Core.LocalGame
             SendOrReceiveSpawnPoint(Singleton<GameWorld>.Instance.MainPlayer);
 
             CoopPatches.EnableDisablePatches();
+
+
+            // Add FreeCamController to GameWorld GameObject
+            gameWorld.gameObject.GetOrAddComponent<FreeCameraController>();
+
 
         }
 
