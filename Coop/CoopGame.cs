@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.Bots;
 using EFT.InputSystem;
@@ -6,6 +7,7 @@ using EFT.UI;
 using EFT.Weather;
 using JsonType;
 using SIT.Coop.Core.Matchmaker;
+using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -26,59 +28,6 @@ namespace SIT.Core.Coop
     /// </summary>
     public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame
     {
-
-        // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
-        internal static CoopGame Create(
-            InputTree inputTree
-            , Profile profile
-            , GameDateTime backendDateTime
-            , Insurance insurance
-            , MenuUI menuUI
-            , CommonUI commonUI
-            , PreloaderUI preloaderUI
-            , GameUI gameUI
-            , LocationSettings.Location location
-            , TimeAndWeatherSettings timeAndWeather
-            , WavesSettings wavesSettings
-            , EDateTime dateTime
-            , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
-            , float fixedDeltaTime
-            , EUpdateQueue updateQueue
-            , ISession backEndSession
-            , TimeSpan sessionTime)
-        {
-            botControllerClass = null;
-
-            CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
-                .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
-                , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
-            WildSpawnWave[] array = CoopGame.smethod_6(wavesSettings, location.waves);
-            coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario) ,"smethod_0").Invoke
-                (null, new object[] { coopGame, location, coopGame.PBotsController });
-            coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
-                (null, new object[] { coopGame.gameObject, array, new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave)), location });// WavesSpawnScenario.smethod_0(@class.game.gameObject, array, new Action<Wave>(@class.method_0), location);
-            BossLocationSpawn[] array2 = CoopGame.smethod_7(wavesSettings, location.BossLocationSpawn);
-
-            var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
-                (null, new object[] { array2, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
-            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
-
-            coopGame.StartCoroutine(coopGame.ReplicatedWeather());
-
-            return coopGame;
-        }
-
-        public IEnumerator ReplicatedWeather()
-        {
-            var waitSeconds = new WaitForSeconds(15f);
-
-            while (true)
-            {
-                yield return waitSeconds;
-                if(WeatherController.Instance != null)
-                    WeatherController.Instance.SetWeatherForce(new WeatherClass() { });
-            }
-        }
 
         public ISession BackEndSession { get { return PatchConstants.BackEndSession; } }
 
@@ -112,23 +61,110 @@ namespace SIT.Core.Coop
         {
             get
             {
-                if(WeatherController.Instance != null)
+                if (WeatherController.Instance != null)
                     return WeatherController.Instance.WeatherCurve;
 
                 return null;
             }
         }
 
+        public ManualLogSource Logger { get; set; }
+
+
+        // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
+        internal static CoopGame Create(
+            InputTree inputTree
+            , Profile profile
+            , GameDateTime backendDateTime
+            , Insurance insurance
+            , MenuUI menuUI
+            , CommonUI commonUI
+            , PreloaderUI preloaderUI
+            , GameUI gameUI
+            , LocationSettings.Location location
+            , TimeAndWeatherSettings timeAndWeather
+            , WavesSettings wavesSettings
+            , EDateTime dateTime
+            , Callback<ExitStatus, TimeSpan, ClientMetrics> callback
+            , float fixedDeltaTime
+            , EUpdateQueue updateQueue
+            , ISession backEndSession
+            , TimeSpan sessionTime)
+        {
+            botControllerClass = null;
+
+            CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
+                .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
+                , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
+            WildSpawnWave[] array = CoopGame.smethod_6(wavesSettings, location.waves);
+            coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario) ,"smethod_0").Invoke
+                (null, new object[] { coopGame, location, coopGame.PBotsController });
+            coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
+                (null, new object[] { coopGame.gameObject, array, new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave)), location });// WavesSpawnScenario.smethod_0(@class.game.gameObject, array, new Action<Wave>(@class.method_0), location);
+            BossLocationSpawn[] bossSpawnChanges = CoopGame.smethod_7(wavesSettings, location.BossLocationSpawn);
+
+            var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
+                (null, new object[] { bossSpawnChanges, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
+            ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
+
+            coopGame.Logger = new ManualLogSource(coopGame.GetType().Name);
+            coopGame.StartCoroutine(coopGame.ReplicatedWeather());
+            //coopGame.CreateCoopGameComponent();
+            return coopGame;
+        }
+
+        public void CreateCoopGameComponent()
+        {
+            var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+            if (coopGameComponent != null)
+            {
+                GameObject.Destroy(coopGameComponent);
+            }
+
+            // Hideout is SinglePlayer only. Do not create CoopGameComponent
+            //if (__instance.GetType().Name.Contains("HideoutGame"))
+            //    return;
+
+            if (CoopPatches.CoopGameComponentParent == null)
+                CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
+
+            coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
+            coopGameComponent.LocalGameInstance = this;
+
+            //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
+            if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
+                coopGameComponent.ServerId = MatchmakerAcceptPatches.GetGroupId();
+            else
+            {
+                GameObject.Destroy(coopGameComponent);
+                coopGameComponent = null;
+                Logger.LogError("========== ERROR = COOP ========================");
+                Logger.LogError("No Server Id found, Deleting Coop Game Component");
+                Logger.LogError("================================================");
+                throw new Exception("No Server Id found");
+            }
+        }
+
+        public IEnumerator ReplicatedWeather()
+        {
+            var waitSeconds = new WaitForSeconds(15f);
+
+            while (true)
+            {
+                yield return waitSeconds;
+                if(WeatherController.Instance != null)
+                    WeatherController.Instance.SetWeatherForce(new WeatherClass() { });
+            }
+        }
 
 
         public override IEnumerator vmethod_4(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
         {
-            //if(MatchmakerAcceptPatches.IsClient)
-            //{
-            //    yield return new WaitForSeconds(startDelay);
-            //    yield return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
-            //    yield break;
-            //}
+            var shouldSpawnBots = !MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
+            if (!shouldSpawnBots)
+            {
+                controllerSettings.BotAmount = EBotAmount.NoBots;
+            }
 
             BotsPresets botsPresets =
                 new BotsPresets(BackEndSession
@@ -136,14 +172,14 @@ namespace SIT.Core.Coop
                 , new BossLocationSpawn[1] { new BossLocationSpawn() { Activated = false } }
                 , (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0)
                 , false);
-            BotCreator botCreator = new BotCreator(this, botsPresets, new Func<Profile, Vector3, Task<LocalPlayer>>(this.method_16));
-            BotZone[] array = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
-            this.PBotsController.Init(this, botCreator, array, spawnSystem, this.wavesSpawnScenario_0.BotLocationModifier, controllerSettings.IsEnabled, controllerSettings.IsScavWars, false, false, false, Singleton<GameWorld>.Instance, base.Location_0.OpenZones);
-            int numberOfBots = !MatchmakerAcceptPatches.IsClient ? 12 : 0;
+            BotCreator botCreator = new BotCreator(this, botsPresets, new Func<Profile, Vector3, Task<LocalPlayer>>(this.CreatePhysicalBot));
+            BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
+            this.PBotsController.Init(this, botCreator, botZones, spawnSystem, this.wavesSpawnScenario_0.BotLocationModifier, controllerSettings.IsEnabled, controllerSettings.IsScavWars, false, false, false, Singleton<GameWorld>.Instance, base.Location_0.OpenZones);
+            int numberOfBots = shouldSpawnBots ? 12 : 0;
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.gparam_0.Player);
             yield return new WaitForSeconds(startDelay);
-            if (!MatchmakerAcceptPatches.IsClient)
+            if (shouldSpawnBots)
             {
                 if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
                 {
@@ -154,6 +190,12 @@ namespace SIT.Core.Coop
                     this.nonWavesSpawnScenario_0.Run();
                 }
                 this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
+            }
+            else
+            {
+                this.wavesSpawnScenario_0.Stop();
+                this.nonWavesSpawnScenario_0.Stop();
+                this.BossWaveManager.Stop();
             }
             yield return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
             yield break;
@@ -184,48 +226,48 @@ namespace SIT.Core.Coop
             {
                 return new BossLocationSpawn[0];
             }
-            foreach (BossLocationSpawn bossLocationSpawn2 in bossLocationSpawn)
-            {
-                List<int> source;
-                try
-                {
-                    source = bossLocationSpawn2.BossEscortAmount.Split(',').Select(int.Parse).ToList();
-                    bossLocationSpawn2.ParseMainTypesTypes();
-                }
-                catch (Exception)
-                {
-                    continue;
-                }
-                float bossChance = ((bossLocationSpawn2.BossChance > 0f) ? 100f : (-1f));
-                if (bossLocationSpawn2.BossType == WildSpawnType.sectantPriest || bossLocationSpawn2.BossType == WildSpawnType.sectantWarrior || bossLocationSpawn2.BossType == WildSpawnType.bossZryachiy || bossLocationSpawn2.BossType == WildSpawnType.followerZryachiy)
-                {
-                    bossChance = -1f;
-                }
-                bossLocationSpawn2.BossChance = bossChance;
-                switch (wavesSettings.BotAmount)
-                {
-                    case EBotAmount.Low:
-                        bossLocationSpawn2.BossEscortAmount = source.Min((int x) => x).ToString();
-                        break;
-                    case EBotAmount.Medium:
-                        {
-                            int num = source.Max((int x) => x);
-                            int num2 = source.Min((int x) => x);
-                            bossLocationSpawn2.BossEscortAmount = ((num - num2) / 2).ToString();
-                            break;
-                        }
-                    case EBotAmount.High:
-                    case EBotAmount.Horde:
-                        bossLocationSpawn2.BossEscortAmount = source.Max((int x) => x).ToString();
-                        break;
-                }
-            }
+            //foreach (BossLocationSpawn bossLocationSpawn2 in bossLocationSpawn)
+            //{
+            //    List<int> source;
+            //    try
+            //    {
+            //        source = bossLocationSpawn2.BossEscortAmount.Split(',').Select(int.Parse).ToList();
+            //        bossLocationSpawn2.ParseMainTypesTypes();
+            //    }
+            //    catch (Exception)
+            //    {
+            //        continue;
+            //    }
+            //    float bossChance = bossLocationSpawn2.BossChance;
+            //    if (bossLocationSpawn2.BossType == WildSpawnType.sectantPriest || bossLocationSpawn2.BossType == WildSpawnType.sectantWarrior || bossLocationSpawn2.BossType == WildSpawnType.bossZryachiy || bossLocationSpawn2.BossType == WildSpawnType.followerZryachiy)
+            //    {
+            //        bossChance = -1f;
+            //    }
+            //    bossLocationSpawn2.BossChance = bossChance;
+            //    switch (wavesSettings.BotAmount)
+            //    {
+            //        case EBotAmount.Low:
+            //            bossLocationSpawn2.BossEscortAmount = source.Min((int x) => x).ToString();
+            //            break;
+            //        case EBotAmount.Medium:
+            //            {
+            //                int num = source.Max((int x) => x);
+            //                int num2 = source.Min((int x) => x);
+            //                bossLocationSpawn2.BossEscortAmount = ((num - num2) / 2).ToString();
+            //                break;
+            //            }
+            //        case EBotAmount.High:
+            //        case EBotAmount.Horde:
+            //            bossLocationSpawn2.BossEscortAmount = source.Max((int x) => x).ToString();
+            //            break;
+            //    }
+            //}
             return bossLocationSpawn;
         }
 
         public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 
-        private async Task<LocalPlayer> method_16(Profile profile, Vector3 position)
+        private async Task<LocalPlayer> CreatePhysicalBot(Profile profile, Vector3 position)
         {
             if (MatchmakerAcceptPatches.IsClient)
                 return null;

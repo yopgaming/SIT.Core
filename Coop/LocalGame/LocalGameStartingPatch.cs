@@ -43,11 +43,11 @@ namespace SIT.Coop.Core.LocalGame
             //{
             //    Logger.LogInfo($"LocalGameStartingPatch:{ty}");
             //}
-            _ = typeof(EFT.BaseLocalGame<GamePlayerOwner>);
+            //_ = typeof(EFT.BaseLocalGame<GamePlayerOwner>);
 
             //var t = SIT.Tarkov.Core.PatchConstants.EftTypes.FirstOrDefault(x => x.FullName.StartsWith("EFT.LocalGame"));
-            var t = typeof(EFT.LocalGame);
-            //var t = typeof(EFT.BaseLocalGame<GamePlayerOwner>);
+            //var t = typeof(EFT.LocalGame);
+            var t = typeof(EFT.BaseLocalGame<GamePlayerOwner>);
             if (t == null)
                 Logger.LogInfo($"LocalGameStartingPatch:Type is NULL");
 
@@ -70,6 +70,11 @@ namespace SIT.Coop.Core.LocalGame
         {
             await __result;
 
+            if(__instance is CoopGame coopGame)
+            {
+                coopGame.CreateCoopGameComponent();
+            }
+
             //LocalGamePatches.LocalGameInstance = __instance;
             var gameWorld = Singleton<GameWorld>.Instance;
             if (gameWorld == null)
@@ -77,35 +82,7 @@ namespace SIT.Coop.Core.LocalGame
                 Logger.LogError("GameWorld is NULL");
                 return;
             }
-            var coopGameComponent = CoopGameComponent.GetCoopGameComponent();
-            if (coopGameComponent != null)
-            {
-                GameObject.Destroy(coopGameComponent);
-            }
-
-            // Hideout is SinglePlayer only. Do not create CoopGameComponent
-            if (__instance.GetType().Name.Contains("HideoutGame"))
-                return;
-
-            if (CoopPatches.CoopGameComponentParent == null)
-                CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
-
-            coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
-            coopGameComponent.LocalGameInstance = __instance;
-
-            //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();
-            if (!string.IsNullOrEmpty(MatchmakerAcceptPatches.GetGroupId()))
-                coopGameComponent.ServerId = MatchmakerAcceptPatches.GetGroupId();
-            else
-            {
-                GameObject.Destroy(coopGameComponent);
-                coopGameComponent = null;
-                Logger.LogError("========== ERROR = COOP ========================");
-                Logger.LogError("No Server Id found, Deleting Coop Game Component");
-                Logger.LogError("================================================");
-                throw new Exception("No Server Id found");
-            }
-
+            
             if (!MatchmakerAcceptPatches.IsClient)
             {
                 Dictionary<string, object> packet = new Dictionary<string, object>
