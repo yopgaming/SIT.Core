@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using SIT.Core.Other.AI;
+using SIT.Core.Other.AI.DrakiaXYZ.BigBrain;
 using SIT.Core.Other.UI;
 
 namespace SIT.Core.Other
@@ -33,6 +34,9 @@ namespace SIT.Core.Other
 
             if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnablePropsAIBushPatch", false).Value)
                 new AIBushPatch().Enable();
+
+            if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableBigBrain", true).Value)
+                new BigBrainPatch();
 
             var enableAIWakeOrSleep = config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableAIWakeOrSleepPatch", false);
             if (enableAIWakeOrSleep.Value)
