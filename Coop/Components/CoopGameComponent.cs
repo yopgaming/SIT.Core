@@ -177,7 +177,7 @@ namespace SIT.Core.Coop
             var DateTimeStart = DateTime.Now;
 
             if(!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
-                HighPingMode = ServerPing > PING_LIMIT_HIGH;
+                HighPingMode = ServerPing > PING_LIMIT_HIGH && MatchmakerAcceptPatches.IsClient;
 
 
             if (ActionPackets == null)
