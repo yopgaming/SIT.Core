@@ -10,6 +10,7 @@ using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Core;
+using SIT.Core.Core.FileChecker;
 using SIT.Core.Core.Web;
 using SIT.Core.Misc;
 using SIT.Core.Other;
@@ -61,6 +62,7 @@ namespace SIT.Core
             // File Checker
             new ConsistencySinglePatch().Enable();
             new ConsistencyMultiPatch().Enable();
+            new RunFilesCheckingPatch().Enable();
             // BattlEye
             new BattlEyePatch().Enable();
             new BattlEyePatchFirstPassRun().Enable();
