@@ -43,8 +43,8 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 * 不要把SPT-AKI客户端模块与SIT同时安装! 只需要安装服务端模块即可!
 
 ## [中文Wiki](https://github.com/paulov-t/SIT.Core/wiki/%E4%BB%8B%E7%BB%8D(Intro)-Home)
-  - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD)
-  - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs)
+  - ### [部署教程](https://github.com/paulov-t/SIT.Core/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD)
+  - ### [疑难解答](https://github.com/paulov-t/SIT.Core/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs)
 
 ## 合作相关
 
