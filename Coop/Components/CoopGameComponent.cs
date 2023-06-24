@@ -168,7 +168,10 @@ namespace SIT.Core.Coop
                 ServerHasStoppedActioned = true;
                 try
                 {
-                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                    // Allow server to configure whether to send hanging clients to "Run Through" or "Survived" status.
+                    // Set RunThroughOnServerStop to false for "Survived" (new) behavior.
+                    var exitStatus = PluginConfigSettings.Instance.CoopSettings.RunThroughOnServerStop ? ExitStatus.Runner : ExitStatus.Survived;
+                    LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, exitStatus, "", 0);
                 }
                 catch { }
                 return;

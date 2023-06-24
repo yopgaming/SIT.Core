@@ -55,6 +55,7 @@ namespace SIT.Core.Configuration
             public bool EnableAISpawnWaveSystem { get; set; } = true;
 
             public bool ForceHighPingMode { get; set; } = false;
+            public bool RunThroughOnServerStop { get; set; } = true;
 
             public void GetSettings()
             {
@@ -91,6 +92,9 @@ namespace SIT.Core.Configuration
                 ForceHighPingMode = Plugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
                         , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
 
+                RunThroughOnServerStop = Plugin.Instance.Config.Bind("Coop", "RunThroughOnServerStop", true
+                        , new ConfigDescription("Controls whether clients still in-raid when server dies will receive a Run Through (true) or Survived (false).")).Value;
+
 
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
@@ -101,6 +105,7 @@ namespace SIT.Core.Configuration
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
                 Logger.LogDebug($"ForceHighPingMode: {ForceHighPingMode}");
+                Logger.LogDebug($"RunThroughOnServerStop: {RunThroughOnServerStop}");
 
                 if (ArenaMode)
                 {
