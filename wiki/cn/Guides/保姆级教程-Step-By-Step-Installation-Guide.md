@@ -23,7 +23,7 @@
 ## 1. [SIT启动器](https://github.com/paulov-t/SIT.Launcher/releases) (自动安装)
 
 
-1. 在[Releases](https://github.com/paulov-t/SIT.Launcher/releases)下载最新版的`SIT Launcher`
+1. 在[Releases](https://github.com/paulov-t/SIT.Launcher/releases) 下载最新版的`SIT Launcher`
 2. 将文件解压缩至 `SIT_DIR/launcher`
 3. 启动 `SIT.Launcher.exe`
 4. 第1次启动时,会有以下安装提示跳出:
@@ -36,10 +36,10 @@
 
 ## 2. [SPT-AKI服务器](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases)
 
-1. 在[Releases](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases)页面下载最新版的 `SPT-AKI Server`.
+1. 在[Releases](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) 页面下载最新版的 `SPT-AKI Server`.
 2. 解压缩文件至 `SIT_DIR/server`.
 ## 3. [SIT服务器Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod)
-1. 从[GitHub](https://github.com/paulov-t/SIT.Aki-Server-Mod)下载服务器mod的zip文件 (那个大绿按钮底下: *Code > Download Zip*).
+1. 从[GitHub](https://github.com/paulov-t/SIT.Aki-Server-Mod) 下载服务器mod的zip文件 (那个大绿按钮底下: *Code > Download Zip*).
 2. 解压缩文件至 `SIT_DIR/server/user/mods`.
 3. 
         *`user/mods` 目录会在服务器第1次运行时自动创建. 运行`Aki.Server.exe` 即可创建此文件夹. 在目录被创建后,请停止并关闭服务器,并继续进行安装.*
@@ -54,23 +54,23 @@
     *`coopConfig.json` 文件会在服务器mod第1次运行时自动创建. 运行 `Aki.Server.exe` 以创建该文件. 在文件被创建后,请停止并关闭服务器,并继续进行安装.*
 
     *请注意:请不要使用Word编辑此文件,去用不会破坏格式的软件,比如Notepad.*
-2. 将 `externalIP` 设置为 `http://127.0.0.1:6969`.
+2. 将 `externalIP` 设置为 `127.0.0.1`.
 3. 将 `useExternalIPFinder` 设置为 `false`.
 4. *此条可选. 在 `SIT_DIR/server/Aki_Data/Server/configs/http.json`将 `logRequests` 设置为 `false` 以避免日志刷屏.
 
 ### 启动器
 将服务器地址设置为 `http://127.0.0.1:6969` 并连接
 
-*使用localhost将导致其他人无法加入你的游戏,但在debug连接问题时很有用.用这个方法来确认你游戏和mod装好没有.
+*使用localhost将导致其他人无法加入你的游戏,但在检查连接问题时很有用.用这个方法来确认你游戏和mod装好没有.
 ## 用端口转发来联机
 
 ### 服务器
-你的外部IP地址应该已经被自动检测到,无需额外调整.
-检查服务器log中的 `COOP: Auto-External-IP-Finder` 是否是你的IP地址.
+将 `useExternalIPFinder` 设置为 `false`
+百度“IP地址”查询自己的公网IP，或是在ip.cn下找到自己的公网IP，将 `externalIP` 设置为你的公网IP地址，例如`"externalIP": "172.16.0.1"`.
 *此条可选. 在 `SIT_DIR/server/Aki_Data/Server/configs/http.json` 将 `logRequests` 设置为 `false` 以避免日志刷屏.
 
 ### 启动器
-用在服务器 `COOP: Auto-External-IP-Finder` log找到的IP,或者用在https://www.whatismyip.com里看到的自己的IP来连接.(这2个IP应该相同)
+用百度“IP地址”查询自己的IP，或是在ip.cn下找到自己的IP来进行连接，填写的IP地址应该与服务器中externalIP相同，如果觉得每次修改IP麻烦请参考[DDNS配置](https://github.com/paulov-t/SIT.Core/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs#%E6%AD%A4%E6%AD%A5%E9%AA%A4%E4%B8%BAddns%E9%85%8D%E7%BD%AE%E5%A6%82%E6%9E%9C%E4%BD%A0%E6%B2%A1%E6%9C%89%E9%9D%99%E6%80%81%E5%85%AC%E7%BD%91ip%E5%B9%B6%E4%B8%94%E6%83%B3%E7%94%A8%E5%9F%9F%E5%90%8D%E8%BF%9E%E6%8E%A5%E8%87%B3%E6%9C%8D%E5%8A%A1%E5%99%A8)
 
 ## 用Hamachi VPN来联机
 
@@ -82,7 +82,7 @@
     *`coopConfig.json` 文件会在服务器mod第1次运行时自动创建. 运行 `Aki.Server.exe` 以创建该文件. 在文件被创建后,请停止并关闭服务器,并继续进行安装.*
     
     *请注意:请不要使用Word编辑此文件,去用不会破坏格式的软件,比如Notepad.*
-4. 将`externalIP` 设置为从 LogMeIn 复制的 `http://100.10.1.10:6969`
+4. 将`externalIP` 设置为从 LogMeIn 复制的 `100.10.1.10`
 5. 将 `useExternalIPFinder` 设置为 `false`.
 6. 打开位于 `SIT_DIR/server/Aki_Data/Server/configs/http.json`的 SPT-AKI 服务器连接调试文件.
     *请注意:请不要使用Word编辑此文件,去用不会破坏格式的软件,比如Notepad.*
@@ -109,4 +109,4 @@
 
 ## 3.创建战局
 
-请查看[How to join each other's match](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING.md#how-to-join-each-others-match).
+请查看[如何加入其他人的对战](https://github.com/paulov-t/SIT.Core/wiki/%E5%BC%80%E5%A7%8B%E4%B8%80%E5%9C%BA%E6%B8%B8%E6%88%8F-HOSTING#%E5%A6%82%E4%BD%95%E5%8A%A0%E5%85%A5%E5%85%B6%E4%BB%96%E4%BA%BA%E7%9A%84%E5%AF%B9%E6%88%98).

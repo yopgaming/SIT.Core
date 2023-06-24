@@ -14,8 +14,8 @@ SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的B
 
 __感谢__[Sayoki-Yukina](https://github.com/Sayoki-Yukina)进行的初版中文翻译工作
 
-## [快速部署教程-面向拥有公网IP用户](./Guides/通常部署方式-SETUP-STANDARD.md)
+## [快速部署教程-面向拥有公网IP用户](https://github.com/paulov-t/SIT.Core/wiki/%E9%80%9A%E5%B8%B8%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F-SETUP-STANDARD)
 
-## [保姆级教程](./Guides/保姆级教程-Step-By-Step-Installation-Guide.md) 感谢[jeremymouton](https://github.com/jeremymouton)创建，由[万蓮華鏡](https://space.bilibili.com/32889242)翻译成中文
+## [保姆级教程](https://github.com/paulov-t/SIT.Core/wiki/%E4%BF%9D%E5%A7%86%E7%BA%A7%E6%95%99%E7%A8%8B-Step-By-Step-Installation-Guide) 感谢[jeremymouton](https://github.com/jeremymouton)创建，由[万蓮華鏡](https://space.bilibili.com/32889242)翻译成中文
 
-## [疑难解答](./疑难解答-FAQs.md)
+## [疑难解答](https://github.com/paulov-t/SIT.Core/wiki/%E7%96%91%E9%9A%BE%E8%A7%A3%E7%AD%94-FAQs)
