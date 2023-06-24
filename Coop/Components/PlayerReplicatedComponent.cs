@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SIT.Coop.Core.Player
 {
@@ -133,8 +134,8 @@ namespace SIT.Coop.Core.Player
                     float.Parse(packet["dX"].ToString())
                     , float.Parse(packet["dY"].ToString())
                     );
-                    player.CurrentState.Move(packetDirection);
-                    player.InputDirection = packetDirection;
+                    //player.CurrentState.Move(packetDirection);
+                    //player.InputDirection = packetDirection;
                     ReplicatedDirection = packetDirection;
                 }
 
@@ -219,6 +220,14 @@ namespace SIT.Coop.Core.Player
             }
         }
 
+        private void ShouldTeleport(Vector3 desiredPosition)
+        {
+            var direction = (player.Position - desiredPosition).normalized;
+            Ray ray = new Ray(player.Position, direction);
+            LayerMask layerMask =  LayerMaskClass.HighPolyWithTerrainNoGrassMask;
+        }
+
+
         void LateUpdate()
         {
             LateUpdate_ClientDrone();
@@ -272,7 +281,7 @@ namespace SIT.Coop.Core.Player
                 player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
             }
 
-            if (ReplicatedDirection.HasValue)
+            if (ReplicatedDirection.HasValue && !IsSprinting)
             {
                 player.CurrentState.Move(ReplicatedDirection.Value);
                 player.InputDirection = ReplicatedDirection.Value;
