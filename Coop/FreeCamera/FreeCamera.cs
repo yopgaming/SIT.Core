@@ -25,7 +25,7 @@ namespace SIT.Core.Coop.FreeCamera
             }
 
             var fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            var movementSpeed = fastMode ? 100f : 10f;
+            var movementSpeed = fastMode ? 10f : 2f;
 
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
             {

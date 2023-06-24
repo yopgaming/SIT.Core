@@ -3,11 +3,8 @@ using EFT;
 using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
+using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.FreeCamera
@@ -27,12 +24,12 @@ namespace SIT.Core.Coop.FreeCamera
 
         private GamePlayerOwner _gamePlayerOwner;
 
-        private Vector3? _lastPosition;
-        private Quaternion? _lastRotation;
-
 
         public void Start()
         {
+
+
+
             // Find Main Camera
             _mainCamera = GameObject.Find("FPS Camera");
             if (_mainCamera == null)
@@ -69,6 +66,7 @@ namespace SIT.Core.Coop.FreeCamera
                 return;
 
 
+
             if (Input.GetKey(KeyCode.F9) 
                 || (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && !_freeCamScript.IsActive)
                 && _lastTime < DateTime.Now.AddSeconds(-3)
@@ -77,6 +75,17 @@ namespace SIT.Core.Coop.FreeCamera
                 _lastTime = DateTime.Now;
                 ToggleCamera();
                 ToggleUi();
+
+                var fpsCamInstance = FPSCamera.Instance;
+                if (fpsCamInstance == null)
+                    return;
+
+                fpsCamInstance.EffectsController.SetEnabledUniversal(false);
+                fpsCamInstance.NightVision.SetEnabledUniversal(false);
+                fpsCamInstance.VisorEffect.SetEnabledUniversal(false);
+                fpsCamInstance.VisorSwitcher.SetEnabledUniversal(false);
+                fpsCamInstance.IsActive = false;
+
             }
 
         }
@@ -168,6 +177,8 @@ namespace SIT.Core.Coop.FreeCamera
                 playerBody.PointOfView.Value = EPointOfView.FreeCamera;
                 localPlayer.GetComponent<PlayerCameraController>().UpdatePointOfView();
 
+                //localPlayer.GetComponent<FPSCamera>().SetCamera(null);
+                //localPlayer.GetComponent<FPSCamera>().
                 // All we really needed to do, was trigger the UpdatePointOfView method and have it update to the FreeCam state
                 // There's no easy way of doing this without patching the method, and even then it might be a bloated solution
             }
