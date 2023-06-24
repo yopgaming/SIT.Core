@@ -164,14 +164,21 @@ namespace SIT.Tarkov.Core
                     var timeStampOfPing = new TimeSpan(0, int.Parse(pingStrip[0]), int.Parse(pingStrip[1]), int.Parse(pingStrip[2]), int.Parse(pingStrip[3]));
                     var serverPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds;
                     coopGameComponent.LastServerPing = timeStampOfPing;
-                    if (coopGameComponent.ServerPingSmooth.Count > 30)
+                    if (coopGameComponent.ServerPingSmooth.Count > 10)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
                     coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
                     return;
                 }
 
-                // If this is an endSession packet, end the session for the clients
+                if (packet.ContainsKey("HostPing"))
+                {
+                    var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
+                    var timeSpanOfHostToMe = DateTime.Now - dtHP;
+                    Request.Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
+                }
+
+                    // If this is an endSession packet, end the session for the clients
                 if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
                 {
                     Logger.LogDebug("Received EndSession from Server. Ending Game.");
@@ -232,6 +239,7 @@ namespace SIT.Tarkov.Core
             PooledDictionaryCollectionToPost.Add(data);
         }
 
+        public int HostPing { get; private set; } = 1;
         public int PostPing { get; private set; } = 1;
         public ConcurrentQueue<int> PostPingSmooth { get; } = new();
 

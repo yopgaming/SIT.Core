@@ -2,6 +2,7 @@
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using EFT.UI;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
@@ -288,6 +289,8 @@ namespace SIT.Core.Coop
                 instance.ServerTime = ServerPing;
                 return;
             }
+
+            MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(0);
 
             LateUpdateSpan = DateTime.Now - DateTimeStart;
         }
@@ -978,6 +981,15 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("t", DateTime.Now.Ticks);
             dictPlayerState.Add("phys.hs.current", player.Physical.HandsStamina.Current);
             dictPlayerState.Add("phys.hs.total", player.Physical.HandsStamina.TotalCapacity.Value);
+            var staminaField = ReflectionHelpers.GetFieldFromType(typeof(Physical), "Stamina");
+            if (staminaField != null)
+            {
+                if (staminaField.GetValue(player.Physical) is HandsStamina stamina)
+                {
+                    dictPlayerState.Add("phys.s.current", stamina.Current);
+                    dictPlayerState.Add("phys.s.total", stamina.TotalCapacity.Value);
+                }
+            }
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
@@ -1028,7 +1040,7 @@ namespace SIT.Core.Coop
             GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
-            GUI.Label(rect, $"Ping RTT:{(ServerPing + Request.Instance.PostPing)}");
+            GUI.Label(rect, $"Ping RTT:{(ServerPing + Request.Instance.PostPing + Request.Instance.HostPing)}");
             rect.y += 15;
             GUI.contentColor = Color.white;
 
@@ -1052,6 +1064,35 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"Players: {numberOfPlayers}");
 
             OnGUI_DrawPlayerList(rect);
+
+
+
+            //if (LocalGameInstance == null)
+            //    return;
+
+            //if (LocalGameInstance.PlayerOwner != null && LocalGameInstance.PlayerOwner.Player != null)
+            //{
+            //    //Logger.LogInfo("LatEUpd");
+            //    if (!LocalGameInstance.PlayerOwner.Player.HealthController.IsAlive)
+            //    {
+            //        MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(-1f);
+
+            //        var corout = ReflectionHelpers.GetAllFieldsForObject(MonoBehaviourSingleton<PreloaderUI>.Instance).Single(x => x.Name == "coroutine_0");
+            //        if (corout != null)
+            //        {
+            //            if(corout.GetValue(MonoBehaviourSingleton<PreloaderUI>.Instance) != null)
+            //                MonoBehaviourSingleton<PreloaderUI>.Instance.StopCoroutine((Coroutine)corout.GetValue(MonoBehaviourSingleton<PreloaderUI>.Instance));
+            //        }
+            //    }
+            //    else
+            //    {
+            //        MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(-1f);
+            //    }
+            //}
+            //else
+            //{
+            //    MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(-1f);
+            //}
         }
 
         private void OnGUI_DrawPlayerList(Rect rect)
