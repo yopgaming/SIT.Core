@@ -66,7 +66,10 @@
 
 ### 服务器
 将 `useExternalIPFinder` 设置为 `false`
-百度“IP地址”查询自己的公网IP，或是在ip.cn下找到自己的公网IP，将 `externalIP` 设置为你的公网IP地址，例如`"externalIP": "172.16.0.1"`.
+百度“IP地址”查询自己的公网IP，或是在ip.cn下找到自己的公网IP
+
+将 `externalIP` 设置为你的公网IP地址，例如`"externalIP": "172.16.0.1"`.
+
 *此条可选. 在 `SIT_DIR/server/Aki_Data/Server/configs/http.json` 将 `logRequests` 设置为 `false` 以避免日志刷屏.
 
 ### 启动器
