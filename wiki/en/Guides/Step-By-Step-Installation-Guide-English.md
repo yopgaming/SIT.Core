@@ -1,6 +1,6 @@
 # Step by Step Stay In Tarkov Installation Guide
 
-# Prerequisites 
+# Prerequisites
 
 Before we begin, please make sure the latest version of Escape From Tarkov has been downloaded and installed using the Battlestate Games Launcher. Stay In Tarkov will not work with an outdated or illegitimate copy of the game.
 
@@ -16,12 +16,12 @@ Throughout the guide, we will refer to `SIT_DIR` as the root directory for insta
 
 ## 1. [SIT Launcher](https://github.com/paulov-t/SIT.Launcher/releases) (using auto install)
 
-1. Download the latest release of the `SIT Launcher` from the [Releases](https://github.com/paulov-t/SIT.Launcher/releases) page. 
+1. Download the latest release of the `SIT Launcher` from the [Releases](https://github.com/paulov-t/SIT.Launcher/releases) page.
 2. Unzip file and extract contents to `SIT_DIR/launcher`.
 3. Run `SIT.Launcher.exe`.
-4. The first time you run the launcher, it will prompt you for an installation: 
-    
-    *“No OFFLINE install found. Would you like to install now?”* 
+4. The first time you run the launcher, it will prompt you for an installation:
+
+    *“No OFFLINE install found. Would you like to install now?”*
 
     Click “Yes”.
 
@@ -54,20 +54,25 @@ Throughout the guide, we will refer to `SIT_DIR` as the root directory for insta
 4. Optionally, set `logRequests` to `false` in `SIT_DIR/server/Aki_Data/Server/configs/http.json` to prevent log spam.
 
 ### Launcher
-Connect using `http://127.0.0.1:6969` as the server. 
+Connect using `http://127.0.0.1:6969` as the server.
 
 *You won't be able to invite others to join your game using localhost, but it can be useful when debugging connection issues. Use this to confirm the game and mods are installed correctly.*
 
 ## Hosted with port forwarding
 
-### Server
-Your external IP address should be automatically detected, no further configuration is required.
-Check the server logs for `COOP: Auto-External-IP-Finder` with your IP address.
+### Setup
+Port forwarding allows you to use your local computer as a server for a publicly-facing service. In short, your router has a static (unchanging) _external_ IP address which you can see by going to https://www.whatismyip.com. This is the IP address that the world sees as 'you' despite that many devices are on the network (e.g. if you went to whatismyip on your phone while on Wi-Fi, you'd see the same IP as when you go there on your computer). In order to use your computer for external traffic, and to allow your friends to connect to a server running on your machine, you need to do a few things:
+1. find your machine's MAC address, which you will need in order to identify your computer for step 3. You can find this by opening a command prompt and typing `ipconfig /all` and looking for the line that says "Physical Address" under your network adapter (e.g. Ethernet adapter Ethernet). It will look something like `00-00-00-00-00-00`.
+2. go into your router settings webpage (often accessible at http://192.168.1.1, but not for every router--check the label on your router, or look up the manual for its specific model number)
+3. assign your machine (the device with your MAC address) a static local IP address. There are a lot of things you could choose, one of the conventions being something in the 192.168.0.0 – 192.168.255.255 range (make sure it is different than your router IP though).
+4. in your router settings, find Port Forwarding, then forward ports `6969` and `6970` (which can usually be written as `6969,6970`) to the static local address you just assigned to your computer. This step will ensure that any traffic coming in on those ports will be directed to your computer (by default, those ports are blocked by your router).
+5. open (or _allow_) ports `6969` and `6970` in Windows firewall settings (or whatever firewall you use). This step will ensure that your computer will accept traffic on those ports.
+6. this step is not necessary, but recommended for security: whitelist your friends' IP addresses (found using whatismyip) in your router settings. Depending on your router, this may need to be done on the same screen as step 4, or it may be on a separate screen. This step will ensure that only your friends can connect to your server, and not just anyone on the internet. If you don't do this step, anyone on the internet will be able to connect to your server, which is not recommended.
+7. go to `SIT_DIR\server\Aki_Data\Server\configs` and open `http.json` in a text editor. Change the `ip` value to the static local IP you assigned to your machine. This step will allow you to connect to your server from your own computer
+8. go to `SIT_DIR\server\user\mods\SIT.Aki-Server-Mod-master\config` and open `coopConfig.json` in a text editor. Change the `externalIP` value to the IP given by whatismyip. This step will allow your friends to connect to your server.
 
+Now your Server is all set up! To connect to your own server, run the SIT launcher and enter your local static IP address, like `http://{ your local static IP }:6969`. Your friends will connect using the IP given by whatismyip, like `http://{ your external IP }:6969`.
 Optionally, set `logRequests` to `false` in `SIT_DIR/server/Aki_Data/Server/configs/http.json` to prevent log spam.
-
-### Launcher
-Use the IP shown in the server’s `COOP: Auto-External-IP-Finder` log, or use the IP found on https://www.whatismyip.com to connect (they should match).
 
 ## Hosted with Hamachi VPN
 
@@ -77,12 +82,12 @@ Use the IP shown in the server’s `COOP: Auto-External-IP-Finder` log, or use t
 3. Open the coop server configuration file in `SIT_DIR/server/user/mods/SIT.Aki Server-Mod/config/coopConfig.json`.
 
     *The `coopConfig.json` file is automatically created when the server mod is run the first time. Run `Aki.Server.exe` to create the file. Stop and close the server once the file has been created so we can continue the installation process.*
-    
+
     *Note: Make edits to the file using Notepad or a text editor that won't introduce formatting. Do not use Microsoft Word.*
 4. Set `externalIP` to the IP we copied from LogMeIn Hamachi: `http://100.10.1.10:6969`.
 5. Set `useExternalIPFinder` to `false`.
 6. Open SPT-AKI's server connection configuration file in `SIT_DIR/server/Aki_Data/Server/configs/http.json`.
-    
+
     *Note: Make edits to the file using Notepad or a text editor that won't introduce formatting. Do not use Microsoft Word.*
 7. Set `ip` to `100.10.1.10`.
 8. Optionally, set `logRequests` to `false` to prevent log spam.
@@ -94,7 +99,7 @@ Connect using the IPv4 address shown in the LogMeIn Hamachi widget. Our example 
 
 ## 1. Start the server
 
-Run `Aki.Server.exe`
+Run `Aki.Server.exe` from `SIT_DIR/server`.
 
 ## 2. Start the game
 
@@ -104,4 +109,5 @@ Launch the game via the `SIT Launcher`.
 
 ## 3. Create a Lobby
 
-See [How to join each other's match](https://github.com/paulov-t/SIT.Core/wiki/HOSTING.md#how-to-join-each-others-match) for in-game instructions.
+See the HOSTING.md for your language to learn how to create a lobby.
+HOSTING guides can be found here: https://github.com/paulov-t/SIT.Core/tree/master/wiki
