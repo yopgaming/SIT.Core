@@ -32,6 +32,15 @@ namespace SIT.Core.Coop
         private Request RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
+        public EFT.Player[] PlayerUsers { get {
+
+                if (Players == null)
+                    return new EFT.Player[0];
+
+
+                return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
+
+            } }
         BepInEx.Logging.ManualLogSource Logger { get; set; }
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
@@ -159,10 +168,23 @@ namespace SIT.Core.Coop
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
         Stopwatch swActionPackets { get; } = new Stopwatch();
-        bool PerformanceCheck_ActionPackets { get; set; } = false; 
+        bool PerformanceCheck_ActionPackets { get; set; } = false;
+        public bool RequestQuitGame { get; set; }
 
         void LateUpdate()
         {
+            if(Input.GetKeyDown(KeyCode.F8) && !Singleton<GameWorld>.Instance.MainPlayer.HealthController.IsAlive && !RequestQuitGame)
+            {
+                RequestQuitGame = true;
+                LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ((CoopGame)LocalGameInstance).MyExitStatus, "", 0);
+                return;
+            }
+
+            if (!MatchmakerAcceptPatches.IsClient)
+            {
+
+            }
+
             if(ServerHasStopped && !ServerHasStoppedActioned)
             {
                 ServerHasStoppedActioned = true;
@@ -1030,6 +1052,7 @@ namespace SIT.Core.Coop
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
 
+
         void OnGUI()
         {
             var rect = new Rect(GuiX, 5, GuiWidth, 100);
@@ -1063,8 +1086,18 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-            var numberOfPlayers = Players.Count(x => x.Value.ProfileId.StartsWith("pmc"));
-            GUI.Label(rect, $"Players: {numberOfPlayers}");
+            if (Players.Values.Any(x => x.IsYourPlayer && !x.HealthController.IsAlive))
+            {
+                GUI.Label(rect, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.");
+                rect.y += 30;
+            }
+
+            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
+            GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
+            rect.y += 15;
+            var numberOfPlayersDeadEscaped = PlayerUsers.Count(x => !x.HealthController.IsAlive);
+            GUI.Label(rect, $"Players (Dead/Escaped): {numberOfPlayersDeadEscaped}");
+            rect.y += 15;
 
             OnGUI_DrawPlayerList(rect);
 

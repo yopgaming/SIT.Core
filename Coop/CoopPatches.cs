@@ -2,6 +2,7 @@
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Coop.FreeCamera;
 using SIT.Core.Coop.LocalGame;
 using SIT.Core.Coop.Player.GrenadeControllerPatches;
 using SIT.Core.Coop.Sounds;
@@ -85,7 +86,6 @@ namespace SIT.Core.Coop
                 enablePatches = false;
             }
 
-            // ------ PLAYER -------------------------
             if (!NoMRPPatches.Any())
             {
                 NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
@@ -93,6 +93,10 @@ namespace SIT.Core.Coop
                 NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
+
+                //NoMRPPatches.Add(new FadeBlackScreenPatch());
+                //NoMRPPatches.Add(new StartBlackScreenShowPatch());
+                //NoMRPPatches.Add(new SetBlackImageAlphaPatch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
