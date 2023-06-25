@@ -20,6 +20,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -166,11 +167,13 @@ namespace SIT.Core.Coop
 
             while (true)
             {
+                if(PlayerOwner == null)
+                    yield return waitSeconds;
                 //foreach(var o in  .FindObjectsOfTypeAll(typeof(GameObject)))
                 //{
                 //   Logger.LogInfo(o.ToString());
                 //}
-                foreach(var c in PlayerOwner.GetComponents(typeof(GameObject)))
+                foreach (var c in PlayerOwner.Player.GetComponents(typeof(GameObject)))
                 {
                     Logger.LogInfo(c.ToString());
                 }
@@ -406,7 +409,7 @@ namespace SIT.Core.Coop
         /// </summary>
         public override void vmethod_3()
         {
-            //base.vmethod_3();
+            base.vmethod_3();
         }
 
         /// <summary>
@@ -464,16 +467,17 @@ namespace SIT.Core.Coop
             {
                 Logger.LogInfo("vmethod_4.SessionRun");
 
-                vmethod_5();
                 CreateExfiltrationPointAndInitDeathHandler();
+                vmethod_5();
+
             }
             yield break;
         }
 
-        public override void vmethod_5()
-        {
-            return;
-        }
+        //public override void vmethod_5()
+        //{
+        //    return;
+        //}
         /// <summary>
         /// Died event handler
         /// </summary>
@@ -504,6 +508,7 @@ namespace SIT.Core.Coop
             ISpawnPoint spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
             InfiltrationPoint = spawnPoint.Infiltration;
             Profile_0.Info.EntryPoint = InfiltrationPoint;
+            Logger.LogInfo(InfiltrationPoint);
             ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
             ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
             base.GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, base.GameTimer.SessionSeconds(), exfilPoints);
@@ -512,9 +517,9 @@ namespace SIT.Core.Coop
                 exfiltrationPoint.OnStatusChanged += method_7;
                 UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
             }
-            base.dateTime_0 = DateTime.Now;
+            base.dateTime_0 = DateTime.UtcNow;
             base.Status = GameStatus.Started;
-            //ConsoleScreen.ApplyStartCommands();
+            ConsoleScreen.ApplyStartCommands();
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
@@ -531,10 +536,10 @@ namespace SIT.Core.Coop
 
             PlayerOwner.vmethod_1();
             MyExitStatus = ExitStatus.Killed;
-            ScreenManager.Instance.CloseAllScreensForced();
-            PlayerOwner.Player.OnGameSessionEnd(MyExitStatus, base.PastTime, Location_0.Id, "");
+            //ScreenManager.Instance.CloseAllScreensForced();
+            //PlayerOwner.Player.OnGameSessionEnd(MyExitStatus, base.PastTime, Location_0.Id, "");
             //GameUi.BattleUiPanelDeath.Show(Profile_0, ExitStatus.Killed, GClass1251.Now - dateTime_0);
-            Stop(Profile_0.Id, ExitStatus.Killed, null, 5f);
+            //Stop(Profile_0.Id, ExitStatus.Killed, null, 5f);
             //CleanUp();
         }
 
