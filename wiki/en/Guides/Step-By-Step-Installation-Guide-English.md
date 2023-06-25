@@ -115,3 +115,4 @@ HOSTING guides can be found here: https://github.com/paulov-t/SIT.Core/tree/mast
 ## Additional Notes
 1. your friends do not need to set up the server at all. They only need to install SIT using the launcher and connect to your server.
 2. it is recommended that all players, both you and your friends, use the same version of SIT. This can be done by checking the "Force install latest SIT" option in the settings menu in the launcher.
+3. if you leave your server running all the time (which requires you to turn off sleep mode on your machine), your friends will be able to connect any time. They can edit their loadouts, use the flea market, enter their hideout, etc. and even play solo raids without you being present. Note that if two raids are going on at the same time, both raids will end when one of the raid ends.
