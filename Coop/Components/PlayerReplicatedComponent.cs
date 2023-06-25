@@ -64,6 +64,9 @@ namespace SIT.Coop.Core.Player
 
         public void ProcessPacket(Dictionary<string, object> packet)
         {
+            if (!packet.ContainsKey("m"))
+                return;
+
             var method = packet["m"].ToString();
 
             var patch = ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == method);
@@ -91,6 +94,9 @@ namespace SIT.Coop.Core.Player
 
         void ProcessPlayerState(Dictionary<string, object> packet)
         {
+            if (!packet.ContainsKey("m")) 
+                return;
+
             var method = packet["m"].ToString();
             if (method != "PlayerState")
                 return;
