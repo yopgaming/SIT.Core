@@ -111,3 +111,7 @@ Launch the game via the `SIT Launcher`.
 
 See the HOSTING.md for your language to learn how to create a lobby.
 HOSTING guides can be found here: https://github.com/paulov-t/SIT.Core/tree/master/wiki
+
+## Additional Notes
+1. your friends do not need to set up the server at all. They only need to install SIT using the launcher and connect to your server.
+2. it is recommended that all players, both you and your friends, use the same version of SIT. This can be done by checking the "Force install latest SIT" option in the settings menu in the launcher.
