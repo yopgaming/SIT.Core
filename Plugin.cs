@@ -9,6 +9,7 @@ using SIT.Core.AkiSupport.Singleplayer;
 using SIT.Core.AkiSupport.SITFixes;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
+using SIT.Core.Coop.AI;
 using SIT.Core.Core;
 using SIT.Core.Core.FileChecker;
 using SIT.Core.Core.Web;
@@ -175,13 +176,13 @@ namespace SIT.Core
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
+            new IsPlayerEnemyPatch().Enable();
+            new IsPlayerEnemyByRolePatch().Enable();
 
             var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
             if (!enabled.Value)
                 return;
 
-            //new BotSelfEnemyPatch().Enable();
-            //new AkiSupport.Singleplayer.RemoveUsedBotProfilePatch().Enable();
             new AddEnemyToAllGroupsInBotZonePatch().Enable();
             new CheckAndAddEnemyPatch().Enable();
 

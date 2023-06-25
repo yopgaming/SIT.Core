@@ -67,8 +67,8 @@ namespace SIT.Core.Coop.FreeCamera
 
 
 
-            if (Input.GetKey(KeyCode.F9) 
-                || (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && !_freeCamScript.IsActive)
+            if ((Input.GetKey(KeyCode.F9) 
+                || (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && !_freeCamScript.IsActive))
                 && _lastTime < DateTime.Now.AddSeconds(-3)
             )
             {
@@ -76,15 +76,45 @@ namespace SIT.Core.Coop.FreeCamera
                 ToggleCamera();
                 ToggleUi();
 
+                //var fpsCamInstance = FPSCamera.Instance;
+                //if (fpsCamInstance == null)
+                //    return;
+
+                //fpsCamInstance.EffectsController.SetEnabledUniversal(false);
+                //fpsCamInstance.NightVision.SetEnabledUniversal(false);
+                //fpsCamInstance.VisorEffect.SetEnabledUniversal(false);
+                //fpsCamInstance.VisorSwitcher.SetEnabledUniversal(false);
+                //fpsCamInstance.IsActive = false;
+
+            }
+
+            // Player is dead. Remove all effects!
+            if(!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && _freeCamScript.IsActive)
+            {
                 var fpsCamInstance = FPSCamera.Instance;
                 if (fpsCamInstance == null)
                     return;
 
-                fpsCamInstance.EffectsController.SetEnabledUniversal(false);
-                fpsCamInstance.NightVision.SetEnabledUniversal(false);
-                fpsCamInstance.VisorEffect.SetEnabledUniversal(false);
-                fpsCamInstance.VisorSwitcher.SetEnabledUniversal(false);
-                fpsCamInstance.IsActive = false;
+
+                if (fpsCamInstance.EffectsController == null)
+                    return;
+
+
+                // Death Fade (the blink to death). Don't show this as we want to continue playing after death!
+                var deathFade = fpsCamInstance.EffectsController.GetComponent<DeathFade>();
+                if (deathFade != null)
+                {
+                    deathFade.enabled = false;
+                }
+
+                // Fast Blur. Don't show this as we want to continue playing after death!
+                var fastBlur = fpsCamInstance.EffectsController.GetComponent<FastBlur>();
+                if (fastBlur != null)
+                {
+                    fastBlur.enabled = false;
+                }
+
+
 
             }
 
