@@ -5,6 +5,7 @@ using EFT.UI;
 using HarmonyLib;
 using SIT.Tarkov.Core;
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace SIT.Core.Coop.FreeCamera
@@ -27,11 +28,9 @@ namespace SIT.Core.Coop.FreeCamera
 
         public void Start()
         {
-
-
-
             // Find Main Camera
-            _mainCamera = GameObject.Find("FPS Camera");
+            //_mainCamera = GameObject.Find("FPS Camera");
+            _mainCamera = FPSCamera.Instance.Camera.gameObject;
             if (_mainCamera == null)
             {
                 return;
@@ -65,30 +64,67 @@ namespace SIT.Core.Coop.FreeCamera
             if (_gamePlayerOwner.Player.PlayerHealthController == null)
                 return;
 
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGC))
+                return;
 
+            var coopGame = coopGC.LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                return;
 
-            if (Input.GetKey(KeyCode.F9) 
-                || (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && !_freeCamScript.IsActive)
+            if (
+                (
+                Input.GetKey(KeyCode.F9)
+                ||
+                (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && !_freeCamScript.IsActive)
+                ||
+                (coopGame.ExtractedPlayers.Contains(_gamePlayerOwner.Player.ProfileId) && !_freeCamScript.IsActive)
+                )
                 && _lastTime < DateTime.Now.AddSeconds(-3)
             )
             {
                 _lastTime = DateTime.Now;
                 ToggleCamera();
                 ToggleUi();
+            }
 
+            // Player is dead. Remove all effects!
+            if (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && _freeCamScript.IsActive)
+            {
                 var fpsCamInstance = FPSCamera.Instance;
                 if (fpsCamInstance == null)
                     return;
 
-                fpsCamInstance.EffectsController.SetEnabledUniversal(false);
-                fpsCamInstance.NightVision.SetEnabledUniversal(false);
-                fpsCamInstance.VisorEffect.SetEnabledUniversal(false);
-                fpsCamInstance.VisorSwitcher.SetEnabledUniversal(false);
-                fpsCamInstance.IsActive = false;
+
+                if (fpsCamInstance.EffectsController == null)
+                    return;
+
+
+                // Death Fade (the blink to death). Don't show this as we want to continue playing after death!
+                var deathFade = fpsCamInstance.EffectsController.GetComponent<DeathFade>();
+                if (deathFade != null)
+                {
+                    deathFade.enabled = false;
+                }
+
+                // Fast Blur. Don't show this as we want to continue playing after death!
+                var fastBlur = fpsCamInstance.EffectsController.GetComponent<FastBlur>();
+                if (fastBlur != null)
+                {
+                    fastBlur.enabled = false;
+                }
 
             }
 
+            if (_freeCamScript.IsActive && _lastOcclusionCullCheck < DateTime.Now.AddSeconds(-3))
+            {
+                _lastOcclusionCullCheck = DateTime.Now;
+                FPSCamera.Instance.SetOcclusionCullingEnabled(false);
+                FPSCamera.Instance.UpdateUseOcclusionCulling();
+                
+            }
         }
+
+        DateTime _lastOcclusionCullCheck = DateTime.Now;
 
         /// <summary>
         /// Toggles the Freecam mode
@@ -162,40 +198,19 @@ namespace SIT.Core.Coop.FreeCamera
         /// <param name="localPlayer"></param>
         private void SetPlayerToFreecamMode(EFT.Player localPlayer)
         {
-            // We set the player to third person mode, but then we want set the camera to freecam mode
+            // We set the player to third person mode
             // This means our character will be fully visible, while letting the camera move freely
-            // Setting the player point of view directly to Freecam seems to hide the head and arms of the character, which is not desirable
-
             localPlayer.PointOfView = EPointOfView.ThirdPerson;
 
             // Get the PlayerBody reference. It's a protected field, so we have to use traverse to fetch it
             var playerBody = Traverse.Create(localPlayer).Field<PlayerBody>("_playerBody").Value;
             if (playerBody != null)
             {
-                // We tell the PlayerBody class that it's in FreeCamera mode, and force an update of the Camera Controller view mode
-                // Setting the PointOfView.Value directly skips all the code that would usually change how the player body is rendered
                 playerBody.PointOfView.Value = EPointOfView.FreeCamera;
                 localPlayer.GetComponent<PlayerCameraController>().UpdatePointOfView();
-
-                //localPlayer.GetComponent<FPSCamera>().SetCamera(null);
-                //localPlayer.GetComponent<FPSCamera>().
-                // All we really needed to do, was trigger the UpdatePointOfView method and have it update to the FreeCam state
-                // There's no easy way of doing this without patching the method, and even then it might be a bloated solution
-            }
-            else
-            {
-                //FreecamPlugin.Logger.LogError("Failed to get the PlayerBody field");
             }
 
-            // Instead of Detouring, just turn off _gamePlayerOwner which takes the input
             _gamePlayerOwner.enabled = false;
-
-            //if (FreecamPlugin.CameraRememberLastPosition.Value && _lastPosition != null && _lastRotation != null)
-            //{
-            //    _mainCamera.transform.position = _lastPosition.Value;
-            //    _mainCamera.transform.rotation = _lastRotation.Value;
-            //}
-
             _freeCamScript.IsActive = true;
         }
 
@@ -217,6 +232,8 @@ namespace SIT.Core.Coop.FreeCamera
             _gamePlayerOwner.enabled = true;
 
             localPlayer.PointOfView = EPointOfView.FirstPerson;
+            FPSCamera.Instance.SetOcclusionCullingEnabled(true);
+
         }
 
         /// <summary>

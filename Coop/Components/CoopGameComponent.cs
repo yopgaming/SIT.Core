@@ -6,6 +6,7 @@ using EFT.UI;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
 using SIT.Core.Coop.World;
 using SIT.Core.Misc;
@@ -32,6 +33,15 @@ namespace SIT.Core.Coop
         private Request RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
+        public EFT.Player[] PlayerUsers { get {
+
+                if (Players == null)
+                    return new EFT.Player[0];
+
+
+                return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
+
+            } }
         BepInEx.Logging.ManualLogSource Logger { get; set; }
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
@@ -159,11 +169,79 @@ namespace SIT.Core.Coop
 
         TimeSpan LateUpdateSpan = TimeSpan.Zero;
         Stopwatch swActionPackets { get; } = new Stopwatch();
-        bool PerformanceCheck_ActionPackets { get; set; } = false; 
+        bool PerformanceCheck_ActionPackets { get; set; } = false;
+        public bool RequestQuitGame { get; set; }
 
         void LateUpdate()
         {
-            if(ServerHasStopped && !ServerHasStoppedActioned)
+            var coopGame = LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                return;
+
+            if (
+                Input.GetKeyDown(KeyCode.F8)
+                && 
+                (
+                    !Singleton<GameWorld>.Instance.MainPlayer.HealthController.IsAlive
+                    ||
+                    PlayerUsers.Length == coopGame.ExtractedPlayers.Count
+                )
+                && !RequestQuitGame
+                )
+            {
+                RequestQuitGame = true;
+                LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ((CoopGame)LocalGameInstance).MyExitStatus, "", 0);
+                return;
+            }
+
+            if (!MatchmakerAcceptPatches.IsClient)
+            {
+
+            }
+
+            var playersToExtract = new List<string>();
+            // TODO: Store the exfil point in the ExtractingPlayers dict, need it for timer
+            foreach(var exfilPlayer in coopGame.ExtractingPlayers)
+            {
+                var exfilTime = exfilPlayer.Value.Item1;
+                var timeInExfil = new TimeSpan(DateTime.Now.Ticks - (long)exfilPlayer.Value.Item2).Seconds;
+                if (timeInExfil > exfilTime)
+                {
+                    Logger.LogInfo(exfilPlayer.Key + " should extract");
+                    playersToExtract.Add(exfilPlayer.Key);
+                }
+                else
+                {
+                    //Logger.LogInfo(exfilPlayer.Key + " extracting " + timeInExfil);
+
+                }
+            }
+
+            foreach(var player in playersToExtract)
+            {
+                coopGame.ExtractingPlayers.Remove(player);
+                coopGame.ExtractedPlayers.Add(player);
+                //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
+            }
+
+            // Hide extracted Players
+            foreach (var playerId in coopGame.ExtractedPlayers)
+            {
+                var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
+                if (player == null)
+                    continue;
+
+                ServerCommunication.PostLocalPlayerData(player
+                    , new Dictionary<string, object>() { { "Extracted", true } }
+                    , true);
+
+                player.SwitchRenderer(false);
+                //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
+                //GameObject.Destroy(player);
+            }
+
+
+            if (ServerHasStopped && !ServerHasStoppedActioned)
             {
                 ServerHasStoppedActioned = true;
                 try
@@ -199,13 +277,12 @@ namespace SIT.Core.Coop
             {
                 Dictionary<string, object> result = null;
                 swActionPackets.Restart();
-                //var indexOfPacketsHandled = 0;
-                //while (ActionPackets.TryTake(out result) && indexOfPacketsHandled++ < 20)
-                while (ActionPackets.TryTake(out result))
+                var actionPacketLimitationTime = 11;
+                while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
                 {
                     ProcessLastActionDataPacket(result);
                 }
-                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > 14);
+                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
 
             }
 
@@ -937,6 +1014,17 @@ namespace SIT.Core.Coop
                 {
                     Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
                 }
+
+                if (packet.ContainsKey("Extracted"))
+                {
+                    var coopGame = LocalGameInstance as CoopGame;
+                    if (coopGame != null)
+                    {
+                        Logger.LogInfo($"Received Extracted ProfileId {packet["profileId"]}");
+                        if (!coopGame.ExtractedPlayers.Contains(packet["profileId"].ToString()))
+                            coopGame.ExtractedPlayers.Add(packet["profileId"].ToString());
+                    }
+                }
             }
 
             try
@@ -1030,6 +1118,7 @@ namespace SIT.Core.Coop
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
 
+
         void OnGUI()
         {
             var rect = new Rect(GuiX, 5, GuiWidth, 100);
@@ -1063,39 +1152,56 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-            var numberOfPlayers = Players.Count(x => x.Value.ProfileId.StartsWith("pmc"));
-            GUI.Label(rect, $"Players: {numberOfPlayers}");
+           
+
+            var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
+            if (PlayerUsers.Length > 1)
+            {
+                if (PlayerUsers.Count() == numberOfPlayersDead)
+                {
+                    GUI.Label(rect, $"You're team is Dead! Please quit now using the F8 Key.");
+                    rect.y += 30;
+                }
+            }
+            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
+            {
+                GUI.Label(rect, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.");
+                rect.y += 30;
+            }
+
+            if (LocalGameInstance == null)
+                return;
+
+            var coopGame = LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                return;
+
+            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
+            // gathering extracted
+            var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
+            GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
+            rect.y += 15;
+            GUI.Label(rect, $"Players (Dead): {numberOfPlayersDead}");
+            rect.y += 15;
+            GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
+            rect.y += 15;
+
+            if (
+                numberOfPlayersAlive > 0 
+                && numberOfPlayersAlive == numberOfPlayersExtracted
+                )
+            {
+                GUI.Label(rect, $"Your team have extracted! Quit now using the F8 Key.");
+                rect.y += 15;
+            }
+            else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
+            {
+                GUI.Label(rect, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.");
+                rect.y += 30;
+            }
 
             OnGUI_DrawPlayerList(rect);
 
-
-
-            //if (LocalGameInstance == null)
-            //    return;
-
-            //if (LocalGameInstance.PlayerOwner != null && LocalGameInstance.PlayerOwner.Player != null)
-            //{
-            //    //Logger.LogInfo("LatEUpd");
-            //    if (!LocalGameInstance.PlayerOwner.Player.HealthController.IsAlive)
-            //    {
-            //        MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(-1f);
-
-            //        var corout = ReflectionHelpers.GetAllFieldsForObject(MonoBehaviourSingleton<PreloaderUI>.Instance).Single(x => x.Name == "coroutine_0");
-            //        if (corout != null)
-            //        {
-            //            if(corout.GetValue(MonoBehaviourSingleton<PreloaderUI>.Instance) != null)
-            //                MonoBehaviourSingleton<PreloaderUI>.Instance.StopCoroutine((Coroutine)corout.GetValue(MonoBehaviourSingleton<PreloaderUI>.Instance));
-            //        }
-            //    }
-            //    else
-            //    {
-            //        MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(-1f);
-            //    }
-            //}
-            //else
-            //{
-            //    MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(-1f);
-            //}
         }
 
         private void OnGUI_DrawPlayerList(Rect rect)
@@ -1120,6 +1226,7 @@ namespace SIT.Core.Coop
             {
                 var players = Singleton<GameWorld>.Instance.RegisteredPlayers.ToList();
                 players.AddRange(Players.Values);
+                players = players.Distinct(x => x.ProfileId).ToList();
 
                 rect.y += 15;
                 GUI.Label(rect, $"Players [{players.Count}]:");

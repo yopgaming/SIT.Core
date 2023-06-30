@@ -20,6 +20,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -28,6 +29,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using static ChatMessage;
+using static RootMotion.FinalIK.IKSolver;
 
 namespace SIT.Core.Coop
 {
@@ -108,11 +110,11 @@ namespace SIT.Core.Coop
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
             
-            WildSpawnWave[] array = CoopGame.smethod_6(wavesSettings, location.waves);
+            WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
                 (null, new object[] { coopGame, location, coopGame.PBotsController });
             coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
-                (null, new object[] { coopGame.gameObject, array, new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave)), location });// WavesSpawnScenario.smethod_0(@class.game.gameObject, array, new Action<Wave>(@class.method_0), location);
+                (null, new object[] { coopGame.gameObject, spawnWaveArray, new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave)), location });// WavesSpawnScenario.smethod_0(@class.game.gameObject, array, new Action<Wave>(@class.method_0), location);
             BossLocationSpawn[] bossSpawnChanges = CoopGame.smethod_7(wavesSettings, location.BossLocationSpawn);
 
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
@@ -166,11 +168,13 @@ namespace SIT.Core.Coop
 
             while (true)
             {
+                if(PlayerOwner == null)
+                    yield return waitSeconds;
                 //foreach(var o in  .FindObjectsOfTypeAll(typeof(GameObject)))
                 //{
                 //   Logger.LogInfo(o.ToString());
                 //}
-                foreach(var c in PlayerOwner.GetComponents(typeof(GameObject)))
+                foreach (var c in PlayerOwner.Player.GetComponents(typeof(GameObject)))
                 {
                     Logger.LogInfo(c.ToString());
                 }
@@ -205,11 +209,10 @@ namespace SIT.Core.Coop
 
 
 
-        private static WildSpawnWave[] smethod_6(WavesSettings wavesSettings, WildSpawnWave[] waves)
+        private static WildSpawnWave[] CreateSpawnWaveArray(WavesSettings wavesSettings, WildSpawnWave[] waves)
         {
             foreach (WildSpawnWave wildSpawnWave in waves)
             {
-                wildSpawnWave.slots_min = (wildSpawnWave.slots_max = wavesSettings.BotAmount.ToBotAmountSlots(wildSpawnWave.slots_min, wildSpawnWave.slots_max));
                 if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
                 {
                     wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
@@ -220,6 +223,17 @@ namespace SIT.Core.Coop
                     wildSpawnWave.time_max += 15;
                 }
                 wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
+                if(wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
+                {
+                    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
+                }
+                if (wildSpawnWave.WildSpawnType == WildSpawnType.pmcBot)
+                {
+                    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
+                }
+
+                wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
+
             }
             return waves;
         }
@@ -230,7 +244,15 @@ namespace SIT.Core.Coop
             {
                 return new BossLocationSpawn[0];
             }
-
+            foreach(var wave in bossLocationSpawn)
+            {
+                if(wave.BossType == WildSpawnType.pmcBot)
+                {
+                    wave.Delay = 0;
+                    wave.BossChance = 100;
+                    wave.Activated = true;
+                }
+            }
             return bossLocationSpawn;
         }
 
@@ -406,7 +428,7 @@ namespace SIT.Core.Coop
         /// </summary>
         public override void vmethod_3()
         {
-            //base.vmethod_3();
+            base.vmethod_3();
         }
 
         /// <summary>
@@ -460,20 +482,21 @@ namespace SIT.Core.Coop
             }
             //yield return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
             yield return new WaitForEndOfFrame();
-            using (GClass21.StartWithToken("SessionRun"))
+            //using (GClass21.StartWithToken("SessionRun"))
             {
                 Logger.LogInfo("vmethod_4.SessionRun");
 
-                vmethod_5();
                 CreateExfiltrationPointAndInitDeathHandler();
+                //vmethod_5();
+
             }
             yield break;
         }
 
-        public override void vmethod_5()
-        {
-            return;
-        }
+        //public override void vmethod_5()
+        //{
+        //    return;
+        //}
         /// <summary>
         /// Died event handler
         /// </summary>
@@ -504,17 +527,60 @@ namespace SIT.Core.Coop
             ISpawnPoint spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
             InfiltrationPoint = spawnPoint.Infiltration;
             Profile_0.Info.EntryPoint = InfiltrationPoint;
+            Logger.LogInfo(InfiltrationPoint);
             ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
             ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
             base.GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, base.GameTimer.SessionSeconds(), exfilPoints);
             foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
             {
-                exfiltrationPoint.OnStatusChanged += method_7;
+                //exfiltrationPoint.OnStatusChanged += method_7;
+                exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
+                exfiltrationPoint.OnCancelExtraction += ExfiltrationPoint_OnCancelExtraction;
+                exfiltrationPoint.OnStatusChanged += ExfiltrationPoint_OnStatusChanged;
                 UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
             }
-            base.dateTime_0 = DateTime.Now;
+            //((EndByExitTrigerScenario)ReflectionHelpers
+            //    .GetFieldFromTypeByFieldType(
+            //    typeof(BaseLocalGame<GamePlayerOwner>)
+            //    , typeof(EndByExitTrigerScenario))
+            //    .GetValue(this)).Run();
+            base.dateTime_0 = DateTime.UtcNow;
             base.Status = GameStatus.Started;
-            //ConsoleScreen.ApplyStartCommands();
+            ConsoleScreen.ApplyStartCommands();
+        }
+
+        public Dictionary<string, (float, long, string)> ExtractingPlayers = new();
+        public List<string> ExtractedPlayers = new();
+
+        private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
+        {
+            Logger.LogInfo("ExfiltrationPoint_OnCancelExtraction");
+            Logger.LogInfo(point.Status);
+
+            ExtractingPlayers.Remove(player.ProfileId);
+
+            //player.SwitchRenderer(true);
+        }
+
+        private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
+        {
+            Logger.LogInfo("ExfiltrationPoint_OnStartExtraction");
+            Logger.LogInfo(point.Settings.Name);
+            Logger.LogInfo(point.Status);
+            //Logger.LogInfo(point.ExfiltrationStartTime);
+            Logger.LogInfo(point.Settings.ExfiltrationTime);
+            bool playerHasMetRequirements = !point.UnmetRequirements(player).Any();
+            //if (playerHasMetRequirements && !ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
+            if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
+                ExtractingPlayers.Add(player.ProfileId, (point.Settings.ExfiltrationTime, DateTime.Now.Ticks, point.Settings.Name));
+            //player.SwitchRenderer(false);
+        }
+
+        private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus status)
+        {
+            UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
+            Logger.LogInfo("ExfiltrationPoint_OnStatusChanged");
+            Logger.LogInfo(status);
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
@@ -531,10 +597,10 @@ namespace SIT.Core.Coop
 
             PlayerOwner.vmethod_1();
             MyExitStatus = ExitStatus.Killed;
-            ScreenManager.Instance.CloseAllScreensForced();
-            PlayerOwner.Player.OnGameSessionEnd(MyExitStatus, base.PastTime, Location_0.Id, "");
+            //ScreenManager.Instance.CloseAllScreensForced();
+            //PlayerOwner.Player.OnGameSessionEnd(MyExitStatus, base.PastTime, Location_0.Id, "");
             //GameUi.BattleUiPanelDeath.Show(Profile_0, ExitStatus.Killed, GClass1251.Now - dateTime_0);
-            Stop(Profile_0.Id, ExitStatus.Killed, null, 5f);
+            //Stop(Profile_0.Id, ExitStatus.Killed, null, 5f);
             //CleanUp();
         }
 
