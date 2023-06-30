@@ -12,10 +12,10 @@ namespace SIT.Coop.Core.Web
         public static void PostLocalPlayerData(
             EFT.Player player
             , Dictionary<string, object> data
-            , bool useReliable = false
+            , bool useWebSocket = false
             )
         {
-            PostLocalPlayerData(player, data, useReliable, out _, out _);
+            PostLocalPlayerData(player, data, useWebSocket, out _, out _);
         }
 
         /// <summary>
@@ -23,12 +23,12 @@ namespace SIT.Coop.Core.Web
         /// </summary>
         /// <param name="player"></param>
         /// <param name="data"></param>
-        /// <param name="useReliable">Use Reliable Forceably makes the Request without any pooling or timeout</param>
+        /// <param name="useWebSocket">Use the Web Socket (faster than HTTP)</param>
         /// <returns></returns>
         public static void PostLocalPlayerData(
             EFT.Player player
             , Dictionary<string, object> data
-            , bool useReliable
+            , bool useWebSocket
             , out string returnedData
             , out Dictionary<string, object> generatedData)
         {
@@ -47,16 +47,15 @@ namespace SIT.Coop.Core.Web
             {
                 data.Add("serverId", CoopGameComponent.GetServerId());
             }
+            if (!data.ContainsKey("profileId"))
+            {
+                data.Add("profileId", player.ProfileId); // PatchConstants.GetPlayerProfileAccountId(profile));
+            }
 
             //_ = Request.Instance.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data));
 
-            if (useReliable)
+            if (useWebSocket)
             {
-                //var req = Request.GetRequestInstance(true);
-                //_ = req.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data), timeout: 9999).ContinueWith((str) =>
-                //{
-                //    req = null;
-                //});
                 Request.Instance.PostDownWebSocketImmediately(data);
             }
             else
