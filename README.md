@@ -109,9 +109,11 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -con
 - SPT-Aki team
 - MTGA team
 - SPT-Aki Modding Community
+- DrakiaXYZ (Waypoints, BigBrain)
 - Props (AIBushPatch, AIAwakeOrSleepPatch - Currently unused)
 
 ## License
 
+- DrakiaXYZ projects contain the MIT License
 - 95% of the original core and single-player functionality completed by SPT-Aki teams. There may be licenses pertaining to them within this source.
 - None of my own work is Licensed. This is solely a just for fun project. I don't care what you do with it.
