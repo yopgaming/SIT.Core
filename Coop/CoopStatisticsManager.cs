@@ -38,17 +38,9 @@ namespace SIT.Core.Coop
             this.player = player;
         }
 
-        //public void OnEnemyDamage(DamageInfo damage, EBodyPart bodyPart, EPlayerSide playerSide, string role, string groupId, float fullHealth, bool isHeavyDamage, float distance, int hour, List<string> targetEquipment, BodyPartEffects enemyEffects, List<string> zoneIds)
-        //{
-        //}
-
         public void OnEnemyDamage(DamageInfo damage, EBodyPart bodyPart, EPlayerSide playerSide, string role, string groupId, float fullHealth, bool isHeavyDamage, float distance, int hour, List<string> targetEquipment, EnemyEffects enemyEffects, List<string> zoneIds)
         {
         }
-
-        //public void OnEnemyKill(DamageInfo damage, EDamageType lethalDamageType, EBodyPart bodyPart, EPlayerSide playerSide, WildSpawnType role, string playerAccountId, string playerProfileId, string playerName, string groupId, int level, int killExp, float distance, int hour, List<string> targetEquipment, BodyPartEffects enemyEffects, List<string> zoneIds)
-        //{
-        //}
 
         public void OnEnemyKill(DamageInfo damage, EDamageType lethalDamageType, EBodyPart bodyPart, EPlayerSide playerSide, WildSpawnType role, string playerAccountId, string playerProfileId, string playerName, string groupId, int level, int killExp, float distance, int hour, List<string> targetEquipment, EnemyEffects enemyEffects, List<string> zoneIds)
         {
@@ -58,9 +50,8 @@ namespace SIT.Core.Coop
         {
         }
 
-        public void OnGroupMemberConnected(Inventory inventory)
+        public void OnGroupMemberConnected(Inventory0 inventory)
         {
-
         }
 
         public void OnInteractWithLootContainer(Item item)
