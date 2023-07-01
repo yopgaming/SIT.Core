@@ -230,21 +230,51 @@ namespace SIT.Core.Misc
 
         public static T GetFieldOrPropertyFromInstance<T>(object o, string name, bool safeConvert = true)
         {
-            PropertyInfo property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (property != null)
+            PropertyInfo property = null;
+            FieldInfo field = null;
+            try
             {
-                if (safeConvert)
-                    return DoSafeConversion<T>(property.GetValue(o));
-                else
-                    return (T)property.GetValue(o);
+                property = GetAllPropertiesForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+                if (property != null)
+                {
+                    if (safeConvert)
+                        return DoSafeConversion<T>(property.GetValue(o));
+                    else
+                        return (T)property.GetValue(o);
+                }
+                field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+                if (field != null)
+                {
+                    if (safeConvert)
+                        return DoSafeConversion<T>(field.GetValue(o));
+                    else
+                        return (T)field.GetValue(o);
+                }
             }
-            FieldInfo field = GetAllFieldsForObject(o).FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
-            if (field != null)
+            catch(Exception)
             {
-                if (safeConvert)
-                    return DoSafeConversion<T>(field.GetValue(o));
-                else
-                    return (T)field.GetValue(o);
+                if (field != null)
+                {
+                    Logger.LogError("GetFieldOrPropertyFromInstance Error");
+                    Logger.LogError(field);
+                    var type = field.DeclaringType;
+                    Logger.LogError(type);
+                    var val = field.GetValue(o);
+                    Logger.LogError(val);
+                    var valType = field.GetValue(o).GetType();
+                    Logger.LogError(valType);
+                }
+                else if (property != null)
+                {
+                    Logger.LogError("GetFieldOrPropertyFromInstance Error");
+                    Logger.LogError(property);
+                    var type = property.DeclaringType;
+                    Logger.LogError(type);
+                    var val = property.GetValue(o);
+                    Logger.LogError(val);
+                    var valType = property.GetValue(o).GetType();
+                    Logger.LogError(valType);
+                }
             }
 
             return default(T);
