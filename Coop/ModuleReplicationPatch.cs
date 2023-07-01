@@ -70,21 +70,10 @@ namespace SIT.Core.Coop
             if (!ProcessedCalls.ContainsKey(type))
                 ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
 
-            var playerId = player.Id.ToString();
+            var playerId = player.ProfileId;
             var timestamp = long.Parse(dict["t"].ToString());
-            if (!ProcessedCalls[type].ContainsKey(playerId))
-            {
-                //Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
-                ProcessedCalls[type].TryAdd(playerId, new ConcurrentBag<long>());
-            }
+            return HasProcessed(type, playerId, timestamp);
 
-            if (!ProcessedCalls[type][playerId].Contains(timestamp))
-            {
-                ProcessedCalls[type][playerId].Add(timestamp);
-                return false;
-            }
-
-            return true;
         }
 
         protected static bool HasProcessed(Type type, EFT.Player player, BasePlayerPacket playerPacket)
@@ -92,11 +81,18 @@ namespace SIT.Core.Coop
             if (!ProcessedCalls.ContainsKey(type))
                 ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
 
-            var playerId = player.Id.ToString();
+            var playerId = player.ProfileId;
             var timestamp = long.Parse(playerPacket.TimeSerializedBetter);
+            return HasProcessed(type, playerId, timestamp);
+        }
+
+        protected static bool HasProcessed(Type type, string playerId, long timestamp)
+        {
+            if (!ProcessedCalls.ContainsKey(type))
+                ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
+
             if (!ProcessedCalls[type].ContainsKey(playerId))
             {
-                //Logger.LogDebug($"Adding {playerId},{timestamp} to {type} Processed Calls Dictionary");
                 ProcessedCalls[type].TryAdd(playerId, new ConcurrentBag<long>());
             }
 
