@@ -1050,11 +1050,6 @@ namespace SIT.Core.Coop
         {
             Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
 
-            if (prc.ReplicatedDirection.HasValue && !player.IsYourPlayer)
-            {
-                dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
-                dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
-            }
             dictPlayerState.Add("pX", player.Position.x);
             dictPlayerState.Add("pY", player.Position.y);
             dictPlayerState.Add("pZ", player.Position.z);
@@ -1063,6 +1058,11 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
             dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
             dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
+            if (player.MovementContext.IsSprintEnabled) 
+            {
+                prc.ReplicatedDirection = new Vector2(1, 0);
+                dictPlayerState["spd"] = player.MovementContext.CharacterMovementSpeed;
+            }
             dictPlayerState.Add("tp", prc.TriggerPressed);
             dictPlayerState.Add("alive", player.HealthController.IsAlive);
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
@@ -1070,17 +1070,18 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("accountId", player.Profile.AccountId);
             dictPlayerState.Add("serverId", GetServerId());
             dictPlayerState.Add("t", DateTime.Now.Ticks);
+            // ---------- 
             dictPlayerState.Add("phys.hs.current", player.Physical.HandsStamina.Current);
             dictPlayerState.Add("phys.hs.total", player.Physical.HandsStamina.TotalCapacity.Value);
-            var staminaField = ReflectionHelpers.GetFieldFromType(typeof(Physical), "Stamina");
-            if (staminaField != null)
+            dictPlayerState.Add("phys.s.current", player.Physical.Stamina.Current);
+            dictPlayerState.Add("phys.s.total", player.Physical.Stamina.TotalCapacity.Value);
+            //
+            if (prc.ReplicatedDirection.HasValue && !player.IsYourPlayer)
             {
-                if (staminaField.GetValue(player.Physical) is HandsStamina stamina)
-                {
-                    dictPlayerState.Add("phys.s.current", stamina.Current);
-                    dictPlayerState.Add("phys.s.total", stamina.TotalCapacity.Value);
-                }
+                dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
+                dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
             }
+            // ----------
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
@@ -1118,9 +1119,17 @@ namespace SIT.Core.Coop
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
 
+        GUIStyle middleLabelStyle;
 
         void OnGUI()
         {
+            if (middleLabelStyle == null)
+            {
+                middleLabelStyle = new GUIStyle(GUI.skin.label);
+                middleLabelStyle.fontSize = 24;
+                middleLabelStyle.fontStyle = FontStyle.Bold;
+            }
+
             var rect = new Rect(GuiX, 5, GuiWidth, 100);
 
             rect.y = 5;
@@ -1152,22 +1161,21 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-           
+
+            GUIStyle style = GUI.skin.label;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.fontSize = 13;
+            
+            var w = 0.3f; // proportional width (0..1)
+            var h = 0.2f; // proportional height (0..1)
+            Rect rectEndOfGameMessage = new();
+            rectEndOfGameMessage.x = (float) (Screen.width*(1-w))/2;
+            rectEndOfGameMessage.y = (float) (Screen.height*(1-h))/2;
+            rectEndOfGameMessage.width = (float) Screen.width* w;
+            rectEndOfGameMessage.height = (float) Screen.height* h;
 
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
-            if (PlayerUsers.Length > 1)
-            {
-                if (PlayerUsers.Count() == numberOfPlayersDead)
-                {
-                    GUI.Label(rect, $"You're team is Dead! Please quit now using the F8 Key.");
-                    rect.y += 30;
-                }
-            }
-            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
-            {
-                GUI.Label(rect, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.");
-                rect.y += 30;
-            }
+           
 
             if (LocalGameInstance == null)
                 return;
@@ -1186,17 +1194,29 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
             rect.y += 15;
 
+            if (PlayerUsers.Length > 1)
+            {
+                if (PlayerUsers.Count() == numberOfPlayersDead)
+                {
+                    GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLabelStyle);
+                }
+            }
+            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
+            {
+                GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+            }
+
             if (
                 numberOfPlayersAlive > 0 
                 && numberOfPlayersAlive == numberOfPlayersExtracted
                 )
             {
-                GUI.Label(rect, $"Your team have extracted! Quit now using the F8 Key.");
+                GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLabelStyle);
                 rect.y += 15;
             }
             else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
             {
-                GUI.Label(rect, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.");
+                GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
                 rect.y += 30;
             }
 

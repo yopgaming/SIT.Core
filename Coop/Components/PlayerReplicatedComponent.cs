@@ -114,7 +114,9 @@ namespace SIT.Coop.Core.Player
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
+
                 // Sprint
+                ShouldSprint = bool.Parse(packet["spr"].ToString());
                 ProcessPlayerStateSprint(packet);
                 
                 // Rotation
@@ -134,14 +136,12 @@ namespace SIT.Coop.Core.Player
                 ReplicatedPosition = packetPosition;
 
                 // Move / Direction
-                if (packet.ContainsKey("dX"))
+                if (packet.ContainsKey("dX") && !ShouldSprint)
                 {
                     Vector2 packetDirection = new Vector2(
                     float.Parse(packet["dX"].ToString())
                     , float.Parse(packet["dY"].ToString())
                     );
-                    //player.CurrentState.Move(packetDirection);
-                    //player.InputDirection = packetDirection;
                     ReplicatedDirection = packetDirection;
                 }
 
@@ -192,17 +192,20 @@ namespace SIT.Coop.Core.Player
                 if (!ShouldSprint)
                 {
                     player.Physical.Sprint(false);
-                    //player.MovementContext.EnableSprint(false);
                     IsSprinting = false;
                 }
             }
-            else if (ShouldSprint && !IsSprinting)
+            else if (ShouldSprint)
             {
+                player.MovementContext.MovementDirection = new Vector2(1, 0);
                 player.Physical.Sprint(true);
                 player.Physical.StaminaCapacity = 100;
                 player.Physical.StaminaRestoreRate = 100; 
-                //player.MovementContext.EnableSprint(true);
                 IsSprinting = true;
+            }
+            else
+            {
+                IsSprinting = false;
             }
         }
 
