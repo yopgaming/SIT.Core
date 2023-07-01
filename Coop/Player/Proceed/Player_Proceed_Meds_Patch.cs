@@ -46,7 +46,7 @@ namespace SIT.Coop.Core.Player
 
         [PatchPostfix]
         public static void PostPatch(EFT.Player __instance
-            , Meds meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
+            , Meds0 meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
         {
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
             {
@@ -90,7 +90,7 @@ namespace SIT.Coop.Core.Player
 
             if (item != null)
             {
-                var meds = item as Meds;
+                var meds = item as Meds0;
                 if (meds != null)
                 {
                     CallLocally.Add(player.Profile.AccountId, true);
