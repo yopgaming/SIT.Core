@@ -28,8 +28,6 @@ using UnityEngine.SceneManagement;
 namespace SIT.Core
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    //[BepInDependency("com.spt-aki.core")] // Should probably be dependant on Aki right?
-    //IDK how to add a configuration file from PluginConfigSettings.cs. I can only add it here. Sorry! :P   -w123456w30w
     [BepInProcess("EscapeFromTarkov.exe")]
     public class Plugin : BaseUnityPlugin
     {
@@ -46,7 +44,7 @@ namespace SIT.Core
             EnableCoopPatches();
             OtherPatches.Run(Config, this);
 
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            Logger.LogInfo($"Stay in Tarkov is loaded!");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
         }
 
@@ -147,7 +145,7 @@ namespace SIT.Core
 
             new LighthouseBridgePatch().Enable();
             new LighthouseTransmitterPatch().Enable();
-            //new PostRaidHealScreenPatch().Enable();
+            new PostRaidHealScreenPatch().Enable();
         }
 
         private static void EnableSPPatches_PlayerProgression()
@@ -190,7 +188,6 @@ namespace SIT.Core
 
         private void EnableCoopPatches()
         {
-            Logger.LogInfo("Enabling Coop Patches");
             CoopPatches.Run(Config);
         }
 

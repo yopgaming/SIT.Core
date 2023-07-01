@@ -15,15 +15,15 @@ namespace SIT.Core.Other.UI
         }
 
         [PatchPostfix]
-        private static void Postfix(ref AmmoTemplate __instance, ref List<ItemAttribute> __result)
+        private static void Postfix(ref AmmoTemplate __instance, ref List<ItemAttribute0> __result)
         {
-            if (!__result.Any((ItemAttribute a) => (Attributes.ENewItemAttributeId)a.Id == Attributes.ENewItemAttributeId.Damage))
+            if (!__result.Any((ItemAttribute0 a) => (Attributes.ENewMaximumDurabilityId)a.Id == Attributes.ENewMaximumDurabilityId.Damage))
             {
                 AddNewAttributes(ref __result, __instance);
             }
         }
 
-        public static void AddNewAttributes(ref List<ItemAttribute> attributes, AmmoTemplate template)
+        public static void AddNewAttributes(ref List<ItemAttribute0> attributes, AmmoTemplate template)
         {
             if (template == null)
                 return;
@@ -32,9 +32,9 @@ namespace SIT.Core.Other.UI
             if (template.Damage > 0)
             {
                 attributes.Add(
-                    new ItemAttribute(Attributes.ENewItemAttributeId.Damage)
+                    new ItemAttribute0(Attributes.ENewMaximumDurabilityId.Damage)
                     {
-                        Name = Attributes.ENewItemAttributeId.Damage.GetName(),
+                        Name = Attributes.ENewMaximumDurabilityId.Damage.GetName(),
                         Base = (() => (float)template.Damage),
                         StringValue = (() => template.Damage.ToString()),
                         DisplayType = (() => EItemAttributeDisplayType.Compact)
@@ -46,12 +46,12 @@ namespace SIT.Core.Other.UI
             if (template.ArmorDamage > 0)
             {
                 attributes.Add(
-                    new ItemAttribute(Attributes.ENewItemAttributeId.ArmorDamage)
+                    new ItemAttribute0(Attributes.ENewMaximumDurabilityId.ArmorDamage)
                     {
-                        Name = Attributes.ENewItemAttributeId.ArmorDamage.GetName(),
+                        Name = Attributes.ENewMaximumDurabilityId.ArmorDamage.GetName(),
                         Base = (() => (float)template.ArmorDamage),
                         StringValue = (() => template.ArmorDamage.ToString()),
-                        DisplayType = (() => EItemAttributeDisplayType.Compact)
+                        DisplayType = (() =>  EItemAttributeDisplayType.Compact)
                     }
                 );
             }
@@ -60,9 +60,9 @@ namespace SIT.Core.Other.UI
             if (template.PenetrationPower > 0)
             {
                 attributes.Add(
-                    new ItemAttribute(Attributes.ENewItemAttributeId.Penetration)
+                    new ItemAttribute0(Attributes.ENewMaximumDurabilityId.Penetration)
                     {
-                        Name = Attributes.ENewItemAttributeId.Penetration.GetName(),
+                        Name = Attributes.ENewMaximumDurabilityId.Penetration.GetName(),
                         Base = (() => (float)template.PenetrationPower),
                         StringValue = (() => template.PenetrationPower.ToString()),
                         DisplayType = (() => EItemAttributeDisplayType.Compact)
@@ -74,26 +74,26 @@ namespace SIT.Core.Other.UI
 
     public static class Attributes
     {
-        public static string GetName(this Attributes.ENewItemAttributeId id)
+        public static string GetName(this Attributes.ENewMaximumDurabilityId id)
         {
             switch (id)
             {
-                case Attributes.ENewItemAttributeId.Damage:
+                case Attributes.ENewMaximumDurabilityId.Damage:
                     return "DAMAGE";
-                case Attributes.ENewItemAttributeId.ArmorDamage:
+                case Attributes.ENewMaximumDurabilityId.ArmorDamage:
                     return "ARMOR DAMAGE";
-                case Attributes.ENewItemAttributeId.Penetration:
+                case Attributes.ENewMaximumDurabilityId.Penetration:
                     return "PENETRATION";
-                case Attributes.ENewItemAttributeId.FragmentationChance:
+                case Attributes.ENewMaximumDurabilityId.FragmentationChance:
                     return "FRAGMENTATION CHANCE";
-                case Attributes.ENewItemAttributeId.RicochetChance:
+                case Attributes.ENewMaximumDurabilityId.RicochetChance:
                     return "RICOCHET CHANCE";
                 default:
                     return id.ToString();
             }
         }
 
-        public enum ENewItemAttributeId
+        public enum ENewMaximumDurabilityId
         {
             Damage,
             ArmorDamage,

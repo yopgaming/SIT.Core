@@ -37,7 +37,7 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            Logger.LogInfo("Stay in Tarkov - Enabling Coop Patches");
 
             new TarkovApplication_LocalGameCreator_Patch().Enable();
             new LocalGameStartingPatch(m_Config).Enable();
@@ -51,12 +51,6 @@ namespace SIT.Core.Coop
             // ------ MATCHMAKER -------------------------
             MatchmakerAcceptPatches.Run();
 
-        }
-
-        private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
-        {
-            //if (Singleton<GameWorld>.Instantiated)
-            //    EnableDisablePatches();
         }
 
         public static List<ModulePatch> NoMRPPatches { get; } = new List<ModulePatch>();

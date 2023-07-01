@@ -20,7 +20,7 @@ namespace SIT.Core.Core.Web
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(BackEndSession2), "TrySendCommands");
+            return ReflectionHelpers.GetMethodForType(typeof(BackEnd0.BackEndSession2), "TrySendCommands");
         }
 
         [PatchPrefix]
