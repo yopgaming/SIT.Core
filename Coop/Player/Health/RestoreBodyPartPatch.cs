@@ -100,10 +100,10 @@ namespace SIT.Core.Coop.Player.Health
 
         }
 
-        private IReadOnlyDictionary<EBodyPart, AHealthController<AbstractActiveHealthController.AbstractHealthEffect>.BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        private IReadOnlyDictionary<EBodyPart, AHealthController<AbstractHealth2.AbstractHealthEffect2>.BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
-            IReadOnlyDictionary<EBodyPart, AHealthController<AbstractActiveHealthController.AbstractHealthEffect>.BodyPartState> bodyPartDict
-    = ReflectionHelpers.GetFieldOrPropertyFromInstance<IReadOnlyDictionary<EBodyPart, AHealthController<AbstractActiveHealthController.AbstractHealthEffect>.BodyPartState>>(player.PlayerHealthController, "IReadOnlyDictionary_0", false);
+            IReadOnlyDictionary<EBodyPart, AHealthController<AbstractHealth2.AbstractHealthEffect2>.BodyPartState> bodyPartDict
+    = ReflectionHelpers.GetFieldOrPropertyFromInstance<IReadOnlyDictionary<EBodyPart, AHealthController<AbstractHealth2.AbstractHealthEffect2>.BodyPartState>>(player.PlayerHealthController, "IReadOnlyDictionary_0", false);
             if (bodyPartDict == null)
             {
                 Logger.LogError($"Could not retreive {player.Id}'s Health State Dictionary");
