@@ -4,6 +4,7 @@
 
 - 游戏文件有问题.
 - 与服务器连接有问题,与你的网络设置相关.
+- 检查是不是开了梯子
 
 请正确地设置好端口转发,否则无法连接至你的服务器.
 
@@ -38,7 +39,7 @@
 
 ### 步骤 1
 
-将这2个文件中的 `"ip": "127.0.0.1"` 替换为你电脑的网卡地址(__不是你的公网IP__) 或者直接使用0.0.0.0
+将这2个文件中的 `"ip": "127.0.0.1"` 替换为你电脑的网卡地址(__不是你的公网IP或域名__) 或者直接使用0.0.0.0
 
 `<Server folder>/Aki_Data/Server/configs/http.json`
 
@@ -49,9 +50,9 @@
 ### 步骤 2
 在`<Server folder>/user/mods/SIT.Aki-Server-Mod/config/`目录下找到SIT.Aki-Server-Mod `coopConfig.json`
 
-将"externalIP": "http://127.0.0.1:6969" 替换为你的域名.
+将"externalIP": "127.0.0.1" 替换为你的域名.
 
-栗子: "externalIP": "http://yourdomain.com:6969"
+例如: "externalIP": "yourdomain.com"
 
 __将useExternalIPFinder设置为false__
 
