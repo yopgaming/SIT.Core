@@ -2,7 +2,6 @@
 using SIT.Coop.Core.Matchmaker;
 using SIT.Tarkov.Core;
 using System.Reflection;
-using UnityEngine;
 
 namespace SIT.Core.Coop.Matchmaker
 {
@@ -16,7 +15,7 @@ namespace SIT.Core.Coop.Matchmaker
         [PatchPostfix]
         private static void PatchPostfix(EnvironmentUIRoot __instance)
         {
-            MatchmakerAcceptPatches.EnvironmentUIRoot = ((Component)__instance).gameObject;
+            MatchmakerAcceptPatches.EnvironmentUIRoot = __instance.gameObject;
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 
 namespace DrakiaXYZ.Waypoints
 {

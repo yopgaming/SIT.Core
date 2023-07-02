@@ -5,7 +5,6 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Coop.Core.Player
@@ -106,15 +105,15 @@ namespace SIT.Coop.Core.Player
                 //}
                 //else
                 //{
-                    CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.Profile.AccountId, true);
 
-                    player.TryProceed(item, (IResult) =>
+                player.TryProceed(item, (IResult) =>
+                {
+                    //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
+                    if (!IResult.Succeed)
                     {
-                        //Logger.LogDebug($"PlayerOnTryProceedPatch:{player.Profile.AccountId}:Replicated:Try Proceed Succeeded?:{IResult.Succeed}");
-                        if (!IResult.Succeed)
-                        {
-                        }
-                    }, bool.Parse(dict["s"].ToString()));
+                    }
+                }, bool.Parse(dict["s"].ToString()));
 
                 //}
             }

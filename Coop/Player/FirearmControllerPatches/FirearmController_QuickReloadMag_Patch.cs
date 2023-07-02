@@ -104,13 +104,10 @@
 /// Paulov: I have had to disable Quick Reload. It keeps bugging out!
 ///
 
-using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches

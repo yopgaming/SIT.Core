@@ -15,7 +15,7 @@
 //        protected override MethodBase GetTargetMethod()
 //        {
 //            return ReflectionHelpers.GetMethodForType(typeof(EFT.UI.Matchmaker.MatchMakerSelectionLocationScreen), "method_4", false, true);
-           
+
 //        }
 
 //        [PatchPrefix]

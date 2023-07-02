@@ -19,14 +19,14 @@ namespace DrakiaXYZ.BigBrain.Brains
         private static BrainManager _instance;
         internal static BrainManager Instance
         {
-            get 
-            { 
+            get
+            {
                 if (_instance == null)
                 {
                     _instance = new BrainManager();
                 }
 
-                return _instance; 
+                return _instance;
             }
         }
 

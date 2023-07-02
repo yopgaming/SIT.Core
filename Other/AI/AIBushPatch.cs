@@ -22,7 +22,7 @@ namespace SIT.Core.Other.AI
             }
             catch
             {
-                ModulePatch.Logger.LogInfo((object)"NoBushESP: Failed to get target method.. target dead or unspawned.");
+                ModulePatch.Logger.LogInfo("NoBushESP: Failed to get target method.. target dead or unspawned.");
             }
             return null;
         }
@@ -32,7 +32,7 @@ namespace SIT.Core.Other.AI
         {
             try
             {
-                object value = ((object)bot.Memory).GetType().GetProperty("GoalEnemy").GetValue(bot.Memory);
+                object value = bot.Memory.GetType().GetProperty("GoalEnemy").GetValue(bot.Memory);
                 if (value == null)
                 {
                     return;
@@ -52,15 +52,15 @@ namespace SIT.Core.Other.AI
                 {
                     if ((hitInfo.collider.transform.parent?.gameObject?.name.ToLower().Contains(exclusion)).Value)
                     {
-                        ModulePatch.Logger.LogDebug((object)("NoBushESP: Blocking Excluded Object Name: " + hitInfo.collider.transform.parent?.gameObject?.name));
-                        ((object)bot.Memory).GetType().GetProperty("GoalEnemy").SetValue(bot.Memory, null);
-                        ModulePatch.Logger.LogDebug((object)("NoBushESP: Blocking GoalEnemy for: " + bot.Profile.Info.Settings.Role));
+                        ModulePatch.Logger.LogDebug("NoBushESP: Blocking Excluded Object Name: " + hitInfo.collider.transform.parent?.gameObject?.name);
+                        bot.Memory.GetType().GetProperty("GoalEnemy").SetValue(bot.Memory, null);
+                        ModulePatch.Logger.LogDebug("NoBushESP: Blocking GoalEnemy for: " + bot.Profile.Info.Settings.Role);
                     }
                 }
             }
             catch
             {
-                ModulePatch.Logger.LogDebug((object)"NoBushESP: Cannot Assign Brain Because Enemy is Dead or Unspawned");
+                ModulePatch.Logger.LogDebug("NoBushESP: Cannot Assign Brain Because Enemy is Dead or Unspawned");
             }
         }
     }

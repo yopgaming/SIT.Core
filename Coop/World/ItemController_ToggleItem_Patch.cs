@@ -1,5 +1,4 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Core.Misc;
+﻿using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;

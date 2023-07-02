@@ -3,16 +3,12 @@ using EFT;
 using EFT.InputSystem;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using HarmonyLib;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace SIT.Core.Coop
 {
@@ -78,7 +74,8 @@ namespace SIT.Core.Coop
                 , timeAndWeather
                 , ____raidSettings.WavesSettings
                 , ____raidSettings.SelectedDateTime
-                , new Callback<ExitStatus, TimeSpan, ClientMetrics>((r) => {
+                , new Callback<ExitStatus, TimeSpan, ClientMetrics>((r) =>
+                {
 
                     Logger.LogInfo("Callback Metrics. Invoke method 45");
                     ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
@@ -88,22 +85,22 @@ namespace SIT.Core.Coop
                 , ____fixedDeltaTime
                 , EUpdateQueue.Update
                 , session
-                , TimeSpan.FromSeconds((double)(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)));
+                , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit));
             Singleton<AbstractGame>.Create(localGame);
-                await localGame.method_3(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
-                //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
-                {
+            await localGame.method_3(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            {
 
-                    //using (GClass21.StartWithToken("LoadingScreen.LoadComplete"))
-                    //{
-                        UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
-                        MainMenuController mmc =
-                            (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
-                        mmc.Unsubscribe();
-                        Singleton<GameWorld>.Instance.OnGameStarted();
-                    //}
+                //using (GClass21.StartWithToken("LoadingScreen.LoadComplete"))
+                //{
+                UnityEngine.Object.DestroyImmediate(MonoBehaviourSingleton<MenuUI>.Instance.gameObject);
+                MainMenuController mmc =
+                        (MainMenuController)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(TarkovApplication), typeof(MainMenuController)).GetValue(__instance);
+                mmc.Unsubscribe();
+                Singleton<GameWorld>.Instance.OnGameStarted();
+                //}
 
-                }));
+            }));
 
             //__result = Task.Run(() => { });
             __result = Task.CompletedTask;

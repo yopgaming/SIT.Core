@@ -2,11 +2,7 @@
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -42,7 +38,7 @@ namespace SIT.Core.Coop.FreeCamera
         [PatchPostfix]
         public static void Postfix(Action callback)
         {
-            if(callback != null)
+            if (callback != null)
             {
                 callback();
             }

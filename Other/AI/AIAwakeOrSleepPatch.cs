@@ -107,7 +107,7 @@ namespace SIT.Core.Other.AI
                 }
                 catch (Exception ex)
                 {
-                    PatchConstants.Logger.LogInfo((object)ex);
+                    PatchConstants.Logger.LogInfo(ex);
                 }
             }
             else

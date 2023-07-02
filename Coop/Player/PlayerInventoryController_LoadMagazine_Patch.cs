@@ -1,18 +1,13 @@
-﻿using EFT.InventoryLogic;
-using EFT.UI;
+﻿using Comfort.Common;
 using EFT;
+using EFT.InventoryLogic;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Comfort.Common;
-using System.Security.Policy;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace SIT.Core.Coop.Player
 {
@@ -67,7 +62,7 @@ namespace SIT.Core.Coop.Player
                 , loadCount > 0 ? loadCount : sourceAmmo.StackObjectsCount
                 , ignoreRestrictions);
 
-          
+
 
             var serialized = itemPacket.Serialize();
             //Logger.LogInfo(serialized);
@@ -147,7 +142,7 @@ namespace SIT.Core.Coop.Player
             public string MagazineTemplateId { get; set; }
 
             public int LoadCount { get; set; }
-            
+
             public bool IgnoreRestrictions { get; set; }
 
             public LoadMagazinePacket(

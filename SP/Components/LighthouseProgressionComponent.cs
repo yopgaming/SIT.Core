@@ -41,7 +41,7 @@ namespace SIT.Core.SP.Components
             }
 
             // Get the players Transmitter.
-            _transmitter = (RecodableItemClass) _gameWorld.MainPlayer.Profile.Inventory.AllRealPlayerItems.FirstOrDefault(x => x.TemplateId == _transmitterId);
+            _transmitter = (RecodableItemClass)_gameWorld.MainPlayer.Profile.Inventory.AllRealPlayerItems.FirstOrDefault(x => x.TemplateId == _transmitterId);
 
             if (_transmitter != null)
             {

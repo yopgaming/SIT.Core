@@ -20,7 +20,7 @@ namespace SIT.Core.Coop.LocalGame
         {
             Logger.LogDebug("PlayerLeavingGame.Postfix");
 
-            
+
 
             if (CoopGameComponent.TryGetCoopGameComponent(out var component))
             {
@@ -36,7 +36,7 @@ namespace SIT.Core.Coop.LocalGame
                 // If I am the Host/Server, then ensure all the bots have left too
                 if (MatchmakerAcceptPatches.IsServer)
                 {
-                    foreach(var p in component.Players)
+                    foreach (var p in component.Players)
                     {
                         Request.Instance.PostDownWebSocketImmediately(new System.Collections.Generic.Dictionary<string, object>() {
 
@@ -54,7 +54,7 @@ namespace SIT.Core.Coop.LocalGame
                     if (p.Value == null)
                         continue;
 
-                    if(p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     {
                         GameObject.Destroy(prc);
                     }
@@ -62,7 +62,7 @@ namespace SIT.Core.Coop.LocalGame
 
                 if (component != null)
                 {
-                    foreach(var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
+                    foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
                     {
                         GameObject.DestroyImmediate(prc);
                     }

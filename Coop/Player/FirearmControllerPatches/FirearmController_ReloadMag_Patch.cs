@@ -1,5 +1,4 @@
-﻿using EFT;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -111,7 +110,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         return;
                     }
 
-                    if(!ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, magazine))
+                    if (!ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, magazine))
                         ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, magazine);
 
                 }

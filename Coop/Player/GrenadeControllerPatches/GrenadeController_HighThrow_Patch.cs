@@ -4,10 +4,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.Player.GrenadeControllerPatches
@@ -21,14 +18,14 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
         {
         }
 
-        public GrenadeController_HighThrow_Patch(Type type) 
-        { 
+        public GrenadeController_HighThrow_Patch(Type type)
+        {
             OverrideInstanceType = type;
         }
 
         protected override MethodBase GetTargetMethod()
-        {   
-            if (OverrideInstanceType == null) 
+        {
+            if (OverrideInstanceType == null)
             {
                 var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName, false, true);
                 return method;
@@ -55,7 +52,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
             EFT.Player ____player
             )
         {
-            if(____player == null)
+            if (____player == null)
             {
                 Logger.LogError("Player property is NULL!");
                 return false;
@@ -107,9 +104,9 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
             //if (player.HandsController is EFT.Player.GrenadeController cont)
             //{
             //Logger.LogDebug("GrenadeController_HighThrow_Patch:Replicated");
-            if(player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
-                if(prc.IsClientDrone)
+                if (prc.IsClientDrone)
                 {
                     var rX = float.Parse(dict["rX"].ToString());
                     var rY = float.Parse(dict["rY"].ToString());

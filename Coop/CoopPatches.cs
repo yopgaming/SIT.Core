@@ -2,9 +2,7 @@
 using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
-using SIT.Core.Coop.FreeCamera;
 using SIT.Core.Coop.LocalGame;
-using SIT.Core.Coop.Player.GrenadeControllerPatches;
 using SIT.Core.Coop.Sounds;
 using SIT.Core.Coop.World;
 using SIT.Tarkov.Core;
@@ -13,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SIT.Core.Coop
 {

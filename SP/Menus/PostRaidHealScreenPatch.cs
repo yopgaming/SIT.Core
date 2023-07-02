@@ -1,7 +1,6 @@
 ﻿using EFT;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.SP.Menus
@@ -19,7 +18,7 @@ namespace SIT.Core.SP.Menus
         {
             raidMode = ERaidMode.Online;
 
-            return true; 
+            return true;
         }
     }
 }

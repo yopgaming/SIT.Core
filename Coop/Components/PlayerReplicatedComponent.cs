@@ -1,20 +1,15 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
-using Comfort.Common;
 using EFT;
-using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
-using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Core.Misc;
 using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace SIT.Coop.Core.Player
 {
@@ -37,7 +32,7 @@ namespace SIT.Coop.Core.Player
         {
             //PatchConstants.Logger.LogDebug("PlayerReplicatedComponent:Awake");
         }
-        
+
         void Start()
         {
             //PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start");
@@ -50,9 +45,9 @@ namespace SIT.Coop.Core.Player
 
             // ---------------------------------------------------------
             // TODO: Add Dogtags to PMC Clients in match
-            if(player.ProfileId.StartsWith("pmc"))
+            if (player.ProfileId.StartsWith("pmc"))
             {
-                if(UpdateDogtagPatch.GetDogtagItem(player) == null)
+                if (UpdateDogtagPatch.GetDogtagItem(player) == null)
                 {
                     var dogtagSlot = player.Inventory.Equipment.GetSlot(EFT.InventoryLogic.EquipmentSlot.Dogtag);
                     //var dogtagItemComponent = dogtagSlot.Add(new DogtagComponent(new Item("")));
@@ -74,7 +69,7 @@ namespace SIT.Coop.Core.Player
             {
                 // Early bird stop to processing the same item twice!
                 //if (!ModuleReplicationPatch.HasProcessed(patch.GetType(), player, packet))
-                    patch.Replicated(player, packet);
+                patch.Replicated(player, packet);
 
                 return;
             }
@@ -94,7 +89,7 @@ namespace SIT.Coop.Core.Player
 
         void ProcessPlayerState(Dictionary<string, object> packet)
         {
-            if (!packet.ContainsKey("m")) 
+            if (!packet.ContainsKey("m"))
                 return;
 
             var method = packet["m"].ToString();
@@ -115,8 +110,8 @@ namespace SIT.Coop.Core.Player
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
 
-               
-                
+
+
                 // Rotation
                 Vector2 packetRotation = new Vector2(
                 float.Parse(packet["rX"].ToString())
@@ -242,7 +237,7 @@ namespace SIT.Coop.Core.Player
         {
             var direction = (player.Position - desiredPosition).normalized;
             Ray ray = new Ray(player.Position, direction);
-            LayerMask layerMask =  LayerMaskClass.HighPolyWithTerrainNoGrassMask;
+            LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
         }
 
 
@@ -250,7 +245,7 @@ namespace SIT.Coop.Core.Player
         {
             LateUpdate_ClientDrone();
 
-            if(IsClientDrone)
+            if (IsClientDrone)
                 return;
 
             if (player.ActiveHealthController.IsAlive)

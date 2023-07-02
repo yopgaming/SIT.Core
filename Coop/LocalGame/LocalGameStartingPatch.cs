@@ -2,7 +2,6 @@
 using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
-using EFT.Interactive;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
@@ -71,7 +70,7 @@ namespace SIT.Coop.Core.LocalGame
         {
             await __result;
 
-            if(__instance is CoopGame coopGame)
+            if (__instance is CoopGame coopGame)
             {
                 coopGame.CreateCoopGameComponent();
             }
@@ -83,7 +82,7 @@ namespace SIT.Coop.Core.LocalGame
                 Logger.LogError("GameWorld is NULL");
                 return;
             }
-            
+
             if (!MatchmakerAcceptPatches.IsClient)
             {
                 Dictionary<string, object> packet = new Dictionary<string, object>

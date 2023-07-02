@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace SIT.Core.Misc
@@ -78,7 +77,7 @@ namespace SIT.Core.Misc
         public static FieldInfo GetFieldFromType(Type t, string name)
         {
             var fields = GetAllFieldsForType(t);
-            
+
             return fields.FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
 
         }
@@ -251,7 +250,7 @@ namespace SIT.Core.Misc
                         return (T)field.GetValue(o);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 if (field != null)
                 {
@@ -309,17 +308,17 @@ namespace SIT.Core.Misc
 
         internal static Type SearchForType(string v, bool debug = false)
         {
-            var typesFound = EftTypes.Where(x=>x.FullName.Contains(v)).ToList();
-            foreach(var type in typesFound)
+            var typesFound = EftTypes.Where(x => x.FullName.Contains(v)).ToList();
+            foreach (var type in typesFound)
             {
                 if (debug)
                     Logger.LogDebug(type.FullName);
             }
-            if(typesFound.Count == 1)
+            if (typesFound.Count == 1)
                 return typesFound.FirstOrDefault();
             else
             {
-                if(typesFound.Count(x=>x.FullName.Equals(v)) == 1)
+                if (typesFound.Count(x => x.FullName.Equals(v)) == 1)
                     return typesFound.FirstOrDefault(x => x.FullName.Equals(v));
                 else
                     return typesFound.FirstOrDefault();

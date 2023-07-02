@@ -1,12 +1,9 @@
-﻿using EFT;
-using EFT.InventoryLogic;
-using Newtonsoft.Json;
+﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
@@ -61,7 +58,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
 
-            foreach(var item in ammoPack.GetReloadingAmmoIds())
+            foreach (var item in ammoPack.GetReloadingAmmoIds())
             {
                 Logger.LogInfo($"FirearmController_ReloadWithAmmo_Patch:PostPatch:{item}");
             }

@@ -108,7 +108,7 @@ namespace Aki.Custom.Patches
         private static async Task<CompatibilityAssetBundleManifest> GetManifestJson(string filepath)
         {
             var text = string.Empty;
-            if(!File.Exists($"{filepath}.json"))
+            if (!File.Exists($"{filepath}.json"))
             {
                 Logger.LogError($"GetManifestJson: Cant find {filepath}.json");
                 throw new FileNotFoundException(filepath);

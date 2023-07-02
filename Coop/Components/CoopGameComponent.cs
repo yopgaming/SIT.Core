@@ -3,7 +3,6 @@ using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
-using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
@@ -33,7 +32,10 @@ namespace SIT.Core.Coop
         private Request RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
-        public EFT.Player[] PlayerUsers { get {
+        public EFT.Player[] PlayerUsers
+        {
+            get
+            {
 
                 if (Players == null)
                     return new EFT.Player[0];
@@ -41,7 +43,8 @@ namespace SIT.Core.Coop
 
                 return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
 
-            } }
+            }
+        }
         BepInEx.Logging.ManualLogSource Logger { get; set; }
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
@@ -71,7 +74,7 @@ namespace SIT.Core.Coop
         {
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
-          
+
             CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent);
             return coopGameComponent;
         }
@@ -138,7 +141,7 @@ namespace SIT.Core.Coop
 
         }
 
-      
+
 
         void OnDestroy()
         {
@@ -204,7 +207,7 @@ namespace SIT.Core.Coop
                 {
                     quitState = EQuitState.YourTeamIsDead;
                 }
-                else if(!coopGame.PlayerOwner.Player.HealthController.IsAlive)
+                else if (!coopGame.PlayerOwner.Player.HealthController.IsAlive)
                 {
                     quitState = EQuitState.YouAreDead;
                 }
@@ -216,7 +219,7 @@ namespace SIT.Core.Coop
 
             if (
                 numberOfPlayersAlive > 0
-                && 
+                &&
                 (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Length == numberOfPlayersExtracted)
                 )
             {
@@ -259,13 +262,13 @@ namespace SIT.Core.Coop
 
             var playersToExtract = new List<string>();
             // TODO: Store the exfil point in the ExtractingPlayers dict, need it for timer
-            foreach(var exfilPlayer in coopGame.ExtractingPlayers)
+            foreach (var exfilPlayer in coopGame.ExtractingPlayers)
             {
                 var exfilTime = exfilPlayer.Value.Item1;
-                var timeInExfil = new TimeSpan(DateTime.Now.Ticks - (long)exfilPlayer.Value.Item2).Seconds;
+                var timeInExfil = new TimeSpan(DateTime.Now.Ticks - exfilPlayer.Value.Item2).Seconds;
                 if (timeInExfil > exfilTime)
                 {
-                    Logger.LogInfo(exfilPlayer.Key + " should extract");
+                    Logger.LogDebug(exfilPlayer.Key + " should extract");
                     playersToExtract.Add(exfilPlayer.Key);
                 }
                 else
@@ -275,7 +278,7 @@ namespace SIT.Core.Coop
                 }
             }
 
-            foreach(var player in playersToExtract)
+            foreach (var player in playersToExtract)
             {
                 coopGame.ExtractingPlayers.Remove(player);
                 coopGame.ExtractedPlayers.Add(player);
@@ -315,7 +318,7 @@ namespace SIT.Core.Coop
 
             var DateTimeStart = DateTime.Now;
 
-            if(!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
+            if (!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
                 HighPingMode = ServerPing > PING_LIMIT_HIGH && MatchmakerAcceptPatches.IsClient;
 
 
@@ -408,7 +411,8 @@ namespace SIT.Core.Coop
             List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new List<LocalPlayer>();
             foreach (var p in SpawnedPlayersToFinalize)
             {
-                SetWeaponInHandsOfNewPlayer(p, () => {
+                SetWeaponInHandsOfNewPlayer(p, () =>
+                {
 
                     SpawnedPlayersToRemoveFromFinalizer.Add(p);
                 });
@@ -440,7 +444,7 @@ namespace SIT.Core.Coop
             if (GetServerId() == null)
                 return;
 
-            
+
             while (RunAsyncTasks)
             {
                 await Task.Delay(10000);
@@ -486,10 +490,10 @@ namespace SIT.Core.Coop
                 if (!m_CharactersJson.Any())
                     return;
 
-                if(m_CharactersJson[0].ContainsKey("notFound"))
+                if (m_CharactersJson[0].ContainsKey("notFound"))
                 {
                     // Game is broken and doesn't exist!
-                    if(LocalGameInstance != null)
+                    if (LocalGameInstance != null)
                     {
                         this.ServerHasStopped = true;
                     }
@@ -613,7 +617,7 @@ namespace SIT.Core.Coop
                     }
                 }
 
-                
+
                 yield return waitEndOfFrame;
             }
         }
@@ -747,7 +751,7 @@ namespace SIT.Core.Coop
             //        //Logger.LogDebug($"profile id {profile.Id}");
             //    }
 
-                
+
 
             //    // Send to be loaded
             //    PlayersToSpawnProfiles[accountId] = profile;
@@ -971,10 +975,10 @@ namespace SIT.Core.Coop
                 if (IResult.Succeed == true)
                 {
                     if (successCallback != null)
-                            successCallback();
+                        successCallback();
                 }
 
-                if(person.TryGetItemInHands<Item>() != null)
+                if (person.TryGetItemInHands<Item>() != null)
                 {
                     if (successCallback != null)
                         successCallback();
@@ -1007,12 +1011,12 @@ namespace SIT.Core.Coop
             if (!packet.ContainsKey("m"))
                 return;
 
-            foreach(var coopPatch in CoopPatches.NoMRPPatches)
+            foreach (var coopPatch in CoopPatches.NoMRPPatches)
             {
                 var imrwp = coopPatch as IModuleReplicationWorldPatch;
-                if(imrwp != null)
+                if (imrwp != null)
                 {
-                    if(imrwp.MethodName == packet["m"].ToString())
+                    if (imrwp.MethodName == packet["m"].ToString())
                     {
                         imrwp.Replicated(packet);
                     }
@@ -1027,7 +1031,7 @@ namespace SIT.Core.Coop
                 case "Door_Interact":
                     Door_Interact_Patch.Replicated(packet);
                     break;
-                    
+
             }
         }
 
@@ -1078,7 +1082,7 @@ namespace SIT.Core.Coop
                     var coopGame = LocalGameInstance as CoopGame;
                     if (coopGame != null)
                     {
-                        Logger.LogInfo($"Received Extracted ProfileId {packet["profileId"]}");
+                        //Logger.LogInfo($"Received Extracted ProfileId {packet["profileId"]}");
                         if (!coopGame.ExtractedPlayers.Contains(packet["profileId"].ToString()))
                             coopGame.ExtractedPlayers.Add(packet["profileId"].ToString());
                     }
@@ -1116,7 +1120,7 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
             dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
             dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
-            if (player.MovementContext.IsSprintEnabled) 
+            if (player.MovementContext.IsSprintEnabled)
             {
                 prc.ReplicatedDirection = new Vector2(1, 0);
                 dictPlayerState["spd"] = player.MovementContext.CharacterMovementSpeed;
@@ -1223,17 +1227,17 @@ namespace SIT.Core.Coop
             GUIStyle style = GUI.skin.label;
             style.alignment = TextAnchor.MiddleCenter;
             style.fontSize = 13;
-            
+
             var w = 0.5f; // proportional width (0..1)
             var h = 0.2f; // proportional height (0..1)
             Rect rectEndOfGameMessage = new();
-            rectEndOfGameMessage.x = (float) (Screen.width*(1-w))/2;
-            rectEndOfGameMessage.y = (float) (Screen.height*(1-h))/2;
-            rectEndOfGameMessage.width = (float) Screen.width* w;
-            rectEndOfGameMessage.height = (float) Screen.height* h;
+            rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
+            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2;
+            rectEndOfGameMessage.width = Screen.width * w;
+            rectEndOfGameMessage.height = Screen.height * h;
 
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
-           
+
 
             if (LocalGameInstance == null)
                 return;
@@ -1271,7 +1275,7 @@ namespace SIT.Core.Coop
                     GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
                     break;
             }
-            
+
 
             OnGUI_DrawPlayerList(rect);
 
@@ -1326,5 +1330,5 @@ namespace SIT.Core.Coop
         Error = 99,
     }
 
-    
+
 }

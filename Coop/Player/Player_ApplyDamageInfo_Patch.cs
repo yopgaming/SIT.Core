@@ -1,5 +1,4 @@
 ﻿using EFT.InventoryLogic;
-using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
@@ -8,7 +7,6 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 
 namespace SIT.Core.Coop.Player
 {
@@ -33,7 +31,7 @@ namespace SIT.Core.Coop.Player
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
-            if(result)
+            if (result)
             {
                 if (PluginConfigSettings.Instance != null)
                 {
@@ -74,7 +72,7 @@ namespace SIT.Core.Coop.Player
                 {
                     if (bodyPartType == EBodyPart.Head && damageInfo.DamageType == EFT.EDamageType.Bullet)
                     {
-                        if(damageInfo.DidArmorDamage == 0)
+                        if (damageInfo.DidArmorDamage == 0)
                         {
                             damageInfo.Damage = 999;
                             damageInfo.DidBodyDamage = 999;
@@ -124,7 +122,7 @@ namespace SIT.Core.Coop.Player
             //if (MatchmakerAcceptPatches.IsServer)  // should we do this on the server and send out to others only?
             {
                 var bodyPartHealth = player.ActiveHealthController.GetBodyPartHealth(bodyPartType);
-                if(
+                if (
                     ((bodyPartType == EBodyPart.Head || bodyPartType == EBodyPart.Common || bodyPartType == EBodyPart.Chest) && bodyPartHealth.AtMinimum)
                     || !player.ActiveHealthController.IsAlive
                     || !player.PlayerHealthController.IsAlive
@@ -188,7 +186,7 @@ namespace SIT.Core.Coop.Player
                             return;
 
                         var methodStopFiringLoop = ReflectionHelpers.GetMethodForType(firearmCont.GetType(), "StopFiringLoop");
-                        if(methodStopFiringLoop != null)
+                        if (methodStopFiringLoop != null)
                             methodStopFiringLoop.Invoke(firearmCont, new object[] { });
                     }
                 }

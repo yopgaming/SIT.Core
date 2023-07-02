@@ -1,8 +1,5 @@
 ﻿using BepInEx.Logging;
-using Comfort.Common;
-using EFT;
 using Newtonsoft.Json;
-using SIT.Coop.Core.LocalGame;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
@@ -15,9 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -178,11 +173,11 @@ namespace SIT.Tarkov.Core
                     Request.Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
                 }
 
-                    // If this is an endSession packet, end the session for the clients
+                // If this is an endSession packet, end the session for the clients
                 if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
                 {
                     Logger.LogDebug("Received EndSession from Server. Ending Game.");
-                    if(coopGameComponent.LocalGameInstance == null)
+                    if (coopGameComponent.LocalGameInstance == null)
                         return;
 
                     coopGameComponent.ServerHasStopped = true;

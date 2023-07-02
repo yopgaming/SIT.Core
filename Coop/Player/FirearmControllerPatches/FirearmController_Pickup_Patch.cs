@@ -1,14 +1,9 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Core.Coop.NetworkPacket;
+﻿using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static SIT.Core.Coop.Player.FirearmControllerPatches.FirearmController_SetTriggerPressed_Patch;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -81,7 +76,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            FCPickupPicket pp = new(null,false);
+            FCPickupPicket pp = new(null, false);
 
             if (dict.ContainsKey("data"))
             {

@@ -1,5 +1,4 @@
 ﻿using Comfort.Common;
-using HarmonyLib;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop.Player.GrenadeControllerPatches;
@@ -104,15 +103,15 @@ namespace SIT.Core.Coop.Player.Proceed
             if (item != null && item is ThrowWeap throwable)
             {
                 CallLocally.Add(player.Profile.AccountId, true);
-                var callback = new Callback<IThrowableCallback>((IResult) => 
+                var callback = new Callback<IThrowableCallback>((IResult) =>
                 {
-                    if(IResult.Value != null)
+                    if (IResult.Value != null)
                     {
                         //Logger.LogInfo($"Player_Proceed_Throwable_Patch. Found {IResult.Value.GetType().FullName}");
 
                         if (ModuleReplicationPatch.Patches.Any(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)))
                             ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.First(x => x.InstanceType == typeof(GrenadeController_HighThrow_Patch)));
-                        
+
                         if (ModuleReplicationPatch.Patches.Any(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)))
                             ModuleReplicationPatch.Patches.Remove(ModuleReplicationPatch.Patches.First(x => x.InstanceType == typeof(GrenadeController_LowThrow_Patch)));
 

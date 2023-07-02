@@ -1,5 +1,4 @@
-﻿using ChartAndGraph;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using SIT.Core.Misc;
@@ -7,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop
 {
@@ -56,12 +53,12 @@ namespace SIT.Core.Coop
             {
                 var coopGC = CoopGameComponent.GetCoopGameComponent();
                 var players = coopGC.Players;
-                if(players == null)
+                if (players == null)
                     return false;
 
-                foreach( var player in players )
+                foreach (var player in players)
                 {
-                    if(TryFindItemOnPlayer(player.Value, null, itemId, out item))
+                    if (TryFindItemOnPlayer(player.Value, null, itemId, out item))
                         return true;
                 }
             }

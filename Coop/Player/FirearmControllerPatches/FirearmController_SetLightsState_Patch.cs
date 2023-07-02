@@ -4,11 +4,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static SIT.Core.Coop.Player.FirearmControllerPatches.FirearmController_SetTriggerPressed_Patch;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -59,7 +55,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
 
-            foreach ( var light in lightsStates )
+            foreach (var light in lightsStates)
             {
                 LightStatePacket lightStatePacket = new LightStatePacket(light.Id, light.IsActive, light.LightMode, player.Profile.AccountId);
                 Request.Instance.SendDataToPool(lightStatePacket.Serialize());
@@ -70,7 +66,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             //Logger.LogInfo("FirearmController_SetLightsState_Patch.Replicated");
-            LightStatePacket lsp = new(null,false, 0, null);
+            LightStatePacket lsp = new(null, false, 0, null);
 
             if (dict.ContainsKey("data"))
             {
@@ -119,7 +115,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 LightMode = lightMode;
                 AccountId = accountId;
                 Method = "SetLightsState";
-            }   
+            }
         }
     }
 }

@@ -64,7 +64,7 @@ namespace DrakiaXYZ.Waypoints.Components
 
             // Generate the filename to use for output
             string datetime = DateTime.Now.ToString("MM-dd-yyyy.HH-mm");
-            filename = $"{WaypointsPlugin.CustomFolder }\\{gameWorld.MainPlayer.Location.ToLower()}_{datetime}.json";
+            filename = $"{WaypointsPlugin.CustomFolder}\\{gameWorld.MainPlayer.Location.ToLower()}_{datetime}.json";
         }
 
         public void OnGUI()
@@ -153,7 +153,7 @@ namespace DrakiaXYZ.Waypoints.Components
                 // Write output to file
                 Save();
             }
-            
+
             if (Settings.RemoveWaypointKey.Value.IsDown())
             {
                 if (DeleteNearestAddedWaypoint(player.Position))

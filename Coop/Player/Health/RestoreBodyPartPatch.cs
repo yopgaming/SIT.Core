@@ -1,18 +1,11 @@
-﻿using EFT;
-using EFT.HealthSystem;
-using HarmonyLib;
-using Newtonsoft.Json.Linq;
+﻿using EFT.HealthSystem;
 using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.Player.Health
@@ -85,7 +78,7 @@ namespace SIT.Core.Coop.Player.Health
 
                 RestoreBodyPartPacket restoreBodyPartPacket = Json.Deserialize<RestoreBodyPartPacket>(dict.ToJson());
                 var bodyPartDict = GetBodyPartDictionary(player);
-                
+
                 var state = bodyPartDict[restoreBodyPartPacket.BodyPart];
                 if (state == null)
                 {
@@ -95,7 +88,7 @@ namespace SIT.Core.Coop.Player.Health
                 bodyPartDict[restoreBodyPartPacket.BodyPart].IsDestroyed = false;
                 var healthPenalty = restoreBodyPartPacket.HealthPenalty + (1f - restoreBodyPartPacket.HealthPenalty) * (float)player.Skills.SurgeryReducePenalty;
                 Logger.LogDebug("RestoreBodyPart::HealthPenalty::" + healthPenalty);
-                bodyPartDict[restoreBodyPartPacket.BodyPart].Health 
+                bodyPartDict[restoreBodyPartPacket.BodyPart].Health
                     = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartDict[restoreBodyPartPacket.BodyPart].Health.Maximum * healthPenalty)), 0f);
             }
 

@@ -1,14 +1,11 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
-using CommonAssets.Scripts.Game;
 using EFT;
 using EFT.Bots;
-using EFT.CameraControl;
 using EFT.Game.Spawning;
 using EFT.InputSystem;
 using EFT.Interactive;
 using EFT.UI;
-using EFT.UI.Screens;
 using EFT.Weather;
 using JsonType;
 using SIT.Coop.Core.Matchmaker;
@@ -18,18 +15,9 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static ChatMessage;
-using static RootMotion.FinalIK.IKSolver;
 
 namespace SIT.Core.Coop
 {
@@ -78,7 +66,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private static ManualLogSource Logger { get { return PatchConstants.Logger; } } 
+        private static ManualLogSource Logger { get { return PatchConstants.Logger; } }
 
 
         // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
@@ -109,7 +97,7 @@ namespace SIT.Core.Coop
             CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
-            
+
             WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
                 (null, new object[] { coopGame, location, coopGame.PBotsController });
@@ -129,7 +117,7 @@ namespace SIT.Core.Coop
             return coopGame;
         }
 
-    
+
 
         public void CreateCoopGameComponent()
         {
@@ -168,7 +156,7 @@ namespace SIT.Core.Coop
 
             while (true)
             {
-                if(PlayerOwner == null)
+                if (PlayerOwner == null)
                     yield return waitSeconds;
                 //foreach(var o in  .FindObjectsOfTypeAll(typeof(GameObject)))
                 //{
@@ -223,7 +211,7 @@ namespace SIT.Core.Coop
                     wildSpawnWave.time_max += 15;
                 }
                 wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
-                if(wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
+                if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
                 {
                     wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
                 }
@@ -244,9 +232,9 @@ namespace SIT.Core.Coop
             {
                 return new BossLocationSpawn[0];
             }
-            foreach(var wave in bossLocationSpawn)
+            foreach (var wave in bossLocationSpawn)
             {
-                if(wave.BossType == WildSpawnType.pmcBot)
+                if (wave.BossType == WildSpawnType.pmcBot)
                 {
                     wave.Delay = 0;
                     wave.BossChance = 100;
@@ -441,7 +429,7 @@ namespace SIT.Core.Coop
         /// <returns></returns>
         public override IEnumerator vmethod_4(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
         {
-            Logger.LogInfo("vmethod_4");
+            Logger.LogDebug("vmethod_4");
 
             var shouldSpawnBots = !MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
             if (!shouldSpawnBots)
@@ -460,7 +448,7 @@ namespace SIT.Core.Coop
             this.PBotsController.Init(this, botCreator, botZones, spawnSystem, this.wavesSpawnScenario_0.BotLocationModifier, controllerSettings.IsEnabled, controllerSettings.IsScavWars, false, false, false, Singleton<GameWorld>.Instance, base.Location_0.OpenZones);
             int numberOfBots = shouldSpawnBots ? 12 : 0;
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
-            this.PBotsController.AddActivePLayer(this.gparam_0.Player);
+            this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
             {
@@ -509,41 +497,27 @@ namespace SIT.Core.Coop
             SpawnSystemSettings settings = new SpawnSystemSettings(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
             SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
 
-
-
             base.GameTimer.Start();
             //base.vmethod_5();
             gparam_0.vmethod_0();
             gparam_0.Player.ActiveHealthController.DiedEvent += HealthController_DiedEvent;
             gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
 
-            //gparam_0.Player.HealthController.DiedEvent -= delegate
-            //{
-            //    gparam_0.vmethod_1();
-            //    gparam_0.Player.HealthController.DiedEvent -= method_14;
-            //    method_9();
-            //};
-
             ISpawnPoint spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
             InfiltrationPoint = spawnPoint.Infiltration;
             Profile_0.Info.EntryPoint = InfiltrationPoint;
-            Logger.LogInfo(InfiltrationPoint);
+            Logger.LogDebug(InfiltrationPoint);
             ExfiltrationControllerClass.Instance.InitAllExfiltrationPoints(Location_0.exits, justLoadSettings: false, "");
             ExfiltrationPoint[] exfilPoints = ExfiltrationControllerClass.Instance.EligiblePoints(Profile_0);
             base.GameUi.TimerPanel.SetTime(DateTime.UtcNow, Profile_0.Info.Side, base.GameTimer.SessionSeconds(), exfilPoints);
             foreach (ExfiltrationPoint exfiltrationPoint in exfilPoints)
             {
-                //exfiltrationPoint.OnStatusChanged += method_7;
                 exfiltrationPoint.OnStartExtraction += ExfiltrationPoint_OnStartExtraction;
                 exfiltrationPoint.OnCancelExtraction += ExfiltrationPoint_OnCancelExtraction;
                 exfiltrationPoint.OnStatusChanged += ExfiltrationPoint_OnStatusChanged;
                 UpdateExfiltrationUi(exfiltrationPoint, contains: false, initial: true);
             }
-            //((EndByExitTrigerScenario)ReflectionHelpers
-            //    .GetFieldFromTypeByFieldType(
-            //    typeof(BaseLocalGame<GamePlayerOwner>)
-            //    , typeof(EndByExitTrigerScenario))
-            //    .GetValue(this)).Run();
+
             base.dateTime_0 = DateTime.UtcNow;
             base.Status = GameStatus.Started;
             ConsoleScreen.ApplyStartCommands();

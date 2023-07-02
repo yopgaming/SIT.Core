@@ -46,7 +46,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
             }
 
 
-            if(HealthListener.Instance != null)
+            if (HealthListener.Instance != null)
                 Request.Instance.PostJson("/player/health/sync", HealthListener.Instance.CurrentHealth.ToJson());
 
 

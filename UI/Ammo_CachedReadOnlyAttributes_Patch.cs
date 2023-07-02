@@ -35,7 +35,7 @@ namespace SIT.Core.Other.UI
                     new ItemAttribute0(Attributes.ENewMaximumDurabilityId.Damage)
                     {
                         Name = Attributes.ENewMaximumDurabilityId.Damage.GetName(),
-                        Base = (() => (float)template.Damage),
+                        Base = (() => template.Damage),
                         StringValue = (() => template.Damage.ToString()),
                         DisplayType = (() => EItemAttributeDisplayType.Compact)
                     }
@@ -49,9 +49,9 @@ namespace SIT.Core.Other.UI
                     new ItemAttribute0(Attributes.ENewMaximumDurabilityId.ArmorDamage)
                     {
                         Name = Attributes.ENewMaximumDurabilityId.ArmorDamage.GetName(),
-                        Base = (() => (float)template.ArmorDamage),
+                        Base = (() => template.ArmorDamage),
                         StringValue = (() => template.ArmorDamage.ToString()),
-                        DisplayType = (() =>  EItemAttributeDisplayType.Compact)
+                        DisplayType = (() => EItemAttributeDisplayType.Compact)
                     }
                 );
             }
@@ -63,7 +63,7 @@ namespace SIT.Core.Other.UI
                     new ItemAttribute0(Attributes.ENewMaximumDurabilityId.Penetration)
                     {
                         Name = Attributes.ENewMaximumDurabilityId.Penetration.GetName(),
-                        Base = (() => (float)template.PenetrationPower),
+                        Base = (() => template.PenetrationPower),
                         StringValue = (() => template.PenetrationPower.ToString()),
                         DisplayType = (() => EItemAttributeDisplayType.Compact)
                     }

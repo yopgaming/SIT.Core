@@ -1,11 +1,9 @@
-﻿using SIT.Coop.Core.Web;
-using SIT.Core.Coop.NetworkPacket;
+﻿using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using static SIT.Core.Coop.Player.FirearmControllerPatches.FirearmController_SetTriggerPressed_Patch;
 
 namespace SIT.Core.Coop.Player
 {

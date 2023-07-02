@@ -3,9 +3,7 @@ using EFT;
 using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
-using SIT.Tarkov.Core;
 using System;
-using System.Linq;
 using UnityEngine;
 
 namespace SIT.Core.Coop.FreeCamera
@@ -120,7 +118,7 @@ namespace SIT.Core.Coop.FreeCamera
                 _lastOcclusionCullCheck = DateTime.Now;
                 FPSCamera.Instance.SetOcclusionCullingEnabled(false);
                 FPSCamera.Instance.UpdateUseOcclusionCulling();
-                
+
             }
         }
 

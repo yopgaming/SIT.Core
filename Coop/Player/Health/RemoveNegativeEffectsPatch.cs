@@ -1,20 +1,10 @@
-﻿using EFT;
-using EFT.HealthSystem;
-using HarmonyLib;
-using Newtonsoft.Json.Linq;
-using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
+﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using static SIT.Core.Coop.Player.Health.RestoreBodyPartPatch;
 
 namespace SIT.Core.Coop.Player.Health
 {
@@ -67,7 +57,7 @@ namespace SIT.Core.Coop.Player.Health
             }
 
 
-            RemoveNegativeEffectsPacket removeNegativeEffectsPacket = new ();
+            RemoveNegativeEffectsPacket removeNegativeEffectsPacket = new();
             removeNegativeEffectsPacket.AccountId = player.Profile.AccountId;
             removeNegativeEffectsPacket.BodyPart = bodyPart;
             var json = removeNegativeEffectsPacket.ToJson();
@@ -92,7 +82,7 @@ namespace SIT.Core.Coop.Player.Health
                 if (CallLocally.ContainsKey(player.Profile.AccountId))
                     return;
 
-                RemoveNegativeEffectsPacket removeNegativeEffectsPacket  = Json.Deserialize<RemoveNegativeEffectsPacket>(dict.ToJson());
+                RemoveNegativeEffectsPacket removeNegativeEffectsPacket = Json.Deserialize<RemoveNegativeEffectsPacket>(dict.ToJson());
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.PlayerHealthController.RemoveNegativeEffects(removeNegativeEffectsPacket.BodyPart);
             }

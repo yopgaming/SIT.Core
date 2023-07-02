@@ -5,10 +5,9 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
-using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 using AICoreNodeClass = GClass103;
+using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
 namespace DrakiaXYZ.BigBrain.Internal
 {

@@ -1,9 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.NetworkPacket
 {
@@ -15,8 +10,8 @@ namespace SIT.Core.Coop.NetworkPacket
         [JsonProperty(PropertyName = "tpl")]
         public string TemplateId { get; set; }
 
-        public ItemPacket(string itemId, string templateId, string method) 
-        { 
+        public ItemPacket(string itemId, string templateId, string method)
+        {
             ItemId = itemId;
             TemplateId = templateId;
             Method = method;

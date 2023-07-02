@@ -3,7 +3,6 @@ using SIT.Core.Misc;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 /***
@@ -33,13 +32,13 @@ namespace SIT.Tarkov.Core
             var json = Request.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
             PatchConstants.Logger.LogDebug($"[Bundle Manager] Bundles Json: {json}");
 
-            bool bundlesAreSame = File.Exists(CachedJsonPath) 
+            bool bundlesAreSame = File.Exists(CachedJsonPath)
                 && File.ReadAllText(CachedJsonPath) == json
                 && VFS.Exists(CachePath + "bundles.json")
                 && File.Exists(CachedVersionTxtPath)
                 && File.ReadAllText(CachedVersionTxtPath) == Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString()
                 ;
-            if(bundlesAreSame) 
+            if (bundlesAreSame)
             {
                 PatchConstants.Logger.LogInfo($"[Bundle Manager] Bundles are same. Using cached Bundles");
                 Bundles = Json.Deserialize<Dictionary<string, BundleInfo>>(File.ReadAllText(CachePath + "bundles.json"));

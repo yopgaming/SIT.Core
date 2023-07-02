@@ -50,11 +50,11 @@ namespace SIT.Tarkov.Core.Spawners
             }
             if (null == methodShoot)
             {
-                methodShoot = ((object)ballisticsCalculator).GetType().GetMethod("Shoot");
+                methodShoot = ballisticsCalculator.GetType().GetMethod("Shoot");
             }
             if (null == methodCreateShot)
             {
-                methodCreateShot = ((object)ballisticsCalculator).GetType().GetMethod("CreateShot");
+                methodCreateShot = ballisticsCalculator.GetType().GetMethod("CreateShot");
             }
             ShotFactory.player = player;
             if (weapon == null)

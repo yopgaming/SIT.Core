@@ -31,7 +31,7 @@ namespace SIT.Core.SP.Raid
         public static bool PrePatch(EFT.WavesSpawnScenario __instance, WildSpawnWave[] waves)
         {
             CurrentInstance = __instance;
-          
+
             var result = !SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
 
 
@@ -60,7 +60,7 @@ namespace SIT.Core.SP.Raid
             int botsCount = Random.Next(wave.slots_min, wave.slots_max);
             Wave spawnWaves = new Wave
             {
-                Time = (float)UnityEngine.Random.Range(wave.time_min, wave.time_max),
+                Time = UnityEngine.Random.Range(wave.time_min, wave.time_max),
                 BotsCount = botsCount,
                 Difficulty = wave.GetDifficulty(),
                 //WildSpawnType = wave.WildSpawnType == WildSpawnType.sptUsec ? WildSpawnType.pmcBot : wave.WildSpawnType,

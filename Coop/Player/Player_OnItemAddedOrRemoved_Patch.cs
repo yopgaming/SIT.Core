@@ -88,7 +88,7 @@ namespace SIT.Core.Coop.Player
                 item = itemFindResult.Value;
 
                 // Item isn't in a box?
-                if(item.CurrentAddress == null || item.CurrentAddress.Container == null)
+                if (item.CurrentAddress == null || item.CurrentAddress.Container == null)
                 {
                     Logger.LogInfo($"Item of Id {item.Id} isn't in a box");
                 }
@@ -157,9 +157,9 @@ namespace SIT.Core.Coop.Player
                                 //Logger.LogDebug($"OnItemAddedOrRemoved.Replicated:Container[{container1.GetType()}][{container1}]AddWithoutRestrictions");
                                 if (slot.CanAccept(item))
                                     slot.Add(item, false);
-                                    //slot.AddWithoutRestrictions(item);
+                                //slot.AddWithoutRestrictions(item);
                             }
-                            
+
                         }
                         else
                         {

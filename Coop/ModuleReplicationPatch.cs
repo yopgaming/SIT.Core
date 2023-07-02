@@ -20,7 +20,7 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            if(!DisablePatch)
+            if (!DisablePatch)
                 Patches.Add(this);
 
             LastSent.TryAdd(GetType(), new Dictionary<string, object>());
@@ -117,11 +117,11 @@ namespace SIT.Core.Coop
         public override void Enable()
         {
             base.Enable();
-            if(!Patches.Contains(this))
+            if (!Patches.Contains(this))
                 Patches.Add(this);
         }
 
-        public override void Disable() { base.Disable(); if(Patches.Contains(this)) Patches.Remove(this); }
+        public override void Disable() { base.Disable(); if (Patches.Contains(this)) Patches.Remove(this); }
 
 
         public override bool Equals(object obj)

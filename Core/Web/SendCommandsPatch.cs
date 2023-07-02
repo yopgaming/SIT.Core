@@ -1,15 +1,6 @@
-﻿using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
-using Newtonsoft.Json;
-using SIT.Core.Misc;
+﻿using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Core.Web
 {
@@ -25,13 +16,13 @@ namespace SIT.Core.Core.Web
 
         [PatchPrefix]
         public static bool Prefix(
-         
+
             ref float ___float_0
             )
         {
             ___float_0 = 0;
             return true;
         }
-     
+
     }
 }

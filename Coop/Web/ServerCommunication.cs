@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using SIT.Core.Coop;
+﻿using SIT.Core.Coop;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;

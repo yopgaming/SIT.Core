@@ -4,10 +4,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Coop.Player.GrenadeControllerPatches
@@ -118,7 +115,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
 
             CallLocally.Add(player.Profile.AccountId, true);
             var methodInfo = ReflectionHelpers.GetMethodForType(player.HandsController.GetType(), MethodName);
-            if(methodInfo != null)
+            if (methodInfo != null)
                 methodInfo.Invoke(playerHandsController, new object[] { });
         }
     }

@@ -37,7 +37,8 @@ namespace DrakiaXYZ.BigBrain.Patches
         public static bool PatchPrefix(object __instance)
         {
 #if DEBUG
-            try {
+            try
+            {
 #endif
 
                 // Get values we'll use later

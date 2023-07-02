@@ -1,5 +1,4 @@
 ﻿using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using static EFT.UI.CharacterSelectionStartScreen;
 
 namespace SIT.Core.Coop.Player
 {
@@ -114,13 +112,14 @@ namespace SIT.Core.Coop.Player
                     bool spr = bool.Parse(dict["spr"].ToString());
                     playerReplicatedComponent.ReplicatedDirection = null;
                     playerReplicatedComponent.ReplicatedPosition = null;
-                    if (player.IsSprintEnabled) 
+                    if (player.IsSprintEnabled)
                     {
                         if (!spr)
                         {
                             player.MovementContext.EnableSprint(false);
                         }
-                    } else
+                    }
+                    else
                     {
                         if (spr)
                         {
@@ -141,7 +140,7 @@ namespace SIT.Core.Coop.Player
             public float spd { get; set; }
             public bool spr { get; set; }
 
-            public PlayerMovePacket() : base() 
+            public PlayerMovePacket() : base()
             {
                 Method = "Move";
             }

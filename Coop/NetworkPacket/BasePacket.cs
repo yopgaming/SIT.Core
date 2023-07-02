@@ -2,12 +2,9 @@
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.CodeDom;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.NetworkPacket
 {
@@ -24,7 +21,7 @@ namespace SIT.Core.Coop.NetworkPacket
         {
             get
             {
-                if(string.IsNullOrEmpty(_t))
+                if (string.IsNullOrEmpty(_t))
                     _t = DateTime.Now.Ticks.ToString("G");
 
                 return _t;
@@ -98,7 +95,7 @@ namespace SIT.Core.Coop.NetworkPacket
                 //PatchConstants.Logger.LogInfo(prop.Name);
                 //PatchConstants.Logger.LogInfo(prop.PropertyType.Name);
                 //PatchConstants.Logger.LogInfo(separatedPacket[index]);
-                switch(prop.PropertyType.Name)
+                switch (prop.PropertyType.Name)
                 {
                     case "Float":
                         prop.SetValue(obj, float.Parse(separatedPacket[index].ToString()));

@@ -1,7 +1,6 @@
 ﻿using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
-using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;

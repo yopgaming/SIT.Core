@@ -1,6 +1,4 @@
-﻿using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
+﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
@@ -101,6 +99,6 @@ namespace SIT.Core.Coop.Player.Proceed
             }
         }
 
-       
+
     }
 }

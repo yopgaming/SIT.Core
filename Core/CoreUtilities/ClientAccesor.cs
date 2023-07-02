@@ -22,7 +22,7 @@ namespace SIT.Tarkov.Core
         /// <returns></returns>
         public static TarkovApplication GetMainApp()
         {
-            return GetClientApp() as TarkovApplication;
+            return GetClientApp();
         }
         #endregion 
 

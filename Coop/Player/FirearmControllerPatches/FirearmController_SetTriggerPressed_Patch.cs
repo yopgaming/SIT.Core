@@ -1,17 +1,12 @@
 ﻿using SIT.Coop.Core.Player;
-using SIT.Coop.Core.Web;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.XR;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {

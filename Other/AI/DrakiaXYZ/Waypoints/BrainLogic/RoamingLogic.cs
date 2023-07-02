@@ -1,13 +1,12 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
-using System;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace DrakiaXYZ.Waypoints.BrainLogic
 {
-// Note: We only include this in debug builds for now, because we're not shipping BigBrain
+    // Note: We only include this in debug builds for now, because we're not shipping BigBrain
 #if DEBUG
     internal class RoamingLogic : CustomLogic
     {

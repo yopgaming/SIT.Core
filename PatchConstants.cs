@@ -223,7 +223,7 @@ namespace SIT.Tarkov.Core
 
         public static T SITParseJson<T>(this string str)
         {
-            return (T)JsonConvert.DeserializeObject<T>(str
+            return JsonConvert.DeserializeObject<T>(str
                     , new JsonSerializerSettings()
                     {
                         Converters = JsonConverterDefault
@@ -237,7 +237,7 @@ namespace SIT.Tarkov.Core
         {
             try
             {
-                result = (T)JsonConvert.DeserializeObject<T>(str
+                result = JsonConvert.DeserializeObject<T>(str
                         , new JsonSerializerSettings()
                         {
                             Converters = JsonConverterDefault

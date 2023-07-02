@@ -1,18 +1,13 @@
-﻿using EFT.InventoryLogic;
-using EFT.UI;
+﻿using Comfort.Common;
 using EFT;
+using EFT.InventoryLogic;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Comfort.Common;
-using System.Security.Policy;
-using static UnityEngine.UIElements.StyleVariableResolver;
 
 namespace SIT.Core.Coop.Player
 {

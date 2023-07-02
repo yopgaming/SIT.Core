@@ -1,6 +1,5 @@
 ﻿using Aki.Custom.Patches;
 using BepInEx;
-using BepInEx.Configuration;
 using Comfort.Common;
 using EFT;
 using SIT.Core.AkiSupport.Airdrops;
@@ -21,7 +20,6 @@ using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
-using SIT.Tarkov.Core.AI;
 using System;
 using UnityEngine.SceneManagement;
 

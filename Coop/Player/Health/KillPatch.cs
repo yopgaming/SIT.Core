@@ -1,15 +1,10 @@
 ﻿using EFT;
-using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static SIT.Core.Coop.Player.Health.RestoreBodyPartPatch;
 
 namespace SIT.Core.Coop.Player.Health
 {
