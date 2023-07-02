@@ -38,20 +38,23 @@ namespace SIT.Core.Coop.Player
           ref UnityEngine.Vector2 direction
            )
         {
-            // FIX: Error that occurs when leaving a raid
+            // don't run this if we dont have a "player"
             if (__instance == null)
                 return false;
 
             var player = __instance;
-            var accountId = player.Profile.AccountId;
 
-            // If this player is a Client drone, do not send any data, anywhere
+            // If this player is a Client drone, then don't run this method
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             if (prc.IsClientDrone)
                 return false;
 
-            //direction.x = (float)Math.Round(direction.x, 3);
-            //direction.y = (float)Math.Round(direction.y, 3);
+            // If this is an AI or other player, then don't run this method
+            // For some reason, this breaks the AI so they can't move. AI are becoming a pain to deal with.
+            //if (!player.IsYourPlayer)
+            //{
+            //    return false;
+            //}
 
             return true;
 
@@ -66,30 +69,30 @@ namespace SIT.Core.Coop.Player
             )
         {
             var player = __instance;
-            var accountId = player.Profile.AccountId;
+            // don't run this if we dont have a "player"
+            if (__instance == null)
+                return;
 
-            if (!player.IsYourPlayer)
+            var accountId = player.Profile.AccountId;
+            if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
-                if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                    prc.ReplicatedDirection = direction;
+                Logger.LogError($"Unable to find PRC on {player.ProfileId}");
                 return;
             }
 
-            //direction.x = (float)Math.Round(direction.x, 3);
-            //direction.y = (float)Math.Round(direction.y, 3);
+            // If this is an AI or other player, then don't run this method
+            if (!player.IsYourPlayer)
+            {
+                prc.ReplicatedDirection = direction;
+            }
 
+            if (prc.IsClientDrone)
+                return;
+           
             if (!LastDirections.ContainsKey(accountId))
                 LastDirections.Add(accountId, direction);
             else if (LastDirections[accountId] == direction && direction == Vector2.zero)
                 return;
-
-            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            //dictionary.Add("t", DateTime.Now.Ticks);
-            //dictionary.Add("dX", direction.x.ToString());
-            //dictionary.Add("dY", direction.y.ToString());
-            //dictionary.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            //dictionary.Add("m", "Move");
-            //ServerCommunication.PostLocalPlayerData(player, dictionary);
 
             PlayerMovePacket playerMovePacket = new PlayerMovePacket();
             playerMovePacket.AccountId = accountId;
@@ -103,6 +106,9 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            if (HasProcessed(this.GetType(), player, dict))
+                return;
+
             if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
             {
                 if (playerReplicatedComponent.IsClientDrone)

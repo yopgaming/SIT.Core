@@ -159,7 +159,7 @@ namespace SIT.Tarkov.Core
                     var timeStampOfPing = new TimeSpan(0, int.Parse(pingStrip[0]), int.Parse(pingStrip[1]), int.Parse(pingStrip[2]), int.Parse(pingStrip[3]));
                     var serverPing = (timeStampOfPing - coopGameComponent.LastServerPing).Milliseconds;
                     coopGameComponent.LastServerPing = timeStampOfPing;
-                    if (coopGameComponent.ServerPingSmooth.Count > 10)
+                    if (coopGameComponent.ServerPingSmooth.Count > 300)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
                     coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
@@ -188,21 +188,26 @@ namespace SIT.Tarkov.Core
                 // If this is a SIT serialization packet
                 if (packet.ContainsKey("data") && packet.ContainsKey("m"))
                 {
-                    //Logger.LogDebug("Received SIT Serialization packet");
-                    //Logger.LogDebug(packet["m"]);
-                    //Logger.LogDebug(packet["data"].ToString());
-                    //Logger.LogDebug(packet["data"].ToString().Length);
                     if (!packet.ContainsKey("accountId"))
                     {
                         packet.Add("accountId", packet["data"].ToString().Split(',')[0]);
-                        //Logger.LogDebug(packet["accountId"].ToString());
                     }
                 }
 
                 // -------------------------------------------------------
+                // Check the packet doesn't already exist in Coop Game Component Action Packets
+                if (
+                    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
+                    coopGameComponent.ActionPackets.Contains(packet) 
+                    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
+                    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
+                    )
+                    return;
+
+
+                // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
-                if (!coopGameComponent.ActionPackets.Contains(packet))
-                    coopGameComponent.ActionPackets.TryAdd(packet);
+                coopGameComponent.ActionPackets.TryAdd(packet);
             }
         }
 

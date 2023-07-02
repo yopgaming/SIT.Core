@@ -1,4 +1,5 @@
-﻿using EFT.InventoryLogic;
+﻿using EFT;
+using EFT.InventoryLogic;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
@@ -23,6 +24,8 @@ namespace SIT.Core.Coop.Player
             return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
         }
 
+        public static Dictionary<string, EDamageType> LastDamageTypes = new();
+
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance
             , ref DamageInfo damageInfo
@@ -31,6 +34,10 @@ namespace SIT.Core.Coop.Player
             var result = false;
             if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
                 result = true;
+
+            if (!LastDamageTypes.ContainsKey(__instance.ProfileId))
+                LastDamageTypes.Add(__instance.ProfileId, EDamageType.Undefined);
+
             if (result)
             {
                 if (PluginConfigSettings.Instance != null)
@@ -47,6 +54,9 @@ namespace SIT.Core.Coop.Player
                         }
                     }
                 }
+
+
+                LastDamageTypes[__instance.ProfileId] = damageInfo.DamageType;
             }
             return result;
         }

@@ -1089,34 +1089,45 @@ namespace SIT.Core.Coop
                 }
             }
 
-            try
+            if (PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
             {
-                // Deal to all versions of this guy
-                foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
-                    .Where(x => x.Profile != null && x.Profile.AccountId == accountId))
+                try
                 {
-                    if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    // Deal to all versions of this guy
+                    foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
+                        .Where(x => x.Profile != null && x.Profile.AccountId == accountId))
                     {
-                        prc.ProcessPacket(packet);
-                    }
-                    else
-                    {
-                        Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                        if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                        {
+                            prc.ProcessPacket(packet);
+                        }
+                        else
+                        {
+                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                        }
                     }
                 }
+                catch (Exception) { }
             }
-            catch (Exception) { }
         }
 
         private static void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
             Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
 
+            // --- The important Ids
+            dictPlayerState.Add("accountId", player.Profile.AccountId);
+            dictPlayerState.Add("profileId", player.ProfileId);
+            dictPlayerState.Add("serverId", GetServerId());
+
+            // --- Positional 
             dictPlayerState.Add("pX", player.Position.x);
             dictPlayerState.Add("pY", player.Position.y);
             dictPlayerState.Add("pZ", player.Position.z);
             dictPlayerState.Add("rX", player.Rotation.x);
             dictPlayerState.Add("rY", player.Rotation.y);
+
+            // --- Positional 
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
             dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
             dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
@@ -1129,8 +1140,7 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("alive", player.HealthController.IsAlive);
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
             dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
-            dictPlayerState.Add("accountId", player.Profile.AccountId);
-            dictPlayerState.Add("serverId", GetServerId());
+            
             dictPlayerState.Add("t", DateTime.Now.Ticks);
             // ---------- 
             dictPlayerState.Add("phys.hs.current", player.Physical.HandsStamina.Current);

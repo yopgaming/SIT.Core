@@ -3,6 +3,7 @@ using EFT;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
+using SIT.Core.Coop.Player;
 using SIT.Core.Misc;
 using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
@@ -169,8 +170,14 @@ namespace SIT.Coop.Core.Player
                     bool isCharAlive = bool.Parse(packet.ContainsKey("alive").ToString());
                     if (!isCharAlive && (player.PlayerHealthController.IsAlive || player.ActiveHealthController.IsAlive))
                     {
-                        player.ActiveHealthController.Kill(EFT.EDamageType.Undefined);
-                        player.PlayerHealthController.Kill(EFT.EDamageType.Undefined);
+                        var damageType = EFT.EDamageType.Undefined;
+                        if (Player_ApplyDamageInfo_Patch.LastDamageTypes.ContainsKey(packet["profileId"].ToString()))
+                        {
+                            damageType = Player_ApplyDamageInfo_Patch.LastDamageTypes[packet["profileId"].ToString()];
+                        }
+                        player.ActiveHealthController.Kill(damageType);
+                        player.PlayerHealthController.Kill(damageType);
+
                     }
                 }
 

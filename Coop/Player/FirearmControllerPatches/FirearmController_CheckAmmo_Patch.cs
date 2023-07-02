@@ -33,8 +33,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.ContainsKey(player.ProfileId))
                 result = true;
+
+
+            Logger.LogInfo($"CheckAmmo_prefix:{result}");
+
 
             return result;
         }
@@ -42,13 +46,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPostfix]
         public static void PostPatch(EFT.Player.FirearmController __instance)
         {
+            Logger.LogInfo($"CheckAmmo_postfix");
+
             var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.ContainsKey(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -60,13 +66,20 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            Logger.LogInfo($"CheckAmmo_replicated");
+
             var timestamp = long.Parse(dict["t"].ToString());
             if (HasProcessed(GetType(), player, dict))
+            {
+                Logger.LogInfo($"CheckAmmo_hasprocessed!");
                 return;
+            }
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                Logger.LogInfo($"CheckAmmo_calllocally!");
+
+                CallLocally.Add(player.ProfileId, true);
                 //Logger.LogInfo("FirearmControllerCheckAmmoPatch:Replicated:CheckAmmo");
                 firearmCont.CheckAmmo();
             }
