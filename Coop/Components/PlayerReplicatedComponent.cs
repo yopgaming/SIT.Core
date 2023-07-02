@@ -115,9 +115,7 @@ namespace SIT.Coop.Core.Player
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
 
-                // Sprint
-                ShouldSprint = bool.Parse(packet["spr"].ToString());
-                ProcessPlayerStateSprint(packet);
+               
                 
                 // Rotation
                 Vector2 packetRotation = new Vector2(
@@ -126,6 +124,11 @@ namespace SIT.Coop.Core.Player
                 );
                 //player.Rotation = packetRotation;
                 ReplicatedRotation = packetRotation;
+
+                // Sprint
+                ShouldSprint = bool.Parse(packet["spr"].ToString());
+                ProcessPlayerStateSprint(packet);
+
                 // Position
                 Vector3 packetPosition = new Vector3(
                     float.Parse(packet["pX"].ToString())
@@ -182,29 +185,35 @@ namespace SIT.Coop.Core.Player
         }
 
         public bool ShouldSprint { get; set; }
-        public bool IsSprinting { get; set; }
+        private bool isSprinting;
+
+        public bool IsSprinting
+        {
+            get { return isSprinting || player.IsSprintEnabled; }
+            set { isSprinting = value; }
+        }
+
 
         private void ProcessPlayerStateSprint(Dictionary<string, object> packet)
         {
             ShouldSprint = bool.Parse(packet["spr"].ToString());
-            if (player.IsSprintEnabled)
+
+            // If we are requesting to sprint but we are alreadying sprinting, don't do anything
+            if (ShouldSprint && IsSprinting)
+                return;
+
+            if (ShouldSprint)
             {
-                if (!ShouldSprint)
-                {
-                    player.Physical.Sprint(false);
-                    IsSprinting = false;
-                }
-            }
-            else if (ShouldSprint)
-            {
+                // normalize the movement direction. sprint requires 0 on the Y.
                 player.MovementContext.MovementDirection = new Vector2(1, 0);
                 player.Physical.Sprint(true);
                 player.Physical.StaminaCapacity = 100;
-                player.Physical.StaminaRestoreRate = 100; 
+                player.Physical.StaminaRestoreRate = 100;
                 IsSprinting = true;
             }
             else
             {
+                player.Physical.Sprint(false);
                 IsSprinting = false;
             }
         }
@@ -273,7 +282,7 @@ namespace SIT.Coop.Core.Player
             {
                 var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
                 var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                if (replicationDistance >= 2)
+                if (replicationDistance >= 2 && !ShouldSprint)
                 {
                     player.Teleport(ReplicatedPosition.Value, true);
                 }
@@ -290,7 +299,7 @@ namespace SIT.Coop.Core.Player
                 player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
             }
 
-            if (ReplicatedDirection.HasValue && !IsSprinting)
+            if (ReplicatedDirection.HasValue && !IsSprinting && ReplicatedDirection.Value.magnitude > 0)
             {
                 player.CurrentState.Move(ReplicatedDirection.Value);
                 player.InputDirection = ReplicatedDirection.Value;
