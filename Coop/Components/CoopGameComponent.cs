@@ -172,20 +172,78 @@ namespace SIT.Core.Coop
         bool PerformanceCheck_ActionPackets { get; set; } = false;
         public bool RequestQuitGame { get; set; }
 
+
+        enum EQuitState
+        {
+            NONE = -1,
+            YouAreDead,
+            YourTeamIsDead,
+            YourTeamHasExtracted,
+            YouHaveExtractedOnlyAsHost,
+            YouHaveExtractedOnlyAsClient
+        }
+
+        private EQuitState GetQuitState()
+        {
+            var quitState = EQuitState.NONE;
+
+            if (LocalGameInstance == null)
+                return quitState;
+
+            var coopGame = LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                return quitState;
+
+            var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
+            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
+            var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
+
+            if (PlayerUsers.Length > 1)
+            {
+                if (PlayerUsers.Count() == numberOfPlayersDead)
+                {
+                    quitState = EQuitState.YourTeamIsDead;
+                }
+                else if(!coopGame.PlayerOwner.Player.HealthController.IsAlive)
+                {
+                    quitState = EQuitState.YouAreDead;
+                }
+            }
+            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
+            {
+                quitState = EQuitState.YouAreDead;
+            }
+
+            if (
+                numberOfPlayersAlive > 0
+                && 
+                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Length == numberOfPlayersExtracted)
+                )
+            {
+                quitState = EQuitState.YourTeamHasExtracted;
+            }
+            else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
+            {
+                if (MatchmakerAcceptPatches.IsClient)
+                    quitState = EQuitState.YouHaveExtractedOnlyAsClient;
+                else if (MatchmakerAcceptPatches.IsServer)
+                    quitState = EQuitState.YouHaveExtractedOnlyAsHost;
+            }
+            return quitState;
+        }
+
         void LateUpdate()
         {
             var coopGame = LocalGameInstance as CoopGame;
             if (coopGame == null)
                 return;
 
+            var quitState = GetQuitState();
+
             if (
                 Input.GetKeyDown(KeyCode.F8)
-                && 
-                (
-                    !Singleton<GameWorld>.Instance.MainPlayer.HealthController.IsAlive
-                    ||
-                    PlayerUsers.Length == coopGame.ExtractedPlayers.Count
-                )
+                &&
+                quitState != EQuitState.NONE
                 && !RequestQuitGame
                 )
             {
@@ -1166,7 +1224,7 @@ namespace SIT.Core.Coop
             style.alignment = TextAnchor.MiddleCenter;
             style.fontSize = 13;
             
-            var w = 0.3f; // proportional width (0..1)
+            var w = 0.5f; // proportional width (0..1)
             var h = 0.2f; // proportional height (0..1)
             Rect rectEndOfGameMessage = new();
             rectEndOfGameMessage.x = (float) (Screen.width*(1-w))/2;
@@ -1194,31 +1252,26 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
             rect.y += 15;
 
-            if (PlayerUsers.Length > 1)
+            var quitState = GetQuitState();
+            switch (quitState)
             {
-                if (PlayerUsers.Count() == numberOfPlayersDead)
-                {
+                case EQuitState.YourTeamIsDead:
                     GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLabelStyle);
-                }
+                    break;
+                case EQuitState.YouAreDead:
+                    GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+                    break;
+                case EQuitState.YourTeamHasExtracted:
+                    GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLabelStyle);
+                    break;
+                case EQuitState.YouHaveExtractedOnlyAsHost:
+                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+                    break;
+                case EQuitState.YouHaveExtractedOnlyAsClient:
+                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+                    break;
             }
-            else if (PlayerUsers.Any(x => !x.HealthController.IsAlive))
-            {
-                GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
-            }
-
-            if (
-                numberOfPlayersAlive > 0 
-                && numberOfPlayersAlive == numberOfPlayersExtracted
-                )
-            {
-                GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLabelStyle);
-                rect.y += 15;
-            }
-            else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
-            {
-                GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
-                rect.y += 30;
-            }
+            
 
             OnGUI_DrawPlayerList(rect);
 
