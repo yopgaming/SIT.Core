@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +30,7 @@ namespace SIT.Tarkov.Core
 
         public static void GetBundles()
         {
-            var json = Request.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
+            var json = AkiBackendCommunication.Instance.GetJson("/singleplayer/bundles", timeout: 10000);
             PatchConstants.Logger.LogDebug($"[Bundle Manager] Bundles Json: {json}");
 
             bool bundlesAreSame = File.Exists(CachedJsonPath)
@@ -66,7 +67,7 @@ namespace SIT.Tarkov.Core
                     var filepath = CachePath + Regex.Split(path, "bundle/", RegexOptions.IgnoreCase)[1];
                     try
                     {
-                        var data = Request.Instance.GetData(path, true);
+                        var data = AkiBackendCommunication.Instance.GetData(path, true);
                         if (data != null && data.Length == 0)
                         {
                             PatchConstants.Logger.LogInfo("Bundle received is 0 bytes. WTF!");

@@ -1,6 +1,7 @@
 ﻿using EFT;
 using Newtonsoft.Json;
 using SIT.Core.Coop.Matchmaker;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -84,7 +85,7 @@ namespace SIT.Coop.Core.Matchmaker
 
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
-                outJson = Request.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settings));
+                outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settings));
                 //PatchConstants.Logger.LogInfo(outJson);
 
                 if (!string.IsNullOrEmpty(outJson))
@@ -109,7 +110,7 @@ namespace SIT.Coop.Core.Matchmaker
         public static void CreateMatch(string accountId, RaidSettings rs)
         {
 
-            string text = Request.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
+            string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 new Dictionary<string, object>
             {
                 { "serverId", accountId }

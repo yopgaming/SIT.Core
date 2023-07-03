@@ -1,3 +1,4 @@
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +19,7 @@ namespace SIT.Core.AkiSupport.Custom
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result)
         {
-            __result = Request.Instance.GetJson("/singleplayer/settings/bot/difficulty/core/core");
+            __result = AkiBackendCommunication.Instance.GetJson("/singleplayer/settings/bot/difficulty/core/core");
             return string.IsNullOrWhiteSpace(__result);
         }
     }

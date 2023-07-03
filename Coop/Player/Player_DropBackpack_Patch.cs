@@ -49,7 +49,7 @@ namespace SIT.Coop.Core.Player
                 { "t", DateTime.Now.Ticks },
                 { "m", "DropBackpack" }
             };
-            ServerCommunication.PostLocalPlayerData(__instance, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(__instance, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

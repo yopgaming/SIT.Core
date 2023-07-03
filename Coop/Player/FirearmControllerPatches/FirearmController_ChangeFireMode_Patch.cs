@@ -60,7 +60,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("f", fireMode.ToString());
             dictionary.Add("m", "ChangeFireMode");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
             //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
 
         }

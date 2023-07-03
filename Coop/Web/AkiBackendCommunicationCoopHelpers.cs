@@ -1,11 +1,11 @@
 ﻿using SIT.Core.Coop;
-using SIT.Tarkov.Core;
+using SIT.Core.Core;
 using System;
 using System.Collections.Generic;
 
 namespace SIT.Coop.Core.Web
 {
-    public static class ServerCommunication
+    public class AkiBackendCommunicationCoopHelpers : AkiBackendCommunication
     {
 
         public static void PostLocalPlayerData(
@@ -55,10 +55,10 @@ namespace SIT.Coop.Core.Web
 
             if (useWebSocket)
             {
-                Request.Instance.PostDownWebSocketImmediately(data);
+                AkiBackendCommunication.Instance.PostDownWebSocketImmediately(data);
             }
             else
-                Request.Instance.SendDataToPool("/coop/server/update", data);
+                AkiBackendCommunication.Instance.SendDataToPool("/coop/server/update", data);
             generatedData = data;
         }
     }

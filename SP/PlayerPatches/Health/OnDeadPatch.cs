@@ -1,5 +1,6 @@
 ﻿using EFT;
 using Newtonsoft.Json;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -72,7 +73,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
             {
                 packet.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
             }
-            Request.Instance.PostJsonAndForgetAsync("/client/raid/person/killed", JsonConvert.SerializeObject(packet));
+            AkiBackendCommunication.Instance.PostJsonAndForgetAsync("/client/raid/person/killed", JsonConvert.SerializeObject(packet));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using EFT.HealthSystem;
 using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -56,7 +57,7 @@ namespace SIT.Core.Coop.Player.Health
             restoreBodyPartPacket.HealthPenalty = healthPenalty;
             var json = restoreBodyPartPacket.ToJson();
             //Logger.LogInfo(json);
-            Request.Instance.SendDataToPool(json);
+            AkiBackendCommunication.Instance.SendDataToPool(json);
         }
 
 

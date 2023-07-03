@@ -1,4 +1,5 @@
 ﻿using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -55,7 +56,7 @@ namespace SIT.Core.Coop.Player
             playerPacket.AccountId = player.Profile.AccountId;
             //ServerCommunication.PostLocalPlayerData(player, dictionary, true);
             var serialized = playerPacket.Serialize();
-            Request.Instance.SendDataToPool(serialized);
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 
 

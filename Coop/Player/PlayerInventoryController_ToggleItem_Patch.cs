@@ -1,6 +1,7 @@
 ﻿using EFT;
 using EFT.InventoryLogic;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -56,7 +57,7 @@ namespace SIT.Core.Coop.Player
 
             TogglablePacket togglablePacket = new TogglablePacket(___profile_0.AccountId, togglable.Item.Id, togglable.Item.TemplateId, "PlayerInventoryController_ToggleItem", togglable.Item.Parent.Item.Id);
             var serialized = togglablePacket.Serialize();
-            Request.Instance.SendDataToPool(serialized);
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

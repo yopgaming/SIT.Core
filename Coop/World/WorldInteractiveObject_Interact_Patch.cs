@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.Interactive;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -46,7 +47,7 @@ namespace SIT.Core.Coop.World
                 { "type", interactionResult.InteractionType.ToString() },
                 { "m", "WIO_Interact" }
             };
-            Request.Instance.SendDataToPool(string.Empty, dictionary);
+            AkiBackendCommunication.Instance.SendDataToPool(string.Empty, dictionary);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using EFT;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -57,7 +58,7 @@ namespace SIT.Core.Coop.Player.Health
             killPacket.DamageType = damageType;
             var json = killPacket.ToJson();
             //Logger.LogInfo(json);
-            Request.Instance.SendDataToPool(json);
+            AkiBackendCommunication.Instance.SendDataToPool(json);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

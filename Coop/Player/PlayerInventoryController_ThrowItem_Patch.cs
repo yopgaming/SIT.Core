@@ -1,6 +1,7 @@
 ﻿using EFT;
 using EFT.InventoryLogic;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -58,7 +59,7 @@ namespace SIT.Core.Coop.Player
             var _item = item;
             ItemPlayerPacket itemPacket = new ItemPlayerPacket(___profile_0.AccountId, _item.Id, _item.TemplateId, "PlayerInventoryController_ThrowItem");
             var serialized = itemPacket.Serialize();
-            Request.Instance.SendDataToPool(serialized);
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -18,12 +19,12 @@ namespace SIT.Core.Coop.Player
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Move";
 
-        public static Request RequestInstance = null;
+        //public static Request RequestInstance = null;
 
-        public Player_Move_Patch()
-        {
-            RequestInstance = Request.GetRequestInstance(true, Logger);
-        }
+        //public Player_Move_Patch()
+        //{
+        //    RequestInstance = Request.GetRequestInstance(true, Logger);
+        //}
 
         protected override MethodBase GetTargetMethod()
         {
@@ -100,7 +101,7 @@ namespace SIT.Core.Coop.Player
             playerMovePacket.dY = direction.y;
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
             playerMovePacket.spr = player.MovementContext.IsSprintEnabled;
-            Request.Instance.SendDataToPool(playerMovePacket.ToJson());
+            AkiBackendCommunication.Instance.SendDataToPool(playerMovePacket.ToJson());
             LastDirections[accountId] = direction;
         }
 

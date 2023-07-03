@@ -4,6 +4,7 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,9 +17,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SIT.Tarkov.Core
+namespace SIT.Core.Core
 {
-    public class Request : IDisposable
+    public class AkiBackendCommunication : IDisposable
     {
         public const int DEFAULT_TIMEOUT_MS = 1000;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
@@ -54,13 +55,13 @@ namespace SIT.Tarkov.Core
         //public bool isUnity;
         private Dictionary<string, string> m_RequestHeaders { get; set; }
 
-        private static Request m_Instance { get; set; }
-        public static Request Instance
+        private static AkiBackendCommunication m_Instance { get; set; }
+        public static AkiBackendCommunication Instance
         {
             get
             {
                 if (m_Instance == null || m_Instance.Session == null || m_Instance.RemoteEndPoint == null)
-                    m_Instance = new Request();
+                    m_Instance = new AkiBackendCommunication();
 
                 return m_Instance;
             }
@@ -68,12 +69,12 @@ namespace SIT.Tarkov.Core
 
         public HttpClient HttpClient { get; set; }
 
-        private ManualLogSource Logger;
+        protected ManualLogSource Logger;
 
         static WebSocketSharp.WebSocket WebSocket { get; set; }
 
 
-        private Request(ManualLogSource logger = null)
+        protected AkiBackendCommunication(ManualLogSource logger = null)
         {
             // disable SSL encryption
             ServicePointManager.Expect100Continue = true;
@@ -170,7 +171,7 @@ namespace SIT.Tarkov.Core
                 {
                     var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
                     var timeSpanOfHostToMe = DateTime.Now - dtHP;
-                    Request.Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
+                    Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
                 }
 
                 // If this is an endSession packet, end the session for the clients
@@ -198,7 +199,7 @@ namespace SIT.Tarkov.Core
                 // Check the packet doesn't already exist in Coop Game Component Action Packets
                 if (
                     // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
-                    coopGameComponent.ActionPackets.Contains(packet) 
+                    coopGameComponent.ActionPackets.Contains(packet)
                     // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
                     || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
                     )
@@ -211,11 +212,11 @@ namespace SIT.Tarkov.Core
             }
         }
 
-        public static Request GetRequestInstance(bool createInstance = false, BepInEx.Logging.ManualLogSource logger = null)
+        public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
         {
             if (createInstance)
             {
-                return new Request(logger);
+                return new AkiBackendCommunication(logger);
             }
 
             return Instance;
@@ -311,7 +312,7 @@ namespace SIT.Tarkov.Core
                             {
                                 if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                                 {
-                                    this.PostDownWebSocketImmediately(json);
+                                    PostDownWebSocketImmediately(json);
                                 }
                             }
                             //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
@@ -398,7 +399,7 @@ namespace SIT.Tarkov.Core
 
             // set request body
             var inputDataBytes = Encoding.UTF8.GetBytes(data);
-            byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
+            byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
             data = null;
             request.ContentType = "application/json";
             request.ContentLength = bytes.Length;
@@ -512,7 +513,7 @@ namespace SIT.Tarkov.Core
 
                 // set request body
                 var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                byte[] bytes = (compress) ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
+                byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
                 data = null;
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;

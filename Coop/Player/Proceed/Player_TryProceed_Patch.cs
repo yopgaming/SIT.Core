@@ -73,7 +73,7 @@ namespace SIT.Coop.Core.Player
             args.Add("item.id", item.Id);
             args.Add("item.tpl", item.TemplateId);
             args.Add("s", scheduled.ToString());
-            ServerCommunication.PostLocalPlayerData(__instance, args);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(__instance, args);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

@@ -1,4 +1,5 @@
-﻿using SIT.Core.Misc;
+﻿using SIT.Core.Core;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("m", "ToggleLauncher");
-            Request.Instance.SendDataToPool(dictionary.ToJson());
+            AkiBackendCommunication.Instance.SendDataToPool(dictionary.ToJson());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -61,7 +62,7 @@ namespace SIT.Core.Coop.Player.Health
             removeNegativeEffectsPacket.AccountId = player.Profile.AccountId;
             removeNegativeEffectsPacket.BodyPart = bodyPart;
             var json = removeNegativeEffectsPacket.ToJson();
-            Request.Instance.SendDataToPool(json);
+            AkiBackendCommunication.Instance.SendDataToPool(json);
         }
 
 

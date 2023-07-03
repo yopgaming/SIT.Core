@@ -3,6 +3,7 @@ using EFT.InventoryLogic;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -125,7 +126,7 @@ namespace SIT.Core.Coop.Player
             packet.Add("ab", absorbed.ToString());
             packet.Add("hs", headSegment.ToString());
             packet.Add("m", "ApplyDamageInfo");
-            ServerCommunication.PostLocalPlayerData(player, packet, true);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, packet, true);
 
 
             // ---------------------------- KILL ------------------------------
@@ -144,7 +145,7 @@ namespace SIT.Core.Coop.Player
                     packet.Add("t", DateTime.Now.Ticks.ToString("G"));
                     packet.Add("dmt", damageInfo.DamageType.ToString());
                     packet.Add("m", "Kill");
-                    Request.Instance.SendDataToPool(packet.ToJson());
+                    AkiBackendCommunication.Instance.SendDataToPool(packet.ToJson());
                 }
             }
         }

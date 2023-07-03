@@ -6,6 +6,7 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Coop.FreeCamera;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -97,7 +98,7 @@ namespace SIT.Coop.Core.LocalGame
                     { "wt", TimeAndWeather.WindType },
                     { "serverId", CoopGameComponent.GetServerId() }
                 };
-                Request.Instance.PostJson("/coop/server/update", packet.ToJson(), timeout: 9999, debug: true);
+                AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson(), timeout: 9999, debug: true);
             }
 
             SendOrReceiveSpawnPoint(Singleton<GameWorld>.Instance.MainPlayer);
@@ -144,7 +145,7 @@ namespace SIT.Coop.Core.LocalGame
                     }
                 };
                 Logger.LogInfo("Setting Spawn Point to " + position);
-                Request.Instance.PostJson("/coop/server/update", packet.ToJson());
+                AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson());
                 //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
                 //Logger.LogInfo("Retreived Spawn Point " + json);
             }
@@ -153,7 +154,7 @@ namespace SIT.Coop.Core.LocalGame
 
             if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
             {
-                var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
+                var json = AkiBackendCommunication.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
                 Logger.LogInfo("Retreived Spawn Point " + json);
                 var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
                 var x = float.Parse(retrievedPacket["x"].ToString());

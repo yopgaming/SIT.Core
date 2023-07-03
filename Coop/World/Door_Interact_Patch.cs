@@ -1,5 +1,6 @@
 ﻿using EFT;
 using EFT.Interactive;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -121,7 +122,7 @@ namespace SIT.Core.Coop.World
             //Logger.LogDebug(packetJson);
 
             //Request.Instance.PostJsonAndForgetAsync("/coop/server/update", packetJson);
-            Request.Instance.PostDownWebSocketImmediately(packet);
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(packet);
         }
     }
 }

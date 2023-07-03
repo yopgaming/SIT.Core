@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using SIT.Core.Coop;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Tarkov.Core;
@@ -90,7 +91,7 @@ namespace SIT.Core.SP.PlayerPatches
             var convertedJson = request.SITToJson();
             //Logger.LogDebug("SaveProfileProgress =====================================================");
             //Logger.LogDebug(convertedJson);
-            Request.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);
+            AkiBackendCommunication.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);
 
 
             //Request.Instance.PostJson("/raid/profile/save", convertedJson, timeout: 60 * 1000, debug: true);

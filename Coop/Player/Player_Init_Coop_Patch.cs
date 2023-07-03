@@ -132,7 +132,7 @@ namespace SIT.Coop.Core.Player
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
-            ServerCommunication.PostLocalPlayerData(player, packet);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, packet);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -58,7 +59,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             foreach (var light in lightsStates)
             {
                 LightStatePacket lightStatePacket = new LightStatePacket(light.Id, light.IsActive, light.LightMode, player.Profile.AccountId);
-                Request.Instance.SendDataToPool(lightStatePacket.Serialize());
+                AkiBackendCommunication.Instance.SendDataToPool(lightStatePacket.Serialize());
             }
 
         }

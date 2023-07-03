@@ -89,7 +89,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
             dictionary.Add("rX", ____player.Rotation.x);
             dictionary.Add("rY", ____player.Rotation.y);
             dictionary.Add("m", "PullRingForHighThrow");
-            ServerCommunication.PostLocalPlayerData(____player, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(____player, dictionary);
 
             //Logger.LogDebug("GrenadeController_PullRingForHighThrow_Patch:PostPatch");
 

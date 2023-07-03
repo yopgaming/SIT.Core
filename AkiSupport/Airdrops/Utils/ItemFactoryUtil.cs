@@ -4,7 +4,7 @@ using EFT.Interactive;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using SIT.Core.AkiSupport.Airdrops.Models;
-using SIT.Tarkov.Core;
+using SIT.Core.Core;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -63,7 +63,7 @@ namespace SIT.Core.AkiSupport.Airdrops.Utils
 
         private List<AirdropLootModel> GetLoot()
         {
-            var json = Request.Instance.GetJson("/client/location/getAirdropLoot");
+            var json = AkiBackendCommunication.Instance.GetJson("/client/location/getAirdropLoot");
             var loot = JsonConvert.DeserializeObject<List<AirdropLootModel>>(json);
 
             return loot;

@@ -57,7 +57,7 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("probability", probability.ToString());
             dictionary.Add("aggressive", aggressive.ToString());
             dictionary.Add("m", "Say");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
         }
 
 

@@ -2,6 +2,7 @@
 using EFT;
 using EFT.InventoryLogic;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -59,7 +60,7 @@ namespace SIT.Core.Coop.Player
 
             UnloadMagazinePacket unloadMagazinePacket = new UnloadMagazinePacket(___profile_0.AccountId, magazine.Id, magazine.TemplateId);
             var serialized = unloadMagazinePacket.Serialize();
-            Request.Instance.SendDataToPool(serialized);
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

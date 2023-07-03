@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -95,7 +96,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             //Logger.LogInfo($"SENDING: Serialized length: {serialized.Length} vs json length: {triggerPressedPacket.ToJson().Length}");
             //Logger.LogInfo($"EXPECTED RECEIVE: Serialized length: {serialized.Split('?')[1].Length} vs json length: {triggerPressedPacket.ToJson().Length}");
             //Logger.LogInfo(serialized);
-            Request.Instance.SendDataToPool(serialized);
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
             //Request.Instance.SendDataToPool(triggerPressedPacket.ToJson());
             //Logger.LogInfo("Pressed:PostPatch");
         }

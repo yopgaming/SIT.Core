@@ -2,7 +2,7 @@
 using EFT.Airdrop;
 using Newtonsoft.Json;
 using SIT.Core.AkiSupport.Airdrops.Models;
-using SIT.Tarkov.Core;
+using SIT.Core.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace SIT.Core.AkiSupport.Airdrops.Utils
     {
         public static AirdropConfigModel GetConfigFromServer()
         {
-            string json = Request.Instance.GetJson("/singleplayer/airdrop/config");
+            string json = AkiBackendCommunication.Instance.GetJson("/singleplayer/airdrop/config");
             return JsonConvert.DeserializeObject<AirdropConfigModel>(json);
         }
 

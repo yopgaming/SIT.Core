@@ -8,6 +8,7 @@ using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
 using SIT.Core.Coop.World;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
@@ -29,7 +30,7 @@ namespace SIT.Core.Coop
     {
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
-        private Request RequestingObj { get; set; }
+        private AkiBackendCommunication RequestingObj { get; set; }
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         public EFT.Player[] PlayerUsers
@@ -117,7 +118,7 @@ namespace SIT.Core.Coop
             var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
             Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
 
-            RequestingObj = Request.GetRequestInstance(true, Logger);
+            RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
 
             // Run an immediate call to get characters in the server
             _ = ReadFromServerCharacters();
@@ -292,7 +293,7 @@ namespace SIT.Core.Coop
                 if (player == null)
                     continue;
 
-                ServerCommunication.PostLocalPlayerData(player
+                AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player
                     , new Dictionary<string, object>() { { "Extracted", true } }
                     , true);
 
@@ -1213,7 +1214,7 @@ namespace SIT.Core.Coop
             GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"Ping:{(ServerPing)}");
             rect.y += 15;
-            GUI.Label(rect, $"Ping RTT:{(ServerPing + Request.Instance.PostPing + Request.Instance.HostPing)}");
+            GUI.Label(rect, $"Ping RTT:{(ServerPing + AkiBackendCommunication.Instance.PostPing + AkiBackendCommunication.Instance.HostPing)}");
             rect.y += 15;
             GUI.contentColor = Color.white;
 

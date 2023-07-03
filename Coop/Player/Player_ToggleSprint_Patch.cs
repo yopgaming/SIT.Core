@@ -48,7 +48,7 @@ namespace SIT.Core.Coop.Player
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("m", "ToggleSprint");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
 
         }
 

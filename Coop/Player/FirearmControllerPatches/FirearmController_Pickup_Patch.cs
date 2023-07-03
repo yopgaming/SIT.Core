@@ -1,4 +1,5 @@
 ﻿using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -63,7 +64,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pickupPicket = new FCPickupPicket(player.Profile.AccountId, p);
-            Request.Instance.SendDataToPool(pickupPicket.Serialize());
+            AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

@@ -1,4 +1,5 @@
 using EFT;
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -19,7 +20,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
         [PatchPrefix]
         private static bool PatchPrefix(ref string __result, BotDifficulty botDifficulty, WildSpawnType role)
         {
-            __result = Request.Instance.GetJson($"/singleplayer/settings/bot/difficulty/{role}/{botDifficulty}");
+            __result = AkiBackendCommunication.Instance.GetJson($"/singleplayer/settings/bot/difficulty/{role}/{botDifficulty}");
             return string.IsNullOrWhiteSpace(__result);
         }
     }

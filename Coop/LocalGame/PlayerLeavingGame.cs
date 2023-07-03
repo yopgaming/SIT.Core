@@ -1,5 +1,6 @@
 ﻿using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.Core;
 using SIT.Core.SP.PlayerPatches;
 using SIT.Tarkov.Core;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace SIT.Core.Coop.LocalGame
             if (CoopGameComponent.TryGetCoopGameComponent(out var component))
             {
                 // Notify that I have left the Server
-                Request.Instance.PostDownWebSocketImmediately(new System.Collections.Generic.Dictionary<string, object>() {
+                AkiBackendCommunication.Instance.PostDownWebSocketImmediately(new System.Collections.Generic.Dictionary<string, object>() {
 
                     { "m", "PlayerLeft" },
                     { "accountId", component.Players.FirstOrDefault(x=>x.Value.ProfileId == profileId).Value.Profile.AccountId },
@@ -38,7 +39,7 @@ namespace SIT.Core.Coop.LocalGame
                 {
                     foreach (var p in component.Players)
                     {
-                        Request.Instance.PostDownWebSocketImmediately(new System.Collections.Generic.Dictionary<string, object>() {
+                        AkiBackendCommunication.Instance.PostDownWebSocketImmediately(new System.Collections.Generic.Dictionary<string, object>() {
 
                             { "m", "PlayerLeft" },
                             { "accountId", p.Value.Profile.AccountId },

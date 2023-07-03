@@ -1,3 +1,4 @@
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
@@ -47,7 +48,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
 
             if (HealthListener.Instance != null)
-                Request.Instance.PostJson("/player/health/sync", HealthListener.Instance.CurrentHealth.ToJson());
+                AkiBackendCommunication.Instance.PostJson("/player/health/sync", HealthListener.Instance.CurrentHealth.ToJson());
 
 
         }

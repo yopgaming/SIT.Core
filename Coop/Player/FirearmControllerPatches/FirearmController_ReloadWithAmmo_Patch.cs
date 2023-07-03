@@ -69,7 +69,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "ammo", ammoPack.GetReloadingAmmoIds().ToJson() },
                 { "m", "ReloadWithAmmo" }
             };
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
 
         }
 

@@ -10,6 +10,7 @@ using EFT.Weather;
 using JsonType;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -178,7 +179,7 @@ namespace SIT.Core.Coop
             while (true)
             {
                 yield return waitSeconds;
-                Request.Instance.SendDataToPool("{ \"HostPing\": " + DateTime.Now.Ticks + " }");
+                AkiBackendCommunication.Instance.SendDataToPool("{ \"HostPing\": " + DateTime.Now.Ticks + " }");
             }
         }
 

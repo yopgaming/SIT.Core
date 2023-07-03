@@ -70,7 +70,7 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("sitad", slotItemAddressDescriptor);
             dictionary.Add("added", added);
             dictionary.Add("m", "OnItemAddedOrRemoved");
-            ServerCommunication.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
         }
 
 
