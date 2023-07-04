@@ -46,7 +46,7 @@ and make sure these two file have same IP Address.
 ### Step 2
 Locate the SIT.Aki-Server-Mod `coopConfig.json` in the `<Server folder>/user/mods/SIT.Aki-Server-Mod/config/` directory.
 
-Change "externalIP": "http://127.0.0.1:6969" to your domain name. For example: "externalIP": "http://yourdomain.com:6969".
+Change "externalIP": "127.0.0.1" to your domain name. For example: "externalIP": "yourdomain.com".
 
 __Set useExternalIPFinder to false__
 
