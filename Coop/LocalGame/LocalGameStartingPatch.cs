@@ -65,11 +65,16 @@ namespace SIT.Coop.Core.LocalGame
 
         [PatchPostfix]
         public static async void PatchPostfix(
-            BaseLocalGame<GamePlayerOwner> __instance
+            AbstractGame __instance
             , Task __result
             )
         {
             await __result;
+
+            if (__instance is HideoutGame)
+            {
+                return;
+            }
 
             if (__instance is CoopGame coopGame)
             {
@@ -149,19 +154,19 @@ namespace SIT.Coop.Core.LocalGame
                 //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
                 //Logger.LogInfo("Retreived Spawn Point " + json);
             }
-            //else
-            //{
-
-            if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
+            else if (Matchmaker.MatchmakerAcceptPatches.IsClient)
             {
-                var json = AkiBackendCommunication.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
-                Logger.LogInfo("Retreived Spawn Point " + json);
-                var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
-                var x = float.Parse(retrievedPacket["x"].ToString());
-                var y = float.Parse(retrievedPacket["y"].ToString());
-                var z = float.Parse(retrievedPacket["z"].ToString());
-                var teleportPosition = new Vector3(x, y, z);
-                player.Teleport(teleportPosition, true);
+                if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
+                {
+                    var json = AkiBackendCommunication.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
+                    Logger.LogInfo("Retreived Spawn Point " + json);
+                    var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
+                    var x = float.Parse(retrievedPacket["x"].ToString());
+                    var y = float.Parse(retrievedPacket["y"].ToString());
+                    var z = float.Parse(retrievedPacket["z"].ToString());
+                    var teleportPosition = new Vector3(x, y, z);
+                    player.Teleport(teleportPosition, true);
+                }
             }
             //}
         }
