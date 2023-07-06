@@ -36,10 +36,8 @@ namespace DrakiaXYZ.BigBrain.Patches
         [PatchPrefix]
         public static bool PatchPrefix(object __instance)
         {
-#if DEBUG
             try
             {
-#endif
 
                 // Get values we'll use later
                 AbstractBaseBrain brain = _brainFieldInfo.GetValue(__instance) as AbstractBaseBrain;
@@ -82,14 +80,15 @@ namespace DrakiaXYZ.BigBrain.Patches
 
                 return false;
 
-#if DEBUG
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Logger.LogError(ex);
-                throw ex;
+                //Logger.LogError(ex);
+                //throw ex;
             }
-#endif
+           
+            // Paulov. If this fails. Just revert.
+            return true;
         }
     }
 }
