@@ -11,14 +11,14 @@ namespace SIT.Core.Coop.AI
             return ReflectionHelpers.GetMethodForType(typeof(BotGroupClass), "IsPlayerEnemy");
         }
 
-        [PatchPrefix]
-        public static bool Prefix(
-            bool __result
-            )
-        {
-            __result = true;
-            return true;
-        }
+        //[PatchPrefix]
+        //public static bool Prefix(
+        //    bool __result
+        //    )
+        //{
+        //    __result = true;
+        //    return true;
+        //}
 
         [PatchPostfix]
         public static void Postfix(
