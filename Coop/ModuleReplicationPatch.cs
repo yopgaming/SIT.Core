@@ -114,6 +114,14 @@ namespace SIT.Core.Coop
             p.Replicated(player, dict);
         }
 
+        public static bool IsHighPingOrAI(EFT.Player player)
+        {
+            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+                return true;
+
+            return player.IsAI;
+        }
+
         public override void Enable()
         {
             base.Enable();
