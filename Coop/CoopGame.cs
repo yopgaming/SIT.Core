@@ -149,7 +149,12 @@ namespace SIT.Core.Coop
 
             if (!MatchmakerAcceptPatches.IsClient)
                 StartCoroutine(HostPinger());
+
+            if (!MatchmakerAcceptPatches.IsClient)
+                StartCoroutine(GameTimerSync());
         }
+
+       
 
         private IEnumerator DebugObjects()
         {
@@ -180,6 +185,19 @@ namespace SIT.Core.Coop
             {
                 yield return waitSeconds;
                 AkiBackendCommunication.Instance.SendDataToPool("{ \"HostPing\": " + DateTime.Now.Ticks + " }");
+            }
+        }
+
+        private IEnumerator GameTimerSync()
+        {
+            var waitSeconds = new WaitForSeconds(5f);
+
+            while (true)
+            {
+                yield return waitSeconds;
+
+                if(GameTimer.SessionTime.HasValue)
+                    AkiBackendCommunication.Instance.SendDataToPool("{ \"RaidTimer\": " + GameTimer.SessionTime.Value.Ticks + " }");
             }
         }
 
@@ -263,7 +281,7 @@ namespace SIT.Core.Coop
             }
             else
             {
-                int num = base.method_11();
+                int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
                 LocalPlayer botPlayer
                     = await LocalPlayer.Create(num, position, Quaternion.identity, "Player", "", EPointOfView.ThirdPerson, profile, true, base.UpdateQueue, EFT.Player.EUpdateMode.Auto, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.BotPlayerMode

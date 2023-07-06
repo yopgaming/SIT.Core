@@ -35,7 +35,7 @@ namespace SIT.Coop.Core.Web
 
             if (!data.ContainsKey("t"))
             {
-                data.Add("t", DateTime.Now.Ticks);
+                data.Add("t", DateTime.Now.Ticks.ToString("G"));
             }
             if (!data.ContainsKey("accountId"))
             {

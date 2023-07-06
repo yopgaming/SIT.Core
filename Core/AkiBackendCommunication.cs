@@ -174,6 +174,18 @@ namespace SIT.Core.Core
                     Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
                 }
 
+                // Syncronize RaidTimer
+                if (packet.ContainsKey("RaidTimer"))
+                {
+                    var tsRaidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
+
+                    //if(coopGameComponent.LocalGameInstance is CoopGame)
+                    //{
+                    //    coopGameComponent.LocalGameInstance.GameTimer.ChangeSessionTime(tsRaidTimer);
+                    //}
+                    return;
+                }
+
                 // If this is an endSession packet, end the session for the clients
                 if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
                 {
