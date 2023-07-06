@@ -26,6 +26,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
+            if(IsHighPingOrAI(____player))
+            {
+                return true;
+            }
+
             //return true;
             var player = ____player;
             if (player == null)
@@ -78,6 +83,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
             //Logger.LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
 
+            // ---------------------------------------------------------------------------------------------------------------------
+            // Note. If the player is AI or High Ping. Stop the loop caused by the sent packet above
+            if (IsHighPingOrAI(player))
+            {
+                HasProcessed(typeof(FirearmController_ReloadMag_Patch), player, dictionary);
+            }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
