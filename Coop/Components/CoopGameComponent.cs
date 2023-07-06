@@ -118,7 +118,8 @@ namespace SIT.Core.Coop
             var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
             Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
 
-            RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
+            //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
+            RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
 
             // Run an immediate call to get characters in the server
             _ = ReadFromServerCharacters();
@@ -177,7 +178,7 @@ namespace SIT.Core.Coop
         public bool RequestQuitGame { get; set; }
 
 
-        enum EQuitState
+        public enum EQuitState
         {
             NONE = -1,
             YouAreDead,
@@ -187,7 +188,7 @@ namespace SIT.Core.Coop
             YouHaveExtractedOnlyAsClient
         }
 
-        private EQuitState GetQuitState()
+        public EQuitState GetQuitState()
         {
             var quitState = EQuitState.NONE;
 
@@ -1032,6 +1033,9 @@ namespace SIT.Core.Coop
                 case "Door_Interact":
                     Door_Interact_Patch.Replicated(packet);
                     break;
+                case "Switch_Interact":
+                    Switch_Interact_Patch.Replicated(packet);
+                    break;
 
             }
         }
@@ -1112,7 +1116,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private static void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
+        private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
             Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
 
@@ -1154,6 +1158,29 @@ namespace SIT.Core.Coop
                 dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
                 dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);
             }
+
+            // ---------- 
+            if (player.PlayerHealthController != null)
+            {
+                foreach (var b in Enum.GetValues(typeof(EBodyPart)))
+                {
+                    var effects = player.PlayerHealthController
+                        .GetAllActiveEffects((EBodyPart)b).Where(x => !x.ToString().Contains("Exist"))
+                        .Select(x => x.ToString());
+
+                    if (!effects.Any())
+                        continue;
+
+                    var k = "hE." + b.ToString();
+                    //Logger.LogInfo(k);
+                    //Logger.LogInfo(effects.ToJson());
+                    dictPlayerState.Add(k, effects.ToJson());
+                }
+
+            }
+            // ---------- 
+
+
             // ----------
             dictPlayerState.Add("m", "PlayerState");
 
@@ -1286,6 +1313,16 @@ namespace SIT.Core.Coop
                     GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
                     break;
             }
+
+            //if(quitState != EQuitState.NONE)
+            //{
+            //    var rectEndOfGameButton = new Rect(rectEndOfGameMessage);
+            //    rectEndOfGameButton.y += 15;
+            //    if(GUI.Button(rectEndOfGameButton, "End Raid"))
+            //    {
+
+            //    }
+            //}
 
 
             OnGUI_DrawPlayerList(rect);
