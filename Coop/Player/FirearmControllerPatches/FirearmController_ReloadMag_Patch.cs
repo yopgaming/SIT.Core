@@ -26,23 +26,24 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPrefix]
         public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
         {
-            if(IsHighPingOrAI(____player))
-            {
-                return true;
-            }
+            //if(IsHighPingOrAI(____player))
+            //{
+            //    return true;
+            //}
 
-            //return true;
-            var player = ____player;
-            if (player == null)
-                return false;
+            ////return true;
+            //var player = ____player;
+            //if (player == null)
+            //    return false;
 
-            var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            //var result = false;
+            //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            //    result = true;
 
-            //Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
+            ////Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
 
-            return result;
+            //return result;
+            return true;
         }
 
         [PatchPostfix]
@@ -85,7 +86,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             // ---------------------------------------------------------------------------------------------------------------------
             // Note. If the player is AI or High Ping. Stop the loop caused by the sent packet above
-            if (IsHighPingOrAI(player))
+            //if (IsHighPingOrAI(player))
             {
                 HasProcessed(typeof(FirearmController_ReloadMag_Patch), player, dictionary);
             }
@@ -102,27 +103,29 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             {
                 try
                 {
+                    firearmCont.FirearmsAnimator.Reload(true);
 
-                    var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
-                    ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
 
-                    //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ma");
+                    //var ma = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ma"].ToString());
+                    //ItemAddressHelpers.ConvertDictionaryToAddress(ma, out var magAddressGrid, out var magAddressSlot);
 
-                    var ga = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ga"].ToString());
-                    ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
+                    ////Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ma");
 
-                    //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ga");
+                    //var ga = JsonConvert.DeserializeObject<Dictionary<string, object>>(dict["ga"].ToString());
+                    //ItemAddressHelpers.ConvertDictionaryToAddress(ga, out var gridAddressGrid, out var gridAddressSlot);
 
-                    var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString())
-                        .FirstOrDefault(x => x.Id == dict["mg.id"].ToString()) as MagazineClass;
-                    if (magazine == null)
-                    {
-                        Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find Magazine!");
-                        return;
-                    }
+                    ////Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated:ga");
 
-                    if (!ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, magazine))
-                        ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, magazine);
+                    //var magazine = player.Profile.Inventory.GetAllItemByTemplate(dict["mg.tpl"].ToString())
+                    //    .FirstOrDefault(x => x.Id == dict["mg.id"].ToString()) as MagazineClass;
+                    //if (magazine == null)
+                    //{
+                    //    Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find Magazine!");
+                    //    return;
+                    //}
+
+                    //if (!ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, magazine))
+                    //    ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, magazine);
 
                 }
                 catch (Exception e)
@@ -149,6 +152,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             try
             {
+
 
                 firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) =>
                 {
