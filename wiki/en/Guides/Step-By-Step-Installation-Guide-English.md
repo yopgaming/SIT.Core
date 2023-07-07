@@ -49,7 +49,7 @@ Throughout the guide, we will refer to `SIT_DIR` as the root directory for insta
     *The `coopConfig.json` file is automatically created when the server mod is run the first time. Run `Aki.Server.exe` to create the file. Stop and close the server once the file has been created so we can continue the installation process.*
 
     *Note: Make edits to the file using Notepad or a text editor that won't introduce formatting. Do not use Microsoft Word.*
-2. Set `externalIP` to `http://127.0.0.1:6969`.
+2. Set `externalIP` to `127.0.0.1`.
 3. Set `useExternalIPFinder` to `false`.
 4. Optionally, set `logRequests` to `false` in `SIT_DIR/server/Aki_Data/Server/configs/http.json` to prevent log spam.
 
@@ -84,7 +84,7 @@ Optionally, set `logRequests` to `false` in `SIT_DIR/server/Aki_Data/Server/conf
     *The `coopConfig.json` file is automatically created when the server mod is run the first time. Run `Aki.Server.exe` to create the file. Stop and close the server once the file has been created so we can continue the installation process.*
 
     *Note: Make edits to the file using Notepad or a text editor that won't introduce formatting. Do not use Microsoft Word.*
-4. Set `externalIP` to the IP we copied from LogMeIn Hamachi: `http://100.10.1.10:6969`.
+4. Set `externalIP` to the IP we copied from LogMeIn Hamachi: `100.10.1.10`.
 5. Set `useExternalIPFinder` to `false`.
 6. Open SPT-AKI's server connection configuration file in `SIT_DIR/server/Aki_Data/Server/configs/http.json`.
 
