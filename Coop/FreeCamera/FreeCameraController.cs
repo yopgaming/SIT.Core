@@ -3,6 +3,7 @@ using EFT;
 using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
+using SIT.Tarkov.Core;
 using System;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace SIT.Core.Coop.FreeCamera
             // Find Main Camera
             //_mainCamera = GameObject.Find("FPS Camera");
             _mainCamera = FPSCamera.Instance.Camera.gameObject;
+            //_mainCamera = Camera.current.gameObject;
             if (_mainCamera == null)
             {
                 return;
@@ -69,13 +71,13 @@ namespace SIT.Core.Coop.FreeCamera
             if (coopGame == null)
                 return;
 
+            var quitState = coopGC.GetQuitState();
+
             if (
                 (
                 Input.GetKey(KeyCode.F9)
                 ||
-                (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive && !_freeCamScript.IsActive)
-                ||
-                (coopGame.ExtractedPlayers.Contains(_gamePlayerOwner.Player.ProfileId) && !_freeCamScript.IsActive)
+                (quitState != CoopGameComponent.EQuitState.NONE && !_freeCamScript.IsActive)
                 )
                 && _lastTime < DateTime.Now.AddSeconds(-3)
             )
@@ -102,6 +104,7 @@ namespace SIT.Core.Coop.FreeCamera
                 if (deathFade != null)
                 {
                     deathFade.enabled = false;
+                    GameObject.Destroy(deathFade);
                 }
 
                 // Fast Blur. Don't show this as we want to continue playing after death!
@@ -113,16 +116,30 @@ namespace SIT.Core.Coop.FreeCamera
 
             }
 
-            if (_freeCamScript.IsActive && _lastOcclusionCullCheck < DateTime.Now.AddSeconds(-3))
-            {
-                _lastOcclusionCullCheck = DateTime.Now;
-                FPSCamera.Instance.SetOcclusionCullingEnabled(false);
-                FPSCamera.Instance.UpdateUseOcclusionCulling();
+            //if (_freeCamScript.IsActive && (!_lastOcclusionCullCheck.HasValue))
+            //{
+            //    _lastOcclusionCullCheck = DateTime.Now;
+            //    if (!_playerDeathOrExitPosition.HasValue)
+            //        _playerDeathOrExitPosition = _gamePlayerOwner.Player.Position;
 
-            }
+            //    if (showAtDeathOrExitPosition)
+            //        _gamePlayerOwner.Player.Position = _playerDeathOrExitPosition.Value;
+            //    else
+            //        _gamePlayerOwner.Player.Position = (Camera.current.transform.position);
+
+
+            //    showAtDeathOrExitPosition = !showAtDeathOrExitPosition;
+
+            //}
+            //else if (!_freeCamScript.IsActive)
+            //{
+            //    _lastOcclusionCullCheck = null;
+            //}
         }
 
-        DateTime _lastOcclusionCullCheck = DateTime.Now;
+        //DateTime? _lastOcclusionCullCheck = null;
+        //Vector3? _playerDeathOrExitPosition;
+        //bool showAtDeathOrExitPosition;
 
         /// <summary>
         /// Toggles the Freecam mode
@@ -140,27 +157,6 @@ namespace SIT.Core.Coop.FreeCamera
             }
             else
             {
-                SetPlayerToFirstPersonMode(localPlayer);
-            }
-        }
-
-        /// <summary>
-        /// When triggered during Freecam mode, teleports the player to where the camera was and exits Freecam mode
-        /// </summary>
-        private void MovePlayerToCamera()
-        {
-            var localPlayer = GetLocalPlayerFromWorld();
-            if (localPlayer == null)
-                return;
-
-            // Move the player to the camera's current position and switch to First Person mode
-            if (_freeCamScript.IsActive)
-            {
-                // We grab the camera's position, but we subtract a bit off the Y axis, because the players coordinate origin is at the feet
-                var position = new Vector3(_mainCamera.transform.position.x, _mainCamera.transform.position.y - 1.8f, _mainCamera.transform.position.z);
-                localPlayer.gameObject.transform.SetPositionAndRotation(position, Quaternion.Euler(0, _mainCamera.transform.rotation.y, 0));
-
-                // localPlayer.gameObject.transform.SetPositionAndRotation(position, _mainCamera.transform.rotation);
                 SetPlayerToFirstPersonMode(localPlayer);
             }
         }
