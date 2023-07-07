@@ -862,6 +862,18 @@ namespace SIT.Core.Coop
 
         private void CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
         {
+            // If this is an actual PLAYER player that we're creating a drone for, when we set
+            // aiControl to true then they'll automatically run voice lines (eg when throwing
+            // a grenade) so we need to make sure it's set to FALSE for the drone version of them.
+            var useAiControl = !profile.Id.StartsWith("pmc");
+
+            // For actual bots, we can gain SIGNIFICANT clientside performance on the
+            // non-host client by ENABLING aiControl for the bot. This has zero consequences
+            // in terms of synchronization. No idea why having aiControl OFF is so expensive,
+            // perhaps it's more accurate to think of it as an inverse bool of
+            // "player controlled", where the engine has to enable a bunch of additional
+            // logic when aiControl is turned off (in other words, for players)?
+
             var otherPlayer = LocalPlayer.Create(playerId
                , position
                , Quaternion.identity
@@ -870,7 +882,7 @@ namespace SIT.Core.Coop
                ""
                , EPointOfView.ThirdPerson
                , profile
-               , aiControl: false
+               , aiControl: useAiControl
                , EUpdateQueue.Update
                , EFT.Player.EUpdateMode.Auto
                , EFT.Player.EUpdateMode.Auto
