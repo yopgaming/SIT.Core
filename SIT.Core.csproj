@@ -101,10 +101,6 @@
 		  <Private>False</Private>
     </Reference>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Coop\WeaponSoundPlayerPatches\" />
-    <Folder Include="Other\UI\" />
-  </ItemGroup>
+ 
   
 </Project>
