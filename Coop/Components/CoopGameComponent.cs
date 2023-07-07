@@ -294,11 +294,11 @@ namespace SIT.Core.Coop
                 if (player == null)
                     continue;
 
-                AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player
+                AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(((EFT.Player)player)
                     , new Dictionary<string, object>() { { "Extracted", true } }
                     , true);
 
-                player.SwitchRenderer(false);
+                ((EFT.Player)player).SwitchRenderer(false);
                 //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
                 //GameObject.Destroy(player);
             }
@@ -375,8 +375,9 @@ namespace SIT.Core.Coop
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
 
-                foreach (var player in Singleton<GameWorld>.Instance.RegisteredPlayers)
+                foreach (var regPlayer in Singleton<GameWorld>.Instance.RegisteredPlayers)
                 {
+                    var player = (EFT.Player)regPlayer;
                     if (player == null)
                         continue;
 
@@ -776,7 +777,7 @@ namespace SIT.Core.Coop
                         return;
 
 
-                    if (Singleton<GameWorld>.Instance.AllPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                    if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Any(x => x.Profile.AccountId == profile.AccountId))
                         return;
 
                     if (Players.Keys.Any(x => x == profile.AccountId))
@@ -1100,7 +1101,9 @@ namespace SIT.Core.Coop
                 {
                     // Deal to all versions of this guy
                     foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
-                        .Where(x => x.Profile != null && x.Profile.AccountId == accountId))
+                        .Where(x => x.Profile != null && x.Profile.AccountId == accountId)
+                        .Select(x=> (EFT.Player)x)
+                        )
                     {
                         if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                         {
@@ -1136,11 +1139,10 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
             dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
             dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
-            if (player.MovementContext.IsSprintEnabled)
-            {
-                prc.ReplicatedDirection = new Vector2(1, 0);
-                dictPlayerState["spd"] = player.MovementContext.CharacterMovementSpeed;
-            }
+            //if (player.MovementContext.IsSprintEnabled)
+            //{
+            //    prc.ReplicatedDirection = new Vector2(1, 0);
+            //}
             dictPlayerState.Add("tp", prc.TriggerPressed);
             dictPlayerState.Add("alive", player.HealthController.IsAlive);
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
@@ -1201,7 +1203,7 @@ namespace SIT.Core.Coop
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
         public ulong LocalIndex { get; set; }
 
-        public double LocalTime => 0;
+        public float LocalTime => 0;
 
         public BaseLocalGame<GamePlayerOwner> LocalGameInstance { get; internal set; }
 
