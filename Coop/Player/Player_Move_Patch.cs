@@ -119,6 +119,8 @@ namespace SIT.Core.Coop.Player
                     bool spr = bool.Parse(dict["spr"].ToString());
                     playerReplicatedComponent.ReplicatedDirection = null;
                     playerReplicatedComponent.ReplicatedPosition = null;
+
+                    player.InputDirection = direction;
                     if (player.IsSprintEnabled)
                     {
                         if (!spr)
@@ -133,9 +135,11 @@ namespace SIT.Core.Coop.Player
                             player.MovementContext.EnableSprint(true);
                         }
                     }
-                    player.CurrentState.ChangeSpeed(spd);
-                    player.CurrentState.Move(direction);
-                    player.InputDirection = direction;
+                    if (!spr)
+                    {
+                        player.CurrentManagedState.ChangeSpeed(spd);
+                        player.CurrentManagedState.Move(direction);
+                    }
                 }
             }
         }

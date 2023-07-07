@@ -106,7 +106,7 @@ namespace SIT.Coop.Core.Player
 
                 // Speed
                 float speed = float.Parse(packet["spd"].ToString());
-                player.CurrentState.ChangeSpeed(speed);
+                player.CurrentManagedState.ChangeSpeed(speed);
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
@@ -123,7 +123,7 @@ namespace SIT.Coop.Core.Player
 
                 // Sprint
                 ShouldSprint = bool.Parse(packet["spr"].ToString());
-                ProcessPlayerStateSprint(packet);
+                //ProcessPlayerStateSprint(packet);
 
                 // Position
                 Vector3 packetPosition = new Vector3(
@@ -142,6 +142,10 @@ namespace SIT.Coop.Core.Player
                     , float.Parse(packet["dY"].ToString())
                     );
                     ReplicatedDirection = packetDirection;
+                }
+                else
+                {
+                    ReplicatedDirection = null;
                 }
 
                 if (packet.ContainsKey("tilt"))
@@ -163,7 +167,11 @@ namespace SIT.Coop.Core.Player
                 //        player.MovementContext.EnableSprint(sprintEnabledFromPacket);
                 //    //}
                 //}
-
+                if (packet.ContainsKey("dX") && packet.ContainsKey("dY") && packet.ContainsKey("spr") && packet.ContainsKey("spd"))
+                {
+                    var playerMovePatch = ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+                    playerMovePatch?.Replicated(player, packet);
+                }
 
                 if (packet.ContainsKey("alive"))
                 {
@@ -200,24 +208,27 @@ namespace SIT.Coop.Core.Player
         {
             ShouldSprint = bool.Parse(packet["spr"].ToString());
 
-            // If we are requesting to sprint but we are alreadying sprinting, don't do anything
-            if (ShouldSprint && IsSprinting)
-                return;
+            //    // If we are requesting to sprint but we are alreadying sprinting, don't do anything
+            //    //if (ShouldSprint && IsSprinting)
+            //    //    return;
 
-            if (ShouldSprint)
-            {
-                // normalize the movement direction. sprint requires 0 on the Y.
-                player.MovementContext.MovementDirection = new Vector2(1, 0);
-                player.Physical.Sprint(true);
-                player.Physical.StaminaCapacity = 100;
-                player.Physical.StaminaRestoreRate = 100;
-                IsSprinting = true;
-            }
-            else
-            {
-                player.Physical.Sprint(false);
-                IsSprinting = false;
-            }
+            //    if (ShouldSprint)
+            //    {
+            //        // normalize the movement direction. sprint requires 0 on the Y.
+            //        player.MovementContext.MovementDirection = new Vector2(1, 0);
+            //        player.MovementContext.PlayerAnimatorEnableSprint(true);
+            //        //player.Physical.Sprint(true);
+            //        //player.Physical.StaminaCapacity = 100;
+            //        //player.Physical.StaminaRestoreRate = 100;
+            //        IsSprinting = true;
+            //    }
+            //    else
+            //    {
+            //        //player.Physical.Sprint(false);
+            //        IsSprinting = false;
+            //        player.MovementContext.PlayerAnimatorEnableSprint(false);
+
+        //}
         }
 
         private void ProcessPlayerStateProne(Dictionary<string, object> packet)
@@ -227,7 +238,7 @@ namespace SIT.Coop.Core.Player
             {
                 if (prone)
                 {
-                    player.CurrentState.Prone();
+                    player.CurrentManagedState.Prone();
                 }
             }
             else
@@ -301,11 +312,16 @@ namespace SIT.Coop.Core.Player
                 player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
             }
 
-            if (ReplicatedDirection.HasValue && !IsSprinting && ReplicatedDirection.Value.magnitude > 0)
-            {
-                player.CurrentState.Move(ReplicatedDirection.Value);
-                player.InputDirection = ReplicatedDirection.Value;
-            }
+            //if (ReplicatedDirection.HasValue && !IsSprinting && ReplicatedDirection.Value.magnitude > 0)
+            //{
+            //    player.CurrentManagedState.Move(ReplicatedDirection.Value);
+            //    player.InputDirection = ReplicatedDirection.Value;
+            //}
+            //else
+            //{
+            //    player.InputDirection = Vector2.zero;
+            //}
+
 
             PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
             player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);

@@ -41,11 +41,15 @@ namespace SIT.Core.Coop
                 if (Players == null)
                     return new EFT.Player[0];
 
-
                 return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
-
             }
         }
+
+        /// <summary>
+        /// This is all the spawned players via the spawning process. Not anyone else.
+        /// </summary>
+        public Dictionary<string, EFT.Player> SpawnedPlayers { get; private set; } = new();
+
         BepInEx.Logging.ManualLogSource Logger { get; set; }
         public ConcurrentDictionary<string, ESpawnState> PlayersToSpawn { get; private set; } = new();
         public ConcurrentDictionary<string, Dictionary<string, object>> PlayersToSpawnPacket { get; private set; } = new();
@@ -909,6 +913,9 @@ namespace SIT.Core.Coop
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
 
+            if (!SpawnedPlayers.ContainsKey(profile.ProfileId))
+                SpawnedPlayers.Add(profile.ProfileId, otherPlayer);
+
             // Create/Add PlayerReplicatedComponent to the LocalPlayer
             var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.IsClientDrone = true;
@@ -1116,6 +1123,18 @@ namespace SIT.Core.Coop
                         .Where(x => x.Profile != null && x.Profile.AccountId == accountId)
                         .Select(x=> (EFT.Player)x)
                         )
+                    {
+                        if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                        {
+                            prc.ProcessPacket(packet);
+                        }
+                        else
+                        {
+                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                        }
+                    }
+
+                    foreach (var plyr in SpawnedPlayers.Values)
                     {
                         if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                         {
