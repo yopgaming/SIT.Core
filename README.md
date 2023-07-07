@@ -110,7 +110,6 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -con
 - MTGA team
 - SPT-Aki Modding Community
 - DrakiaXYZ ([Waypoints](https://github.com/DrakiaXYZ/SPT-Waypoints), [BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain))
-- Props (AIBushPatch, AIAwakeOrSleepPatch - Currently unused)
 
 ## License
 
