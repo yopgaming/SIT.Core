@@ -94,16 +94,51 @@ namespace SIT.Core.Coop
 
             //Logger = new ManualLogSource(typeof(CoopGame).Name);
             Logger.LogInfo("CoopGame.Create");
+            if (wavesSettings.BotAmount == EBotAmount.NoBots && MatchmakerAcceptPatches.IsServer)
+                wavesSettings.BotAmount = EBotAmount.Medium;
+
+            // pre changes
+            //location.OldSpawn = true;
+            //location.OfflineOldSpawn = true;
+            //location.NewSpawn = false;
+            //location.OfflineNewSpawn = false;
+            //location.BotSpawnCountStep = 1;
+            //location.BotSpawnPeriodCheck = 1;
+            //location.BotSpawnTimeOffMin = 1;
+            //location.BotSpawnTimeOffMax = int.MaxValue;
+            //location.BotSpawnTimeOnMin = 1;
+            //location.BotSpawnTimeOnMax = int.MaxValue;
+            //// post changes
+            //Logger.LogInfo(location.ToJson());
 
             CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
+            //Logger.LogInfo($"wavesettings: {wavesSettings.BotAmount.ToString()}");
+
+            //Logger.LogInfo("location.waves");
+            //Logger.LogInfo(location.waves.ToJson());
             WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
+            //Logger.LogInfo("spawnWaveArray");
+            //Logger.LogInfo(spawnWaveArray.ToJson());
+
+            // Non Waves Scenario setup
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
                 (null, new object[] { coopGame, location, coopGame.PBotsController });
+            coopGame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);
+
+            location.OldSpawn = true;
+            // Waves Scenario setup
             coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
-                (null, new object[] { coopGame.gameObject, spawnWaveArray, new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave)), location });// WavesSpawnScenario.smethod_0(@class.game.gameObject, array, new Action<Wave>(@class.method_0), location);
+                (null, new object[] { 
+                    coopGame.gameObject
+                    , spawnWaveArray
+                    , new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
+                    , location });
+            //Logger.LogInfo("spawn scenario waves");
+            //Logger.LogInfo(coopGame.wavesSpawnScenario_0.SpawnWaves.ToJson());
+
             BossLocationSpawn[] bossSpawnChanges = CoopGame.smethod_7(wavesSettings, location.BossLocationSpawn);
 
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
@@ -269,6 +304,9 @@ namespace SIT.Core.Coop
         {
             if (MatchmakerAcceptPatches.IsClient)
                 return null;
+
+            Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
+
 
             LocalPlayer localPlayer;
             if (!base.Status.IsRunned())
@@ -454,25 +492,49 @@ namespace SIT.Core.Coop
             if (!shouldSpawnBots)
             {
                 controllerSettings.BotAmount = EBotAmount.NoBots;
+                Logger.LogDebug("Bot Spawner System has been turned off");
             }
 
-            BotsPresets botsPresets =
-                new BotsPresets(BackEndSession
+            var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0);
+
+            LocalGameBotCreator profileCreator =
+                new LocalGameBotCreator(BackEndSession
                 , this.wavesSpawnScenario_0.SpawnWaves
                 , new BossLocationSpawn[1] { new BossLocationSpawn() { Activated = false } }
-                , (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0)
+                , nonwaves
                 , false);
-            BotCreator botCreator = new BotCreator(this, botsPresets, new Func<Profile, Vector3, Task<LocalPlayer>>(this.CreatePhysicalBot));
+            BotCreator botCreator = new BotCreator(this, profileCreator, this.CreatePhysicalBot);
             BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
             this.PBotsController.Init(this, botCreator, botZones, spawnSystem, this.wavesSpawnScenario_0.BotLocationModifier, controllerSettings.IsEnabled, controllerSettings.IsScavWars, false, false, false, Singleton<GameWorld>.Instance, base.Location_0.OpenZones);
-            int numberOfBots = shouldSpawnBots ? 12 : 0;
+
+            int maxCount = controllerSettings.BotAmount switch
+            {
+                EBotAmount.AsOnline => 12,
+                EBotAmount.Low => 12,
+                EBotAmount.Medium => 13,
+                EBotAmount.High => 14,
+                EBotAmount.Horde => 15,
+                _ => 15,
+            };
+
+            int numberOfBots = shouldSpawnBots ? maxCount : 0;
+            Logger.LogDebug($"vmethod_4: Number of Bots: {numberOfBots}");
+
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
+
+            // ---------------------------------------------
+            // Here we can wait for other players, if desired
+
+            // ---------------------------------------------
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
             {
+                Logger.LogDebug($"Running Wave Scenarios");
+
                 if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
                 {
+                    Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {this.wavesSpawnScenario_0.SpawnWaves.Length}");
                     this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
                 }
                 else
@@ -487,16 +549,9 @@ namespace SIT.Core.Coop
                 this.nonWavesSpawnScenario_0.Stop();
                 this.BossWaveManager.Stop();
             }
-            //yield return base.vmethod_4(startDelay, controllerSettings, spawnSystem, runCallback);
             yield return new WaitForEndOfFrame();
-            //using (GClass21.StartWithToken("SessionRun"))
-            {
-                Logger.LogInfo("vmethod_4.SessionRun");
-
-                CreateExfiltrationPointAndInitDeathHandler();
-                //vmethod_5();
-
-            }
+            Logger.LogInfo("vmethod_4.SessionRun");
+            CreateExfiltrationPointAndInitDeathHandler();
             yield break;
         }
 
@@ -585,7 +640,7 @@ namespace SIT.Core.Coop
 
             Logger.LogInfo("CoopGame.HealthController_DiedEvent");
             //Singleton<GClass629>.Instance.Stop();
-            gparam_0.Player.HealthController.DiedEvent -= method_14;
+            gparam_0.Player.HealthController.DiedEvent -= method_15;
             gparam_0.Player.HealthController.DiedEvent -= HealthController_DiedEvent;
 
             PlayerOwner.vmethod_1();
@@ -616,7 +671,7 @@ namespace SIT.Core.Coop
         public override void CleanUp()
         {
             base.CleanUp();
-            BaseLocalGame<GamePlayerOwner>.smethod_3(this.Bots);
+            BaseLocalGame<GamePlayerOwner>.smethod_4(this.Bots);
         }
 
         private BossWaveManager BossWaveManager;

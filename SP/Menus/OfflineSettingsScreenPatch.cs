@@ -98,7 +98,7 @@ namespace SIT.Core.SP.Menus
             )
         {
             raidSettings.RaidMode = ERaidMode.Local;
-            raidSettings.BotSettings.IsEnabled = true;
+            //raidSettings.BotSettings.IsEnabled = true;
             raidSettings.Side = ESideType.Pmc;
             raidSettings.BotSettings.BossType = EFT.Bots.EBossType.AsOnline;
             raidSettings.WavesSettings.IsBosses = true;

@@ -23,7 +23,7 @@ namespace SIT.Tarkov.Core.Spawners.Grenades
         private void Start()
         {
             this.bullet = ShotFactory.GetBullet(TemplateId);
-            this.player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find((Player p) => p.IsYourPlayer);
+            this.player = Singleton<GameWorld>.Instance.AllAlivePlayersList.Find((p) => p.IsYourPlayer);
             ShotFactory.Init(this.player);
             this.InvokeRepeating("Tick", delay, rate);
         }

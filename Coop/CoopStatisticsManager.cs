@@ -50,7 +50,7 @@ namespace SIT.Core.Coop
         {
         }
 
-        public void OnGroupMemberConnected(Inventory0 inventory)
+        public void OnGroupMemberConnected(Inventory inventory)
         {
         }
 

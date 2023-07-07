@@ -106,7 +106,7 @@ namespace SIT.Core.SP.Components
 
         private void SetupBosses()
         {
-            foreach (var player in _gameWorld.AllPlayers)
+            foreach (var player in _gameWorld.AllAlivePlayersList)
             {
                 if (!player.IsYourPlayer)
                 {

@@ -76,18 +76,28 @@ namespace SIT.Core.Coop
                 , ____raidSettings.SelectedDateTime
                 , new Callback<ExitStatus, TimeSpan, ClientMetrics>((r) =>
                 {
+                    // target private async void method_46(string profileId, Profile savageProfile, LocationSettings.Location location, Result<ExitStatus, TimeSpan, ClientMetrics> result, MatchmakerTimeHasCome.TimeHasComeScreenController timeHasComeScreenController = null)
+                    //Logger.LogInfo("Callback Metrics. Invoke method 45");
+                    //ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
+                    //session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
+                    //});
 
-                    Logger.LogInfo("Callback Metrics. Invoke method 45");
-                    ReflectionHelpers.GetMethodForType(__instance.GetType(), "method_45").Invoke(__instance, new object[] {
-                    session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController
-                    });
+                    ReflectionHelpers.GetAllMethodsForObject(__instance).FirstOrDefault(
+                        x =>
+                        x.GetParameters()[0].ParameterType == typeof(string)
+                        && x.GetParameters()[1].ParameterType == typeof(Profile)
+                        && x.GetParameters()[2].ParameterType == typeof(LocationSettings.Location)
+                        && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
+                        ).Invoke(__instance, new object[] {
+                    session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController });
+
                 })
                 , ____fixedDeltaTime
                 , EUpdateQueue.Update
                 , session
                 , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit));
             Singleton<AbstractGame>.Create(localGame);
-            await localGame.method_3(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
+            await localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             {
 

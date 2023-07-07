@@ -27,7 +27,7 @@ namespace SIT.Core.AkiSupport.Airdrops.Utils
                 return 100;
             }
 
-            string location = gameWorld.RegisteredPlayers[0].Location;
+            string location = gameWorld.AllAlivePlayersList[0].Location;
 
             int result = 25;
             switch (location.ToLower())

@@ -1,4 +1,5 @@
 using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Linq;
 using System.Reflection;
@@ -12,22 +13,12 @@ namespace SIT.Core.AkiSupport.Singleplayer
 
         public GetNewBotTemplatesPatch()
         {
-            _getNewProfileMethod = typeof(BotsPresets)
-                .GetMethod(nameof(BotsPresets.GetNewProfile), PatchConstants.PrivateFlags);
+            _getNewProfileMethod = ReflectionHelpers.GetMethodForType(typeof(LocalGameBotCreator), nameof(LocalGameBotCreator.GetNewProfile));
         }
 
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(BotsPresets).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Single(x => IsTargetMethod(x));
-        }
-
-        private bool IsTargetMethod(MethodInfo mi)
-        {
-            var parameters = mi.GetParameters();
-            return (parameters.Length == 2
-                && parameters[0].Name == "data"
-                && parameters[1].Name == "cancellationToken");
+            return ReflectionHelpers.GetMethodForType(typeof(LocalGameBotCreator), nameof(LocalGameBotCreator.CreateProfile));
         }
 
         [PatchPrefix]
@@ -38,6 +29,8 @@ namespace SIT.Core.AkiSupport.Singleplayer
                 Logger.LogDebug("GetNewBotTemplatesPatch BackEndSession is NULL?");
                 return true;
             }
+
+            Logger.LogDebug("GetNewBotTemplatesPatch.PatchPrefix");
 
             /*
                 in short when client wants new bot and GetNewProfile() return null (if not more available templates or they don't satisfy by Role and Difficulty condition)
