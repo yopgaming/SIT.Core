@@ -11,8 +11,6 @@ namespace SIT.Core.Other
         private static BepInEx.Configuration.ConfigFile m_Config;
         public static ManualLogSource Logger { get; private set; }
 
-        static AIAwakeOrSleepComponent AIAwakeOrSleepComponent { get; set; }
-
         static string ConfigSITOtherCategoryValue { get; } = "SIT.Other";
 
         public static void Run(BepInEx.Configuration.ConfigFile config, BaseUnityPlugin plugin)
@@ -32,15 +30,9 @@ namespace SIT.Core.Other
             if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableAdditionalAmmoUIDescriptions", true).Value)
                 new Ammo_CachedReadOnlyAttributes_Patch().Enable();
 
-            if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnablePropsAIBushPatch", false).Value)
-                new AIBushPatch().Enable();
-
             if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableBigBrain", true).Value)
                 new BigBrainPatch();
 
-            var enableAIWakeOrSleep = config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableAIWakeOrSleepPatch", false);
-            if (enableAIWakeOrSleep.Value)
-                AIAwakeOrSleepComponent = plugin.GetOrAddComponent<AIAwakeOrSleepComponent>();
         }
     }
 }

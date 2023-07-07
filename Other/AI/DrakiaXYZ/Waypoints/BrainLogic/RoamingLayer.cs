@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace DrakiaXYZ.Waypoints.BrainLogic
 {
-    // Note: We only include this in debug builds for now, because we're not shipping BigBrain
-#if DEBUG
     internal class RoamingLayer : CustomLayer
     {
         protected ManualLogSource Logger;
@@ -16,7 +14,7 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
         public RoamingLayer(BotOwner botOwner, int priority) : base(botOwner, priority)
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
-            Logger.LogInfo($"Added roaming to {botOwner.name}");
+            Logger.LogDebug($"Added roaming to {botOwner.name}");
         }
 
         public override string GetName()
@@ -70,5 +68,4 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
             return false;
         }
     }
-#endif
 }

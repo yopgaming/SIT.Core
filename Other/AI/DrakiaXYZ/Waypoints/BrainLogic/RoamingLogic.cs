@@ -1,13 +1,12 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
+using SIT.Core.AI;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace DrakiaXYZ.Waypoints.BrainLogic
 {
-    // Note: We only include this in debug builds for now, because we're not shipping BigBrain
-#if DEBUG
     internal class RoamingLogic : CustomLogic
     {
         protected ManualLogSource Logger;
@@ -101,10 +100,9 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
 
             BotOwner.DoorOpener.Update();
 
-            gclass271_0.Update(BotOwner);
+            ProcessLookAtPoints.Update(BotOwner);
         }
 
-        private GClass271 gclass271_0 = new GClass271();
+        private AIProcessLookAtPoints ProcessLookAtPoints = new AIProcessLookAtPoints();
     }
-#endif
 }
