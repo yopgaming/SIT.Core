@@ -37,7 +37,7 @@ namespace SIT.Core.Coop.Player
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
-            DamageInfo damageInfo, EBodyPart bodyPartType, ShotID shotId
+            DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId
             )
         {
             var player = __instance;
@@ -59,7 +59,8 @@ namespace SIT.Core.Coop.Player
             {
                 if (damageInfo.Player != null)
                 {
-                    playerDict.Add("d.p.aid", damageInfo.Player.Profile.AccountId);
+                    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+                    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
                 }
             }
             catch (Exception e)
@@ -76,7 +77,7 @@ namespace SIT.Core.Coop.Player
             }
             damageInfo.Weapon = null;
 
-            var shotammoid_field = ReflectionHelpers.GetFieldFromType(typeof(ShotID), "string_0");
+            var shotammoid_field = ReflectionHelpers.GetFieldFromType(typeof(ShotId), "string_0");
             string shotammoid = null;
             if (shotammoid_field != null)
             {
@@ -114,10 +115,10 @@ namespace SIT.Core.Coop.Player
 
                 var damageInfo = BuildDamageInfoFromPacket(dict);
 
-                var shotId = new ShotID();
+                var shotId = new ShotId();
                 if (dict.ContainsKey("ammoid") && dict["ammoid"] != null)
                 {
-                    shotId = new ShotID(dict["ammoid"].ToString(), 1);
+                    shotId = new ShotId(dict["ammoid"].ToString(), 1);
                 }
 
                 CallLocally.Add(player.Profile.AccountId, true);
@@ -137,22 +138,23 @@ namespace SIT.Core.Coop.Player
             if (dict.ContainsKey("d.p") && dict["d.p"] != null && damageInfo.Player == null)
             {
                 Dictionary<string, string> playerDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.p"].ToString());
-                if (playerDict != null && playerDict.ContainsKey("d.p.aid"))
+                if (playerDict != null && playerDict.ContainsKey("d.p.id"))
                 {
                     var coopGC = CoopGameComponent.GetCoopGameComponent();
                     if (coopGC != null)
                     {
                         var accountId = playerDict["d.p.aid"];
+                        var profileId = playerDict["d.p.id"];
                         if (coopGC.Players.ContainsKey(accountId))
                         {
                             aggressorPlayer = coopGC.Players[accountId];
-                            damageInfo.Player = aggressorPlayer;
+                            damageInfo.Player = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(aggressorPlayer.ProfileId);
                         }
                         else
                         {
-                            aggressorPlayer = Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == accountId);
+                            aggressorPlayer = (EFT.Player)Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == accountId);
                             if (aggressorPlayer != null)
-                                damageInfo.Player = aggressorPlayer;
+                                damageInfo.Player = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(profileId);
                         }
                     }
                 }

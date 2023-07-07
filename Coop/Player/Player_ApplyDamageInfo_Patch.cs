@@ -101,7 +101,9 @@ namespace SIT.Core.Coop.Player
             {
                 if (damageInfo.Player != null)
                 {
-                    playerDict.Add("d.p.aid", damageInfo.Player.Profile.AccountId);
+                    //playerDict.Add("d.p.aid", damageInfo.Player.Profile.AccountId);
+                    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+                    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
                 }
             }
             catch (Exception e)

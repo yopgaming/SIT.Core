@@ -16,7 +16,7 @@ namespace SIT.Core.Coop.Player
 
         protected override MethodBase GetTargetMethod()
         {
-            var method = ReflectionHelpers.GetMethodForType(InstanceType, "vmethod_4");
+            var method = ReflectionHelpers.GetMethodForType(InstanceType, "vmethod_3");
             return method;
         }
 

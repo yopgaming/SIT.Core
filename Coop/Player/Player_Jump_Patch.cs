@@ -10,7 +10,6 @@ namespace SIT.Core.Coop.Player
 {
     internal class Player_Jump_Patch : ModuleReplicationPatch
     {
-        public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Jump";
 
@@ -23,13 +22,10 @@ namespace SIT.Core.Coop.Player
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && __instance.IsYourPlayer)
-            {
+            if (IsHighPingOrAI(__instance))
                 return true;
-            }
 
-            var result = false;
-            return result;
+            return false;
         }
 
         [PatchPostfix]
@@ -37,26 +33,24 @@ namespace SIT.Core.Coop.Player
            EFT.Player __instance
             )
         {
+
+            // ---------------------------------------------------------------------------------------------------------------------
+            // Note. As this patch calls a different method to "replicate", you do not need to do any trickery to stop the loop here
+
             var player = __instance;
-
-            if (CallLocally.Contains(player.Profile.AccountId))
-            {
-                CallLocally.Remove(player.Profile.AccountId);
-                return;
-            }
-
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
-            {
-                { "t", DateTime.Now.Ticks },
-                { "m", "Jump" }
-            };
 
             BasePlayerPacket playerPacket = new BasePlayerPacket();
             playerPacket.Method = "Jump";
             playerPacket.AccountId = player.Profile.AccountId;
-            //ServerCommunication.PostLocalPlayerData(player, dictionary, true);
             var serialized = playerPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
+
+            // ---------------------------------------------------------------------------------------------------------------------
+            // Note. If the player is AI or High Ping. Stop the double jump caused by the sent packet above
+            if (IsHighPingOrAI(player))
+            {
+                HasProcessed(typeof(Player_Jump_Patch), player, playerPacket);
+            }
         }
 
 
@@ -75,7 +69,7 @@ namespace SIT.Core.Coop.Player
 
             try
             {
-                player.CurrentState.Jump();
+                player.CurrentManagedState.Jump();
             }
             catch (Exception e)
             {
