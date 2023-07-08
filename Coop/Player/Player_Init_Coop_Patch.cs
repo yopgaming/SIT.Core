@@ -3,6 +3,7 @@ using Comfort.Common;
 using EFT;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Web;
+using SIT.Core.Configuration;
 using SIT.Core.Coop;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -61,6 +62,10 @@ namespace SIT.Coop.Core.Player
             }
 
             SendPlayerDataToServer(player);
+
+            if (PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
+                DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
+
         }
 
         public static void SendPlayerDataToServer(EFT.LocalPlayer player)

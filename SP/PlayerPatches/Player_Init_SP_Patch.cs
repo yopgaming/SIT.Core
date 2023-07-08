@@ -1,4 +1,5 @@
 ﻿using EFT;
+using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Tarkov.Core;
@@ -42,8 +43,6 @@ namespace SIT.Core.SP.PlayerPatches
             {
                 //Logger.LogInfo($"Skipped on HealthController instance: {__instance.HealthController.GetHashCode()} for profile id: {profile?.Id}");
             }
-
-            DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 
         }
     }
