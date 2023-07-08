@@ -10,6 +10,7 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using UnityEngine;
 
 namespace SIT.Coop.Core.Player
@@ -27,6 +28,7 @@ namespace SIT.Coop.Core.Player
         public bool IsClientDrone { get; internal set; }
 
         private float PoseLevelDesired { get; set; } = 1;
+        public float ReplicatedMovementSpeed { get; private set; }
         private float PoseLevelSmoothed { get; set; } = 1;
 
         void Awake()
@@ -105,8 +107,8 @@ namespace SIT.Coop.Core.Player
                 PoseLevelDesired = poseLevel;
 
                 // Speed
-                float speed = float.Parse(packet["spd"].ToString());
-                player.CurrentManagedState.ChangeSpeed(speed);
+                ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
+                player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
@@ -135,7 +137,7 @@ namespace SIT.Coop.Core.Player
                 ReplicatedPosition = packetPosition;
 
                 // Move / Direction
-                if (packet.ContainsKey("dX") && !ShouldSprint)
+                if (packet.ContainsKey("dX") && packet.ContainsKey("dY"))
                 {
                     Vector2 packetDirection = new Vector2(
                     float.Parse(packet["dX"].ToString())
@@ -169,7 +171,9 @@ namespace SIT.Coop.Core.Player
                 //}
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY") && packet.ContainsKey("spr") && packet.ContainsKey("spd"))
                 {
-                    var playerMovePatch = ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+                    // Force Rotation
+                    player.Rotation = ReplicatedRotation.Value;
+                    var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
                     playerMovePatch?.Replicated(player, packet);
                 }
 
@@ -291,11 +295,11 @@ namespace SIT.Coop.Core.Player
             // If a short distance -> Smooth Lerp to the Desired Position
             // If the other side of a wall -> Teleport to the correct side (TODO)
             // If far away -> Teleport
-            if (ReplicatedPosition.HasValue)
+            if (ReplicatedPosition.HasValue && !ShouldSprint)
             {
                 var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
                 var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                if (replicationDistance >= 2 && !ShouldSprint)
+                if (replicationDistance >= 2)
                 {
                     player.Teleport(ReplicatedPosition.Value, true);
                 }
@@ -309,7 +313,7 @@ namespace SIT.Coop.Core.Player
             // Smooth Lerp to the Desired Rotation
             if (ReplicatedRotation.HasValue)
             {
-                player.Rotation = Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
+                player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
             }
 
             //if (ReplicatedDirection.HasValue && !IsSprinting && ReplicatedDirection.Value.magnitude > 0)
@@ -322,9 +326,27 @@ namespace SIT.Coop.Core.Player
             //    player.InputDirection = Vector2.zero;
             //}
 
+            if (!ShouldSprint)
+            {
+                PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
+                player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+            }
 
-            PoseLevelSmoothed = Mathf.Lerp(PoseLevelSmoothed, PoseLevelDesired, Time.deltaTime);
-            player.MovementContext.SetPoseLevel(PoseLevelSmoothed, true);
+            if (ReplicatedDirection.HasValue)
+            {
+                var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+                playerMovePatch?.Replicated(player
+                    , new()
+                    {
+                    { "t", DateTime.Now.Ticks.ToString("G") }
+                    , { "dX", ReplicatedDirection.Value.x }
+                    , { "dY", ReplicatedDirection.Value.y }
+                    , { "spd", ReplicatedMovementSpeed }
+                    , { "spr", ShouldSprint }
+                    });
+            }
+
+            
 
 
         }

@@ -1192,7 +1192,7 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("phys.s.current", player.Physical.Stamina.Current);
             dictPlayerState.Add("phys.s.total", player.Physical.Stamina.TotalCapacity.Value);
             //
-            if (prc.ReplicatedDirection.HasValue && !player.IsYourPlayer)
+            if (prc.ReplicatedDirection.HasValue)
             {
                 dictPlayerState.Add("dX", prc.ReplicatedDirection.Value.x);
                 dictPlayerState.Add("dY", prc.ReplicatedDirection.Value.y);

@@ -82,7 +82,7 @@ namespace SIT.Core.Coop.Player
             }
 
             // If this is an AI or other player, then don't run this method
-            if (!player.IsYourPlayer)
+            //if (!player.IsYourPlayer)
             {
                 prc.ReplicatedDirection = direction;
             }
@@ -117,29 +117,22 @@ namespace SIT.Core.Coop.Player
                     UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
                     float spd = float.Parse(dict["spd"].ToString());
                     bool spr = bool.Parse(dict["spr"].ToString());
-                    playerReplicatedComponent.ReplicatedDirection = null;
-                    playerReplicatedComponent.ReplicatedPosition = null;
+                    //playerReplicatedComponent.ReplicatedDirection = null;
+                    //playerReplicatedComponent.ReplicatedPosition = null;
 
                     player.InputDirection = direction;
-                    if (player.IsSprintEnabled)
-                    {
-                        if (!spr)
-                        {
-                            player.MovementContext.EnableSprint(false);
-                        }
-                    }
-                    else
-                    {
-                        if (spr)
-                        {
-                            player.MovementContext.EnableSprint(true);
-                        }
-                    }
                     if (!spr)
                     {
                         player.CurrentManagedState.ChangeSpeed(spd);
-                        player.CurrentManagedState.Move(direction);
                     }
+
+                    if(!player.IsSprintEnabled && spr)
+                        player.CurrentManagedState.EnableSprint(spr, true);
+                    else if(!spr && player.IsSprintEnabled)
+                        player.CurrentManagedState.EnableSprint(spr, true);
+
+                    player.CurrentManagedState.Move(direction);
+
                 }
             }
         }
