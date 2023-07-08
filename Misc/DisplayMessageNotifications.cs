@@ -2,6 +2,7 @@
 using SIT.Core.Configuration;
 using System;
 using System.Reflection;
+using UnityEngine;
 
 namespace SIT.Core.Misc
 {
@@ -9,26 +10,22 @@ namespace SIT.Core.Misc
     {
         public static Type MessageNotificationType { get; set; }
 
-        public static void DisplayMessageNotification(string message)
+        public static void DisplayMessageNotification(
+            string message
+            , ENotificationDurationType duration = ENotificationDurationType.Default
+            , ENotificationIconType icon = ENotificationIconType.Default
+            , Color? color = null
+            )
         {
             if (MessageNotificationType == null)
             {
                 return;
             }
 
-            if (PluginConfigSettings.Instance != null)
-            {
-                if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
-                {
-                    // if the user has disabled the feed, prevent display message logging
-                    return;
-                }
-            }
-
             var o = MessageNotificationType.GetMethod("DisplayMessageNotification", BindingFlags.Static | BindingFlags.Public);
             if (o != null)
             {
-                o.Invoke("DisplayMessageNotification", new object[] { message, ENotificationDurationType.Default, ENotificationIconType.Default, null });
+                o.Invoke("DisplayMessageNotification", new object[] { message, duration, icon, color });
             }
 
         }
