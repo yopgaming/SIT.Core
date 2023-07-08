@@ -16,11 +16,11 @@ namespace SIT.Core.AkiSupport.Singleplayer
 
         static RemoveUsedBotProfilePatch()
         {
-            _ = nameof(IBotData.ChooseProfile);
+            _ = nameof(CreationData.ChooseProfile);
 
             _flags = BindingFlags.Instance | BindingFlags.NonPublic;
             _targetInterface = PatchConstants.EftTypes.Single(IsTargetInterface);
-            _targetType = PatchConstants.EftTypes.Single(IsTargetType);
+            _targetType = typeof(LocalGameBotCreator);
             _profilesField = _targetType.GetField("list_0", _flags);
         }
 
@@ -43,6 +43,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
         private static bool PatchPrefix(ref Profile __result, object __instance, IBotData data)
         {
             var profiles = (List<Profile>)_profilesField.GetValue(__instance);
+            GetLogger(typeof(RemoveUsedBotProfilePatch)).LogInfo($"Prefix: Profile Count:{profiles.Count}");
 
             if (profiles.Count > 0)
             {

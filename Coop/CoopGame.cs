@@ -255,26 +255,28 @@ namespace SIT.Core.Coop
         {
             foreach (WildSpawnWave wildSpawnWave in waves)
             {
-                if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
-                {
-                    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
-                }
-                if (wavesSettings.IsBosses)
-                {
-                    wildSpawnWave.time_min += 5;
-                    wildSpawnWave.time_max += 15;
-                }
-                wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
-                if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
-                {
-                    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
-                }
-                if (wildSpawnWave.WildSpawnType == WildSpawnType.pmcBot)
-                {
-                    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
-                }
+                wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 2);
+                wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
+                //if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
+                //{
+                //    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
+                //}
+                //if (wavesSettings.IsBosses)
+                //{
+                //    wildSpawnWave.time_min += 5;
+                //    wildSpawnWave.time_max += 15;
+                //}
+                //wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
+                //if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
+                //{
+                //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
+                //}
+                //if (wildSpawnWave.WildSpawnType == WildSpawnType.pmcBot)
+                //{
+                //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
+                //}
 
-                wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
+                //wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
 
             }
             return waves;
@@ -290,7 +292,7 @@ namespace SIT.Core.Coop
             {
                 if (wave.BossType == WildSpawnType.pmcBot)
                 {
-                    wave.Delay = 0;
+                    wave.Delay = -1;
                     wave.BossChance = 100;
                     wave.Activated = true;
                 }
@@ -509,12 +511,12 @@ namespace SIT.Core.Coop
 
             int maxCount = controllerSettings.BotAmount switch
             {
-                EBotAmount.AsOnline => 12,
-                EBotAmount.Low => 12,
-                EBotAmount.Medium => 13,
-                EBotAmount.High => 14,
-                EBotAmount.Horde => 15,
-                _ => 15,
+                EBotAmount.AsOnline => 14,
+                EBotAmount.Low => 14,
+                EBotAmount.Medium => 15,
+                EBotAmount.High => 16,
+                EBotAmount.Horde => 16,
+                _ => 16,
             };
 
             int numberOfBots = shouldSpawnBots ? maxCount : 0;

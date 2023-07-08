@@ -1,6 +1,7 @@
 using EFT;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
         }
 
         [PatchPrefix]
-        private static bool PatchPrefix(ref Task<Profile> __result, BotsPresets __instance, IBotData data)
+        private static bool PatchPrefix(ref Task<Profile> __result, BotsPresets __instance, CreationData data, bool withDelete)
         {
             if (PatchConstants.BackEndSession == null)
             {
@@ -30,7 +31,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
                 return true;
             }
 
-            Logger.LogDebug("GetNewBotTemplatesPatch.PatchPrefix");
+            GetLogger(typeof(GetNewBotTemplatesPatch)).LogDebug("GetNewBotTemplatesPatch.PatchPrefix");
 
             /*
                 in short when client wants new bot and GetNewProfile() return null (if not more available templates or they don't satisfy by Role and Difficulty condition)
@@ -45,7 +46,16 @@ namespace SIT.Core.AkiSupport.Singleplayer
 
             var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             var taskAwaiter = (Task<Profile>)null;
-            var profile = (Profile)_getNewProfileMethod.Invoke(__instance, new object[] { data });
+
+            try
+            {
+                var profile = _getNewProfileMethod.Invoke(__instance, new object[] { data, true });
+            }
+            catch (Exception e)
+            {
+                Logger.LogDebug($"getnewbot failed: {e.Message} {e.InnerException}");
+                throw;
+            }
 
             // load from server
             var source = data.PrepareToLoadBackend(1).ToList();
