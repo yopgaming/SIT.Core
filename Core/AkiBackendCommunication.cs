@@ -228,7 +228,7 @@ namespace SIT.Core.Core
                     // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
                     coopGameComponent.ActionPackets.Contains(packet)
                     // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
-                    //|| coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
+                    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
                     )
                     return;
 
