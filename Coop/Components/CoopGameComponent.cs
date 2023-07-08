@@ -885,7 +885,8 @@ namespace SIT.Core.Coop
             // "player controlled", where the engine has to enable a bunch of additional
             // logic when aiControl is turned off (in other words, for players)?
 
-            var otherPlayer = LocalPlayer.Create(playerId
+            //var otherPlayer = LocalPlayer.Create(playerId
+            var otherPlayer = CoopPlayer.Create(playerId
                , position
                , Quaternion.identity
                ,
@@ -900,10 +901,11 @@ namespace SIT.Core.Coop
                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-               , new CoopStatisticsManager()
+               //, new CoopStatisticsManager()
                , FilterCustomizationClass.Default
                , null
-               , isYourPlayer: false).Result;
+               , isYourPlayer: false
+               ).Result;
 
 
             if (otherPlayer == null)
@@ -1183,7 +1185,7 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
             dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
             
-            dictPlayerState.Add("t", DateTime.Now.Ticks);
+            dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
             // ---------- 
             dictPlayerState.Add("phys.hs.current", player.Physical.HandsStamina.Current);
             dictPlayerState.Add("phys.hs.total", player.Physical.HandsStamina.TotalCapacity.Value);
