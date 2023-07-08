@@ -257,7 +257,11 @@ namespace SIT.Core.Coop
                 )
             {
                 RequestQuitGame = true;
-                LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ((CoopGame)LocalGameInstance).MyExitStatus, "", 0);
+                ((CoopGame)LocalGameInstance).Stop(
+                    Singleton<GameWorld>.Instance.MainPlayer.ProfileId
+                    , ((CoopGame)LocalGameInstance).MyExitStatus
+                    , ((CoopGame)LocalGameInstance).MyExitLocation
+                    , 0);
                 return;
             }
 

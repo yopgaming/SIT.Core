@@ -607,6 +607,7 @@ namespace SIT.Core.Coop
 
             ExtractingPlayers.Remove(player.ProfileId);
 
+            MyExitLocation = null;
             //player.SwitchRenderer(true);
         }
 
@@ -622,6 +623,10 @@ namespace SIT.Core.Coop
             if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
                 ExtractingPlayers.Add(player.ProfileId, (point.Settings.ExfiltrationTime, DateTime.Now.Ticks, point.Settings.Name));
             //player.SwitchRenderer(false);
+
+            MyExitLocation = point.Settings.Name;
+
+
         }
 
         private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus status)
@@ -632,6 +637,7 @@ namespace SIT.Core.Coop
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
+        public string MyExitLocation { get; set; } = null;
         private ISpawnSystem SpawnSystem { get; set; }
 
         private void HealthController_DiedEvent(EDamageType obj)
@@ -639,17 +645,14 @@ namespace SIT.Core.Coop
             Logger.LogInfo(ScreenManager.Instance.CurrentScreenController.ScreenType);
 
             Logger.LogInfo("CoopGame.HealthController_DiedEvent");
-            //Singleton<GClass629>.Instance.Stop();
+
             gparam_0.Player.HealthController.DiedEvent -= method_15;
             gparam_0.Player.HealthController.DiedEvent -= HealthController_DiedEvent;
 
             PlayerOwner.vmethod_1();
             MyExitStatus = ExitStatus.Killed;
-            //ScreenManager.Instance.CloseAllScreensForced();
-            //PlayerOwner.Player.OnGameSessionEnd(MyExitStatus, base.PastTime, Location_0.Id, "");
-            //GameUi.BattleUiPanelDeath.Show(Profile_0, ExitStatus.Killed, GClass1251.Now - dateTime_0);
-            //Stop(Profile_0.Id, ExitStatus.Killed, null, 5f);
-            //CleanUp();
+            MyExitLocation = null;
+           
         }
 
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)

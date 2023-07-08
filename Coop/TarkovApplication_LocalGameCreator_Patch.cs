@@ -84,9 +84,11 @@ namespace SIT.Core.Coop
 
                     ReflectionHelpers.GetAllMethodsForObject(__instance).FirstOrDefault(
                         x =>
-                        x.GetParameters()[0].ParameterType == typeof(string)
+                        x.GetParameters().Length >= 5
+                        && x.GetParameters()[0].ParameterType == typeof(string)
                         && x.GetParameters()[1].ParameterType == typeof(Profile)
                         && x.GetParameters()[2].ParameterType == typeof(LocationSettings.Location)
+                        && x.GetParameters()[3].ParameterType == typeof(Result<ExitStatus, TimeSpan, ClientMetrics>)
                         && x.GetParameters()[4].ParameterType == typeof(MatchmakerTimeHasCome.TimeHasComeScreenController)
                         ).Invoke(__instance, new object[] {
                     session.Profile.Id, session.ProfileOfPet, ____raidSettings.SelectedLocation, r, timeHasComeScreenController });
