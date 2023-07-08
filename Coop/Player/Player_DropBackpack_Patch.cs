@@ -46,7 +46,7 @@ namespace SIT.Coop.Core.Player
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
-                { "t", DateTime.Now.Ticks },
+                { "t", DateTime.Now.Ticks.ToString("G") },
                 { "m", "DropBackpack" }
             };
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(__instance, dictionary);

@@ -71,7 +71,6 @@ namespace SIT.Core.Coop.Player.Proceed
             ItemAddressHelpers.ConvertItemAddressToDescriptor(foodDrink.CurrentAddress, ref args);
 
             args.Add("m", "ProceedFood");
-            args.Add("t", DateTime.Now.Ticks);
             args.Add("amt", amount);
             args.Add("item.id", foodDrink.Id);
             args.Add("item.tpl", foodDrink.TemplateId);

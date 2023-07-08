@@ -120,7 +120,6 @@ namespace SIT.Core.Coop.Player
             }
             damageInfo.Weapon = null;
 
-            packet.Add("t", DateTime.Now.Ticks.ToString("G"));
             packet.Add("d", SerializeObject(damageInfo));
             packet.Add("d.p", playerDict);
             packet.Add("d.w", weaponDict);

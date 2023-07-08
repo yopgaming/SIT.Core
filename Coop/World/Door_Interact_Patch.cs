@@ -111,7 +111,7 @@ namespace SIT.Core.Coop.World
 
             Dictionary<string, object> packet = new Dictionary<string, object>
             {
-                { "t", DateTime.Now.Ticks },
+                { "t", DateTime.Now.Ticks.ToString("G") },
                 { "serverId", CoopGameComponent.GetServerId() },
                 { "doorId", __instance.Id },
                 { "type", interactionResult.InteractionType.ToString() },

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using EFT.UI;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -17,15 +18,39 @@ namespace SIT.Tarkov.Core
         private readonly List<HarmonyMethod> _finalizerList;
         private readonly List<HarmonyMethod> _ilmanipulatorList;
 
-        protected static ManualLogSource Logger { get; private set; }
+        private static Dictionary<Type, ManualLogSource> Loggers { get; } = new();
+
+        protected static ManualLogSource Logger
+        {
+            get
+            {
+                return GetLogger(typeof(ModulePatch));
+            }
+        }
+
+        protected static ManualLogSource GetLogger(Type type)
+        {
+            if (!Loggers.ContainsKey(type))
+            {
+                Loggers.Add(type, BepInEx.Logging.Logger.CreateLogSource(type.FullName));
+                Loggers[type].LogEvent += Logger_LogEvent;
+
+            }
+
+            return Loggers[type];
+        }
         public string ThisTypeName { get; private set; }
 
         protected ModulePatch() : this(null)
         {
             ThisTypeName = GetType().FullName;
-            if (Logger == null)
+        }
+
+        private static void Logger_LogEvent(object sender, LogEventArgs e)
+        {
+            if(e.Level == LogLevel.Error)
             {
-                Logger = BepInEx.Logging.Logger.CreateLogSource(nameof(ModulePatch));
+                ConsoleScreen.LogError(e.Data.ToString());
             }
         }
 

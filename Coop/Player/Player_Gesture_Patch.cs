@@ -51,7 +51,6 @@ namespace SIT.Core.Coop.Player
             }
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("g", gesture.ToString());
             dictionary.Add("m", "Gesture");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);

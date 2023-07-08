@@ -85,7 +85,6 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
             }
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("rX", ____player.Rotation.x);
             dictionary.Add("rY", ____player.Rotation.y);
             dictionary.Add("m", "LowThrow");

@@ -57,7 +57,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("f", fireMode.ToString());
             dictionary.Add("m", "ChangeFireMode");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);

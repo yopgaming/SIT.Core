@@ -65,7 +65,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
-                { "t", DateTime.Now.Ticks },
                 { "ammo", ammoPack.GetReloadingAmmoIds().ToJson() },
                 { "m", "ReloadWithAmmo" }
             };

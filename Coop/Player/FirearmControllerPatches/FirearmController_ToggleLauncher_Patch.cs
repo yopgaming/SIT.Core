@@ -53,7 +53,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
+            dictionary.Add("t", DateTime.Now.Ticks.ToString("G"));
             dictionary.Add("m", "ToggleLauncher");
             AkiBackendCommunication.Instance.SendDataToPool(dictionary.ToJson());
         }

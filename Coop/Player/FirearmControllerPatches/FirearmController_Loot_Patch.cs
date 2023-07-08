@@ -53,7 +53,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
-            dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("p", p);
             dictionary.Add("m", "Loot");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);

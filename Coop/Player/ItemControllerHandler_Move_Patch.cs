@@ -24,15 +24,15 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("ItemControllerHandler_Move_Patch.Replicated");
+            //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("ItemControllerHandler_Move_Patch.Replicated");
 
             if (HasProcessed(this.GetType(), player, dict))
                 return;
 
-            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player);
-            Logger.LogInfo("ItemControllerHandler_Move_Patch.Replicated." + inventoryController.GetType());
+            var inventoryController = ItemFinder.GetPlayerInventoryController(player);
+            //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("ItemControllerHandler_Move_Patch.Replicated." + inventoryController.GetType());
 
-            if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
+            //if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
             {
 
                 Item item = null;
@@ -43,12 +43,12 @@ namespace SIT.Core.Coop.Player
 
                     if (item.CurrentAddress == null || item.CurrentAddress.Container == null)
                     {
-                        Logger.LogDebug($"Item of Id {item.Id} isn't in a box");
+                        GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"Item of Id {item.Id} isn't in a box");
                     }
                 }
                 else
                 {
-                    Logger.LogDebug($"Unable to find Item Id:{dict["id"]} in world. Attempting to find on Player.");
+                    GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"Unable to find Item Id:{dict["id"]} in world. Attempting to find on Player.");
                     ItemFinder.TryFindItemOnPlayer(player, dict["id"].ToString(), dict["tpl"].ToString(), out item);
                 }
 
@@ -57,7 +57,7 @@ namespace SIT.Core.Coop.Player
                     return;
                 }
 
-                Logger.LogInfo(item);
+                //GetGetLogger(typeof(ItemControllerHandler_Move_Patch))(typeof(ItemControllerHandler_Move_Patch)).LogInfo(item);
                 if (CallLocally.Contains(player.ProfileId))
                     return;
 
@@ -66,12 +66,12 @@ namespace SIT.Core.Coop.Player
                 if (dict.ContainsKey("grad"))
                 {
                     GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
-                    GClass2669.Move(item, singlePlayerInventoryController.ToItemAddress(gridItemAddressDescriptor), singlePlayerInventoryController, false);
+                    GClass2669.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false);
                 }
                 else
                 {
                     SlotItemAddressDescriptor slotItemAddressDescriptor = PatchConstants.SITParseJson<SlotItemAddressDescriptor>(dict["sitad"].ToString());
-                    GClass2669.Move(item, singlePlayerInventoryController.ToItemAddress(slotItemAddressDescriptor), singlePlayerInventoryController, false);
+                    GClass2669.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
                 }
             }
 
@@ -99,9 +99,8 @@ namespace SIT.Core.Coop.Player
             if (!CoopGameComponent.TryGetCoopGameComponent(out coopGameComponent))
                 return;
 
-            Logger.LogInfo("ItemControllerHandler_Move_Patch.Postfix");
-            if(itemController is EFT.Player.SinglePlayerInventoryController inventoryController)
-            {
+            //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("ItemControllerHandler_Move_Patch.Postfix");
+            var inventoryController = itemController as PlayerInventoryController;
                 var player = coopGameComponent.Players.First(x => x.Key == inventoryController.Profile.AccountId).Value;
 
                 if (CallLocally.Contains(player.ProfileId))
@@ -117,7 +116,7 @@ namespace SIT.Core.Coop.Player
 
                 Dictionary<string, object> dictionary = new Dictionary<string, object>
                 {
-                    { "t", DateTime.Now.Ticks }
+                    { "t", DateTime.Now.Ticks.ToString("G") }
                 };
 
                 if (to is GridItemAddress gridItemAddress)
@@ -138,9 +137,8 @@ namespace SIT.Core.Coop.Player
                 HasProcessed(typeof(ItemControllerHandler_Move_Patch), player, dictionary);
 
                 AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
-                Logger.LogInfo("Sent");
-                Logger.LogInfo(dictionary.ToJson());
-            }
+                //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("Sent");
+                //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo(dictionary.ToJson());
             
         }
 

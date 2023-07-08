@@ -94,7 +94,7 @@ namespace SIT.Coop.Core.LocalGame
                 Dictionary<string, object> packet = new Dictionary<string, object>
                 {
                     { "m", "timeAndWeather" },
-                    { "t", DateTime.Now.Ticks },
+                    { "t", DateTime.Now.Ticks.ToString("G") },
                     { "ct", TimeAndWeather.CloudinessType },
                     { "ft", TimeAndWeather.FogType },
                     { "hod", TimeAndWeather.HourOfDay },

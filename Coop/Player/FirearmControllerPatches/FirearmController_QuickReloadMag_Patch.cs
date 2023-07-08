@@ -33,7 +33,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
-                { "t", DateTime.Now.Ticks },
                 { "fa.id", __instance.Item.Id },
                 { "fa.tpl", __instance.Item.TemplateId },
                 { "mg.id", magazine.Id },

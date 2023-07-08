@@ -85,7 +85,6 @@ namespace SIT.Core.Coop.Player
                 //Logger.LogDebug(shotammoid);
             }
 
-            packet.Add("t", DateTime.Now.Ticks);
             packet.Add("d", SerializeObject(damageInfo));
             packet.Add("d.p", playerDict);
             packet.Add("d.w", weaponDict);
