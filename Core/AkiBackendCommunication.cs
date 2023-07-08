@@ -1,4 +1,6 @@
 ﻿using BepInEx.Logging;
+using Comfort.Common;
+using EFT;
 using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
@@ -138,8 +140,21 @@ namespace SIT.Core.Core
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             Logger.LogError($"WebSocket_OnError: {e.Message} {Environment.NewLine}");
-            Logger.LogError($"Your PC has failed to connect to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {PatchConstants.GetBackendUrl()}! Application will now close.");
-            Application.Quit();
+            OnWebSocketError();
+        }
+
+        private void OnWebSocketError()
+        {
+            Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {PatchConstants.GetBackendUrl()}! Application will now close.");
+            if (
+                CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent)
+                && coopGameComponent.LocalGameInstance != null
+                )
+            {
+                coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, null);
+            }
+            else
+                Application.Quit();
         }
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
@@ -290,6 +305,10 @@ namespace SIT.Core.Core
                                 {
                                     //PatchConstants.Logger.LogDebug($"WS:Periodic Send");
                                     WebSocket.Send(json);
+                                }
+                                else
+                                {
+                                    OnWebSocketError();
                                 }
                             }
                             //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
@@ -635,7 +654,7 @@ namespace SIT.Core.Core
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                byte[] resultBytes = null;
+                byte[] resultBytes;
                 if (compress)
                 {
                     if (Zlib.IsCompressed(bytes))
@@ -648,7 +667,6 @@ namespace SIT.Core.Core
                     resultBytes = bytes;
                 }
                 var result = Encoding.UTF8.GetString(resultBytes);
-                resultBytes = null;
                 bytes = null;
                 return result;
             }
