@@ -1,7 +1,10 @@
 ﻿using Aki.Custom.Patches;
 using BepInEx;
+using BepInEx.Bootstrap;
 using Comfort.Common;
 using EFT;
+using EFT.Communications;
+using EFT.UI;
 using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
 using SIT.Core.AkiSupport.Singleplayer;
@@ -21,6 +24,8 @@ using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
 using System;
+using System.Linq;
+using System.Text;
 using UnityEngine.SceneManagement;
 
 namespace SIT.Core
@@ -36,6 +41,7 @@ namespace SIT.Core
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
+            LogDependancyErrors();
 
             EnableCorePatches();
             EnableSPPatches();
@@ -232,6 +238,46 @@ namespace SIT.Core
                 PatchConstants.CharacterControllerSettings.BotPlayerMode
                     = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
             }
+
+        }
+
+        private bool ShownDependancyError { get; set; } 
+
+        private void LogDependancyErrors()
+        {
+            // Skip if we've already shown the message, or there are no errors
+            if (ShownDependancyError || Chainloader.DependencyErrors.Count == 0)
+            {
+                return;
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("Errors occurred during plugin loading");
+            stringBuilder.AppendLine("-------------------------------------");
+            stringBuilder.AppendLine();
+            foreach (string error in Chainloader.DependencyErrors)
+            {
+                stringBuilder.AppendLine(error);
+                stringBuilder.AppendLine();
+            }
+            string errorMessage = stringBuilder.ToString();
+
+            DisplayMessageNotifications.DisplayMessageNotification($"{errorMessage}", ENotificationDurationType.Infinite, ENotificationIconType.Alert, UnityEngine.Color.red);
+
+            // Show an error in the BepInEx console/log file
+            Logger.LogError(errorMessage);
+
+            // Show an error in the in-game console, we have to write this in reverse order because of the nature of the console output
+            foreach (string line in errorMessage.Split('\n').Reverse())
+            {
+                if (line.Trim().Length > 0)
+                {
+                    ConsoleScreen.LogError(line);
+                }
+            }
+
+            ShownDependancyError = true;
+
 
         }
 
