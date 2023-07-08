@@ -1,4 +1,5 @@
-﻿using SIT.Coop.Core.Player;
+﻿using EFT.InventoryLogic;
+using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using static SIT.Core.Coop.Player.Player_Move_Patch;
 
 namespace SIT.Core.Coop.Player
 {
@@ -110,15 +112,25 @@ namespace SIT.Core.Coop.Player
             if (HasProcessed(this.GetType(), player, dict))
                 return;
 
+            var pmp = new Player_Move_Patch.PlayerMovePacket()
+            {
+                dX = float.Parse(dict["dX"].ToString()),
+                dY = float.Parse(dict["dY"].ToString()),
+                spd = float.Parse(dict["spd"].ToString()),
+                spr = bool.Parse(dict["spr"].ToString()),
+            };
+            ReplicatedMove(player, pmp);
+        }
+
+        public void ReplicatedMove(EFT.Player player, PlayerMovePacket playerMovePacket)
+        {
             if (player.TryGetComponent<PlayerReplicatedComponent>(out PlayerReplicatedComponent playerReplicatedComponent))
             {
                 if (playerReplicatedComponent.IsClientDrone)
                 {
-                    UnityEngine.Vector2 direction = new UnityEngine.Vector2(float.Parse(dict["dX"].ToString()), float.Parse(dict["dY"].ToString()));
-                    float spd = float.Parse(dict["spd"].ToString());
-                    bool spr = bool.Parse(dict["spr"].ToString());
-                    //playerReplicatedComponent.ReplicatedDirection = null;
-                    //playerReplicatedComponent.ReplicatedPosition = null;
+                    UnityEngine.Vector2 direction = new UnityEngine.Vector2(playerMovePacket.dX, playerMovePacket.dY);
+                    float spd = playerMovePacket.spd;
+                    bool spr = playerMovePacket.spr;
 
                     player.InputDirection = direction;
                     if (!spr)
@@ -126,9 +138,9 @@ namespace SIT.Core.Coop.Player
                         player.CurrentManagedState.ChangeSpeed(spd);
                     }
 
-                    if(!player.IsSprintEnabled && spr)
+                    if (!player.IsSprintEnabled && spr)
                         player.CurrentManagedState.EnableSprint(spr, true);
-                    else if(!spr && player.IsSprintEnabled)
+                    else if (!spr && player.IsSprintEnabled)
                         player.CurrentManagedState.EnableSprint(spr, true);
 
                     player.CurrentManagedState.Move(direction);

@@ -335,15 +335,15 @@ namespace SIT.Coop.Core.Player
             if (ReplicatedDirection.HasValue)
             {
                 var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
-                playerMovePatch?.Replicated(player
-                    , new()
+                playerMovePatch?.ReplicatedMove(player
+                    , new Player_Move_Patch.PlayerMovePacket()
                     {
-                    { "t", DateTime.Now.Ticks.ToString("G") }
-                    , { "dX", ReplicatedDirection.Value.x }
-                    , { "dY", ReplicatedDirection.Value.y }
-                    , { "spd", ReplicatedMovementSpeed }
-                    , { "spr", ShouldSprint }
-                    });
+                        dX = ReplicatedDirection.Value.x,
+                        dY = ReplicatedDirection.Value.y,
+                        spd = ReplicatedMovementSpeed,
+                        spr = ShouldSprint,
+                    }
+                  );
             }
 
             
