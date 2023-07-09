@@ -467,7 +467,28 @@ namespace SIT.Core.Coop
         /// <returns></returns>
         public override Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
         {
-            return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
+            Logger.LogInfo("Creating CoopPlayer!");
+            profile.SetSpawnedInSession(value: false);
+            return CoopPlayer
+                .Create(
+                playerId
+                , position
+                , rotation
+                , "Player"
+                , ""
+                , EPointOfView.FirstPerson
+                , profile
+                , aiControl: false
+                , base.UpdateQueue
+                , armsUpdateMode
+                , EFT.Player.EUpdateMode.Auto
+                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                , new FilterCustomizationClass()
+                , questController
+                , isYourPlayer: true);
+            //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
         /// <summary>

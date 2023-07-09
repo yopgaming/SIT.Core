@@ -62,10 +62,11 @@ namespace SIT.Core.Coop
             //{
             //    localPlayer.GClass2656_0.StrictCheckMagazine(item, status: true, localPlayer.Profile.MagDrillsMastering, notify: false, useOperation: false);
             //}
-            //localPlayer._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(localPlayer);
-            //localPlayer._handsController.Spawn(1f, delegate
-            //{
-            //});
+            //localPlayer._handsController = (EFT.Player.EmptyHandsController)EFT.Player.EmptyHandsController.smethod_5<EFT.Player.EmptyHandsController>(localPlayer);
+            localPlayer._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(localPlayer);
+            localPlayer._handsController.Spawn(1f, delegate
+            {
+            });
             localPlayer.AIData = new AiDataClass(null, localPlayer);
             localPlayer.AggressorFound = false;
             localPlayer._animators[0].enabled = true;
