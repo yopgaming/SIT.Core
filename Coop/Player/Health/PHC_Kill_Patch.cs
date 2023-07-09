@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace SIT.Core.Coop.Player.Health
 {
-    internal class KillPatch : ModuleReplicationPatch
+    internal class PHC_Kill_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(PlayerHealthController);
 
