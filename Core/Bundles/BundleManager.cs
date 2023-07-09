@@ -26,6 +26,13 @@ namespace SIT.Tarkov.Core
         static BundleManager()
         {
             Bundles = new Dictionary<string, BundleInfo>();
+
+            // Ensure directories exist
+            if(!Directory.Exists("user"))
+                Directory.CreateDirectory("user");
+
+            if (!Directory.Exists("user/cache"))
+                Directory.CreateDirectory("user/cache");
         }
 
         public static void GetBundles()
