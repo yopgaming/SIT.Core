@@ -34,7 +34,7 @@ namespace SIT.Tarkov.Core
 
         [PatchPrefix]
         private static bool PatchPrefix(
-            TarkovRequest __instance,
+            object __instance,
             ref TarkovRequestParams legacyParams)
         {
             legacyParams.Url = legacyParams.Url

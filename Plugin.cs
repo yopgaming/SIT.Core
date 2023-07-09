@@ -27,6 +27,7 @@ using System;
 using System.Linq;
 using System.Text;
 using UnityEngine.SceneManagement;
+using static GClass1708;
 
 namespace SIT.Core
 {
@@ -42,6 +43,8 @@ namespace SIT.Core
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
             LogDependancyErrors();
+            // Gather the Major/Minor numbers of EFT ASAP
+            new VersionLabelPatch(Config).Enable();
 
             EnableCorePatches();
             EnableSPPatches();
@@ -75,8 +78,8 @@ namespace SIT.Core
             new UnityWebRequestPatch().Enable();
             new TransportPrefixPatch().Enable();
             new WebSocketPatch().Enable();
-            new TarkovTransportWSInstanceHookPatch().Enable();
-            new TarkovTransportHttpInstanceHookPatch().Enable();
+            //new TarkovTransportWSInstanceHookPatch().Enable();
+            //new TarkovTransportHttpInstanceHookPatch().Enable();
             new SendCommandsPatch().Enable();
         }
 
@@ -139,7 +142,6 @@ namespace SIT.Core
             new OfflineSettingsScreenPatch().Enable();
             new InsuranceScreenPatch().Enable();
             new MatchmakerLocationScreen_DisableReadyButton_Patch().Enable();
-            new VersionLabelPatch(config).Enable();
 
             //try
             //{
@@ -241,7 +243,9 @@ namespace SIT.Core
 
         }
 
-        private bool ShownDependancyError { get; set; } 
+        private bool ShownDependancyError { get; set; }
+        public static string EFTVersionMajor { get; internal set; }
+        public static string EFTVersionMinor { get; internal set; }
 
         private void LogDependancyErrors()
         {
