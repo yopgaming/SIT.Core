@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace SIT.Core.Coop
 {
-    internal class CoopInventoryController : PlayerInventoryController
+    internal class CoopInventoryController : EFT.Player.PlayerInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
 

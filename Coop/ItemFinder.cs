@@ -74,9 +74,9 @@ namespace SIT.Core.Coop
             return itemComponent;
         }
 
-        public static PlayerInventoryController GetPlayerInventoryController(EFT.Player player)
+        public static EFT.Player.PlayerInventoryController GetPlayerInventoryController(EFT.Player player)
         {
-            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player) as PlayerInventoryController;
+            var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player) as EFT.Player.PlayerInventoryController;
             return inventoryController;
         }
     }
