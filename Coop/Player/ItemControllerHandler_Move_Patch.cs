@@ -16,7 +16,7 @@ namespace SIT.Core.Coop.Player
 {
     internal class ItemControllerHandler_Move_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(GClass2669);
+        public override Type InstanceType => typeof(ItemMovementHandler);
 
         public override string MethodName => "IC_Move";
 
@@ -66,12 +66,12 @@ namespace SIT.Core.Coop.Player
                 if (dict.ContainsKey("grad"))
                 {
                     GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
-                    GClass2669.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false);
+                    ItemMovementHandler.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false);
                 }
                 else
                 {
                     SlotItemAddressDescriptor slotItemAddressDescriptor = PatchConstants.SITParseJson<SlotItemAddressDescriptor>(dict["sitad"].ToString());
-                    GClass2669.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
+                    ItemMovementHandler.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
                 }
             }
 
@@ -100,7 +100,7 @@ namespace SIT.Core.Coop.Player
                 return;
 
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("ItemControllerHandler_Move_Patch.Postfix");
-            var inventoryController = itemController as PlayerInventoryController;
+            var inventoryController = itemController as EFT.Player.PlayerInventoryController;
                 var player = coopGameComponent.Players.First(x => x.Key == inventoryController.Profile.AccountId).Value;
 
                 if (CallLocally.Contains(player.ProfileId))
