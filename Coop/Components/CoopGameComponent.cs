@@ -39,7 +39,7 @@ namespace SIT.Core.Coop
             {
 
                 if (Players == null)
-                    return new EFT.Player[0];
+                    return null;
 
                 return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
             }
@@ -70,6 +70,8 @@ namespace SIT.Core.Coop
         private Dictionary<string, object>[] m_CharactersJson;
 
         private bool RunAsyncTasks = true;
+
+        float screenScale = 1.0f;
 
         #endregion
 
@@ -110,6 +112,11 @@ namespace SIT.Core.Coop
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
+            // If DLSS or FSR are enabled, set a screen scale value
+            if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
+            {
+                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+            }
         }
 
         void Start()
@@ -1259,9 +1266,16 @@ namespace SIT.Core.Coop
         private bool ServerHasStoppedActioned { get; set; }
 
         GUIStyle middleLabelStyle;
+        GUIStyle normalLabelStyle;
 
         void OnGUI()
         {
+            if (normalLabelStyle == null)
+            {
+                normalLabelStyle = new GUIStyle(GUI.skin.label);
+                normalLabelStyle.fontSize = 16;
+                normalLabelStyle.fontStyle = FontStyle.Bold;
+            }
             if (middleLabelStyle == null)
             {
                 middleLabelStyle = new GUIStyle(GUI.skin.label);
@@ -1365,6 +1379,24 @@ namespace SIT.Core.Coop
 
 
             OnGUI_DrawPlayerList(rect);
+
+            if (PlayerUsers != null)
+            {
+                if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
+                    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+
+                foreach (var pl in PlayerUsers)
+                {
+                    Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * 1.5f);
+                    Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+                    if (screenPos.z > 0)
+                    {
+                        rect.x = screenPos.x * screenScale;
+                        rect.y = Screen.height - (screenPos.y * screenScale);
+                        GUI.Label(rect, $"{pl.Profile.Nickname}", normalLabelStyle);
+                    }
+                }
+            }
 
         }
 
