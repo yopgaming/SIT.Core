@@ -182,6 +182,9 @@ namespace SIT.Core.Coop.FreeCamera
                 }
             }
 
+            if (_playerUi == null || _playerUi.gameObject == null)
+                return;
+
             _playerUi.gameObject.SetActive(_uiHidden);
             _uiHidden = !_uiHidden;
         }
