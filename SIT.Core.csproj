@@ -76,6 +76,9 @@
       <HintPath>..\Tarkov.References\\System.Net.Http.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Postprocessing.Runtime">
+      <HintPath>..\Tarkov.References\Unity.Postprocessing.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.ScriptableBuildPipeline">
       <HintPath>..\Tarkov.References\Unity.ScriptableBuildPipeline.dll</HintPath>
       <Private>False</Private>

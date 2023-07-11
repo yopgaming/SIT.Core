@@ -365,7 +365,7 @@ namespace SIT.Core.Coop
             }
 
             List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
-            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
+            if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
             {
                 //Logger.LogDebug("Creating PRC");
 
@@ -1181,8 +1181,8 @@ namespace SIT.Core.Coop
 
             // --- Positional 
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
-            dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
+            //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
+            //dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
             //if (player.MovementContext.IsSprintEnabled)
             //{
             //    prc.ReplicatedDirection = new Vector2(1, 0);

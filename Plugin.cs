@@ -24,8 +24,10 @@ using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using static GClass1708;
 
@@ -38,6 +40,9 @@ namespace SIT.Core
         public static Plugin Instance;
         public static PluginConfigSettings Settings { get; private set; }
 
+        private bool ShownDependancyError { get; set; }
+        public static string EFTVersionMajor { get; internal set; }
+
         private void Awake()
         {
             Instance = this;
@@ -45,6 +50,7 @@ namespace SIT.Core
             LogDependancyErrors();
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
+            StartCoroutine(VersionChecks());
 
             EnableCorePatches();
             EnableSPPatches();
@@ -55,16 +61,41 @@ namespace SIT.Core
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
         }
 
+        private IEnumerator VersionChecks()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(1);
+
+                if(!string.IsNullOrEmpty(EFTVersionMajor))
+                {
+                    Logger.LogInfo(EFTVersionMajor);
+                    if (EFTVersionMajor.Split('.').Length > 4)
+                    {
+                        var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
+                        var majorN2 = EFTVersionMajor.Split('.')[1]; // 13
+                        var majorN3 = EFTVersionMajor.Split('.')[2]; // 1
+                        var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
+                        var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
+                    }
+
+                    yield break;
+                }
+            }
+        }
+
         private void EnableCorePatches()
         {
+            // SIT Legal Game Checker
+            LegalGameCheck.LegalityCheck();
+
             var enabled = Config.Bind<bool>("SIT Core Patches", "Enable", true);
             if (!enabled.Value) // if it is disabled. stop all SIT Core Patches.
             {
                 Logger.LogInfo("SIT Core Patches has been disabled! Ignoring Patches.");
                 return;
             }
-            // SIT Legal Game Checker
-            LegalGameCheck.LegalityCheck();
+
             // File Checker
             new ConsistencySinglePatch().Enable();
             new ConsistencyMultiPatch().Enable();
@@ -179,6 +210,8 @@ namespace SIT.Core
             new CoreDifficultyPatch().Enable();
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
+            new FillCreationDataWithProfilesPatch().Enable();
+            new BotCreatorOptimizePatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
             new IsPlayerEnemyPatch().Enable();
             new IsPlayerEnemyByRolePatch().Enable();
@@ -243,9 +276,6 @@ namespace SIT.Core
 
         }
 
-        private bool ShownDependancyError { get; set; }
-        public static string EFTVersionMajor { get; internal set; }
-        public static string EFTVersionMinor { get; internal set; }
 
         private void LogDependancyErrors()
         {

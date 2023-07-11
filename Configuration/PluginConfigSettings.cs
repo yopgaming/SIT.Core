@@ -39,7 +39,7 @@ namespace SIT.Core.Configuration
 
             public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
             public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
-            public int SETTING_PlayerStateTickRateInMS { get; set; } = -100;
+            public int SETTING_PlayerStateTickRateInMS { get; set; } = 333;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = true;
             public bool SETTING_ShowFeed { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
@@ -60,11 +60,12 @@ namespace SIT.Core.Configuration
                    ("Coop", "ShowPlayerList", false, new ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
                 SETTING_PlayerStateTickRateInMS = Plugin.Instance.Config.Bind
-                  ("Coop", "PlayerStateTickRateInMS", 100, new ConfigDescription("The rate at which Player States will be sent to the Server")).Value;
-                if (SETTING_PlayerStateTickRateInMS > 0)
-                    SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
-                else if (SETTING_PlayerStateTickRateInMS == 0)
-                    SETTING_PlayerStateTickRateInMS = -100;
+                  ("Coop", "PlayerStateTickRateInMS", 333, new ConfigDescription("The rate at which Player States will be synchronized")).Value;
+                //if (SETTING_PlayerStateTickRateInMS > 0)
+                //    SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
+                //else if (SETTING_PlayerStateTickRateInMS == 0)
+                //    SETTING_PlayerStateTickRateInMS = -333;
+                SETTING_PlayerStateTickRateInMS = 333;
 
                 SETTING_HeadshotsAlwaysKill = Plugin.Instance.Config.Bind
                   ("Coop", "HeadshotsAlwaysKill", true, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;

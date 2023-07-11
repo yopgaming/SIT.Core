@@ -40,8 +40,7 @@ namespace SIT.Core.Misc
         {
             DisplaySITVersionLabel(major, __result);
             Plugin.EFTVersionMajor = major;
-            Plugin.EFTVersionMinor = minor;
-            GetLogger(typeof(VersionLabelPatch)).LogInfo("Postfix");
+            //GetLogger(typeof(VersionLabelPatch)).LogInfo("Postfix");
         }
 
         private static void DisplaySITVersionLabel(string major, object __result)
