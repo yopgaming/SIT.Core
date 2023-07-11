@@ -70,7 +70,7 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
             // If we have a target position, and we're already there, clear it
             if (targetPos != null && (targetPos.Value - BotOwner.Position).sqrMagnitude < 4f)
             {
-                Logger.LogDebug($"{BotOwner.name} reach destination");
+                //Logger.LogDebug($"{BotOwner.name} reach destination");
                 targetPos = null;
             }
 
@@ -86,7 +86,7 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
                     {
                         targetPos = navHit.position;
                         BotOwner.GoToPoint(targetPos.Value, true, -1f, false, true, true);
-                        Logger.LogDebug($"{BotOwner.name} going to {targetPos.Value}");
+                        //Logger.LogDebug($"{BotOwner.name} going to {targetPos.Value}");
                     }
                 }
 

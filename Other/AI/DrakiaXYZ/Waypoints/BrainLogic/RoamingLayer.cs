@@ -14,7 +14,7 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
         public RoamingLayer(BotOwner botOwner, int priority) : base(botOwner, priority)
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
-            Logger.LogDebug($"Added roaming to {botOwner.name}");
+            //Logger.LogDebug($"Added roaming to {botOwner.name}");
         }
 
         public override string GetName()
@@ -39,18 +39,18 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
             // If it's been long enough, check if we should roam
             if (Time.time > nextRoamCheckTime)
             {
-                Logger.LogDebug($"Checking if {BotOwner.name} should roam");
+                //Logger.LogDebug($"Checking if {BotOwner.name} should roam");
                 nextRoamCheckTime = Time.time + 10f;
 
                 if (Random.Range(0, 100) > 50)
                 {
-                    Logger.LogDebug("  Roaming");
+                    //Logger.LogDebug("  Roaming");
                     isActive = true;
                     return true;
                 }
                 else
                 {
-                    Logger.LogDebug("  Not Roaming");
+                    //Logger.LogDebug("  Not Roaming");
                 }
             }
 
