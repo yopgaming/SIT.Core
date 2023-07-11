@@ -3,6 +3,7 @@ using EFT;
 using EFT.InputSystem;
 using EFT.UI;
 using EFT.UI.Matchmaker;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -49,7 +50,7 @@ namespace SIT.Core.Coop
             string ____backendUrl
             )
         {
-            Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
+            //Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
             if (Singleton<NotificationManagerClass>.Instantiated)
             {
                 Singleton<NotificationManagerClass>.Instance.Deactivate();
@@ -60,7 +61,12 @@ namespace SIT.Core.Coop
             session.Profile.Inventory.QuestStashItems = null;
             session.Profile.Inventory.DiscardLimits = Singleton<ItemFactory>.Instance.GetDiscardLimits();
             await session.SendRaidSettings(____raidSettings);
-            timeHasComeScreenController.ChangeStatus("Creating Coop Game");
+
+            if(MatchmakerAcceptPatches.IsClient)
+                timeHasComeScreenController.ChangeStatus("Joining Coop Game");
+            else
+                timeHasComeScreenController.ChangeStatus("Creating Coop Game");
+            
             await Task.Delay(1000);
             CoopGame localGame = CoopGame.Create(____inputTree
                 , session.Profile
