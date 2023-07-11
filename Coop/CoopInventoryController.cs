@@ -19,6 +19,10 @@ namespace SIT.Core.Coop
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
         }
 
+        public override void AddDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
+        {
+        }
+
         protected override void Execute(SearchContentOperation operation, Callback callback)
         {
             BepInLogger.LogInfo($"CoopInventoryController: {operation}");
