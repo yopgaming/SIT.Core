@@ -85,41 +85,63 @@ namespace SIT.Core.Coop.Player
 
             // If this is an AI or other player, then don't run this method
             //if (!player.IsYourPlayer)
-            {
-                prc.ReplicatedDirection = direction;
-            }
+            //{
+            //    prc.ReplicatedDirection = direction;
+            //    return;
+            //}
 
             if (prc.IsClientDrone)
                 return;
            
-            if (!LastDirections.ContainsKey(accountId))
-                LastDirections.Add(accountId, direction);
-            else if (LastDirections[accountId] == direction && direction == Vector2.zero)
-                return;
+            //if (!LastDirections.ContainsKey(accountId))
+            //    LastDirections.Add(accountId, direction);
+            //else if (LastDirections[accountId] == direction)
+            //    return;
 
             PlayerMovePacket playerMovePacket = new PlayerMovePacket();
             playerMovePacket.AccountId = accountId;
+            playerMovePacket.pX = player.Position.x;
+            playerMovePacket.pY = player.Position.y;
+            playerMovePacket.pZ = player.Position.z;
+
             playerMovePacket.dX = direction.x;
             playerMovePacket.dY = direction.y;
+
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
-            playerMovePacket.spr = player.MovementContext.IsSprintEnabled;
-            AkiBackendCommunication.Instance.SendDataToPool(playerMovePacket.ToJson());
-            LastDirections[accountId] = direction;
+            //playerMovePacket.spr = player.MovementContext.IsSprintEnabled;
+            var serialized = playerMovePacket.Serialize();
+            //AkiBackendCommunication.Instance.SendDataToPool(playerMovePacket.ToJson());
+            //AkiBackendCommunication.Instance.PostDownWebSocketImmediately(serialized);
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            //LastDirections[accountId] = direction;
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(this.GetType(), player, dict))
-                return;
+            // Player Moves happen too often for this check. This would be a large mem leak!
+            //if (HasProcessed(this.GetType(), player, dict))
+            //    return;
 
-            var pmp = new Player_Move_Patch.PlayerMovePacket()
+            PlayerMovePacket pmp = new PlayerMovePacket();
+            if (dict.ContainsKey("data"))
             {
-                dX = float.Parse(dict["dX"].ToString()),
-                dY = float.Parse(dict["dY"].ToString()),
-                spd = float.Parse(dict["spd"].ToString()),
-                spr = bool.Parse(dict["spr"].ToString()),
-            };
+                pmp = new PlayerMovePacket();
+                pmp.DeserializePacketSIT(dict["data"].ToString());
+            }
+            else
+            {
+                pmp = new Player_Move_Patch.PlayerMovePacket()
+                {
+                    dX = float.Parse(dict["dX"].ToString()),
+                    dY = float.Parse(dict["dY"].ToString()),
+                    spd = float.Parse(dict["spd"].ToString()),
+                    //spr = bool.Parse(dict["spr"].ToString()),
+                };
+            }
             ReplicatedMove(player, pmp);
+
+            pmp = null;
+            dict = null;
         }
 
         public void ReplicatedMove(EFT.Player player, PlayerMovePacket playerMovePacket)
@@ -128,22 +150,46 @@ namespace SIT.Core.Coop.Player
             {
                 if (playerReplicatedComponent.IsClientDrone)
                 {
+                    if(playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
+                        player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
+
                     UnityEngine.Vector2 direction = new UnityEngine.Vector2(playerMovePacket.dX, playerMovePacket.dY);
                     float spd = playerMovePacket.spd;
-                    bool spr = playerMovePacket.spr;
+                    //bool spr = playerMovePacket.spr;
+                    //playerReplicatedComponent.ShouldSprint = spr;
+                    playerReplicatedComponent.ReplicatedMovementSpeed = spd;
+                    playerReplicatedComponent.ReplicatedDirection = null;
 
                     player.InputDirection = direction;
-                    if (!spr)
-                    {
-                        player.CurrentManagedState.ChangeSpeed(spd);
-                    }
+                    player.MovementContext.MovementDirection = direction;
 
-                    if (!player.IsSprintEnabled && spr)
-                        player.CurrentManagedState.EnableSprint(spr, true);
-                    else if (!spr && player.IsSprintEnabled)
-                        player.CurrentManagedState.EnableSprint(spr, true);
+                    //if (!spr)
+                    //{
+                        //player.CurrentManagedState.ChangeSpeed(spd);
+                        player.MovementContext.CharacterMovementSpeed = spd;
+                    //}
+
+                    //if (spr)
+                    //{
+                    //    //Logger.LogInfo(player.CurrentManagedState.GetType().Name);
+                    //    //Logger.LogInfo("Enabling Sprint");
+                    //    //player.CurrentManagedState.EnableSprint(spr, true);
+                    //    //player.Physical.Sprint(spr);
+                    //    //player.MovementContext.PlayerAnimatorEnableSprint(true);
+                    //}
+                    //else if (!spr)
+                    //{
+                    //    //Logger.LogInfo("Disabling Sprint");
+                    //    //player.Physical.Sprint(spr);
+                    //    //player.CurrentManagedState.EnableSprint(spr, true);
+                    //    //player.MovementContext.PlayerAnimatorEnableSprint(false);
+
+                    //}
+
 
                     player.CurrentManagedState.Move(direction);
+
+                    playerReplicatedComponent.ReplicatedDirection = direction;
 
                 }
             }
@@ -151,10 +197,14 @@ namespace SIT.Core.Coop.Player
 
         public class PlayerMovePacket : BasePlayerPacket
         {
+            public float pX { get; set; }
+            public float pY { get; set; }
+            public float pZ { get; set; }
+
             public float dX { get; set; }
             public float dY { get; set; }
             public float spd { get; set; }
-            public bool spr { get; set; }
+            //public bool spr { get; set; }
 
             public PlayerMovePacket() : base()
             {

@@ -28,7 +28,7 @@ namespace SIT.Coop.Core.Player
         public bool IsClientDrone { get; internal set; }
 
         private float PoseLevelDesired { get; set; } = 1;
-        public float ReplicatedMovementSpeed { get; private set; }
+        public float ReplicatedMovementSpeed { get; set; }
         private float PoseLevelSmoothed { get; set; } = 1;
 
         void Awake()
@@ -107,8 +107,11 @@ namespace SIT.Coop.Core.Player
                 PoseLevelDesired = poseLevel;
 
                 // Speed
-                ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
-                player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
+                if (packet.ContainsKey("spd"))
+                {
+                    ReplicatedMovementSpeed = float.Parse(packet["spd"].ToString());
+                    player.CurrentManagedState.ChangeSpeed(ReplicatedMovementSpeed);
+                }
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
@@ -116,16 +119,22 @@ namespace SIT.Coop.Core.Player
 
 
                 // Rotation
-                Vector2 packetRotation = new Vector2(
-                float.Parse(packet["rX"].ToString())
-                , float.Parse(packet["rY"].ToString())
-                );
-                //player.Rotation = packetRotation;
-                ReplicatedRotation = packetRotation;
+                if (packet.ContainsKey("rX") && packet.ContainsKey("rY"))
+                {
+                        Vector2 packetRotation = new Vector2(
+                    float.Parse(packet["rX"].ToString())
+                    , float.Parse(packet["rY"].ToString())
+                    );
+                    //player.Rotation = packetRotation;
+                    ReplicatedRotation = packetRotation;
+                }
 
-                // Sprint
-                ShouldSprint = bool.Parse(packet["spr"].ToString());
-                //ProcessPlayerStateSprint(packet);
+                if (packet.ContainsKey("spr"))
+                {
+                    // Sprint
+                    ShouldSprint = bool.Parse(packet["spr"].ToString());
+                    //ProcessPlayerStateSprint(packet);
+                }
 
                 // Position
                 Vector3 packetPosition = new Vector3(
@@ -156,19 +165,7 @@ namespace SIT.Coop.Core.Player
                     player.MovementContext.SetTilt(tilt);
                 }
 
-                //if (packet.ContainsKey("tp"))
-                //{
-                //    //FirearmController_SetTriggerPressed_Patch.ReplicatePressed(player, bool.Parse(packet["tp"].ToString()));
-                //}
 
-                //if (packet.ContainsKey("spr"))
-                //{
-                //    bool sprintEnabledFromPacket = bool.Parse(packet.ContainsKey("spr").ToString());
-                //    //if (player.MovementContext.IsSprintEnabled != sprintEnabledFromPacket)
-                //    //{
-                //        player.MovementContext.EnableSprint(sprintEnabledFromPacket);
-                //    //}
-                //}
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY") && packet.ContainsKey("spr") && packet.ContainsKey("spd"))
                 {
                     // Force Rotation
@@ -295,17 +292,17 @@ namespace SIT.Coop.Core.Player
             // If a short distance -> Smooth Lerp to the Desired Position
             // If the other side of a wall -> Teleport to the correct side (TODO)
             // If far away -> Teleport
-            if (ReplicatedPosition.HasValue && !ShouldSprint)
+            if (ReplicatedPosition.HasValue)
             {
                 var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
                 var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                if (replicationDistance >= 2)
+                if (replicationDistance >= 3)
                 {
                     player.Teleport(ReplicatedPosition.Value, true);
                 }
                 else
                 {
-                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 8);
+                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
                 }
             }
 
@@ -313,10 +310,11 @@ namespace SIT.Coop.Core.Player
             // Smooth Lerp to the Desired Rotation
             if (ReplicatedRotation.HasValue)
             {
-                player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 8);
+                player.Rotation = ShouldSprint ? ReplicatedRotation.Value : Vector3.Lerp(player.Rotation, ReplicatedRotation.Value, Time.deltaTime * 4);
             }
 
-            //if (ReplicatedDirection.HasValue && !IsSprinting && ReplicatedDirection.Value.magnitude > 0)
+            // This will continue movements set be Player_Move_Patch
+            //if (ReplicatedDirection.HasValue)
             //{
             //    player.CurrentManagedState.Move(ReplicatedDirection.Value);
             //    player.InputDirection = ReplicatedDirection.Value;
@@ -341,12 +339,12 @@ namespace SIT.Coop.Core.Player
                         dX = ReplicatedDirection.Value.x,
                         dY = ReplicatedDirection.Value.y,
                         spd = ReplicatedMovementSpeed,
-                        spr = ShouldSprint,
+                        //spr = ShouldSprint,
                     }
                   );
             }
 
-            
+
 
 
         }
