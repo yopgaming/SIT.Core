@@ -67,7 +67,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private static ManualLogSource Logger { get { return PatchConstants.Logger; } }
+        private static ManualLogSource Logger;
 
 
         // Token: 0x0600844F RID: 33871 RVA: 0x0025D580 File Offset: 0x0025B780
@@ -91,6 +91,8 @@ namespace SIT.Core.Coop
             , TimeSpan sessionTime)
         {
             botControllerClass = null;
+
+            Logger = BepInEx.Logging.Logger.CreateLogSource("Coop Game Mode");
 
             //Logger = new ManualLogSource(typeof(CoopGame).Name);
             Logger.LogInfo("CoopGame.Create");
@@ -119,6 +121,10 @@ namespace SIT.Core.Coop
 
             //Logger.LogInfo("location.waves");
             //Logger.LogInfo(location.waves.ToJson());
+
+            //Logger.LogInfo("location.BossLocationSpawn");
+            //Logger.LogInfo(location.BossLocationSpawn.ToJson());
+
             WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
             //Logger.LogInfo("spawnWaveArray");
             //Logger.LogInfo(spawnWaveArray.ToJson());
@@ -128,7 +134,7 @@ namespace SIT.Core.Coop
                 (null, new object[] { coopGame, location, coopGame.PBotsController });
             coopGame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);
 
-            location.OldSpawn = true;
+            //location.OldSpawn = true;
             // Waves Scenario setup
             coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
                 (null, new object[] { 
@@ -139,21 +145,22 @@ namespace SIT.Core.Coop
             //Logger.LogInfo("spawn scenario waves");
             //Logger.LogInfo(coopGame.wavesSpawnScenario_0.SpawnWaves.ToJson());
 
-            BossLocationSpawn[] bossSpawnChanges = CoopGame.smethod_7(wavesSettings, location.BossLocationSpawn);
+            coopGame.bossSpawnAdjustments = CoopGame.AdjustBossSpawnParams(wavesSettings, location.BossLocationSpawn);
 
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
-                (null, new object[] { bossSpawnChanges, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
+                (null, new object[] { coopGame.bossSpawnAdjustments, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
+            //(null, new object[] { location.BossLocationSpawn, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
             ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
             coopGame.BossWaveManager = bosswavemanagerValue as BossWaveManager;
 
             coopGame.StartCoroutine(coopGame.ReplicatedWeather());
-            coopGame.StartCoroutine(coopGame.DebugObjects());
+            //coopGame.StartCoroutine(coopGame.DebugObjects());
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
             return coopGame;
         }
 
-
+        BossLocationSpawn[] bossSpawnAdjustments;
 
         public void CreateCoopGameComponent()
         {
@@ -255,8 +262,13 @@ namespace SIT.Core.Coop
         {
             foreach (WildSpawnWave wildSpawnWave in waves)
             {
-                wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 2);
-                wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
+                //Logger.LogInfo(wildSpawnWave.WildSpawnType);
+                wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 0);
+                wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 1);
+
+                wildSpawnWave.time_min = -1;
+                wildSpawnWave.time_max = 5;
+
                 //if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
                 //{
                 //    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
@@ -266,7 +278,7 @@ namespace SIT.Core.Coop
                 //    wildSpawnWave.time_min += 5;
                 //    wildSpawnWave.time_max += 15;
                 //}
-                //wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
+                wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
                 //if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
                 //{
                 //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
@@ -275,6 +287,13 @@ namespace SIT.Core.Coop
                 //{
                 //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
                 //}
+                if ((int)wildSpawnWave.WildSpawnType == 34)
+                {
+                    wildSpawnWave.time_min = -1;
+                    wildSpawnWave.time_max = -1;
+                    wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 1);
+                    wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
+                }
 
                 //wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
 
@@ -282,19 +301,27 @@ namespace SIT.Core.Coop
             return waves;
         }
 
-        private static BossLocationSpawn[] smethod_7(WavesSettings wavesSettings, BossLocationSpawn[] bossLocationSpawn)
+        private static BossLocationSpawn[] AdjustBossSpawnParams(WavesSettings wavesSettings, BossLocationSpawn[] bossLocationSpawn)
         {
-            if (!wavesSettings.IsBosses)
-            {
-                return new BossLocationSpawn[0];
-            }
+            //if (!wavesSettings.IsBosses)
+            //{
+            //    return new BossLocationSpawn[0];
+            //}
+            Logger.LogInfo($"bossLocationSpawn.Length:{bossLocationSpawn.Length}");
             foreach (var wave in bossLocationSpawn)
             {
-                if (wave.BossType == WildSpawnType.pmcBot)
+                //wave.Time = -1;
+                if (wave.BossName == "gifter")
                 {
-                    wave.Delay = -1;
+                    wave.Activated = false;
+                }
+                else
+                {
+                    Logger.LogInfo($"bossLocationSpawn.name:{wave.BossName}");
+                    //wave.Activated = true;
+                    //wave.Time = -1;
+                    //wave.Delay = 0;
                     wave.BossChance = 100;
-                    wave.Activated = true;
                 }
             }
             return bossLocationSpawn;
@@ -323,14 +350,32 @@ namespace SIT.Core.Coop
             {
                 int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
-                LocalPlayer botPlayer
-                    = await LocalPlayer.Create(num, position, Quaternion.identity, "Player", "", EPointOfView.ThirdPerson, profile, true, base.UpdateQueue, EFT.Player.EUpdateMode.Auto, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.BotPlayerMode
-                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                    , new StatisticsManager(), FilterCustomizationClass1.Default, null, false);
+                //LocalPlayer botPlayer
+                //    = await LocalPlayer.Create(num, position, Quaternion.identity, "Player", "", EPointOfView.ThirdPerson, profile, true, base.UpdateQueue, EFT.Player.EUpdateMode.Auto, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.BotPlayerMode
+                //    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+                //    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                //    , new StatisticsManager(), FilterCustomizationClass1.Default, null, false);
+                CoopPlayer botPlayer
+                   = (CoopPlayer)(await CoopPlayer.Create(
+                       num
+                       , position
+                       , Quaternion.identity
+                       , "Player"
+                       , ""
+                       , EPointOfView.ThirdPerson
+                       , profile
+                       , true
+                       , base.UpdateQueue
+                       , EFT.Player.EUpdateMode.Auto
+                       , EFT.Player.EUpdateMode.Auto
+                       , BackendConfigManager.Config.CharacterController.BotPlayerMode
+                   , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+                   , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                    , FilterCustomizationClass1.Default));
                 botPlayer.Location = base.Location_0.Id;
                 if (this.Bots.ContainsKey(botPlayer.ProfileId))
                 {
+                    GameObject.Destroy(botPlayer);
                     return null;
                 }
                 else
@@ -516,6 +561,10 @@ namespace SIT.Core.Coop
             {
                 controllerSettings.BotAmount = EBotAmount.NoBots;
                 Logger.LogDebug("Bot Spawner System has been turned off");
+                //yield return new WaitForEndOfFrame();
+                //Logger.LogInfo("vmethod_4.SessionRun");
+                //CreateExfiltrationPointAndInitDeathHandler();
+                //yield break;
             }
 
             var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0);
@@ -523,21 +572,35 @@ namespace SIT.Core.Coop
             LocalGameBotCreator profileCreator =
                 new LocalGameBotCreator(BackEndSession
                 , this.wavesSpawnScenario_0.SpawnWaves
-                , new BossLocationSpawn[1] { new BossLocationSpawn() { Activated = false } }
+                , bossSpawnAdjustments
                 , nonwaves
-                , false);
+                , true);
             BotCreator botCreator = new BotCreator(this, profileCreator, this.CreatePhysicalBot);
             BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
-            this.PBotsController.Init(this, botCreator, botZones, spawnSystem, this.wavesSpawnScenario_0.BotLocationModifier, controllerSettings.IsEnabled, controllerSettings.IsScavWars, false, false, false, Singleton<GameWorld>.Instance, base.Location_0.OpenZones);
+            this.PBotsController.Init(this
+                , botCreator
+                , botZones
+                , spawnSystem
+                , this.wavesSpawnScenario_0.BotLocationModifier
+                , controllerSettings.IsEnabled
+                , controllerSettings.IsScavWars
+                , true
+                , false
+                , false
+                , Singleton<GameWorld>.Instance
+                , base.Location_0.OpenZones)
+                ;
+
+            Logger.LogInfo($"Location: {Location_0.Name}");
 
             int maxCount = controllerSettings.BotAmount switch
             {
-                EBotAmount.AsOnline => 14,
-                EBotAmount.Low => 14,
-                EBotAmount.Medium => 15,
-                EBotAmount.High => 16,
-                EBotAmount.Horde => 16,
-                _ => 16,
+                EBotAmount.AsOnline => 10,
+                EBotAmount.Low => 11,
+                EBotAmount.Medium => 12,
+                EBotAmount.High => 13,
+                EBotAmount.Horde => 13,
+                _ => 13,
             };
 
             int numberOfBots = shouldSpawnBots ? maxCount : 0;
@@ -553,6 +616,11 @@ namespace SIT.Core.Coop
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
             {
+                this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
+
+                if(this.nonWavesSpawnScenario_0 != null)
+                    this.nonWavesSpawnScenario_0.Run();
+
                 Logger.LogDebug($"Running Wave Scenarios");
 
                 if (this.wavesSpawnScenario_0.SpawnWaves != null && this.wavesSpawnScenario_0.SpawnWaves.Length != 0)
@@ -560,22 +628,43 @@ namespace SIT.Core.Coop
                     Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {this.wavesSpawnScenario_0.SpawnWaves.Length}");
                     this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
                 }
-                else
-                {
-                    this.nonWavesSpawnScenario_0.Run();
-                }
-                this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
+                //else
+                //{
+                //    this.nonWavesSpawnScenario_0.Run();
+                //}
+
+                StartCoroutine(StopBotSpawningAfterTimer());
             }
             else
             {
-                this.wavesSpawnScenario_0.Stop();
-                this.nonWavesSpawnScenario_0.Stop();
-                this.BossWaveManager.Stop();
+                if(this.wavesSpawnScenario_0 != null)
+                    this.wavesSpawnScenario_0.Stop();
+                if(this.nonWavesSpawnScenario_0 != null)
+                    this.nonWavesSpawnScenario_0.Stop();
+                if(this.BossWaveManager != null)
+                    this.BossWaveManager.Stop();
             }
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");
             CreateExfiltrationPointAndInitDeathHandler();
             yield break;
+        }
+
+        private IEnumerator StopBotSpawningAfterTimer()
+        {
+            yield return new WaitForSeconds(180);
+            if (this.wavesSpawnScenario_0 != null)
+            {
+                this.wavesSpawnScenario_0.Stop();
+            }
+
+            if(this.nonWavesSpawnScenario_0 != null)
+            {
+                this.nonWavesSpawnScenario_0.Stop();
+            }
+
+            if(this.BossWaveManager != null)
+                this.BossWaveManager.Stop();
         }
 
         //public override void vmethod_5()
