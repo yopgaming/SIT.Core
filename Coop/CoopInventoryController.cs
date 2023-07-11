@@ -19,6 +19,12 @@ namespace SIT.Core.Coop
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
         }
 
+        protected override void Execute(SearchContentOperation operation, Callback callback)
+        {
+            BepInLogger.LogInfo($"CoopInventoryController: {operation}");
+            base.Execute(operation, callback);
+        }
+
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
         {
             BepInLogger.LogInfo("LoadMagazine");
