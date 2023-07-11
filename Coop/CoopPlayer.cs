@@ -52,7 +52,7 @@ namespace SIT.Core.Coop
                 , profile
                 , inventoryController
                 , new CoopHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, aiControl)
-                , new CoopStatisticsManager()
+                , isYourPlayer ? new StatisticsManagerForPlayer1() : new NullStatisticsManager()
                 , questController
                 , filter
                 , profile.ProfileId.StartsWith("pmc") ? EVoipState.Available : EVoipState.NotAvailable
