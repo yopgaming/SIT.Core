@@ -33,7 +33,7 @@ namespace SIT.Tarkov.Core
         {
             if (!Loggers.ContainsKey(type))
             {
-                Loggers.Add(type, BepInEx.Logging.Logger.CreateLogSource(type.FullName));
+                Loggers.Add(type, BepInEx.Logging.Logger.CreateLogSource(type.Name));
                 Loggers[type].LogEvent += Logger_LogEvent;
 
             }
