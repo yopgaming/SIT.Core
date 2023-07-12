@@ -1,13 +1,16 @@
-﻿using SIT.Core.Coop.NetworkPacket;
+﻿using EFT;
+using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SIT.Core.Coop.Player
 {
@@ -16,6 +19,18 @@ namespace SIT.Core.Coop.Player
         public override Type InstanceType => typeof(MovementContext);
 
         public override string MethodName => "EnableSprint";
+
+        public override void Enable()
+        {
+            base.Enable();
+            Plugin.Instance.StartCoroutine(ContinueSprintingCoroutine());
+        }
+
+        public override void Disable()
+        {
+            base.Disable();
+            Plugin.Instance.StopCoroutine(ContinueSprintingCoroutine());
+        }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
@@ -28,8 +43,32 @@ namespace SIT.Core.Coop.Player
             if (HasProcessed(InstanceType, player, enableSprintPacket))
                 return;
 
+            if (!DesiredReplicatedSprint.ContainsKey(player.Profile.AccountId))
+                DesiredReplicatedSprint.Add(player.Profile.AccountId, enableSprintPacket.Enable);
+
+            DesiredReplicatedSprint[player.Profile.AccountId] = enableSprintPacket.Enable;  
+
             //GetLogger(typeof(MovementContext_EnableSprint_Patch)).LogInfo($"Replicated:Enable:{enableSprintPacket.Enable}");
-            player.Physical.Sprint(enableSprintPacket.Enable);
+            //player.Physical.Sprint(enableSprintPacket.Enable);
+
+        }
+
+        public Dictionary<string, bool> DesiredReplicatedSprint = new();
+
+        public IEnumerator ContinueSprintingCoroutine()
+        {
+            while (true)
+            {
+                if (CoopGameComponent.TryGetCoopGameComponent(out var gameComponent))
+                {
+                    foreach (var kvp in DesiredReplicatedSprint)
+                    {
+                        gameComponent.Players[kvp.Key].Physical.Sprint(kvp.Value);
+                    }
+                }
+                yield return new WaitForFixedUpdate();
+
+            }
         }
 
         protected override MethodBase GetTargetMethod()
