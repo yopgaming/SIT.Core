@@ -58,10 +58,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
 
-            foreach (var item in ammoPack.GetReloadingAmmoIds())
-            {
-                Logger.LogInfo($"FirearmController_ReloadWithAmmo_Patch:PostPatch:{item}");
-            }
+            //foreach (var item in ammoPack.GetReloadingAmmoIds())
+            //{
+            //    Logger.LogInfo($"FirearmController_ReloadWithAmmo_Patch:PostPatch:{item}");
+            //}
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
@@ -77,7 +77,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
+            //Logger.LogInfo("FirearmController_ReloadMag_Patch:Replicated");
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {

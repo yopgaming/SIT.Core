@@ -24,30 +24,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public static List<string> CallLocally = new();
 
-
-        //[PatchPrefix]
-        //public static bool PrePatch(EFT.Player.FirearmController __instance, EFT.Player ____player)
-        //{
-        //    //if(IsHighPingOrAI(____player))
-        //    //{
-        //    //    return true;
-        //    //}
-
-        //    ////return true;
-        //    //var player = ____player;
-        //    //if (player == null)
-        //    //    return false;
-
-        //    //var result = false;
-        //    //if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
-        //    //    result = true;
-
-        //    ////Logger.LogInfo("FirearmController_ReloadMag_Patch:PrePatch");
-
-        //    //return result;
-        //    return true;
-        //}
-
         [PatchPostfix]
         public static void PostPatch(
             EFT.Player.FirearmController __instance
@@ -87,7 +63,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "m", "ReloadMag" }
             };
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary, true);
-            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogInfo("FirearmController_ReloadMag_Patch:PostPatch");
+            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch:PostPatch");
 
             // ---------------------------------------------------------------------------------------------------------------------
             // Note. If the player is AI or High Ping. Stop the loop caused by the sent packet above
@@ -101,7 +77,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogInfo("FirearmController_ReloadMag_Patch:Replicated");
+            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch:Replicated");
 
             if (HasProcessed(GetType(), player, dict))
             {
@@ -109,7 +85,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogInfo("FirearmController_ReloadMag_Patch:Replicated. Doing things!");
+            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch:Replicated. Doing things!");
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
@@ -151,7 +127,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             while (!firearmCont.CanStartReload())
             {
                 yield return new WaitForSeconds(1);
-                GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogInfo($"{player.ProfileId} can't reload!");
+                //GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} can't reload!");
                 yield return new WaitForEndOfFrame();
             }
 
@@ -171,7 +147,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
             }
             var inventoryController = ItemFinder.GetPlayerInventoryController(player);
-            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogInfo("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
+            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
 
             //if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
             {
