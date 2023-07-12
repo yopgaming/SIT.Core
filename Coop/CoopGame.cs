@@ -267,7 +267,7 @@ namespace SIT.Core.Coop
                 wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 1);
 
                 wildSpawnWave.time_min = -1;
-                wildSpawnWave.time_max = 5;
+                //wildSpawnWave.time_max = 5;
 
                 //if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
                 //{
@@ -287,13 +287,13 @@ namespace SIT.Core.Coop
                 //{
                 //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
                 //}
-                if ((int)wildSpawnWave.WildSpawnType == 34)
-                {
-                    wildSpawnWave.time_min = -1;
-                    wildSpawnWave.time_max = -1;
-                    wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 1);
-                    wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
-                }
+                //if ((int)wildSpawnWave.WildSpawnType == 34)
+                //{
+                //    wildSpawnWave.time_min = -1;
+                //    wildSpawnWave.time_max = -1;
+                //    wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 1);
+                //    wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
+                //}
 
                 //wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
 
@@ -308,22 +308,22 @@ namespace SIT.Core.Coop
             //    return new BossLocationSpawn[0];
             //}
             Logger.LogInfo($"bossLocationSpawn.Length:{bossLocationSpawn.Length}");
-            foreach (var wave in bossLocationSpawn)
-            {
-                //wave.Time = -1;
-                if (wave.BossName == "gifter")
-                {
-                    wave.Activated = false;
-                }
-                else
-                {
-                    Logger.LogInfo($"bossLocationSpawn.name:{wave.BossName}");
-                    //wave.Activated = true;
-                    //wave.Time = -1;
-                    //wave.Delay = 0;
-                    wave.BossChance = 100;
-                }
-            }
+            //foreach (var wave in bossLocationSpawn)
+            //{
+            //    //wave.Time = -1;
+            //    if (wave.BossName == "gifter")
+            //    {
+            //        wave.Activated = false;
+            //    }
+            //    else
+            //    {
+            //        Logger.LogInfo($"bossLocationSpawn.name:{wave.BossName}");
+            //        //wave.Activated = true;
+            //        //wave.Time = -1;
+            //        //wave.Delay = 0;
+            //        wave.BossChance = 100;
+            //    }
+            //}
             return bossLocationSpawn;
         }
 
@@ -335,7 +335,8 @@ namespace SIT.Core.Coop
                 return null;
 
             Logger.LogDebug($"CreatePhysicalBot: {profile.ProfileId}");
-
+            if (Bots != null && Bots.Count(x => x.Value != null && x.Value.PlayerHealthController.IsAlive) >= MaxBotCount)
+                return null;
 
             LocalPlayer localPlayer;
             if (!base.Status.IsRunned())
@@ -394,91 +395,10 @@ namespace SIT.Core.Coop
             return await LocalPlayer.Create(playerId, position, rotation, "Player", "", EPointOfView.FirstPerson, profile, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new StatisticsManagerForPlayer1(), new FilterCustomizationClass(), questController, isYourPlayer: true);
         }
 
-
-        /// <summary>
-        /// TODO: get this working to replace "method_3" requirement
-        /// </summary>
-        /// <param name="botsSettings"></param>
-        /// <param name="backendUrl"></param>
-        /// <param name="inventoryController"></param>
-        /// <param name="runCallback"></param>
-        /// <returns></returns>
-        //public async Task CreatePlayerToStartMatch(BotControllerSettings botsSettings, string backendUrl, InventoryController inventoryController, Callback runCallback)
-        //{
-        //    base.Status = GameStatus.Running;
-
-        //    // Why does it do this?!
-        //    UnityEngine.Random.InitState((int)GClass1251.Now.Ticks);
-        //    LocationSettings.Location location;
-        //    if (Location_0.IsHideout)
-        //    {
-        //        location = Location_0;
-        //    }
-        //    else
-        //    {
-        //        int variantId = UnityEngine.Random.Range(1, 6);
-        //        method_5(backendUrl, Location_0.Id, variantId);
-        //        location = await ginterface127_0.LoadLocationLoot(Location_0.Id, variantId);
-        //    }
-
-        //    SpawnPoints spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, location.SpawnPointParams);
-        //    int spawnSafeDistance = ((location.SpawnSafeDistanceMeters > 0) ? location.SpawnSafeDistanceMeters : 100);
-        //    SpawnSystemSettings settings = new SpawnSystemSettings(location.MinDistToFreePoint, location.MaxDistToFreePoint, location.MaxBotPerZone, spawnSafeDistance);
-        //    ISpawnSystem spawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, gclass1410_0, spawnPoints);
-
-        //    BackendConfigManagerConfig config = BackendConfigManager.Config;
-        //    if (config.FixedFrameRate > 0f)
-        //    {
-        //        base.FixedDeltaTime = 1f / config.FixedFrameRate;
-        //    }
-
-        //    using (GClass21.StartWithToken("player create"))
-        //    {
-        //        EFT.Player player = await CreatePlayerAtPoint(location, inventoryController, spawnSystem);
-        //        dictionary_0.Add(player.ProfileId, player);
-        //        gparam_0 = func_1(player);
-        //        PlayerCameraController.Create(gparam_0.Player);
-        //        //GClass1941.Instance.SetOcclusionCullingEnabled(Location_0.OcculsionCullingEnabled);
-        //        //GClass1941.Instance.IsActive = false;
-        //    }
-        //    await method_10(location, delegate
-        //    {
-        //        method_4(botsSettings, spawnSystem, runCallback);
-        //    });
-        //}
-
         public string InfiltrationPoint;
-
-        //public async Task<EFT.Player> CreatePlayerAtPoint(
-        //    LocationSettings.Location location
-        //    , InventoryController inventoryController
-        //    , ISpawnSystem spawnSystem)
-        //{
-
-        //    ISpawnPoint spawnPoint = spawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
-        //    InfiltrationPoint = spawnPoint.Infiltration;
-        //    if (inventoryController == null)
-        //    {
-        //        inventoryController = new InventoryController(Profile_0, examined: true);
-        //    }
-        //    QuestController questController = new QuestController(Profile_0, inventoryController, ginterface127_0, fromServer: true);
-        //    questController.Run();
-        //    EFT.Player.EUpdateMode armsUpdateMode = EFT.Player.EUpdateMode.Auto;
-        //    if (BackendConfigManager.Config.UseHandsFastAnimator)
-        //    {
-        //        armsUpdateMode = EFT.Player.EUpdateMode.Manual;
-        //    }
-        //    LocalPlayer obj = await vmethod_2(1, spawnPoint.Position, spawnPoint.Rotation, "Player", "", EPointOfView.FirstPerson, Profile_0, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new StatisticsManagerForPlayer1(), questController);
-        //    obj.Location = Location_0.Id;
-        //    obj.OnEpInteraction += base.OnEpInteraction;
-        //    return obj;
-        //}
-
 
         public override void vmethod_0()
         {
-            //gclass656_0 = (GClass656)ReflectionHelpers.GetAllMethodsForType(typeof(GClass656))
-            //    .FirstOrDefault(x => x.IsConstructor).Invoke(null, new object[] { LoggerMode.None, dictionary_0, Bots });
         }
 
         /// <summary>
@@ -512,7 +432,7 @@ namespace SIT.Core.Coop
         /// <returns></returns>
         public override Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
         {
-            Logger.LogInfo("Creating CoopPlayer!");
+            //Logger.LogInfo("Creating CoopPlayer!");
             profile.SetSpawnedInSession(value: false);
             return CoopPlayer
                 .Create(
@@ -554,17 +474,13 @@ namespace SIT.Core.Coop
         /// <returns></returns>
         public override IEnumerator vmethod_4(float startDelay, BotControllerSettings controllerSettings, ISpawnSystem spawnSystem, Callback runCallback)
         {
-            Logger.LogDebug("vmethod_4");
+            //Logger.LogDebug("vmethod_4");
 
             var shouldSpawnBots = !MatchmakerAcceptPatches.IsClient && PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem;
             if (!shouldSpawnBots)
             {
                 controllerSettings.BotAmount = EBotAmount.NoBots;
                 Logger.LogDebug("Bot Spawner System has been turned off");
-                //yield return new WaitForEndOfFrame();
-                //Logger.LogInfo("vmethod_4.SessionRun");
-                //CreateExfiltrationPointAndInitDeathHandler();
-                //yield break;
             }
 
             var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0);
@@ -593,7 +509,7 @@ namespace SIT.Core.Coop
 
             Logger.LogInfo($"Location: {Location_0.Name}");
 
-            int maxCount = controllerSettings.BotAmount switch
+            MaxBotCount = controllerSettings.BotAmount switch
             {
                 EBotAmount.AsOnline => 10,
                 EBotAmount.Low => 11,
@@ -603,8 +519,8 @@ namespace SIT.Core.Coop
                 _ => 13,
             };
 
-            int numberOfBots = shouldSpawnBots ? maxCount : 0;
-            Logger.LogDebug($"vmethod_4: Number of Bots: {numberOfBots}");
+            int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
+            //Logger.LogDebug($"vmethod_4: Number of Bots: {numberOfBots}");
 
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
@@ -751,6 +667,7 @@ namespace SIT.Core.Coop
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
         public string MyExitLocation { get; set; } = null;
         private ISpawnSystem SpawnSystem { get; set; }
+        public int MaxBotCount { get; private set; }
 
         private void HealthController_DiedEvent(EDamageType obj)
         {
