@@ -219,8 +219,6 @@ namespace SIT.Core
             new CoreDifficultyPatch().Enable();
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
-            new FillCreationDataWithProfilesPatch().Enable();
-            new BotCreatorOptimizePatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
             new IsPlayerEnemyPatch().Enable();
             new IsPlayerEnemyByRolePatch().Enable();
