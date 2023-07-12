@@ -150,8 +150,20 @@ namespace SIT.Core.Coop.Player
             {
                 if (playerReplicatedComponent.IsClientDrone)
                 {
-                    if(playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
-                        player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
+                    if (playerMovePacket.pX != 0 && playerMovePacket.pY != 0 && playerMovePacket.pZ != 0)
+                    {
+                        //player.Teleport(new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ));
+                        var ReplicatedPosition = new Vector3(playerMovePacket.pX, playerMovePacket.pY, playerMovePacket.pZ);
+                        var replicationDistance = Vector3.Distance(ReplicatedPosition, player.Position);
+                        if (replicationDistance >= 3)
+                        {
+                            player.Teleport(ReplicatedPosition, true);
+                        }
+                        else
+                        {
+                            player.Position = Vector3.Lerp(player.Position, ReplicatedPosition, Time.deltaTime * 7);
+                        }
+                    }
 
                     UnityEngine.Vector2 direction = new UnityEngine.Vector2(playerMovePacket.dX, playerMovePacket.dY);
                     float spd = playerMovePacket.spd;
