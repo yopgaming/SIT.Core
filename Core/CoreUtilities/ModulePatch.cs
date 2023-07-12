@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace SIT.Tarkov.Core
 {
-    public abstract class ModulePatch
+    public abstract class ModulePatch : IDisposable
     {
         private readonly Harmony _harmony;
         //private static Harmony _harmony;
@@ -17,6 +17,7 @@ namespace SIT.Tarkov.Core
         private readonly List<HarmonyMethod> _transpilerList;
         private readonly List<HarmonyMethod> _finalizerList;
         private readonly List<HarmonyMethod> _ilmanipulatorList;
+        private bool disposedValue;
 
         private static Dictionary<Type, ManualLogSource> Loggers { get; } = new();
 
@@ -179,6 +180,28 @@ namespace SIT.Tarkov.Core
             {
                 throw new Exception($"{GetType().Name}:", ex);
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
