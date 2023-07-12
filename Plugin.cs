@@ -69,7 +69,7 @@ namespace SIT.Core
 
                 if(!string.IsNullOrEmpty(EFTVersionMajor))
                 {
-                    Logger.LogInfo(EFTVersionMajor);
+                    Logger.LogInfo("Version Check: Detected:" + EFTVersionMajor);
                     if (EFTVersionMajor.Split('.').Length > 4)
                     {
                         var majorN1 = EFTVersionMajor.Split('.')[0]; // 0
@@ -77,6 +77,15 @@ namespace SIT.Core
                         var majorN3 = EFTVersionMajor.Split('.')[2]; // 1
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
+
+                        if(majorN1 != "0" && majorN2 != "13" && majorN3 != "1" && majorN4 != "1")
+                        {
+                            Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
+                        }
+                        else
+                        {
+                            Logger.LogInfo("Version Check: OK.");
+                        }
                     }
 
                     yield break;
@@ -257,7 +266,7 @@ namespace SIT.Core
             {
                 PatchConstants.CharacterControllerSettings.CharacterControllerInstance
                     = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
-                Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
+                //Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
             }
 
             if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
