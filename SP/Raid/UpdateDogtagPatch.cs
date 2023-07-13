@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -16,9 +17,12 @@ namespace SIT.Core.SP.Raid
         protected override MethodBase GetTargetMethod() => ReflectionHelpers.GetMethodForType(typeof(Player), "OnBeenKilledByAggressor");
 
         [PatchPostfix]
-        public static void PatchPostfix(Player __instance, Player aggressor, object damageInfo)
+        public static void PatchPostfix(Player __instance, Player aggressor, DamageInfo damageInfo)
         {
             if (__instance.Profile.Info.Side == EPlayerSide.Savage)
+                return;
+
+            if (__instance.ProfileId == Singleton<GameWorld>.Instance.MainPlayer.ProfileId)
                 return;
 
             Item dogtagItem = GetDogtagItem(__instance);
@@ -38,7 +42,7 @@ namespace SIT.Core.SP.Raid
             var victimProfileInfo = __instance.Profile.Info;
 
             dogTagComponent.AccountId = __instance.Profile.AccountId;
-            dogTagComponent.ProfileId = __instance.Profile.Id;
+            dogTagComponent.ProfileId = __instance.ProfileId;
             dogTagComponent.Nickname = victimProfileInfo.Nickname;
             dogTagComponent.Side = victimProfileInfo.Side;
             dogTagComponent.KillerName = aggressor.Profile.Info.Nickname;
@@ -46,6 +50,7 @@ namespace SIT.Core.SP.Raid
             dogTagComponent.Status = "Killed by ";
             dogTagComponent.KillerAccountId = aggressor.Profile.AccountId;
             dogTagComponent.KillerProfileId = aggressor.Profile.Id;
+            dogTagComponent.WeaponName = damageInfo.Weapon.Name;
 
             if (__instance.Profile.Info.Experience > 0)
                 dogTagComponent.Level = victimProfileInfo.Level;
