@@ -249,13 +249,30 @@ namespace SIT.Core.Core
             return Instance;
         }
 
+        public static bool DEBUGPACKETS { get; } = false;
+
         public BlockingCollection<string> PooledJsonToPost { get; } = new();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
 
-        public void SendDataToPool(string json)
+        public void SendDataToPool(string serializedData)
         {
-            PooledJsonToPost.Add(json);
+            // ------------------------------------------------------------------------------------
+            // DEBUG: This is a sanity check to see if we are flooding packets.
+            if (DEBUGPACKETS) 
+            {
+                if (PooledJsonToPost.Count() >= 11)
+                {
+                    Logger.LogError("Holy moly. There is too much data being OUTPUT from this client!");
+                    while (PooledJsonToPost.Any())
+                    {
+                        if (PooledJsonToPost.TryTake(out var item, -1))
+                            Logger.LogError($"{item}");
+                    }
+                    //Application.Quit();
+                }
+            }
+            PooledJsonToPost.Add(serializedData);
         }
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
