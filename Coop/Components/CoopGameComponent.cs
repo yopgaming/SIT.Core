@@ -1182,7 +1182,7 @@ namespace SIT.Core.Coop
             // --- Positional 
             dictPlayerState.Add("pose", player.MovementContext.PoseLevel);
             //dictPlayerState.Add("spd", player.MovementContext.CharacterMovementSpeed);
-            //dictPlayerState.Add("spr", player.MovementContext.IsSprintEnabled);
+            dictPlayerState.Add("spr", player.Physical.Sprinting);
             //if (player.MovementContext.IsSprintEnabled)
             //{
             //    prc.ReplicatedDirection = new Vector2(1, 0);
@@ -1194,10 +1194,10 @@ namespace SIT.Core.Coop
             
             dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
             // ---------- 
-            dictPlayerState.Add("phys.hs.current", player.Physical.HandsStamina.Current);
-            dictPlayerState.Add("phys.hs.total", player.Physical.HandsStamina.TotalCapacity.Value);
-            dictPlayerState.Add("phys.s.current", player.Physical.Stamina.Current);
-            dictPlayerState.Add("phys.s.total", player.Physical.Stamina.TotalCapacity.Value);
+            dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
+            dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
+            dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
+            dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
             //
             if (prc.ReplicatedDirection.HasValue)
             {
@@ -1266,6 +1266,7 @@ namespace SIT.Core.Coop
         private bool ServerHasStoppedActioned { get; set; }
 
         GUIStyle middleLabelStyle;
+        GUIStyle middleLargeLabelStyle;
         GUIStyle normalLabelStyle;
 
         void OnGUI()
@@ -1279,8 +1280,14 @@ namespace SIT.Core.Coop
             if (middleLabelStyle == null)
             {
                 middleLabelStyle = new GUIStyle(GUI.skin.label);
-                middleLabelStyle.fontSize = 24;
+                middleLabelStyle.fontSize = 18;
                 middleLabelStyle.fontStyle = FontStyle.Bold;
+                middleLabelStyle.alignment = TextAnchor.MiddleCenter;
+            }
+            if (middleLargeLabelStyle == null)
+            {
+                middleLargeLabelStyle = new GUIStyle(middleLabelStyle);
+                middleLargeLabelStyle.fontSize = 24;
             }
 
             var rect = new Rect(GuiX, 5, GuiWidth, 100);
@@ -1351,19 +1358,23 @@ namespace SIT.Core.Coop
             switch (quitState)
             {
                 case EQuitState.YourTeamIsDead:
-                    GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLabelStyle);
+                    //GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle);
+                    if(GUI.Button(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle))
+                    {
+
+                    }
                     break;
                 case EQuitState.YouAreDead:
-                    GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
                     break;
                 case EQuitState.YourTeamHasExtracted:
-                    GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsHost:
-                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsClient:
-                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
                     break;
             }
 
@@ -1379,25 +1390,35 @@ namespace SIT.Core.Coop
 
 
             OnGUI_DrawPlayerList(rect);
+            OnGUI_DrawPlayerFriendlyTags(rect);
 
+        }
+
+        private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
+        {
             if (PlayerUsers != null)
             {
                 if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
                     screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
+                var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
                 foreach (var pl in PlayerUsers)
                 {
+                    if (pl.IsYourPlayer)
+                        continue;
+
                     Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * 1.5f);
                     Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
                     if (screenPos.z > 0)
                     {
-                        rect.x = screenPos.x * screenScale;
+                        rect.x = (screenPos.x * screenScale) - (rect.width / 2);
                         rect.y = Screen.height - (screenPos.y * screenScale);
-                        GUI.Label(rect, $"{pl.Profile.Nickname}", normalLabelStyle);
+
+                        var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
+                        GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
                     }
                 }
             }
-
         }
 
         private void OnGUI_DrawPlayerList(Rect rect)
