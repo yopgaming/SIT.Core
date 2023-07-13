@@ -5,7 +5,6 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -51,7 +50,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             Dictionary<string, object> gridAddressDict = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(gridItemAddress, ref gridAddressDict);
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            Dictionary<string, object> dictionary = new()
             {
                 { "fa.id", __instance.Item.Id },
                 { "fa.tpl", __instance.Item.TemplateId },
@@ -72,7 +71,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             //}
         }
 
-        
+
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
@@ -100,7 +99,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     var magItemId = dict["mg.id"].ToString();
                     if (ItemFinder.TryFindItemOnPlayer(player, magTemplateId, magItemId, out var magazine))
                     {
-                        try 
+                        try
                         {
                             firearmCont.StartCoroutine(Reload(player, firearmCont, gridAddressGrid, gridAddressSlot, magAddressGrid, magAddressSlot, (MagazineClass)magazine));
                         }
@@ -143,14 +142,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, (MagazineClass)magazine
 
-                , () => 
+                , () =>
                 {
                     GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
                     ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
                     firearmCont.StopCoroutine(nameof(Reload));
                 }
-                , () => { 
-                    
+                , () =>
+                {
+
                     if (ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine))
                     {
                         firearmCont.StopCoroutine(nameof(Reload));
@@ -182,37 +182,37 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
 
 
-                StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
-                if (grid == null)
-                {
-                    //Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
-                    return false;
-                }
+            StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
+            if (grid == null)
+            {
+                //Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
+                return false;
+            }
 
-                if (!CallLocally.Contains(player.ProfileId))
-                    CallLocally.Add(player.ProfileId);
+            if (!CallLocally.Contains(player.ProfileId))
+                CallLocally.Add(player.ProfileId);
 
-                try
+            try
+            {
+                firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) =>
                 {
-                    firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) =>
+                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
+                    if (IResult.Failed)
                     {
-                        GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
-                        if(IResult.Failed)
-                        {
-                            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:IResult:Error:{IResult.Error}");
-                            failureCallback();
-                        }
-                        else
-                        {
-                            successCallback();
-                        }
-                    });
-                }
-                catch (Exception ex)
-                {
-                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
-                    return false;
-                }
+                        GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:IResult:Error:{IResult.Error}");
+                        failureCallback();
+                    }
+                    else
+                    {
+                        successCallback();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
+                return false;
+            }
 
             return true;
         }

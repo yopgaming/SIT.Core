@@ -58,7 +58,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             foreach (var light in lightsStates)
             {
-                LightStatePacket lightStatePacket = new LightStatePacket(light.Id, light.IsActive, light.LightMode, player.Profile.AccountId);
+                LightStatePacket lightStatePacket = new(light.Id, light.IsActive, light.LightMode, player.Profile.AccountId);
                 AkiBackendCommunication.Instance.SendDataToPool(lightStatePacket.Serialize());
             }
 

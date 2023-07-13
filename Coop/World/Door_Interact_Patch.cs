@@ -109,7 +109,7 @@ namespace SIT.Core.Coop.World
 
             //Logger.LogDebug($"Door_Interact_Patch:Postfix:Door Id:{__instance.Id}");
 
-            Dictionary<string, object> packet = new Dictionary<string, object>
+            Dictionary<string, object> packet = new()
             {
                 { "t", DateTime.Now.Ticks.ToString("G") },
                 { "serverId", CoopGameComponent.GetServerId() },

@@ -7,7 +7,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
 {
     public class HealthListener
     {
-        private static object _lock = new object();
+        private static object _lock = new();
         private static HealthListener _instance = null;
         public object MyHealthController { get; set; }
 

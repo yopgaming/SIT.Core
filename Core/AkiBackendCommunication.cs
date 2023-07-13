@@ -259,7 +259,7 @@ namespace SIT.Core.Core
         {
             // ------------------------------------------------------------------------------------
             // DEBUG: This is a sanity check to see if we are flooding packets.
-            if (DEBUGPACKETS) 
+            if (DEBUGPACKETS)
             {
                 if (PooledJsonToPost.Count() >= 11)
                 {
@@ -302,7 +302,7 @@ namespace SIT.Core.Core
                 //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
 
                 //while (m_Instance != null)
-                Stopwatch swPing = new Stopwatch();
+                Stopwatch swPing = new();
 
                 while (true)
                 {

@@ -90,7 +90,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             LastPress[player.ProfileId] = pressed;
 
-            TriggerPressedPacket triggerPressedPacket = new TriggerPressedPacket();
+            TriggerPressedPacket triggerPressedPacket = new();
             triggerPressedPacket.AccountId = player.Profile.AccountId;
             triggerPressedPacket.pr = pressed;
             if (pressed)

@@ -55,7 +55,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            TogglablePacket togglablePacket = new TogglablePacket(___profile_0.AccountId, togglable.Item.Id, togglable.Item.TemplateId, "PlayerInventoryController_ToggleItem", togglable.Item.Parent.Item.Id);
+            TogglablePacket togglablePacket = new(___profile_0.AccountId, togglable.Item.Id, togglable.Item.TemplateId, "PlayerInventoryController_ToggleItem", togglable.Item.Parent.Item.Id);
             var serialized = togglablePacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
@@ -68,7 +68,7 @@ namespace SIT.Core.Coop.Player
             taskScheduler.Do((s) =>
             {
 
-                TogglablePacket itemPacket = new TogglablePacket(null, null, null, null, null);
+                TogglablePacket itemPacket = new(null, null, null, null, null);
 
                 if (dict.ContainsKey("data"))
                 {

@@ -103,6 +103,6 @@ namespace DrakiaXYZ.Waypoints.BrainLogic
             ProcessLookAtPoints.Update(BotOwner);
         }
 
-        private AIProcessLookAtPoints ProcessLookAtPoints = new AIProcessLookAtPoints();
+        private AIProcessLookAtPoints ProcessLookAtPoints = new();
     }
 }

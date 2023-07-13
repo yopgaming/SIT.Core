@@ -58,8 +58,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            LoadMagazinePacket itemPacket = new LoadMagazinePacket
-                (___profile_0.AccountId, sourceAmmo.Id, sourceAmmo.TemplateId, magazine.Id, magazine.TemplateId
+            LoadMagazinePacket itemPacket = new(___profile_0.AccountId, sourceAmmo.Id, sourceAmmo.TemplateId, magazine.Id, magazine.TemplateId
                 , loadCount > 0 ? loadCount : sourceAmmo.StackObjectsCount
                 , ignoreRestrictions);
 
@@ -77,7 +76,7 @@ namespace SIT.Core.Coop.Player
             {
                 //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated");
 
-                LoadMagazinePacket itemPacket = new LoadMagazinePacket(null, null, null, null, null, 0, false);
+                LoadMagazinePacket itemPacket = new(null, null, null, null, null, 0, false);
 
                 if (dict.ContainsKey("data"))
                 {

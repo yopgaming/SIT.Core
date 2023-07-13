@@ -91,7 +91,7 @@ namespace SIT.Coop.Core.LocalGame
 
             if (!MatchmakerAcceptPatches.IsClient)
             {
-                Dictionary<string, object> packet = new Dictionary<string, object>
+                Dictionary<string, object> packet = new()
                 {
                     { "m", "timeAndWeather" },
                     { "t", DateTime.Now.Ticks.ToString("G") },
@@ -126,7 +126,7 @@ namespace SIT.Coop.Core.LocalGame
             var position = player.Transform.position;
             if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
             {
-                Dictionary<string, object> packet = new Dictionary<string, object>
+                Dictionary<string, object> packet = new()
                 {
                     {
                         "m",

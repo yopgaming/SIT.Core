@@ -54,7 +54,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
                     DisplayMessageNotifications.DisplayMessageNotification($"{deadPlayer.Profile.Nickname} has died by {damageType}");
             }
 
-            Dictionary<string, object> packet = new Dictionary<string, object>
+            Dictionary<string, object> packet = new()
             {
                 { "diedAID", __instance.Profile.AccountId }
             };

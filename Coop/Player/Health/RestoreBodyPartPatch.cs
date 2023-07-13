@@ -51,7 +51,7 @@ namespace SIT.Core.Coop.Player.Health
             }
 
 
-            RestoreBodyPartPacket restoreBodyPartPacket = new RestoreBodyPartPacket();
+            RestoreBodyPartPacket restoreBodyPartPacket = new();
             restoreBodyPartPacket.AccountId = player.Profile.AccountId;
             restoreBodyPartPacket.BodyPart = bodyPart;
             restoreBodyPartPacket.HealthPenalty = healthPenalty;

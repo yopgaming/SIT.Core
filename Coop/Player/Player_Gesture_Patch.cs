@@ -50,7 +50,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new();
             dictionary.Add("g", gesture.ToString());
             dictionary.Add("m", "Gesture");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);

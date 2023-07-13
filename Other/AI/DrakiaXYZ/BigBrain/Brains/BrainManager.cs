@@ -32,10 +32,10 @@ namespace DrakiaXYZ.BigBrain.Brains
 
         private static int _currentLayerId = START_LAYER_ID;
 
-        internal Dictionary<int, LayerInfo> CustomLayers = new Dictionary<int, LayerInfo>();
-        internal Dictionary<Type, int> CustomLogics = new Dictionary<Type, int>();
-        internal List<Type> CustomLogicList = new List<Type>();
-        internal List<ExcludeLayerInfo> ExcludeLayers = new List<ExcludeLayerInfo>();
+        internal Dictionary<int, LayerInfo> CustomLayers = new();
+        internal Dictionary<Type, int> CustomLogics = new();
+        internal List<Type> CustomLogicList = new();
+        internal List<ExcludeLayerInfo> ExcludeLayers = new();
 
         private static MethodInfo _activeLayerGetter = AccessTools.PropertyGetter(typeof(AbstractBaseBrain).BaseType, "GClass28_0");
         private static FieldInfo _strategyField = AccessTools.Field(typeof(AICoreLogicAgentClass), "gclass216_0");

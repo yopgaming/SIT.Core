@@ -28,7 +28,7 @@ namespace SIT.Tarkov.Core
             Bundles = new Dictionary<string, BundleInfo>();
 
             // Ensure directories exist
-            if(!Directory.Exists("user"))
+            if (!Directory.Exists("user"))
                 Directory.CreateDirectory("user");
 
             if (!Directory.Exists("user/cache"))

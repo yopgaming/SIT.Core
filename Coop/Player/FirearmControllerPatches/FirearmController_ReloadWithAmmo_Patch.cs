@@ -63,7 +63,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             //    Logger.LogInfo($"FirearmController_ReloadWithAmmo_Patch:PostPatch:{item}");
             //}
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            Dictionary<string, object> dictionary = new()
             {
                 { "ammo", ammoPack.GetReloadingAmmoIds().ToJson() },
                 { "m", "ReloadWithAmmo" }
@@ -84,7 +84,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 try
                 {
                     var ammoIds = dict["ammo"].ToString().ParseJsonTo<string[]>();
-                    List<BulletClass> list = new List<BulletClass>();
+                    List<BulletClass> list = new();
                     foreach (string text in ammoIds)
                     {
                         var findItem = player.FindItemById(text, false, true);
@@ -102,7 +102,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     if (!CallLocally.ContainsKey(player.Profile.AccountId))
                         CallLocally.Add(player.Profile.AccountId, true);
 
-                    AmmoPack ammoPack = new AmmoPack(list);
+                    AmmoPack ammoPack = new(list);
                     firearmCont.ReloadWithAmmo(ammoPack, (c) => { });
                 }
                 catch (Exception e)

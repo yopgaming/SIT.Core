@@ -10,7 +10,6 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using UnityEngine;
 
 namespace SIT.Coop.Core.Player
@@ -121,10 +120,10 @@ namespace SIT.Coop.Core.Player
                 // Rotation
                 if (packet.ContainsKey("rX") && packet.ContainsKey("rY"))
                 {
-                        Vector2 packetRotation = new Vector2(
-                    float.Parse(packet["rX"].ToString())
-                    , float.Parse(packet["rY"].ToString())
-                    );
+                    Vector2 packetRotation = new(
+                float.Parse(packet["rX"].ToString())
+                , float.Parse(packet["rY"].ToString())
+                );
                     //player.Rotation = packetRotation;
                     ReplicatedRotation = packetRotation;
                 }
@@ -137,7 +136,7 @@ namespace SIT.Coop.Core.Player
                 }
 
                 // Position
-                Vector3 packetPosition = new Vector3(
+                Vector3 packetPosition = new(
                     float.Parse(packet["pX"].ToString())
                     , float.Parse(packet["pY"].ToString())
                     , float.Parse(packet["pZ"].ToString())
@@ -148,7 +147,7 @@ namespace SIT.Coop.Core.Player
                 // Move / Direction
                 if (packet.ContainsKey("dX") && packet.ContainsKey("dY"))
                 {
-                    Vector2 packetDirection = new Vector2(
+                    Vector2 packetDirection = new(
                     float.Parse(packet["dX"].ToString())
                     , float.Parse(packet["dY"].ToString())
                     );
@@ -229,7 +228,7 @@ namespace SIT.Coop.Core.Player
             //        IsSprinting = false;
             //        player.MovementContext.PlayerAnimatorEnableSprint(false);
 
-        //}
+            //}
         }
 
         private void ProcessPlayerStateProne(Dictionary<string, object> packet)
@@ -255,7 +254,7 @@ namespace SIT.Coop.Core.Player
         private void ShouldTeleport(Vector3 desiredPosition)
         {
             var direction = (player.Position - desiredPosition).normalized;
-            Ray ray = new Ray(player.Position, direction);
+            Ray ray = new(player.Position, direction);
             LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
         }
 
@@ -264,7 +263,7 @@ namespace SIT.Coop.Core.Player
             if (!IsClientDrone)
                 return;
 
-            if(ShouldSprint)
+            if (ShouldSprint)
             {
                 player.Physical.Sprint(ShouldSprint);
             }
@@ -305,7 +304,7 @@ namespace SIT.Coop.Core.Player
             if (IsClientDrone)
                 return;
 
-            
+
         }
 
 

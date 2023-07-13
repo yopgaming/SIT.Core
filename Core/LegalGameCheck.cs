@@ -18,7 +18,7 @@ namespace SIT.Core.Core
             //byte[] w2 = new byte[23] { 78, 111, 32, 79, 102, 102, 105, 99, 105, 97, 108, 32, 71, 97, 109, 101, 32, 70, 111, 117, 110, 100, 33 };
             try
             {
-                List<byte[]> varList = new List<byte[]>() {
+                List<byte[]> varList = new() {
                     //Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\EscapeFromTarkov
                     new byte[80] { 83, 111, 102, 116, 119, 97, 114, 101, 92, 87, 111, 119, 54, 52, 51, 50, 78, 111, 100, 101, 92, 77, 105, 99, 114, 111, 115, 111, 102, 116, 92, 87, 105, 110, 100, 111, 119, 115, 92, 67, 117, 114, 114, 101, 110, 116, 86, 101, 114, 115, 105, 111, 110, 92, 85, 110, 105, 110, 115, 116, 97, 108, 108, 92, 69, 115, 99, 97, 112, 101, 70, 114, 111, 109, 84, 97, 114, 107, 111, 118 },
                     //InstallLocation
@@ -46,7 +46,7 @@ namespace SIT.Core.Core
                         {
                             if (LC2B(gamefilepath))
                             {
-                                if(LC3C(gamefilepath))
+                                if (LC3C(gamefilepath))
                                 {
                                     PatchConstants.Logger.LogInfo("Legal Game Found. Thanks for supporting BSG!");
                                     return true;

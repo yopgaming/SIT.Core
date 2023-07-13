@@ -29,7 +29,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static GClass1708;
 
 namespace SIT.Core
 {
@@ -67,7 +66,7 @@ namespace SIT.Core
             {
                 yield return new WaitForSeconds(1);
 
-                if(!string.IsNullOrEmpty(EFTVersionMajor))
+                if (!string.IsNullOrEmpty(EFTVersionMajor))
                 {
                     Logger.LogInfo("Version Check: Detected:" + EFTVersionMajor);
                     if (EFTVersionMajor.Split('.').Length > 4)
@@ -78,7 +77,7 @@ namespace SIT.Core
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if(majorN1 != "0" || majorN2 != "13" || majorN3 != "1" || majorN4 != "1")
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "1" || majorN4 != "1")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -292,7 +291,7 @@ namespace SIT.Core
                 return;
             }
 
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
             stringBuilder.AppendLine("Errors occurred during plugin loading");
             stringBuilder.AppendLine("-------------------------------------");
             stringBuilder.AppendLine();

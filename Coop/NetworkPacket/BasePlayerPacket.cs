@@ -7,8 +7,8 @@ namespace SIT.Core.Coop.NetworkPacket
         [JsonProperty(PropertyName = "accountId")]
         public string AccountId { get; set; }
 
-        public BasePlayerPacket() 
-        { 
+        public BasePlayerPacket()
+        {
         }
 
         public BasePlayerPacket(string accountId, string method)

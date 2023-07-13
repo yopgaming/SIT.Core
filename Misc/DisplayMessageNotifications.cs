@@ -1,5 +1,4 @@
 ﻿using EFT.Communications;
-using SIT.Core.Configuration;
 using System;
 using System.Reflection;
 using UnityEngine;

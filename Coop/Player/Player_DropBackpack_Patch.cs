@@ -44,7 +44,7 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            Dictionary<string, object> dictionary = new()
             {
                 { "t", DateTime.Now.Ticks.ToString("G") },
                 { "m", "DropBackpack" }

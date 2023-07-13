@@ -20,7 +20,7 @@ namespace SIT.Core.Coop.Player
         }
 
         public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+            = new();
 
         [PatchPrefix]
         public static bool PrePatch(ref EFT.Player __instance)
@@ -46,7 +46,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new();
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("o", opened.ToString());
             dictionary.Add("m", "SetInventoryOpened");

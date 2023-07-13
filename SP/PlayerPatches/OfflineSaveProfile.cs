@@ -80,7 +80,7 @@ namespace SIT.Core.SP.PlayerPatches
             //clonedProfile.UnlockedRecipeInfo = null;
             //clonedProfile.WishList = null;
 
-            SaveProfileRequest request = new SaveProfileRequest
+            SaveProfileRequest request = new()
             {
                 exit = exitStatus.ToString().ToLower(),
                 profile = clonedProfile,

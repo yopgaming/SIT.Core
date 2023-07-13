@@ -14,11 +14,11 @@ namespace DrakiaXYZ.Waypoints.Components
 {
     public class EditorComponent : MonoBehaviour, IDisposable
     {
-        private static List<UnityEngine.Object> gameObjects = new List<UnityEngine.Object>();
+        private static List<UnityEngine.Object> gameObjects = new();
         private GameWorld gameWorld;
         private Player player;
         private IBotGame botGame;
-        private List<BotZone> botZones = new List<BotZone>();
+        private List<BotZone> botZones = new();
 
         private GUIContent guiContent;
         private GUIStyle guiStyle;
@@ -34,7 +34,7 @@ namespace DrakiaXYZ.Waypoints.Components
         private NavMeshHit navMeshHit;
 
         // Dictionary is [zone][patrol]
-        private Dictionary<string, Dictionary<string, CustomPatrol>> zoneWaypoints = new Dictionary<string, Dictionary<string, CustomPatrol>>();
+        private Dictionary<string, Dictionary<string, CustomPatrol>> zoneWaypoints = new();
         private string filename;
 
 
@@ -105,7 +105,7 @@ namespace DrakiaXYZ.Waypoints.Components
             // Draw the GUI
             guiContent.text = guiText;
             Vector2 guiSize = guiStyle.CalcSize(guiContent);
-            Rect guiRect = new Rect(
+            Rect guiRect = new(
                 Screen.width - guiSize.x - 5f,
                 Screen.height - guiSize.y - 30f,
                 guiSize.x,
@@ -129,7 +129,7 @@ namespace DrakiaXYZ.Waypoints.Components
 
                 if (!zoneWaypoints[zoneName].ContainsKey(patrolName))
                 {
-                    CustomPatrol patrolWay = new CustomPatrol();
+                    CustomPatrol patrolWay = new();
                     patrolWay.name = patrolName;
                     patrolWay.patrolType = PatrolType.patrolling;
                     patrolWay.maxPersons = 10;
@@ -139,7 +139,7 @@ namespace DrakiaXYZ.Waypoints.Components
                 }
 
                 // Create and add a waypoint
-                CustomWaypoint waypoint = new CustomWaypoint();
+                CustomWaypoint waypoint = new();
                 waypoint.position = player.Position;
                 waypoint.canUseByBoss = true;
                 waypoint.patrolPointType = PatrolPointType.checkPoint;
@@ -265,7 +265,7 @@ namespace DrakiaXYZ.Waypoints.Components
             // Dump the data to file
             string jsonString = JsonConvert.SerializeObject(zoneWaypoints, Formatting.Indented);
             File.Create(filename).Dispose();
-            StreamWriter streamWriter = new StreamWriter(filename);
+            StreamWriter streamWriter = new(filename);
             streamWriter.Write(jsonString);
             streamWriter.Flush();
             streamWriter.Close();

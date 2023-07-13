@@ -1,10 +1,10 @@
+using EFT;
+using SIT.Tarkov.Core;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using EFT;
-using System;
-using System.Collections.Generic;
-using SIT.Tarkov.Core;
 
 namespace SIT.Core.AkiSupport.Singleplayer
 {
@@ -39,7 +39,7 @@ namespace SIT.Core.AkiSupport.Singleplayer
             var tMethod = typeof(LocalGameBotCreator).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Single(x => IsTargetMethod(x));
 
-            Logger.LogInfo(tMethod.Name); 
+            Logger.LogInfo(tMethod.Name);
             GetLogger(typeof(GetNewBotTemplatesPatch)).LogInfo(tMethod.Name);
             return tMethod;
         }

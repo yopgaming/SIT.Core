@@ -40,7 +40,7 @@ namespace SIT.Core.Coop.World
         {
             Logger.LogDebug("WIO_Interact:Postfix");
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            Dictionary<string, object> dictionary = new()
             {
                 { "t", DateTime.Now.Ticks },
                 { "doorId", __instance.Id },

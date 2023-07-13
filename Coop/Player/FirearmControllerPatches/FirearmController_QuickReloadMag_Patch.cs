@@ -1,5 +1,4 @@
-﻿using EFT;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -31,7 +29,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             Dictionary<string, object> magAddressDict = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(magazine.CurrentAddress, ref magAddressDict);
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            Dictionary<string, object> dictionary = new()
             {
                 { "fa.id", __instance.Item.Id },
                 { "fa.tpl", __instance.Item.TemplateId },

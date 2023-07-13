@@ -62,11 +62,11 @@ namespace SIT.Core.Coop
             session.Profile.Inventory.DiscardLimits = Singleton<ItemFactory>.Instance.GetDiscardLimits();
             await session.SendRaidSettings(____raidSettings);
 
-            if(MatchmakerAcceptPatches.IsClient)
+            if (MatchmakerAcceptPatches.IsClient)
                 timeHasComeScreenController.ChangeStatus("Joining Coop Game");
             else
                 timeHasComeScreenController.ChangeStatus("Creating Coop Game");
-            
+
             await Task.Delay(1000);
             CoopGame localGame = CoopGame.Create(____inputTree
                 , session.Profile

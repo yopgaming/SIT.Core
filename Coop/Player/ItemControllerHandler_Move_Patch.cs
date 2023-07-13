@@ -1,7 +1,4 @@
-﻿using Comfort.Common;
-using EFT;
-using EFT.InventoryLogic;
-using HarmonyLib;
+﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -9,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.Player
 {
@@ -114,8 +109,8 @@ namespace SIT.Core.Coop.Player
             slotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
             slotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
-                {
+            Dictionary<string, object> dictionary = new()
+            {
                     { "t", DateTime.Now.Ticks.ToString("G") }
                 };
 

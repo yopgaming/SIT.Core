@@ -158,7 +158,7 @@ namespace DrakiaXYZ.Waypoints.Patches
             {
                 Logger.LogDebug("Injecting custom box colliders to expand Streets bot access");
 
-                GameObject chek15LobbyAddonRamp = new GameObject("chek15LobbyAddonRamp");
+                GameObject chek15LobbyAddonRamp = new("chek15LobbyAddonRamp");
                 chek15LobbyAddonRamp.layer = LayerMaskClass.LowPolyColliderLayer;
                 chek15LobbyAddonRamp.transform.position = new Vector3(126.88f, 2.96f, 229.91f);
                 chek15LobbyAddonRamp.transform.localScale = new Vector3(1.0f, 0.1f, 1.0f);
@@ -166,7 +166,7 @@ namespace DrakiaXYZ.Waypoints.Patches
                 chek15LobbyAddonRamp.transform.SetParent(gameWorld.transform);
                 chek15LobbyAddonRamp.AddComponent<BoxCollider>();
 
-                GameObject chek15BackAddonRamp = new GameObject("Chek15BackAddonRamp");
+                GameObject chek15BackAddonRamp = new("Chek15BackAddonRamp");
                 chek15BackAddonRamp.layer = LayerMaskClass.LowPolyColliderLayer;
                 chek15BackAddonRamp.transform.position = new Vector3(108.31f, 3.32f, 222f);
                 chek15BackAddonRamp.transform.localScale = new Vector3(1.0f, 0.1f, 1.0f);
@@ -212,7 +212,7 @@ namespace DrakiaXYZ.Waypoints.Patches
 
         private static List<PatrolPoint> processWaypointsToPatrolPoints(PatrolWay mapPatrol, List<CustomWaypoint> waypoints)
         {
-            List<PatrolPoint> patrolPoints = new List<PatrolPoint>();
+            List<PatrolPoint> patrolPoints = new();
             if (waypoints == null)
             {
                 return patrolPoints;
@@ -286,16 +286,16 @@ namespace DrakiaXYZ.Waypoints.Patches
 
         static void ExportWaypoints(string exportFile, BotZone[] botZones)
         {
-            ExportModel exportModel = new ExportModel();
+            ExportModel exportModel = new();
 
             foreach (BotZone botZone in botZones)
             {
                 exportModel.zones.Add(botZone.name, new ExportZoneModel());
 
-                List<CustomPatrol> customPatrolWays = new List<CustomPatrol>();
+                List<CustomPatrol> customPatrolWays = new();
                 foreach (PatrolWay patrolWay in botZone.PatrolWays)
                 {
-                    CustomPatrol customPatrolWay = new CustomPatrol();
+                    CustomPatrol customPatrolWay = new();
                     //customPatrolWay.blockRoles = patrolWay.BlockRoles.GetInt();
                     customPatrolWay.maxPersons = patrolWay.MaxPersons;
                     customPatrolWay.patrolType = patrolWay.PatrolType;
@@ -317,7 +317,7 @@ namespace DrakiaXYZ.Waypoints.Patches
                 File.Delete(exportFile);
             }
             File.Create(exportFile).Dispose();
-            StreamWriter streamWriter = new StreamWriter(exportFile);
+            StreamWriter streamWriter = new(exportFile);
             streamWriter.Write(jsonString);
             streamWriter.Flush();
             streamWriter.Close();
@@ -325,7 +325,7 @@ namespace DrakiaXYZ.Waypoints.Patches
 
         static ExportNavigationPoint customNavPointToExportNavPoint(CustomNavigationPoint customNavPoint)
         {
-            ExportNavigationPoint exportNavPoint = new ExportNavigationPoint();
+            ExportNavigationPoint exportNavPoint = new();
             exportNavPoint.AltPosition = customNavPoint.AltPosition;
             exportNavPoint.HaveAltPosition = customNavPoint.HaveAltPosition;
             exportNavPoint.BasePosition = customNavPoint.BasePosition;
@@ -346,7 +346,7 @@ namespace DrakiaXYZ.Waypoints.Patches
 
         static List<CustomWaypoint> CreateCustomWaypoints(List<PatrolPoint> patrolPoints)
         {
-            List<CustomWaypoint> customWaypoints = new List<CustomWaypoint>();
+            List<CustomWaypoint> customWaypoints = new();
             if (patrolPoints == null)
             {
                 //Logger.LogDebug("patrolPoints is null, skipping");
@@ -355,7 +355,7 @@ namespace DrakiaXYZ.Waypoints.Patches
 
             foreach (PatrolPoint patrolPoint in patrolPoints)
             {
-                CustomWaypoint customWaypoint = new CustomWaypoint();
+                CustomWaypoint customWaypoint = new();
                 customWaypoint.canUseByBoss = patrolPoint.CanUseByBoss;
                 customWaypoint.patrolPointType = patrolPoint.PatrolPointType;
                 customWaypoint.position = patrolPoint.Position;

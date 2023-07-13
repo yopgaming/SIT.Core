@@ -364,7 +364,7 @@ namespace SIT.Core.Coop
 
             }
 
-            List<Dictionary<string, object>> playerStates = new List<Dictionary<string, object>>();
+            List<Dictionary<string, object>> playerStates = new();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
             {
                 //Logger.LogDebug("Creating PRC");
@@ -426,7 +426,7 @@ namespace SIT.Core.Coop
             if (SpawnedPlayersToFinalize == null)
                 return;
 
-            List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new List<LocalPlayer>();
+            List<EFT.LocalPlayer> SpawnedPlayersToRemoveFromFinalizer = new();
             foreach (var p in SpawnedPlayersToFinalize)
             {
                 SetWeaponInHandsOfNewPlayer(p, () =>
@@ -477,7 +477,7 @@ namespace SIT.Core.Coop
 
         private async Task ReadFromServerCharacters()
         {
-            Dictionary<string, object> d = new Dictionary<string, object>();
+            Dictionary<string, object> d = new();
             d.Add("serverId", GetServerId());
             d.Add("pL", new List<string>());
 
@@ -680,7 +680,7 @@ namespace SIT.Core.Coop
 
             Logger.LogDebug($"ProcessPlayerBotSpawn:{accountId}");
 
-            Profile profile = new Profile();
+            Profile profile = new();
             if (packet.ContainsKey("profileJson"))
             {
                 if (packet["profileJson"].ToString().TrySITParseJson(out profile))
@@ -1134,7 +1134,7 @@ namespace SIT.Core.Coop
                     // Deal to all versions of this guy
                     foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
                         .Where(x => x.Profile != null && x.Profile.AccountId == accountId)
-                        .Select(x=> (EFT.Player)x)
+                        .Select(x => (EFT.Player)x)
                         )
                     {
                         if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
@@ -1165,7 +1165,7 @@ namespace SIT.Core.Coop
 
         private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
-            Dictionary<string, object> dictPlayerState = new Dictionary<string, object>();
+            Dictionary<string, object> dictPlayerState = new();
 
             // --- The important Ids
             dictPlayerState.Add("accountId", player.Profile.AccountId);
@@ -1191,7 +1191,7 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("alive", player.HealthController.IsAlive);
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
             dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
-            
+
             dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
             // ---------- 
             dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
@@ -1359,7 +1359,7 @@ namespace SIT.Core.Coop
             {
                 case EQuitState.YourTeamIsDead:
                     //GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle);
-                    if(GUI.Button(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle))
+                    if (GUI.Button(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle))
                     {
 
                     }

@@ -57,7 +57,7 @@ namespace SIT.Core.Coop.Player
             }
 
             var _item = item;
-            ItemPlayerPacket itemPacket = new ItemPlayerPacket(___profile_0.AccountId, _item.Id, _item.TemplateId, "PlayerInventoryController_ThrowItem");
+            ItemPlayerPacket itemPacket = new(___profile_0.AccountId, _item.Id, _item.TemplateId, "PlayerInventoryController_ThrowItem");
             var serialized = itemPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
@@ -69,7 +69,7 @@ namespace SIT.Core.Coop.Player
             {
                 Logger.LogInfo($"PlayerInventoryController_ThrowItem_Patch.Replicated");
 
-                ItemPlayerPacket itemPacket = new ItemPlayerPacket(null, null, null, "");
+                ItemPlayerPacket itemPacket = new(null, null, null, "");
 
                 if (dict.ContainsKey("data"))
                 {

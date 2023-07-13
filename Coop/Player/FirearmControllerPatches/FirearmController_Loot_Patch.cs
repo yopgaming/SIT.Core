@@ -20,7 +20,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         }
 
         public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+            = new();
 
 
         [PatchPrefix]
@@ -52,7 +52,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new();
             dictionary.Add("p", p);
             dictionary.Add("m", "Loot");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);

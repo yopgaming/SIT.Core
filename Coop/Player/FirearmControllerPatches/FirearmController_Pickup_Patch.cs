@@ -20,7 +20,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         }
 
         public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+            = new();
 
 
         [PatchPrefix]
@@ -63,7 +63,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            FCPickupPicket pickupPicket = new FCPickupPicket(player.Profile.AccountId, p);
+            FCPickupPicket pickupPicket = new(player.Profile.AccountId, p);
             AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
         }
 

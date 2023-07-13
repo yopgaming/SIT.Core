@@ -3,7 +3,6 @@ using EFT;
 using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
-using SIT.Tarkov.Core;
 using System;
 using UnityEngine;
 

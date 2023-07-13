@@ -73,7 +73,7 @@ namespace SIT.Core.Coop.Player.Proceed
             }
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            Dictionary<string, object> args = new Dictionary<string, object>();
+            Dictionary<string, object> args = new();
             ItemAddressHelpers.ConvertItemAddressToDescriptor(throwWeap.CurrentAddress, ref args);
 
             args.Add("m", "ProceedThrowable");

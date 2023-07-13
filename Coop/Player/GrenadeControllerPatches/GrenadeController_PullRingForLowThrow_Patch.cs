@@ -38,7 +38,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
         }
 
         public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+            = new();
 
         /// <summary>
         /// Disable patch from starting with the others automatically
@@ -84,7 +84,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new();
             dictionary.Add("rX", ____player.Rotation.x);
             dictionary.Add("rY", ____player.Rotation.y);
             dictionary.Add("m", "PullRingForLowThrow");
@@ -107,7 +107,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
                 {
                     var rX = float.Parse(dict["rX"].ToString());
                     var rY = float.Parse(dict["rY"].ToString());
-                    Vector2 rot = new Vector2(rX, rY);
+                    Vector2 rot = new(rX, rY);
                     player.Rotation = rot;
                 }
             }

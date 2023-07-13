@@ -1,5 +1,5 @@
-﻿using EFT.Interactive;
-using EFT;
+﻿using EFT;
+using EFT.Interactive;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -8,8 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.World
 {
@@ -113,7 +111,7 @@ namespace SIT.Core.Coop.World
 
             Logger.LogDebug($"Switch_Interact_Patch:Postfix:Door Id:{__instance.Id}");
 
-            Dictionary<string, object> packet = new Dictionary<string, object>
+            Dictionary<string, object> packet = new()
             {
                 { "t", DateTime.Now.Ticks },
                 { "serverId", CoopGameComponent.GetServerId() },

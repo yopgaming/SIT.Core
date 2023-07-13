@@ -3,9 +3,6 @@ using EFT;
 using EFT.InventoryLogic;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -15,7 +12,7 @@ namespace SIT.Core.Coop
     {
         ManualLogSource BepInLogger { get; set; }
 
-        public static async Task<LocalPlayer> 
+        public static async Task<LocalPlayer>
             Create(int playerId
             , Vector3 position
             , Quaternion rotation
@@ -36,8 +33,8 @@ namespace SIT.Core.Coop
             CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(GClass1379.PLAYER_BUNDLE_NAME, playerId, position, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, prefix, aiControl);
             localPlayer.IsYourPlayer = isYourPlayer;
             //SinglePlayerInventoryController inventoryController = new SinglePlayerInventoryController(localPlayer, profile);
-            InventoryController inventoryController = isYourPlayer 
-                ? new SinglePlayerInventoryController(localPlayer, profile) 
+            InventoryController inventoryController = isYourPlayer
+                ? new SinglePlayerInventoryController(localPlayer, profile)
                 : new CoopInventoryController(localPlayer, profile, true);
 
             if (questController == null && isYourPlayer)

@@ -1,5 +1,4 @@
 ﻿using EFT;
-using SIT.Core.Configuration;
 using SIT.Core.Misc;
 using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Tarkov.Core;

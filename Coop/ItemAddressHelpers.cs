@@ -13,7 +13,7 @@ namespace SIT.Core.Coop
         {
             if (location is GridItemAddress gridItemAddress)
             {
-                GridItemAddressDescriptor gridItemAddressDescriptor = new GridItemAddressDescriptor();
+                GridItemAddressDescriptor gridItemAddressDescriptor = new();
                 gridItemAddressDescriptor.Container = new ContainerDescriptor();
                 gridItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 gridItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;
@@ -22,7 +22,7 @@ namespace SIT.Core.Coop
             }
             else if (location is SlotItemAddress slotItemAddress)
             {
-                SlotItemAddressDescriptor slotItemAddressDescriptor = new SlotItemAddressDescriptor();
+                SlotItemAddressDescriptor slotItemAddressDescriptor = new();
                 slotItemAddressDescriptor.Container = new ContainerDescriptor();
                 slotItemAddressDescriptor.Container.ContainerId = location.Container.ID;
                 slotItemAddressDescriptor.Container.ParentId = location.Container.ParentItem != null ? location.Container.ParentItem.Id : null;

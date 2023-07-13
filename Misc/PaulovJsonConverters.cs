@@ -78,7 +78,7 @@ namespace SIT.Core.Misc
                 foreach (var c in PatchConstants.JsonConverterDefault)
                     serializer.Converters.Add(c);
 
-                JObject jo = new JObject();
+                JObject jo = new();
                 Type type = value.GetType();
                 jo.Add("type", type.Name);
                 foreach (PropertyInfo prop in type.GetProperties())

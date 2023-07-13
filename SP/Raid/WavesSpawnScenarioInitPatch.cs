@@ -11,7 +11,7 @@ namespace SIT.Core.SP.Raid
 {
     internal class WavesSpawnScenarioInitPatch : ModulePatch
     {
-        private static Random Random = new Random();
+        private static Random Random = new();
 
         private static EFT.WavesSpawnScenario CurrentInstance;
 
@@ -58,7 +58,7 @@ namespace SIT.Core.SP.Raid
 
 
             int botsCount = Random.Next(wave.slots_min, wave.slots_max);
-            Wave spawnWaves = new Wave
+            Wave spawnWaves = new()
             {
                 Time = UnityEngine.Random.Range(wave.time_min, wave.time_max),
                 BotsCount = botsCount,
@@ -70,7 +70,7 @@ namespace SIT.Core.SP.Raid
                 IsPlayers = wave.isPlayers,
                 ChanceGroup = wave.ChanceGroup
             };
-            WaveInfo item = new WaveInfo(spawnWaves.BotsCount, spawnWaves.WildSpawnType, spawnWaves.Difficulty);
+            WaveInfo item = new(spawnWaves.BotsCount, spawnWaves.WildSpawnType, spawnWaves.Difficulty);
             CurrentInstance.BotsCountProfiles.Add(item);
             return spawnWaves;
         }

@@ -48,7 +48,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new();
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("event", @event);
             dictionary.Add("demand", demand.ToString());

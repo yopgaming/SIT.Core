@@ -11,10 +11,10 @@ namespace DrakiaXYZ.Waypoints.Components
 {
     internal class BotZoneDebugComponent : MonoBehaviour, IDisposable
     {
-        private static List<UnityEngine.Object> gameObjects = new List<UnityEngine.Object>();
+        private static List<UnityEngine.Object> gameObjects = new();
 
-        private List<SpawnPointMarker> spawnPoints = new List<SpawnPointMarker>();
-        private List<BotZone> botZones = new List<BotZone>();
+        private List<SpawnPointMarker> spawnPoints = new();
+        private List<BotZone> botZones = new();
 
         public void Awake()
         {

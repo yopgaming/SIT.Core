@@ -148,8 +148,8 @@ namespace SIT.Tarkov.Core
         /// </summary>
         public static string[] GetDirectories(string filepath)
         {
-            DirectoryInfo di = new DirectoryInfo(filepath);
-            List<string> paths = new List<string>();
+            DirectoryInfo di = new(filepath);
+            List<string> paths = new();
 
             foreach (DirectoryInfo directory in di.GetDirectories())
             {
@@ -164,8 +164,8 @@ namespace SIT.Tarkov.Core
         /// </summary>
         public static string[] GetFiles(string filepath)
         {
-            DirectoryInfo di = new DirectoryInfo(filepath);
-            List<string> paths = new List<string>();
+            DirectoryInfo di = new(filepath);
+            List<string> paths = new();
 
             foreach (FileInfo file in di.GetFiles())
             {
@@ -180,7 +180,7 @@ namespace SIT.Tarkov.Core
         /// </summary>
         public static void DeleteDirectory(string filepath)
         {
-            DirectoryInfo di = new DirectoryInfo(filepath);
+            DirectoryInfo di = new(filepath);
 
             foreach (FileInfo file in di.GetFiles())
             {
@@ -201,7 +201,7 @@ namespace SIT.Tarkov.Core
         /// </summary>
         public static void DeleteFile(string filepath)
         {
-            FileInfo file = new FileInfo(filepath);
+            FileInfo file = new(filepath);
             file.IsReadOnly = false;
             file.Delete();
         }
@@ -211,7 +211,7 @@ namespace SIT.Tarkov.Core
         /// </summary>
         public static int GetFilesCount(string filepath)
         {
-            DirectoryInfo di = new DirectoryInfo(filepath);
+            DirectoryInfo di = new(filepath);
             return di.Exists ? di.GetFiles("*.*", SearchOption.AllDirectories).Length : -1;
         }
     }

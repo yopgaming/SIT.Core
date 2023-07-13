@@ -107,7 +107,7 @@ namespace SIT.Core.Misc
 
             zs.inflateInit();
 
-            using (MemoryStream ms = new MemoryStream())
+            using (MemoryStream ms = new())
             {
                 do
                 {

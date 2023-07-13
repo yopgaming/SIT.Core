@@ -39,7 +39,7 @@ namespace SIT.Core.Coop.Player
 
             var player = __instance;
 
-            BasePlayerPacket playerPacket = new BasePlayerPacket();
+            BasePlayerPacket playerPacket = new();
             playerPacket.Method = "Jump";
             playerPacket.AccountId = player.Profile.AccountId;
             var serialized = playerPacket.Serialize();
@@ -61,7 +61,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            BasePlayerPacket bpp = new BasePlayerPacket();
+            BasePlayerPacket bpp = new();
             bpp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, bpp))

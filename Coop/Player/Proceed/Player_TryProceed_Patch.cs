@@ -67,7 +67,7 @@ namespace SIT.Coop.Core.Player
             }
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            Dictionary<string, object> args = new Dictionary<string, object>();
+            Dictionary<string, object> args = new();
             args.Add("m", "TryProceed");
             args.Add("t", DateTime.Now.Ticks);
             args.Add("item.id", item.Id);

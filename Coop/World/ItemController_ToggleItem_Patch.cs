@@ -22,7 +22,7 @@ namespace SIT.Core.Coop.World
         }
 
         public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+            = new();
 
 
         [PatchPrefix]

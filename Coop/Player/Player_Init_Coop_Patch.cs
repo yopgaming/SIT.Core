@@ -73,8 +73,8 @@ namespace SIT.Coop.Core.Player
             var profileJson = player.Profile.SITToJson();
 
 
-            Dictionary<string, object> packet = new Dictionary<string, object>
-                    {
+            Dictionary<string, object> packet = new()
+            {
                         {
                             "serverId",
                             MatchmakerAcceptPatches.GetGroupId()

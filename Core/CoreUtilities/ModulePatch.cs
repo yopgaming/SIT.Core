@@ -49,7 +49,7 @@ namespace SIT.Tarkov.Core
 
         private static void Logger_LogEvent(object sender, LogEventArgs e)
         {
-            if(e.Level == LogLevel.Error)
+            if (e.Level == LogLevel.Error)
             {
                 ConsoleScreen.LogError(e.Data.ToString());
             }

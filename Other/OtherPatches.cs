@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using SIT.Core.Other.AI;
 using SIT.Core.Other.AI.DrakiaXYZ.BigBrain;
 using SIT.Core.Other.UI;
 

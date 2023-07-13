@@ -80,7 +80,7 @@ namespace SIT.Core.Misc
 
         public static bool DrawButtonWithShadow(Rect r, GUIContent content, GUIStyle style, float shadowAlpha, Vector2 direction)
         {
-            GUIStyle letters = new GUIStyle(style);
+            GUIStyle letters = new(style);
             letters.normal.background = null;
             letters.hover.background = null;
             letters.active.background = null;

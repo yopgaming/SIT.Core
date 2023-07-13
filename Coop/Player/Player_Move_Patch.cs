@@ -1,5 +1,4 @@
-﻿using EFT.InventoryLogic;
-using SIT.Coop.Core.Player;
+﻿using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using static SIT.Core.Coop.Player.Player_Move_Patch;
 
 namespace SIT.Core.Coop.Player
 {
@@ -92,13 +90,13 @@ namespace SIT.Core.Coop.Player
 
             if (prc.IsClientDrone)
                 return;
-           
+
             //if (!LastDirections.ContainsKey(accountId))
             //    LastDirections.Add(accountId, direction);
             //else if (LastDirections[accountId] == direction)
             //    return;
 
-            PlayerMovePacket playerMovePacket = new PlayerMovePacket();
+            PlayerMovePacket playerMovePacket = new();
             playerMovePacket.AccountId = accountId;
             playerMovePacket.pX = player.Position.x;
             playerMovePacket.pY = player.Position.y;
@@ -122,7 +120,7 @@ namespace SIT.Core.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket pmp = new PlayerMovePacket();
+            PlayerMovePacket pmp = new();
             if (dict.ContainsKey("data"))
             {
                 pmp = new PlayerMovePacket();
@@ -165,7 +163,7 @@ namespace SIT.Core.Coop.Player
                         }
                     }
 
-                    UnityEngine.Vector2 direction = new UnityEngine.Vector2(playerMovePacket.dX, playerMovePacket.dY);
+                    UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
                     float spd = playerMovePacket.spd;
                     //bool spr = playerMovePacket.spr;
                     //playerReplicatedComponent.ShouldSprint = spr;
@@ -177,8 +175,8 @@ namespace SIT.Core.Coop.Player
 
                     //if (!spr)
                     //{
-                        //player.CurrentManagedState.ChangeSpeed(spd);
-                        player.MovementContext.CharacterMovementSpeed = spd;
+                    //player.CurrentManagedState.ChangeSpeed(spd);
+                    player.MovementContext.CharacterMovementSpeed = spd;
                     //}
 
                     //if (spr)

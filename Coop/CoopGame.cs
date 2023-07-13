@@ -137,7 +137,7 @@ namespace SIT.Core.Coop
             //location.OldSpawn = true;
             // Waves Scenario setup
             coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
-                (null, new object[] { 
+                (null, new object[] {
                     coopGame.gameObject
                     , spawnWaveArray
                     , new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
@@ -196,7 +196,7 @@ namespace SIT.Core.Coop
                 StartCoroutine(GameTimerSync());
         }
 
-       
+
 
         private IEnumerator DebugObjects()
         {
@@ -238,7 +238,7 @@ namespace SIT.Core.Coop
             {
                 yield return waitSeconds;
 
-                if(GameTimer.SessionTime.HasValue)
+                if (GameTimer.SessionTime.HasValue)
                     AkiBackendCommunication.Instance.SendDataToPool("{ \"RaidTimer\": " + GameTimer.SessionTime.Value.Ticks + " }");
             }
         }
@@ -486,12 +486,12 @@ namespace SIT.Core.Coop
             var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0);
 
             LocalGameBotCreator profileCreator =
-                new LocalGameBotCreator(BackEndSession
+                new(BackEndSession
                 , this.wavesSpawnScenario_0.SpawnWaves
                 , bossSpawnAdjustments
                 , nonwaves
                 , true);
-            BotCreator botCreator = new BotCreator(this, profileCreator, this.CreatePhysicalBot);
+            BotCreator botCreator = new(this, profileCreator, this.CreatePhysicalBot);
             BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
             this.PBotsController.Init(this
                 , botCreator
@@ -534,7 +534,7 @@ namespace SIT.Core.Coop
             {
                 this.BossWaveManager.Run(EBotsSpawnMode.Anyway);
 
-                if(this.nonWavesSpawnScenario_0 != null)
+                if (this.nonWavesSpawnScenario_0 != null)
                     this.nonWavesSpawnScenario_0.Run();
 
                 Logger.LogDebug($"Running Wave Scenarios");
@@ -553,11 +553,11 @@ namespace SIT.Core.Coop
             }
             else
             {
-                if(this.wavesSpawnScenario_0 != null)
+                if (this.wavesSpawnScenario_0 != null)
                     this.wavesSpawnScenario_0.Stop();
-                if(this.nonWavesSpawnScenario_0 != null)
+                if (this.nonWavesSpawnScenario_0 != null)
                     this.nonWavesSpawnScenario_0.Stop();
-                if(this.BossWaveManager != null)
+                if (this.BossWaveManager != null)
                     this.BossWaveManager.Stop();
             }
             yield return new WaitForEndOfFrame();
@@ -574,12 +574,12 @@ namespace SIT.Core.Coop
                 this.wavesSpawnScenario_0.Stop();
             }
 
-            if(this.nonWavesSpawnScenario_0 != null)
+            if (this.nonWavesSpawnScenario_0 != null)
             {
                 this.nonWavesSpawnScenario_0.Stop();
             }
 
-            if(this.BossWaveManager != null)
+            if (this.BossWaveManager != null)
                 this.BossWaveManager.Stop();
         }
 
@@ -596,7 +596,7 @@ namespace SIT.Core.Coop
 
             SpawnPoints spawnPoints = SpawnPoints.CreateFromScene(DateTime.Now, base.Location_0.SpawnPointParams);
             int spawnSafeDistance = ((Location_0.SpawnSafeDistanceMeters > 0) ? Location_0.SpawnSafeDistanceMeters : 100);
-            SpawnSystemSettings settings = new SpawnSystemSettings(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
+            SpawnSystemSettings settings = new(Location_0.MinDistToFreePoint, Location_0.MaxDistToFreePoint, Location_0.MaxBotPerZone, spawnSafeDistance);
             SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, () => Time.time, Singleton<GameWorld>.Instance, PBotsController, spawnPoints);
 
             base.GameTimer.Start();
@@ -681,7 +681,7 @@ namespace SIT.Core.Coop
             PlayerOwner.vmethod_1();
             MyExitStatus = ExitStatus.Killed;
             MyExitLocation = null;
-           
+
         }
 
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)

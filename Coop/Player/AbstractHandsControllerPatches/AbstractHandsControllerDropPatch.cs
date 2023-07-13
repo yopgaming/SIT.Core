@@ -1,7 +1,6 @@
 ﻿using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +23,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         }
 
         public static Dictionary<string, bool> CallLocally
-            = new Dictionary<string, bool>();
+            = new();
 
 
         [PatchPrefix]
@@ -54,12 +53,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new();
             dictionary.Add("m", "CheckAmmo");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
         }
 
-        private static ConcurrentBag<long> ProcessedCalls = new ConcurrentBag<long>();
+        private static ConcurrentBag<long> ProcessedCalls = new();
 
         public static void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
