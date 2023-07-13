@@ -32,9 +32,9 @@ namespace SIT.Core.Coop.Player
             , ref DamageInfo damageInfo
             , EBodyPart bodyPartType)
         {
-            var result = false;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-                result = true;
+            var result = true;
+            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && !expecting)
+                result = false;
 
             if (!LastDamageTypes.ContainsKey(__instance.ProfileId))
                 LastDamageTypes.Add(__instance.ProfileId, EDamageType.Undefined);
