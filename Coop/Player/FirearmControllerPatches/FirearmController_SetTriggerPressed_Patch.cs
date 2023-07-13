@@ -24,6 +24,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
+        public override void Enable()
+        {
+            base.Enable();
+            LastPress.Clear();
+        }
+
         public static Dictionary<string, bool> CallLocally = new();
 
         public static Dictionary<string, bool> LastPress = new();
@@ -72,17 +78,17 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return;
             }
 
-            //var ticks = DateTime.Now.Ticks;
-            //Dictionary<string, object> packet = new Dictionary<string, object>();
-            //packet.Add("t", ticks);
-            //packet.Add("pr", pressed.ToString());
-            //if (pressed)
-            //{
-            //    packet.Add("rX", player.Rotation.x.ToString());
-            //    packet.Add("rY", player.Rotation.y.ToString());
-            //}
-            //packet.Add("m", "SetTriggerPressed");
-            //ServerCommunication.PostLocalPlayerData(player, packet);
+            if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc) && prc.IsClientDrone)
+                return;
+
+            // Handle LastPress
+            if (LastPress.ContainsKey(player.ProfileId) && LastPress[player.ProfileId] == pressed)
+                return;
+
+            if (!LastPress.ContainsKey(player.ProfileId))
+                LastPress.Add(player.ProfileId, pressed);
+
+            LastPress[player.ProfileId] = pressed;
 
             TriggerPressedPacket triggerPressedPacket = new TriggerPressedPacket();
             triggerPressedPacket.AccountId = player.Profile.AccountId;
@@ -93,12 +99,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 triggerPressedPacket.rY = player.Rotation.y;
             }
             var serialized = triggerPressedPacket.Serialize();
-            //Logger.LogInfo($"SENDING: Serialized length: {serialized.Length} vs json length: {triggerPressedPacket.ToJson().Length}");
-            //Logger.LogInfo($"EXPECTED RECEIVE: Serialized length: {serialized.Split('?')[1].Length} vs json length: {triggerPressedPacket.ToJson().Length}");
-            //Logger.LogInfo(serialized);
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
-            //Request.Instance.SendDataToPool(triggerPressedPacket.ToJson());
-            //Logger.LogInfo("Pressed:PostPatch");
         }
 
 

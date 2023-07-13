@@ -53,7 +53,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             Dictionary<string, object> dictionary = new Dictionary<string, object>
             {
-                { "t", DateTime.Now.Ticks },
                 { "fa.id", __instance.Item.Id },
                 { "fa.tpl", __instance.Item.TemplateId },
                 { "mg.id", magazine.Id },
@@ -101,7 +100,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     var magItemId = dict["mg.id"].ToString();
                     if (ItemFinder.TryFindItemOnPlayer(player, magTemplateId, magItemId, out var magazine))
                     {
-                        firearmCont.StartCoroutine(Reload(player, firearmCont, gridAddressGrid, gridAddressSlot, magAddressGrid, magAddressSlot, (MagazineClass)magazine));
+                        try 
+                        {
+                            firearmCont.StartCoroutine(Reload(player, firearmCont, gridAddressGrid, gridAddressSlot, magAddressGrid, magAddressSlot, (MagazineClass)magazine));
+                        }
+                        catch
+                        {
+                            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
+                            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -131,15 +138,40 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 yield return new WaitForEndOfFrame();
             }
 
-            if (!ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, (MagazineClass)magazine))
-            {
-                //ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine);
-            }
+            GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-            firearmCont.StopCoroutine(nameof(Reload));
+            ReplicatedGridAddressGrid(player, firearmCont, gridAddressGrid, (MagazineClass)magazine
+
+                , () => 
+                {
+                    GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
+                    ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                    firearmCont.StopCoroutine(nameof(Reload));
+                }
+                , () => { 
+                    
+                    if (ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine))
+                    {
+                        firearmCont.StopCoroutine(nameof(Reload));
+                        GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
+                        ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                    }
+                    else
+                    {
+                        firearmCont.StartCoroutine(nameof(Reload));
+                    }
+                }
+                );
         }
 
-        bool ReplicatedGridAddressGrid(EFT.Player player, EFT.Player.FirearmController firearmCont, GridItemAddressDescriptor gridAddressGrid, MagazineClass magazine)
+        bool ReplicatedGridAddressGrid(EFT.Player player
+            , EFT.Player.FirearmController firearmCont
+            , GridItemAddressDescriptor gridAddressGrid
+            , MagazineClass magazine
+            , Action successCallback
+            , Action failureCallback
+            )
         {
             if (gridAddressGrid == null)
             {
@@ -149,8 +181,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             var inventoryController = ItemFinder.GetPlayerInventoryController(player);
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
 
-            //if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
-            {
 
                 StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
                 if (grid == null)
@@ -170,6 +200,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         if(IResult.Failed)
                         {
                             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"ReloadMag:IResult:Error:{IResult.Error}");
+                            failureCallback();
+                        }
+                        else
+                        {
+                            successCallback();
                         }
                     });
                 }
@@ -178,51 +213,52 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
                     return false;
                 }
-            }
 
             return true;
         }
 
-        //void ReplicatedGridAddressSlot(EFT.Player player, EFT.Player.FirearmController firearmCont, SlotItemAddressDescriptor gridAddressSlot, MagazineClass magazine)
-        //{
-        //    if (gridAddressSlot == null)
-        //    {
-        //        Logger.LogDebug("ReplicatedGridAddressGrid.GridAddressSlot is Null");
-        //        return;
-        //    }
+        bool ReplicatedGridAddressSlot(EFT.Player player, EFT.Player.FirearmController firearmCont, SlotItemAddressDescriptor gridAddressSlot, MagazineClass magazine)
+        {
+            if (gridAddressSlot == null)
+            {
+                Logger.LogDebug("ReplicatedGridAddressGrid.GridAddressSlot is Null");
+                return false;
+            }
 
-        //    //var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player);
-        //    var inventoryController = ItemFinder.GetPlayerInventoryController(player);
-        //    Logger.LogInfo("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
+            //var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player);
+            var inventoryController = ItemFinder.GetPlayerInventoryController(player);
+            Logger.LogInfo("FirearmController_ReloadMag_Patch.ReplicatedGridAddressSlot." + inventoryController.GetType());
 
-        //    //if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
-        //    {
-        //        //var itemAddress = singlePlayerInventoryController.ToItemAddress(gridAddressSlot);
+            //if (inventoryController is SinglePlayerInventoryController singlePlayerInventoryController)
+            {
+                //var itemAddress = singlePlayerInventoryController.ToItemAddress(gridAddressSlot);
 
-        //        StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressSlot.Container.ContainerId, gridAddressSlot.Container.ParentId) as StashGrid;
-        //        if (grid == null)
-        //        {
-        //            //Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
-        //            return;
-        //        }
+                StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressSlot.Container.ContainerId, gridAddressSlot.Container.ParentId) as StashGrid;
+                if (grid == null)
+                {
+                    //Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
+                    return false;
+                }
 
-        //        if (!CallLocally.ContainsKey(player.Profile.AccountId))
-        //            CallLocally.Add(player.Profile.AccountId, true);
+                if (!CallLocally.Contains(player.ProfileId))
+                    CallLocally.Add(player.ProfileId);
 
-        //        try
-        //        {
+                try
+                {
 
-        //            firearmCont.ReloadMag(magazine, grid.FindLocationForItem(magazine), (IResult) =>
-        //            {
-        //                Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
-        //            });
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Logger.LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
-        //            return;
-        //        }
-        //    }
-        //}
+                    firearmCont.ReloadMag(magazine, grid.FindLocationForItem(magazine), (IResult) =>
+                    {
+                        Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
