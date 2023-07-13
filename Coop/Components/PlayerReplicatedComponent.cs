@@ -259,10 +259,23 @@ namespace SIT.Coop.Core.Player
             LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
         }
 
-
-        void LateUpdate()
+        void FixedUpdate()
         {
-            LateUpdate_ClientDrone();
+            if (!IsClientDrone)
+                return;
+
+            if(ShouldSprint)
+            {
+                player.Physical.Sprint(ShouldSprint);
+            }
+        }
+
+        void Update()
+        {
+            if (IsClientDrone && ShouldSprint)
+            {
+                player.Physical.Sprint(ShouldSprint);
+            }
 
             if (IsClientDrone)
                 return;
@@ -280,6 +293,22 @@ namespace SIT.Coop.Core.Player
             }
         }
 
+        void LateUpdate()
+        {
+            LateUpdate_ClientDrone();
+
+            if (IsClientDrone && ShouldSprint)
+            {
+                player.Physical.Sprint(ShouldSprint);
+            }
+
+            if (IsClientDrone)
+                return;
+
+            
+        }
+
+
         private void LateUpdate_ClientDrone()
         {
             if (!IsClientDrone)
@@ -292,19 +321,19 @@ namespace SIT.Coop.Core.Player
             // If a short distance -> Smooth Lerp to the Desired Position
             // If the other side of a wall -> Teleport to the correct side (TODO)
             // If far away -> Teleport
-            if (ReplicatedPosition.HasValue)
-            {
-                var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
-                var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
-                if (replicationDistance >= 3)
-                {
-                    player.Teleport(ReplicatedPosition.Value, true);
-                }
-                else
-                {
-                    player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
-                }
-            }
+            //if (ReplicatedPosition.HasValue)
+            //{
+            //    var replicationDistance = Vector3.Distance(ReplicatedPosition.Value, player.Position);
+            //    var replicatedPositionDirection = ReplicatedPosition.Value - player.Position;
+            //    if (replicationDistance >= 3)
+            //    {
+            //        player.Teleport(ReplicatedPosition.Value, true);
+            //    }
+            //    else
+            //    {
+            //        player.Position = Vector3.Lerp(player.Position, ReplicatedPosition.Value, Time.deltaTime * 7);
+            //    }
+            //}
 
             // Replicate Rotation.
             // Smooth Lerp to the Desired Rotation
