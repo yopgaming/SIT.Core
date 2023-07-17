@@ -1394,32 +1394,50 @@ namespace SIT.Core.Coop
 
         }
 
-        private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
-        {
-            if (PlayerUsers != null)
-            {
-                if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+		private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
+		{
+			if (PlayerUsers == null)
+				return;
 
-                var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-                foreach (var pl in PlayerUsers)
-                {
-                    if (pl.IsYourPlayer)
-                        continue;
+			if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
+				screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
-                    Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * 1.5f);
-                    Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
-                    if (screenPos.z > 0)
-                    {
-                        rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                        rect.y = Screen.height - (screenPos.y * screenScale);
+			var centerOfScreen = new Vector2(Screen.width / 2, Screen.height / 2);
+			var tagStyle = new GUIStyle(GUI.skin.label);
+			tagStyle.fontSize = 18;
+			tagStyle.fontStyle = FontStyle.Bold;
+			tagStyle.alignment = TextAnchor.UpperCenter;
 
-                        var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
-                        GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
-                    }
-                }
-            }
-        }
+			var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+			foreach (var pl in PlayerUsers)
+			{
+				if (pl.IsYourPlayer || !pl.HealthController.IsAlive) //added alive check
+					continue;
+
+				Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * 2.0f);
+				Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+				tagStyle.fontSize = 18; //reset it
+				if (screenPos.z <= 0)
+					continue;
+
+				rect.x = (screenPos.x * screenScale) - (rect.width / 2);
+				rect.y = Screen.height - (screenPos.y * screenScale);
+				var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
+				if (pl.Side == ownPlayer.Side)
+					GUI.contentColor = Color.green; //same team
+				else if (pl.Side == EPlayerSide.Savage)
+					GUI.contentColor = Color.yellow; //player scav someday? :)
+				else
+					GUI.contentColor = Color.red; //opposing side
+
+				tagStyle.fontSize = Mathf.Max(tagStyle.fontSize - (int)(distanceFromCamera * 0.05f), 6); //scale with dist but not too small
+				//if crosshair within 150px left or right of player and we're close enough, show player info.
+				if (rect.center.x - centerOfScreen.x > -150 && rect.center.x - centerOfScreen.x < 150 && distanceFromCamera <= 50.0)
+					GUI.Label(rect, $"(lvl{pl.Profile.Info.Level}){pl.Profile.Info.Nickname} - {distanceFromCamera}m", tagStyle);
+				else
+					GUI.Label(rect, $"{distanceFromCamera}m", tagStyle); //far away just show distance
+			}
+		}
 
         private void OnGUI_DrawPlayerList(Rect rect)
         {
