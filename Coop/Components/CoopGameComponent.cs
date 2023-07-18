@@ -1323,6 +1323,12 @@ namespace SIT.Core.Coop
 
         private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
         {
+            if (!SITConfig.showPlayerNameTags)
+                return;
+
+            if (!SITConfig.showPlayerNameTags && !SITConfig.showPlayerNameTagsOnlyWhenVisible)
+                return;
+
             if (PlayerUsers == null)
                 return;
 
@@ -1356,6 +1362,12 @@ namespace SIT.Core.Coop
                     GUI.contentColor = Color.yellow; //player scav someday? :)
                 else
                     GUI.contentColor = Color.red; //opposing side
+
+                // TODO: Finish this function
+                if(SITConfig.showPlayerNameTagsOnlyWhenVisible)
+                {
+                    Ray ray = new Ray(Camera.current.gameObject.transform.position, pl.Position);
+                }
 
                 tagStyle.fontSize = Mathf.Max(tagStyle.fontSize - (int)(distanceFromCamera * 0.05f), 6); //scale with dist but not too small
                                                                                                          //if crosshair within 150px left or right of player and we're close enough, show player info.
