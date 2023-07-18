@@ -3,6 +3,7 @@ using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
+using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
@@ -31,6 +32,7 @@ namespace SIT.Core.Coop
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
         private AkiBackendCommunication RequestingObj { get; set; }
+        public SITConfig SITConfig { get; private set; }
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         public EFT.Player[] PlayerUsers
@@ -117,6 +119,7 @@ namespace SIT.Core.Coop
             {
                 screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
             }
+
         }
 
         void Start()
@@ -131,6 +134,12 @@ namespace SIT.Core.Coop
 
             //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
+            RequestingObj.PostJsonAsync<SITConfig>("/SIT/Config", "{}").ContinueWith(x => {
+
+                SITConfig = x.IsFaulted ? new SITConfig() : x.Result;
+                Logger.LogDebug("SIT Config received!");
+
+            });
 
             // Run an immediate call to get characters in the server
             _ = ReadFromServerCharacters();
@@ -686,6 +695,7 @@ namespace SIT.Core.Coop
                 if (packet["profileJson"].ToString().TrySITParseJson(out profile))
                 {
                     Logger.LogInfo("Obtained Profile");
+                    profile.Skills.StartClientMode();
                     // Send to be loaded
                     PlayersToSpawnProfiles[accountId] = profile;
                 }
@@ -696,89 +706,6 @@ namespace SIT.Core.Coop
                     return;
                 }
             }
-            //profile.AccountId = accountId;
-            //profile.BackendCounters.Clear();
-            //profile.CheckedChambers.Clear();
-            //profile.CheckedMagazines.Clear();
-            //profile.ConditionCounters.Counters.Clear();
-            //profile.Encyclopedia.Clear();
-            //profile.Info.Side = isBot ? EPlayerSide.Savage : EPlayerSide.Usec;
-            //if (packet.ContainsKey("side"))
-            //{
-            //    if (Enum.TryParse<EPlayerSide>(packet["side"].ToString(), out var side))
-            //    {
-            //        profile.Info.Side = side;
-            //    }
-            //}
-            //profile.Skills.StartClientMode();
-            ////profile.QuestItems = new QuestItems[0];
-            //profile.QuestsData.Clear();
-
-            //try
-            //{
-            //    //Logger.LogDebug("PlayerBotSpawn:: Adding " + accountId + " to spawner list");
-            //    profile.Id = accountId;
-            //    profile.Info.Nickname = "BSG Employee " + Players.Count;
-            //    if (packet.ContainsKey("p.info"))
-            //    {
-            //        //Logger.LogDebug("PlayerBotSpawn:: Converting Profile data");
-            //        profile.Info = packet["p.info"].ToString().SITParseJson<ProfileInfo>();
-            //        //Logger.LogDebug("PlayerBotSpawn:: Converted Profile data:: Hello " + profile.Info.Nickname);
-            //    }
-            //    if (packet.ContainsKey("p.cust"))
-            //    {
-            //        var parsedCust = packet["p.cust"].ToString().ParseJsonTo<Dictionary<EBodyModelPart, string>>(Array.Empty<JsonConverter>());
-            //        if (parsedCust != null && parsedCust.Any())
-            //        {
-            //            profile.Customization = new Customization(parsedCust);
-            //            //Logger.LogDebug("PlayerBotSpawn:: Set Profile Customization for " + profile.Info.Nickname);
-            //        }
-            //        else
-            //        {
-            //            Logger.LogError("ProcessPlayerBotSpawn:: Profile Customization for " + profile.Info.Nickname + " failed!");
-            //            return;
-            //        }
-            //    }
-            //    if (packet.ContainsKey("p.equip"))
-            //    {
-            //        var pEquip = packet["p.equip"].ToString();
-            //        if(pEquip.TrySITParseJson<Equipment>(out Equipment equipment))
-            //        {
-            //            if (profile.Inventory.GetAllEquipmentItems().Any()
-            //                )
-            //                profile.Inventory.Equipment = equipment;
-            //            else
-            //            {
-            //                Logger.LogError($"{accountId} Equipment could not be loaded!");
-            //                PlayersToSpawn[accountId] = ESpawnState.Error;
-            //            }
-            //        }
-            //        //var equipment = packet["p.equip"].ToString().SITParseJson<Equipment>();
-            //        //profile.Inventory.Equipment = equipment;
-
-            //        //Logger.LogDebug("PlayerBotSpawn:: Set Equipment for " + profile.Info.Nickname);
-
-            //    }
-            //    if (packet.ContainsKey("isHost"))
-            //    {
-            //    }
-
-            //    if (packet.ContainsKey("profileId"))
-            //    {
-            //        profile.Id = packet["profileId"].ToString();
-            //        //Logger.LogDebug($"profile id {profile.Id}");
-            //    }
-
-
-
-            //    // Send to be loaded
-            //    PlayersToSpawnProfiles[accountId] = profile;
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.LogError($"PlayerBotSpawn::ERROR::" + ex.Message);
-            //}
-
         }
 
         private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
@@ -933,7 +860,7 @@ namespace SIT.Core.Coop
             var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.IsClientDrone = true;
 
-            //if (MatchmakerAcceptPatches.IsServer)
+            if (!MatchmakerAcceptPatches.IsClient)
             {
                 if (otherPlayer.ProfileId.StartsWith("pmc"))
                 {
@@ -1468,6 +1395,15 @@ namespace SIT.Core.Coop
         Spawned = 3,
         Ignore = 98,
         Error = 99,
+    }
+
+    public class SITConfig
+    {
+        //[JsonProperty(PropertyName = "showPlayerNameTags")]
+        public bool showPlayerNameTags { get; set; }
+
+        //[JsonProperty(PropertyName = "showPlayerNameTagsOnlyWhenVisible")]
+        public bool showPlayerNameTagsOnlyWhenVisible { get; set; }
     }
 
 
