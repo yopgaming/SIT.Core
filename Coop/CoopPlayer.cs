@@ -3,6 +3,8 @@ using EFT;
 using EFT.InventoryLogic;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -67,14 +69,49 @@ namespace SIT.Core.Coop
             localPlayer.AIData = new AiDataClass(null, localPlayer);
             localPlayer.AggressorFound = false;
             localPlayer._animators[0].enabled = true;
-            localPlayer.BepInLogger = new ManualLogSource(nameof(CoopPlayer));
+            localPlayer.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
             return localPlayer;
         }
 
+        /// <summary>
+        /// A way to block the same Damage Info being run multiple times on this Character
+        /// TODO: Fix this at source. Something is replicating the same Damage multiple times!
+        /// </summary>
+        private List<DamageInfo> PreviousDamageInfos { get; } = new();
+
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
-            BepInLogger.LogInfo(nameof(ApplyDamageInfo));
+            // Quick check?
+            if (PreviousDamageInfos.Any(x =>
+                x.Damage == damageInfo.Damage
+                && x.SourceId == damageInfo.SourceId
+                && x.Weapon != null && damageInfo.Weapon != null && x.Weapon.Id == damageInfo.Weapon.Id
+                && x.Player != null && damageInfo.Player != null && x.Player == damageInfo.Player
+                ))
+                return;
+
+            PreviousDamageInfos.Add(damageInfo);
+            BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
         }
+
+        protected override void OnSkillLevelChanged(AbstractSkill skill)
+        {
+            base.OnSkillLevelChanged(skill);
+            if (!base.IsAI && IsYourPlayer)
+            {
+                NotificationManagerClass.DisplayNotification(new GClass1990(skill));
+            }
+        }
+
+        protected override void OnWeaponMastered(MasterSkill masterSkill)
+        {
+            base.OnWeaponMastered(masterSkill);
+            if (!base.IsAI && IsYourPlayer)
+            {
+                NotificationManagerClass.DisplayMessageNotification(string.Format("MasteringLevelUpMessage".Localized(), masterSkill.MasteringGroup.Id.Localized(), masterSkill.Level.ToString()));
+            }
+        }
+
     }
 }
