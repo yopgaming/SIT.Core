@@ -91,26 +91,26 @@ namespace SIT.Core.Coop
                 return;
 
             PreviousDamageInfos.Add(damageInfo);
-            BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
+            //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
         }
 
         protected override void OnSkillLevelChanged(AbstractSkill skill)
         {
             base.OnSkillLevelChanged(skill);
-            if (!base.IsAI && IsYourPlayer)
-            {
-                NotificationManagerClass.DisplayNotification(new GClass1990(skill));
-            }
+            //if (!base.IsAI && IsYourPlayer)
+            //{
+            //    NotificationManagerClass.DisplayNotification(new GClass1990(skill));
+            //}
         }
 
         protected override void OnWeaponMastered(MasterSkill masterSkill)
         {
             base.OnWeaponMastered(masterSkill);
-            if (!base.IsAI && IsYourPlayer)
-            {
-                NotificationManagerClass.DisplayMessageNotification(string.Format("MasteringLevelUpMessage".Localized(), masterSkill.MasteringGroup.Id.Localized(), masterSkill.Level.ToString()));
-            }
+            //if (!base.IsAI && IsYourPlayer)
+            //{
+            //    NotificationManagerClass.DisplayMessageNotification(string.Format("MasteringLevelUpMessage".Localized(), masterSkill.MasteringGroup.Id.Localized(), masterSkill.Level.ToString()));
+            //}
         }
 
     }
