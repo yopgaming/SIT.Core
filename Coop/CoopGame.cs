@@ -194,9 +194,28 @@ namespace SIT.Core.Coop
 
             if (!MatchmakerAcceptPatches.IsClient)
                 StartCoroutine(GameTimerSync());
+
+
+            StartCoroutine(ClientLoadingPinger());
+
         }
 
+        private IEnumerator ClientLoadingPinger()
+        {
+            var waitSeconds = new WaitForSeconds(1f);
 
+            while (true)
+            {
+                if (PlayerOwner == null)
+                    yield return waitSeconds;
+
+                // Send a message of nothing to keep the Socket Alive whilst loading
+                AkiBackendCommunication.Instance.PostDownWebSocketImmediately("");
+                
+                yield return waitSeconds;
+
+            }
+        }
 
         private IEnumerator DebugObjects()
         {
@@ -307,7 +326,7 @@ namespace SIT.Core.Coop
             //{
             //    return new BossLocationSpawn[0];
             //}
-            Logger.LogInfo($"bossLocationSpawn.Length:{bossLocationSpawn.Length}");
+            //Logger.LogInfo($"bossLocationSpawn.Length:{bossLocationSpawn.Length}");
             //foreach (var wave in bossLocationSpawn)
             //{
             //    //wave.Time = -1;
@@ -563,6 +582,10 @@ namespace SIT.Core.Coop
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");
             CreateExfiltrationPointAndInitDeathHandler();
+
+            // No longer need this ping. Load complete and all other data should keep happening after this point.
+            StopCoroutine(ClientLoadingPinger());
+
             yield break;
         }
 
