@@ -82,7 +82,7 @@ namespace SIT.Core.Configuration
                 ("Coop", "ArenaMode", false, new ConfigDescription("Arena Mode - For the meme's (DEBUG). Can SIT be less laggy than Live Tarkov in PvP?")).Value;
 
                 EnableAISpawnWaveSystem = Plugin.Instance.Config.Bind("Coop", "EnableAISpawnWaveSystem", true
-                        , new ConfigDescription("Whether to run the Wave Spawner System. Useful for testing.")).Value;
+                        , new ConfigDescription("Whether to run the Wave Spawner System. If this is False. No AI will spawn. Useful for testing in a PvP only environment.")).Value;
 
                 ForceHighPingMode = Plugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
                         , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
