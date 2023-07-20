@@ -32,7 +32,7 @@ namespace SIT.Core.Coop
             , QuestControllerClass questController = null
             , bool isYourPlayer = false)
         {
-            CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(GClass1379.PLAYER_BUNDLE_NAME, playerId, position, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, prefix, aiControl);
+            CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(GClass1380.PLAYER_BUNDLE_NAME, playerId, position, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, prefix, aiControl);
             localPlayer.IsYourPlayer = isYourPlayer;
             //SinglePlayerInventoryController inventoryController = new SinglePlayerInventoryController(localPlayer, profile);
             InventoryController inventoryController = isYourPlayer
