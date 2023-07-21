@@ -1,6 +1,8 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.InventoryLogic;
+using SIT.Coop.Core.Web;
+using SIT.Core.Coop.Player;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -90,10 +92,61 @@ namespace SIT.Core.Coop
                 ))
                 return;
 
+            _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+
             PreviousDamageInfos.Add(damageInfo);
             //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
         }
+
+        private async Task SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        {
+            await Task.Run(() =>
+            {
+                Dictionary<string, object> packet = new();
+                damageInfo.HitCollider = null;
+                damageInfo.HittedBallisticCollider = null;
+                Dictionary<string, string> playerDict = new();
+                if (damageInfo.Player != null)
+                {
+                    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+                    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+                }
+
+                damageInfo.Player = null;
+                Dictionary<string, string> weaponDict = new();
+
+                if (damageInfo.Weapon != null)
+                {
+                    packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+                    packet.Add("d.w.id", damageInfo.Weapon.Id);
+                }
+                damageInfo.Weapon = null;
+
+                packet.Add("d", damageInfo.SITToJsonAsync());
+                packet.Add("d.p", playerDict);
+                packet.Add("d.w", weaponDict);
+                packet.Add("bpt", bodyPartType.ToString());
+                packet.Add("ab", absorbed.ToString());
+                packet.Add("hs", headSegment.ToString());
+                packet.Add("m", "ApplyDamageInfo");
+                AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(this, packet, true);
+            });
+        }
+
+        public void ReceiveDamageFromServer(Dictionary<string, object> dict)
+        {
+            Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+            Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
+            var absorbed = float.Parse(dict["ab"].ToString());
+
+            var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
+
+            base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
+            base.ShotReactions(damageInfo, bodyPartType);
+        }
+
+
 
         protected override void OnSkillLevelChanged(AbstractSkill skill)
         {
