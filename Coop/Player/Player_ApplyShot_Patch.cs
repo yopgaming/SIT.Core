@@ -8,6 +8,7 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -131,9 +132,10 @@ namespace SIT.Core.Coop.Player
 
         public static DamageInfo BuildDamageInfoFromPacket(Dictionary<string, object> dict)
         {
+            //Stopwatch sw = Stopwatch.StartNew();
             var damageInfo = JObject.Parse(dict["d"].ToString()).ToObject<DamageInfo>();
 
-            EFT.Player aggressorPlayer = null;
+            //EFT.Player aggressorPlayer = null;
             if (dict.ContainsKey("d.p") && dict["d.p"] != null && damageInfo.Player == null)
             {
                 Dictionary<string, string> playerDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dict["d.p"].ToString());
@@ -144,35 +146,44 @@ namespace SIT.Core.Coop.Player
                     {
                         var accountId = playerDict["d.p.aid"];
                         var profileId = playerDict["d.p.id"];
-                        if (coopGC.Players.ContainsKey(accountId))
-                        {
-                            aggressorPlayer = coopGC.Players[accountId];
-                            damageInfo.Player = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(aggressorPlayer.ProfileId);
-                        }
-                        else
-                        {
-                            aggressorPlayer = (EFT.Player)Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == accountId);
-                            if (aggressorPlayer != null)
-                                damageInfo.Player = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(profileId);
-                        }
+                        //if (coopGC.Players.ContainsKey(accountId))
+                        //{
+                        //    aggressorPlayer = coopGC.Players[accountId];
+                        //    damageInfo.Player = aggressorPlayer;
+                        //}
+                        //else
+                        //{
+                        //    aggressorPlayer = (EFT.Player)Singleton<GameWorld>.Instance.RegisteredPlayers.FirstOrDefault(x => x.Profile.AccountId == accountId);
+                        //    if (aggressorPlayer != null)
+                        //        damageInfo.Player = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(profileId);
+                        //}
+                        damageInfo.Player = Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(profileId);
+
                     }
                 }
             }
 
-            if (dict.ContainsKey("d.w.tpl") || dict.ContainsKey("d.w.id"))
+            //if (dict.ContainsKey("d.w.tpl") || dict.ContainsKey("d.w.id"))
+            if (dict.ContainsKey("d.w.id"))
             {
-                if (aggressorPlayer != null)
-                {
-                    Item item = null;
-                    if (!ItemFinder.TryFindItemOnPlayer(aggressorPlayer, dict["d.w.tpl"].ToString(), dict["d.w.id"].ToString(), out item))
-                        ItemFinder.TryFindItemInWorld(dict["d.w.id"].ToString(), out item);
+                //if (aggressorPlayer != null)
+                //{
+                    //Item item = null;
+                    //if (!ItemFinder.TryFindItemOnPlayer(aggressorPlayer, dict["d.w.tpl"].ToString(), dict["d.w.id"].ToString(), out item))
+                    //    ItemFinder.TryFindItemInWorld(dict["d.w.id"].ToString(), out item);
 
-                    if (item is Weapon w)
+                    if (ItemFinder.TryFindItem(dict["d.w.id"].ToString(), out Item item))
                     {
-                        damageInfo.Weapon = w;
+                        if (item is Weapon w)
+                        {
+                            damageInfo.Weapon = w;
+                        }
                     }
-                }
+                //}
             }
+
+
+            //Logger.LogDebug($"BuildDamageInfoFromPacket::Took::{sw.Elapsed}");
 
             return damageInfo;
         }
