@@ -528,14 +528,14 @@ namespace SIT.Core.Coop
 
             Logger.LogInfo($"Location: {Location_0.Name}");
 
-            MaxBotCount = controllerSettings.BotAmount switch
+            MaxBotCount = Location_0.BotMax != 0 ? Location_0.BotMax : controllerSettings.BotAmount switch
             {
                 EBotAmount.AsOnline => 10,
                 EBotAmount.Low => 11,
                 EBotAmount.Medium => 12,
-                EBotAmount.High => 13,
-                EBotAmount.Horde => 13,
-                _ => 13,
+                EBotAmount.High => 14,
+                EBotAmount.Horde => 15,
+                _ => 16,
             };
 
             int numberOfBots = shouldSpawnBots ? MaxBotCount : 0;
@@ -625,7 +625,7 @@ namespace SIT.Core.Coop
             base.GameTimer.Start();
             //base.vmethod_5();
             gparam_0.vmethod_0();
-            gparam_0.Player.ActiveHealthController.DiedEvent += HealthController_DiedEvent;
+            //gparam_0.Player.ActiveHealthController.DiedEvent += HealthController_DiedEvent;
             gparam_0.Player.HealthController.DiedEvent += HealthController_DiedEvent;
 
             ISpawnPoint spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, Profile_0.Info.Side);
@@ -694,9 +694,9 @@ namespace SIT.Core.Coop
 
         private void HealthController_DiedEvent(EDamageType obj)
         {
-            Logger.LogInfo(ScreenManager.Instance.CurrentScreenController.ScreenType);
+            //Logger.LogInfo(ScreenManager.Instance.CurrentScreenController.ScreenType);
 
-            Logger.LogInfo("CoopGame.HealthController_DiedEvent");
+            //Logger.LogInfo("CoopGame.HealthController_DiedEvent");
 
             gparam_0.Player.HealthController.DiedEvent -= method_15;
             gparam_0.Player.HealthController.DiedEvent -= HealthController_DiedEvent;
