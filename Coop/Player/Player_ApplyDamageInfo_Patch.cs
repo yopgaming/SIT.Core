@@ -32,10 +32,10 @@ namespace SIT.Core.Coop.Player
             , ref DamageInfo damageInfo
             , EBodyPart bodyPartType)
         {
-            var result = true;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && !expecting)
-                result = false;
 
+            var result = false;
+            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+                result = true;
             if (!LastDamageTypes.ContainsKey(__instance.ProfileId))
                 LastDamageTypes.Add(__instance.ProfileId, EDamageType.Undefined);
 
@@ -94,6 +94,7 @@ namespace SIT.Core.Coop.Player
 
 
             Dictionary<string, object> packet = new();
+            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
             damageInfo.HitCollider = null;
             damageInfo.HittedBallisticCollider = null;
             Dictionary<string, string> playerDict = new();
@@ -124,6 +125,7 @@ namespace SIT.Core.Coop.Player
             packet.Add("d.p", playerDict);
             packet.Add("d.w", weaponDict);
             packet.Add("bpt", bodyPartType.ToString());
+            packet.Add("bpct", bodyPartColliderType.ToString());
             packet.Add("ab", absorbed.ToString());
             packet.Add("hs", headSegment.ToString());
             packet.Add("m", "ApplyDamageInfo");
@@ -168,10 +170,13 @@ namespace SIT.Core.Coop.Player
             try
             {
                 Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+                Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType);
                 Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
                 var absorbed = float.Parse(dict["ab"].ToString());
 
                 var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
+                damageInfo.HittedBallisticCollider = Player_ApplyShot_Patch.GetBodyPartCollider(player, bodyPartColliderType);
+                damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(player, bodyPartColliderType);
 
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
