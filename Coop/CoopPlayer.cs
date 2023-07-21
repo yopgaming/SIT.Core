@@ -92,18 +92,19 @@ namespace SIT.Core.Coop
                 ))
                 return;
 
-            _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
 
             PreviousDamageInfos.Add(damageInfo);
             //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
-            base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
+            //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
+            _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
         }
 
         private async Task SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 Dictionary<string, object> packet = new();
+                var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
                 damageInfo.HitCollider = null;
                 damageInfo.HittedBallisticCollider = null;
                 Dictionary<string, string> playerDict = new();
@@ -123,10 +124,13 @@ namespace SIT.Core.Coop
                 }
                 damageInfo.Weapon = null;
 
-                packet.Add("d", damageInfo.SITToJsonAsync());
+                packet.Add("d", await damageInfo.SITToJsonAsync());
+            //PatchConstants.Logger.LogDebug(packet["d"]);
+
                 packet.Add("d.p", playerDict);
                 packet.Add("d.w", weaponDict);
                 packet.Add("bpt", bodyPartType.ToString());
+                packet.Add("bpct", bodyPartColliderType.ToString());
                 packet.Add("ab", absorbed.ToString());
                 packet.Add("hs", headSegment.ToString());
                 packet.Add("m", "ApplyDamageInfo");
@@ -136,14 +140,19 @@ namespace SIT.Core.Coop
 
         public void ReceiveDamageFromServer(Dictionary<string, object> dict)
         {
+            //Logger.LogDebug("ReceiveDamageFromServer");
+            //PatchConstants.Logger.LogDebug("ReceiveDamageFromServer");
             Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
             Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
             var absorbed = float.Parse(dict["ab"].ToString());
 
             var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
+            damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
 
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
-            base.ShotReactions(damageInfo, bodyPartType);
+            //base.ShotReactions(damageInfo, bodyPartType);
+            //PatchConstants.Logger.LogDebug("ReceiveDamageFromServer.Complete");
+
         }
 
 

@@ -20,6 +20,8 @@ namespace SIT.Core.Coop.Player
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ApplyShot";
 
+        public override bool DisablePatch => true;
+
         protected override MethodBase GetTargetMethod()
         {
             return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
@@ -28,9 +30,9 @@ namespace SIT.Core.Coop.Player
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            var result = true;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && !expecting)
-                result = false;
+            var result = false;
+            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+                result = true;
 
             return result;
         }
@@ -53,6 +55,7 @@ namespace SIT.Core.Coop.Player
             }
 
             Dictionary<string, object> packet = new();
+            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
             damageInfo.HitCollider = null;
             damageInfo.HittedBallisticCollider = null;
             Dictionary<string, string> playerDict = new();
@@ -90,6 +93,7 @@ namespace SIT.Core.Coop.Player
             packet.Add("d.p", playerDict);
             packet.Add("d.w", weaponDict);
             packet.Add("bpt", bodyPartType.ToString());
+            packet.Add("bpct", bodyPartColliderType.ToString());
             packet.Add("ammoid", shotammoid);
             packet.Add("m", "ApplyShot");
             AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, packet);
@@ -112,8 +116,11 @@ namespace SIT.Core.Coop.Player
             try
             {
                 Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+                Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType);
 
                 var damageInfo = BuildDamageInfoFromPacket(dict);
+                damageInfo.HittedBallisticCollider = GetBodyPartCollider(player, bodyPartColliderType);
+                damageInfo.HitCollider = GetCollider(player, bodyPartColliderType);
 
                 var shotId = new ShotId();
                 if (dict.ContainsKey("ammoid") && dict["ammoid"] != null)
@@ -124,9 +131,9 @@ namespace SIT.Core.Coop.Player
                 CallLocally.Add(player.Profile.AccountId, true);
                 player.ApplyShot(damageInfo, bodyPartType, shotId);
             }
-            catch
+            catch (Exception e)
             {
-                //Logger.LogInfo(e);
+                Logger.LogDebug(e);
             }
         }
 
@@ -134,6 +141,13 @@ namespace SIT.Core.Coop.Player
         {
             //Stopwatch sw = Stopwatch.StartNew();
             var damageInfo = JObject.Parse(dict["d"].ToString()).ToObject<DamageInfo>();
+            if (dict.ContainsKey("bpct"))
+            {
+                if(Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType))
+                {
+                    damageInfo.BodyPartColliderType = bodyPartColliderType;
+                }
+            }
 
             //EFT.Player aggressorPlayer = null;
             if (dict.ContainsKey("d.p") && dict["d.p"] != null && damageInfo.Player == null)
@@ -186,6 +200,29 @@ namespace SIT.Core.Coop.Player
             //Logger.LogDebug($"BuildDamageInfoFromPacket::Took::{sw.Elapsed}");
 
             return damageInfo;
+        }
+
+        public static BodyPartCollider GetBodyPartCollider(EFT.Player player, EBodyPartColliderType bodyPartColliderType)
+        {
+            // Access the _hitColliders field via Reflection
+            var fieldInfo = typeof(EFT.Player).GetField("_hitColliders", BindingFlags.NonPublic | BindingFlags.Instance);
+            BodyPartCollider[] hitColliders = fieldInfo.GetValue(player) as BodyPartCollider[];
+
+            foreach (BodyPartCollider bodyPartCollider in hitColliders)
+            {
+                if (bodyPartCollider.BodyPartColliderType == bodyPartColliderType)
+                {
+                    return bodyPartCollider;
+                }
+            }
+
+            // If no matching BodyPartCollider is found, return null
+            return null;
+        }
+
+        public static UnityEngine.Collider GetCollider(EFT.Player player, EBodyPartColliderType bodyPartColliderType)
+        {
+            return GetBodyPartCollider(player, bodyPartColliderType).Collider;
         }
     }
 
