@@ -1,13 +1,13 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using EFT;
 using HarmonyLib;
+using SIT.Core.Misc;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
 using AICoreLogicLayerClass = AICoreLayerClass<BotLogicDecision>;
-using AICoreLogicStrategyClass = AICoreStrategyClass<BotLogicDecision>;
 
 namespace DrakiaXYZ.BigBrain.Brains
 {
@@ -32,13 +32,12 @@ namespace DrakiaXYZ.BigBrain.Brains
 
         private static int _currentLayerId = START_LAYER_ID;
 
-        internal Dictionary<int, LayerInfo> CustomLayers = new();
-        internal Dictionary<Type, int> CustomLogics = new();
-        internal List<Type> CustomLogicList = new();
-        internal List<ExcludeLayerInfo> ExcludeLayers = new();
+        internal Dictionary<int, LayerInfo> CustomLayers = new Dictionary<int, LayerInfo>();
+        internal Dictionary<Type, int> CustomLogics = new Dictionary<Type, int>();
+        internal List<Type> CustomLogicList = new List<Type>();
+        internal List<ExcludeLayerInfo> ExcludeLayers = new List<ExcludeLayerInfo>();
 
-        private static MethodInfo _activeLayerGetter = AccessTools.PropertyGetter(typeof(AbstractBaseBrain).BaseType, "GClass28_0");
-        private static FieldInfo _strategyField = AccessTools.Field(typeof(AICoreLogicAgentClass), "gclass216_0");
+        private static FieldInfo _strategyField = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(AICoreLogicAgentClass), typeof(AbstractBaseBrain));
 
         // Hide the constructor so we can have this as a guaranteed singleton
         private BrainManager() { }
@@ -125,15 +124,45 @@ namespace DrakiaXYZ.BigBrain.Brains
          **/
         public static object GetActiveLayer(BotOwner botOwner)
         {
-            AICoreLogicStrategyClass botBrainStrategy = _strategyField.GetValue(botOwner.Brain.Agent) as AICoreLogicStrategyClass;
-            AICoreLogicLayerClass activeLayer = _activeLayerGetter.Invoke(botBrainStrategy, null) as AICoreLogicLayerClass;
+            if (botOwner?.Brain?.Agent == null)
+            {
+                return null;
+            }
 
+            AbstractBaseBrain botBrainStrategy = _strategyField.GetValue(botOwner.Brain.Agent) as AbstractBaseBrain;
+            if (botBrainStrategy == null)
+            {
+                return null;
+            }
+
+            AICoreLogicLayerClass activeLayer = botBrainStrategy.CurLayerInfo;
             if (activeLayer is CustomLayerWrapper customLayerWrapper)
             {
                 return customLayerWrapper.CustomLayer();
             }
 
             return activeLayer;
+        }
+
+        /**
+         * Return the current active logic instance, which will extend "BaseNodeClass", or the active
+         * CustomLogic if a custom logic is enabled
+         * Note: This is mostly here for BotDebug, please don't use this in plugins
+         **/
+        public static object GetActiveLogic(BotOwner botOwner)
+        {
+            if (botOwner == null)
+            {
+                return null;
+            }
+
+            BaseNodeClass activeLogic = CustomLayerWrapper.GetLogicInstance(botOwner);
+            if (activeLogic is CustomLogicWrapper customLogicWrapper)
+            {
+                return customLogicWrapper.CustomLogic();
+            }
+
+            return activeLogic;
         }
     }
 }

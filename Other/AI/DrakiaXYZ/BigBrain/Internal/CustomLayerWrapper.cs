@@ -3,10 +3,10 @@ using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
+using System.Collections;
+
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
-using AICoreNodeClass = GClass103;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
 namespace DrakiaXYZ.BigBrain.Internal
@@ -19,15 +19,13 @@ namespace DrakiaXYZ.BigBrain.Internal
 
         protected ManualLogSource Logger;
         private readonly CustomLayer customLayer;
-        private AICoreActionEndStruct endAction;
-        private AICoreActionEndStruct continueAction;
+        private AICoreActionEndStruct endAction = new AICoreActionEndStruct("Base logic", true);
+        private AICoreActionEndStruct continueAction = new AICoreActionEndStruct(null, false);
 
         public CustomLayerWrapper(Type customLayerType, BotOwner bot, int priority) : base(bot, priority)
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(GetType().Name);
             customLayer = (CustomLayer)Activator.CreateInstance(customLayerType, new object[] { bot, priority });
-            endAction = gstruct7_0;
-            continueAction = gstruct7_1;
 
             if (_logicInstanceDictField == null)
             {
@@ -44,6 +42,10 @@ namespace DrakiaXYZ.BigBrain.Internal
             {
                 throw new ArgumentException($"Custom logic type {action.Type.FullName} must inherit CustomLogic");
             }
+            //#if DEBUG
+            //            Logger.LogDebug($"{botOwner_0.name} NextAction: {action.Type.FullName}");
+            //            Logger.LogDebug($"    Reason: {action.Reason}");
+            //#endif
 
             customLayer.CurrentAction = action;
 
@@ -106,30 +108,24 @@ namespace DrakiaXYZ.BigBrain.Internal
         private void StopCurrentLogic()
         {
             customLayer.CurrentAction = null;
-
-            BotLogicDecision logicId = botOwner_0.Brain.Agent.LastResult().Action;
-            CustomLogicWrapper logicInstance = GetLogicInstance(logicId);
+            CustomLogicWrapper logicInstance = GetLogicInstance(botOwner_0) as CustomLogicWrapper;
             if (logicInstance != null)
             {
                 logicInstance.Stop();
             }
         }
 
-        private CustomLogicWrapper GetLogicInstance(BotLogicDecision logicDecision)
+        static internal BaseNodeClass GetLogicInstance(BotOwner botOwner)
         {
             // Sanity check
-            if (botOwner_0?.Brain?.Agent == null)
+            if (botOwner?.Brain?.Agent == null)
             {
                 return null;
             }
 
-            Dictionary<BotLogicDecision, AICoreNodeClass> aiCoreNodeDict = _logicInstanceDictField.GetValue(botOwner_0.Brain.Agent) as Dictionary<BotLogicDecision, AICoreNodeClass>;
-            if (aiCoreNodeDict.TryGetValue(logicDecision, out AICoreNodeClass nodeInstance))
-            {
-                return nodeInstance as CustomLogicWrapper;
-            }
-
-            return null;
+            BotLogicDecision logicDecision = botOwner.Brain.Agent.LastResult().Action;
+            var aiCoreNodeDict = _logicInstanceDictField.GetValue(botOwner.Brain.Agent) as IDictionary;
+            return aiCoreNodeDict[logicDecision] as BaseNodeClass;
         }
 
         internal CustomLayer CustomLayer()
