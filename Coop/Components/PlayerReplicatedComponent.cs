@@ -258,19 +258,10 @@ namespace SIT.Coop.Core.Player
             LayerMask layerMask = LayerMaskClass.HighPolyWithTerrainNoGrassMask;
         }
 
-        void FixedUpdate()
-        {
-            if (!IsClientDrone)
-                return;
-
-            if (ShouldSprint)
-            {
-                player.Physical.Sprint(ShouldSprint);
-            }
-        }
-
         void Update()
         {
+            Update_ClientDrone();
+
             if (IsClientDrone && ShouldSprint)
             {
                 player.Physical.Sprint(ShouldSprint);
@@ -292,23 +283,7 @@ namespace SIT.Coop.Core.Player
             }
         }
 
-        void LateUpdate()
-        {
-            LateUpdate_ClientDrone();
-
-            if (IsClientDrone && ShouldSprint)
-            {
-                player.Physical.Sprint(ShouldSprint);
-            }
-
-            if (IsClientDrone)
-                return;
-
-
-        }
-
-
-        private void LateUpdate_ClientDrone()
+        private void Update_ClientDrone()
         {
             if (!IsClientDrone)
                 return;
@@ -360,8 +335,10 @@ namespace SIT.Coop.Core.Player
 
             if (ReplicatedDirection.HasValue)
             {
-                var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
-                playerMovePatch?.ReplicatedMove(player
+                if(_playerMovePatch == null)
+                    _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+
+                _playerMovePatch?.ReplicatedMove(player
                     , new Player_Move_Patch.PlayerMovePacket()
                     {
                         dX = ReplicatedDirection.Value.x,
@@ -376,6 +353,8 @@ namespace SIT.Coop.Core.Player
 
 
         }
+
+        Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
         private DateTime LastDirectionSent { get; set; } = DateTime.Now;
