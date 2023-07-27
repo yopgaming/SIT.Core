@@ -396,7 +396,7 @@ namespace SIT.Core.Core
                         {
                             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                             {
-                                PatchConstants.Logger.LogDebug($"WS:Ping Send");
+                                // PatchConstants.Logger.LogDebug($"WS:Ping Send");
 
                                 Dictionary<string, object> packet = new Dictionary<string, object> {
                                     { "m", "Ping" },
