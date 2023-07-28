@@ -1,12 +1,12 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using HarmonyLib;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Reflection;
 
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
-using AICoreNode = GClass103;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
 namespace DrakiaXYZ.BigBrain.Patches
@@ -16,7 +16,7 @@ namespace DrakiaXYZ.BigBrain.Patches
      **/
     internal class BotAgentUpdatePatch : ModulePatch
     {
-        private static FieldInfo _brainFieldInfo;
+        private static FieldInfo _strategyField;
         private static FieldInfo _lastResultField;
         private static FieldInfo _logicInstanceDictField;
         private static FieldInfo _lazyGetterField;
@@ -25,10 +25,10 @@ namespace DrakiaXYZ.BigBrain.Patches
         {
             Type botAgentType = typeof(AICoreLogicAgentClass);
 
-            _brainFieldInfo = AccessTools.Field(botAgentType, "gclass216_0");
-            _lastResultField = AccessTools.Field(botAgentType, "gstruct8_0");
-            _logicInstanceDictField = AccessTools.Field(botAgentType, "dictionary_0");
-            _lazyGetterField = AccessTools.Field(botAgentType, "func_0");
+            _strategyField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(AICoreStrategyClass<>));
+            _lastResultField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(AILogicActionResultStruct));
+            _logicInstanceDictField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(IDictionary));
+            _lazyGetterField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(Delegate));
 
             return AccessTools.Method(botAgentType, "Update");
         }
@@ -36,27 +36,27 @@ namespace DrakiaXYZ.BigBrain.Patches
         [PatchPrefix]
         public static bool PatchPrefix(object __instance)
         {
-            try
-            {
+
 
                 // Get values we'll use later
-                AbstractBaseBrain brain = _brainFieldInfo.GetValue(__instance) as AbstractBaseBrain;
-                Dictionary<BotLogicDecision, AICoreNode> aiCoreNodeDict = _logicInstanceDictField.GetValue(__instance) as Dictionary<BotLogicDecision, AICoreNode>;
+                var strategy = _strategyField.GetValue(__instance) as AICoreStrategyClass<BotLogicDecision>;
+                var aiCoreNodeDict = _logicInstanceDictField.GetValue(__instance) as IDictionary;
 
                 // Update the brain, this is instead of method_10 in the original code
-                brain.ManualUpdate();
+                strategy.ManualUpdate();
 
                 // Call the brain update
                 AILogicActionResultStruct lastResult = (AILogicActionResultStruct)_lastResultField.GetValue(__instance);
-                AILogicActionResultStruct? result = brain.Update(lastResult);
+                AILogicActionResultStruct? result = strategy.Update(lastResult);
                 if (result != null)
                 {
                     // If an instance of our action doesn't exist in our dict, add it
                     int action = (int)result.Value.Action;
-                    if (!aiCoreNodeDict.TryGetValue((BotLogicDecision)action, out AICoreNode nodeInstance))
+                    BaseNodeClass nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as BaseNodeClass;
+                    if (nodeInstance == null)
                     {
-                        Func<BotLogicDecision, AICoreNode> lazyGetter = _lazyGetterField.GetValue(__instance) as Func<BotLogicDecision, AICoreNode>;
-                        nodeInstance = lazyGetter((BotLogicDecision)action);
+                        Delegate lazyGetter = _lazyGetterField.GetValue(__instance) as Delegate;
+                        nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as BaseNodeClass;
 
                         if (nodeInstance != null)
                         {
@@ -80,15 +80,7 @@ namespace DrakiaXYZ.BigBrain.Patches
 
                 return false;
 
-            }
-            catch (Exception)
-            {
-                //Logger.LogError(ex);
-                //throw ex;
-            }
 
-            // Paulov. If this fails. Just revert.
-            return true;
         }
     }
 }

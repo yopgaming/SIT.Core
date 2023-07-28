@@ -21,30 +21,30 @@ namespace DrakiaXYZ.Waypoints
 
         private void Awake()
         {
-            Settings.Init(Config);
+            //Settings.Init(Config);
 
-            // Make sure plugin folders exist
-            Directory.CreateDirectory(CustomFolder);
+            //// Make sure plugin folders exist
+            //Directory.CreateDirectory(CustomFolder);
 
-            try
-            {
-                CustomWaypointLoader.Instance.loadData();
+            //try
+            //{
+            //    CustomWaypointLoader.Instance.loadData();
 
-                new DebugPatch().Enable();
-                new WaypointPatch().Enable();
-                new BotOwnerRunPatch().Enable();
+            //    new DebugPatch().Enable();
+            //    new WaypointPatch().Enable();
+            //    new BotOwnerRunPatch().Enable();
 
-                new EditorPatch().Enable();
+            //    new EditorPatch().Enable();
 
-                new DoorBlockerPatch().Enable();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"{GetType().Name}: {ex}");
-                throw;
-            }
+            //    new DoorBlockerPatch().Enable();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.LogError($"{GetType().Name}: {ex}");
+            //    throw;
+            //}
 
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 1);
+            //BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 1);
         }
     }
 }

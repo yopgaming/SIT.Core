@@ -11,14 +11,14 @@ namespace SIT.Core.Other.AI.DrakiaXYZ.BigBrain
         public BigBrainPatch()
         {
 
-            new BotBaseBrainActivatePatch().Enable();
-            new BotBrainCreateLogicNodePatch().Enable();
+            //new BotBaseBrainActivatePatch().Enable();
+            //new BotBrainCreateLogicNodePatch().Enable();
 
-            new BotBaseBrainUpdatePatch().Enable();
-            new BotAgentUpdatePatch().Enable();
+            //new BotBaseBrainUpdatePatch().Enable();
+            //new BotAgentUpdatePatch().Enable();
 
-            new BotBaseBrainActivateLayerPatch().Enable();
-            new BotBaseBrainAddLayerPatch().Enable();
+            //new BotBaseBrainActivateLayerPatch().Enable();
+            //new BotBaseBrainAddLayerPatch().Enable();
 
         }
     }
