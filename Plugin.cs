@@ -77,7 +77,7 @@ namespace SIT.Core
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "1" || majorN4 != "2")
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "1" || majorN4 != "3")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -221,6 +221,8 @@ namespace SIT.Core
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
             new IsPlayerEnemyPatch().Enable();
             new IsPlayerEnemyByRolePatch().Enable();
+            new PmcFirstAidPatch().Enable();
+            new SpawnProcessNegativeValuePatch().Enable();
 
             var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
             if (!enabled.Value)
