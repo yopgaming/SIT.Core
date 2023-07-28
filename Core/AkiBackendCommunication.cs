@@ -108,6 +108,16 @@ namespace SIT.Core.Core
                 WebSocket.OnMessage += WebSocket_OnMessage;
                 WebSocket.Connect();
                 WebSocket.Send("CONNECTED FROM SIT COOP");
+                // Continously Ping from SIT.Core (Keep Alive)
+                _ = Task.Run(async() => { 
+                
+                    while (true)
+                    {
+                        await Task.Delay(1000);
+                        WebSocket.Send("PING FROM SIT COOP");
+                    }
+
+                });
             }
 
 
@@ -694,11 +704,11 @@ namespace SIT.Core.Core
             return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
         }
 
-        public async void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
+        public void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
         {
             try
             {
-                _ = await Task.Run(() => PostJson(url, data, compress, timeout, debug));
+                _ = Task.Run(() => PostJson(url, data, compress, timeout, debug));
             }
             catch (Exception ex)
             {
@@ -714,10 +724,22 @@ namespace SIT.Core.Core
         /// <param name="url">URL to call</param>
         /// <param name="data">data to send</param>
         /// <returns></returns>
-        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS)
+        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5)
         {
-            var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug: true);
-            return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
+            int attempt = 0;
+            while (attempt++ < retryAttempts)
+            {
+                try
+                {
+                    var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug: true);
+                    return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
+                }
+                catch(Exception ex)
+                {
+                    PatchConstants.Logger.LogError(ex);
+                }
+            }
+            throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
         }
 
         //public Texture2D GetImage(string url, bool compress = true)
