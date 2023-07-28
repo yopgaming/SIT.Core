@@ -83,19 +83,6 @@ namespace SIT.Core.Misc
         }
 
         /// <summary>
-        /// Retreives the first field that matches the fieldType parameter provided within the objectType parameter type provided
-        /// </summary>
-        /// <param name="objectType">The Object Type to search within</param>
-        /// <param name="fieldType">The Field Type to find</param>
-        /// <returns>Found FieldInfo or NULL</returns>
-        public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType)
-        {
-            var fields = objectType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            return fields.FirstOrDefault(x => x.FieldType == fieldType);
-
-        }
-
-        /// <summary>
         /// Retreives the first property that matches the propertyType parameter provided within the objectType parameter type provided
         /// </summary>
         /// <param name="objectType">The Object Type to search within</param>
@@ -103,8 +90,21 @@ namespace SIT.Core.Misc
         /// <returns>Found PropertyInfo or NULL</returns>
         public static PropertyInfo GetPropertyFromTypeByPropertyType(Type objectType, Type propertyType)
         {
-            var fields = GetAllPropertiesForType(objectType);// objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            return fields.FirstOrDefault(x => x.PropertyType == propertyType);
+            var properties = GetAllPropertiesForType(objectType);// objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            return properties.FirstOrDefault(x => x.PropertyType == propertyType);
+
+        }
+
+        /// <summary>
+        /// Retreives the first field that matches the fieldType parameter provided within the objectType parameter type provided
+        /// </summary>
+        /// <param name="objectType">The Object Type to search within</param>
+        /// <param name="fieldType">The Field Type to find</param>
+        /// <returns>Found FieldInfo or NULL</returns>
+        public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType)
+        {
+            var fields = GetAllFieldsForType(objectType);// objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            return fields.FirstOrDefault(x => x.FieldType == fieldType);
 
         }
 
