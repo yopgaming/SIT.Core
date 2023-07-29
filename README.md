@@ -18,15 +18,17 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 ## About
 
 The Stay in Tarkov project was born due to Battlestate Games' (BSG) reluctance to create the pure PvE version of Escape from Tarkov. 
-The project's aim is simple, create a Cooperation PvE experience that retains progression. If BSG decide to create the ability to do this on live, this project will be shut down immediately.
+The project's aim is simple, create a Cooperation PvE experience that retains progression. 
+If BSG decide to create the ability to do this on live OR I receive a DCMA request, this project will be shut down immediately.
 
 ## Disclaimer
 
 * You must buy the game to use this. You can obtain it here. [https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 * This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
 * This is by no means designed for illegally downloading the game (and has blocks for people that do!)
-* This is purely for educational purposes (I am using this to learn Unity, Reverse Engineering & Networking)
-* I am in no way affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project
+* This is purely for educational purposes. I am using this to learn Unity and TCP/UDP/Web Socket Networking and I learnt a lot from BattleState Games \o/.
+* I am not affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project. Do NOT contact SPTarkov subreddit about this project.
+* This project is not affiliated with SPTarkov but uses its excellent Server.
 
 ## Support
 
