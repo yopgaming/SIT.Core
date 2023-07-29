@@ -177,7 +177,7 @@ namespace SIT.Core.Core
                     var timeStampOfPing = ParseIso8601Timestamp(pingStrip);
                     var serverPing = (int)(DateTimeOffset.Now - timeStampOfPing).TotalMilliseconds;
                     //Logger.LogDebug("Pong (" + pingStrip + ", " + timeStampOfPing + ", " + serverPing + ")");
-                    if (coopGameComponent.ServerPingSmooth.Count > 30)
+                    if (coopGameComponent.ServerPingSmooth.Count > 15)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
                     coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
