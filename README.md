@@ -27,7 +27,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * This is by no means designed for cheats (this project was made because cheats have destroyed the Live experience)
 * This is by no means designed for illegally downloading the game (and has blocks for people that do!)
 * This is purely for educational purposes. I am using this to learn Unity and TCP/UDP/Web Socket Networking and I learnt a lot from BattleState Games \o/.
-* I am not affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project. Do NOT contact SPTarkov subreddit about this project.
+* I am not affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project. Do NOT contact SPTarkov subreddit or Discord about this project.
 * This project is not affiliated with SPTarkov but uses its excellent Server.
 
 ## Support
