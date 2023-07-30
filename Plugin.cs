@@ -95,7 +95,11 @@ namespace SIT.Core
         private void EnableCorePatches()
         {
             // SIT Legal Game Checker
-            LegalGameCheck.LegalityCheck();
+            var lcRemover = Config.Bind<bool>("Debug Settings", "LC Remover", false).Value;
+            if (!lcRemover)
+            {
+                LegalGameCheck.LegalityCheck();
+            }
 
             var enabled = Config.Bind<bool>("SIT Core Patches", "Enable", true);
             if (!enabled.Value) // if it is disabled. stop all SIT Core Patches.
