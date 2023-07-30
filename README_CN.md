@@ -16,27 +16,29 @@
 ---
 ## 关于这个项目
 
-SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生啦。
+SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生了。
 
-该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在在线版本中实现PVE合作模式，该项目会立刻关停。
+该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在线版本中提供PVE合作模式**或**我收到了DMCA TAKEDWON(DMCA删除请求)该项目会立刻关停。
 
 ## 免责声明
 
 * 你必须购买一份游戏才能使用这个项目，你可以在这里购买游戏[https://www.escapefromtarkov.com](https://www.escapefromtarkov.com). 
 * 该项目不是为了在游戏中作弊开发的 (正相反，因为正版多人环境中泛滥的作弊者催生了该项目)
 * 这个项目也不是为了让人获取盗版/非法的副本存在的 (而且也会阻止非正规途径获取的游戏启动)
-* 这个项目仅仅是为了学习目的 (我以此来学习Unity, 逆向工程与网络开发)
-* 我也与BSG或其他 (在贴吧/QQ/Bilibili等) 声称自己在进行的项目毫无关系
+* 该项目仅供学习，我利用这个项目学习Unity与TCP/UDP/WebSocket开发，而且我在BattleState Games那边学到了许多\o/
+* 我也与BSG或其他 (在贴吧/QQ/Bilibili等) 声称自己在进行的项目毫无关系，请不要去SPTarkov的Reddit板块与Discord服务器讨论SIT
+* 该项目与SPTarkov无关，但使用了由他们开发的出色的服务端程序
+* 2023年7月30日后，我将不再进行用户支持，这个项目转变为“现状”交付，这意味着 **你能用就用，用不了就算了**
 
 ## 支持我
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* 请看清楚，在ko-fi上给我打钱就只是请我喝杯咖啡，没别的！
-* 项目所有的代码都在Github上，没有付费内容！！ 
-* 请不要期待通过给我打钱的方式获得任何帮助或者解决方案
-* 这只是一个兴趣爱好的项目，不要太认真
-* I do not BS the community. I know this is a semi-broken attempt but will attempt to fix as best I can.
-* __欢迎各位的PR__
+* 请看清楚，在ko-fi上给我打钱就只是请我喝杯咖啡，没别的！**我不会提供任何支持与帮助** 
+* 请不要期待通过给我打钱的方式获得任何帮助或者解决方案 **我不会提供任何支持与帮助** 
+* 这只是一个兴趣爱好的项目，不要太认真 **我不会提供任何支持与帮助**
+* 我不会对社区撒谎，我知道目前这只是个半成品项目，但我会尽我所能的去修复完善它 **我不会提供任何支持与帮助**
+* 2023年7月30日后，Issues(问题反馈) & Discussions(讨论区) 将被关闭
+* __欢迎各位的PR，感谢提出Pull Requests的贡献者们__
 
 ## SPT-AKI 需求
 * Stay in Tarkov 需要 [最新的SPT-AKI服务器](https://dev.sp-tarkov.com/SPT-AKI/Server) 来运行. 你可以通过这个链接来了解什么是 SPT-Aki [here](https://www.sp-tarkov.com/).
