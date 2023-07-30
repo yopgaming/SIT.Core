@@ -32,7 +32,7 @@ namespace SIT.Core.Coop
         #region Fields/Properties        
         public WorldInteractiveObject[] ListOfInteractiveObjects { get; set; }
         private AkiBackendCommunication RequestingObj { get; set; }
-        public SITConfig SITConfig { get; private set; }
+        public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         public EFT.Player[] PlayerUsers
@@ -1336,84 +1336,138 @@ namespace SIT.Core.Coop
         private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
         {
             if (SITConfig == null)
+            {
+                Logger.LogError("SITConfig is null?");
                 return;
+            }
 
             if (!SITConfig.showPlayerNameTags)
-                return;
-
-            if (!SITConfig.showPlayerNameTags && !SITConfig.showPlayerNameTagsOnlyWhenVisible)
-                return;
-
-            if (PlayerUsers == null)
-                return;
-
-            if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-
-            var centerOfScreen = new Vector2(Screen.width / 2, Screen.height / 2);
-            var tagStyle = new GUIStyle(GUI.skin.label);
-            tagStyle.fontSize = 18;
-            tagStyle.fontStyle = FontStyle.Bold;
-            tagStyle.alignment = TextAnchor.UpperCenter;
-
-            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-            foreach (var pl in PlayerUsers)
-            //foreach (var pl in Players.Values)
             {
-                // Only show your player when you are dead (showing your own player is good to know where you died)
-                //if (pl.IsYourPlayer && !pl.HealthController.IsAlive)
-                //    continue;
-
-                //if (pl.IsYourPlayer || !pl.HealthController.IsAlive) //added alive check
-                //    continue;
-
-                if (!SITConfig.showPlayerNameTagsForEnemies && !PlayerUsers.Contains(pl))
-                    continue;
-
-                Vector3 aboveBotHeadPos = pl.Position + (pl.HealthController.IsAlive ? (Vector3.up * 1.75f) : (Vector3.up * 0.5f));
-                Vector3 screenPos = GameCamera.WorldToScreenPoint(aboveBotHeadPos);
-                tagStyle.fontSize = 18; //reset it
-                if (screenPos.z <= 0)
-                    continue;
-
-                rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                rect.y = Screen.height - (screenPos.y * screenScale);
-                var distanceFromCamera = Math.Round(Vector3.Distance(GameCamera.gameObject.transform.position, pl.Position), 1);
-
-                // Paulov: This won't work. What if you are a USEC and your friend is BEAR?
-                //if (pl.Side == ownPlayer.Side)
-                //    GUI.contentColor = Color.green; //same team
-                //else if (pl.Side == EPlayerSide.Savage)
-                //    GUI.contentColor = Color.yellow; //player scav someday? :)
-                //else
-                //    GUI.contentColor = Color.red; //opposing side
-
-                // TODO: Finish this function
-                //if (SITConfig.showPlayerNameTagsOnlyWhenVisible)
-                //{
-                //    //Ray ray = new Ray(Camera.current.gameObject.transform.position, pl.Position);
-                //    RaycastHit hit;
-                //    // Does the ray intersect any objects excluding the player layer
-                //    if (Physics.Raycast(Camera.current.gameObject.transform.position, pl.Position, out hit, Mathf.Infinity, LayerMaskClass.HighPolyWithTerrainNoGrassMask))
-                //    {
-                //        UnityEngine.Debug.DrawRay(Camera.current.gameObject.transform.position, pl.Position, Color.yellow);
-                //    }
-                //    else
-                //    {
-                //        UnityEngine.Debug.DrawRay(Camera.current.gameObject.transform.position, pl.Position, Color.white);
-                //    }
-                //}
-
-               
-
-                tagStyle.fontSize = Mathf.Max(tagStyle.fontSize - (int)(distanceFromCamera * 0.05f), 6); //scale with dist but not too small
-                                                                                                         //if crosshair within 150px left or right of player and we're close enough, show player info.
-                //if (rect.center.x - centerOfScreen.x > -150 && rect.center.x - centerOfScreen.x < 150 && distanceFromCamera <= 50.0)
-                if (pl.Side != EPlayerSide.Savage)
-                    GUI.Label(rect, $"(lvl{pl.Profile.Info.Level}){pl.Profile.Info.Nickname} - {distanceFromCamera}m", tagStyle);
-                //else
-                //    GUI.Label(rect, $"{distanceFromCamera}m", tagStyle); //far away just show distance
+                return;
             }
+
+            if (PlayerUsers != null)
+            {
+                if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
+                    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+
+                var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+                //foreach (var pl in Players.Values)
+                foreach (var pl in PlayerUsers)
+                {
+                    if (pl.IsYourPlayer && pl.HealthController.IsAlive)
+                        continue;
+
+                    Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f));
+                    Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+                    if (screenPos.z > 0)
+                    {
+                        rect.x = (screenPos.x * screenScale) - (rect.width / 2);
+                        rect.y = Screen.height - (screenPos.y * screenScale);
+
+                        var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
+                        GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
+                    }
+                }
+            }
+
+            //if (SITConfig == null)
+            //{
+            //    Logger.LogError($"SITConfig is NULL");
+            //    return;
+            //}
+
+            //if (!SITConfig.showPlayerNameTags)
+            //{
+            //    Logger.LogDebug($"SITConfig.showPlayerNameTags:{SITConfig.showPlayerNameTags}");
+            //    return;
+            //}
+
+            //if (!SITConfig.showPlayerNameTags && !SITConfig.showPlayerNameTagsOnlyWhenVisible)
+            //{
+            //    Logger.LogDebug($"SITConfig.showPlayerNameTags:{SITConfig.showPlayerNameTags}");
+            //    Logger.LogDebug($"SITConfig.showPlayerNameTagsOnlyWhenVisible:{SITConfig.showPlayerNameTagsOnlyWhenVisible}");
+            //    return;
+            //}
+
+            //if(Players.Count == 0)
+            //{
+            //    Logger.LogError($"Players is Empty?");
+            //    return;
+            //}
+
+            ////if (PlayerUsers == null)
+            ////{
+            ////    return;
+            ////}
+
+            //if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
+            //    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+
+            //var centerOfScreen = new Vector2(Screen.width / 2, Screen.height / 2);
+            //var tagStyle = new GUIStyle(GUI.skin.label);
+            //tagStyle.fontSize = 18;
+            //tagStyle.fontStyle = FontStyle.Bold;
+            //tagStyle.alignment = TextAnchor.UpperCenter;
+
+            //var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+            ////foreach (var pl in PlayerUsers)
+            //foreach (var pl in Players.Values)
+            //{
+            //    // Only show your player when you are dead (showing your own player is good to know where you died)
+            //    //if (pl.IsYourPlayer && !pl.HealthController.IsAlive)
+            //    //    continue;
+
+            //    //if (pl.IsYourPlayer || !pl.HealthController.IsAlive) //added alive check
+            //    //    continue;
+
+            //    //if (!SITConfig.showPlayerNameTagsForEnemies && !PlayerUsers.Contains(pl))
+            //    //    continue;
+
+            //    Vector3 aboveBotHeadPos = pl.Position + (pl.HealthController.IsAlive ? (Vector3.up * 1.75f) : (Vector3.up * 0.5f));
+            //    Vector3 screenPos = GameCamera.WorldToScreenPoint(aboveBotHeadPos);
+            //    tagStyle.fontSize = 18; //reset it
+            //    //if (screenPos.z <= 0)
+            //    //    continue;
+
+            //    rect.x = (screenPos.x * screenScale) - (rect.width / 2);
+            //    rect.y = Screen.height - (screenPos.y * screenScale);
+            //    var distanceFromCamera = Math.Round(Vector3.Distance(GameCamera.gameObject.transform.position, pl.Position), 1);
+
+            //    // Paulov: This won't work. What if you are a USEC and your friend is BEAR?
+            //    //if (pl.Side == ownPlayer.Side)
+            //    //    GUI.contentColor = Color.green; //same team
+            //    //else if (pl.Side == EPlayerSide.Savage)
+            //    //    GUI.contentColor = Color.yellow; //player scav someday? :)
+            //    //else
+            //    //    GUI.contentColor = Color.red; //opposing side
+
+            //    // TODO: Finish this function
+            //    //if (SITConfig.showPlayerNameTagsOnlyWhenVisible)
+            //    //{
+            //    //    //Ray ray = new Ray(Camera.current.gameObject.transform.position, pl.Position);
+            //    //    RaycastHit hit;
+            //    //    // Does the ray intersect any objects excluding the player layer
+            //    //    if (Physics.Raycast(Camera.current.gameObject.transform.position, pl.Position, out hit, Mathf.Infinity, LayerMaskClass.HighPolyWithTerrainNoGrassMask))
+            //    //    {
+            //    //        UnityEngine.Debug.DrawRay(Camera.current.gameObject.transform.position, pl.Position, Color.yellow);
+            //    //    }
+            //    //    else
+            //    //    {
+            //    //        UnityEngine.Debug.DrawRay(Camera.current.gameObject.transform.position, pl.Position, Color.white);
+            //    //    }
+            //    //}
+
+
+
+            //    //tagStyle.fontSize = Mathf.Max(tagStyle.fontSize - (int)(distanceFromCamera * 0.05f), 6); //scale with dist but not too small
+            //                                                                                             //if crosshair within 150px left or right of player and we're close enough, show player info.
+            //    //if (rect.center.x - centerOfScreen.x > -150 && rect.center.x - centerOfScreen.x < 150 && distanceFromCamera <= 50.0)
+            //    //if (pl.Side != EPlayerSide.Savage)
+            //        GUI.Label(rect, $"(lvl{pl.Profile.Info.Level}){pl.Profile.Info.Nickname} - {distanceFromCamera}m", tagStyle);
+            //    //else
+            //    //    GUI.Label(rect, $"{distanceFromCamera}m", tagStyle); //far away just show distance
+            //}
         }
 
         private void OnGUI_DrawPlayerList(Rect rect)

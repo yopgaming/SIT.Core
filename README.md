@@ -35,7 +35,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
 * Please be aware. The Ko-Fi link is buying me a coffee, nothing else! **I do not offer support.**
-* Pull Requests are encouraged!
+* Pull Requests are encouraged. Thanks to all contributors!
 * Please do not hand over money expecting help or a solution. **I do not offer support.**
 * This is a hobby, for fun, project. Please don't treat it seriously. **I do not offer support.**
 * I do not BS the community. I know this is a semi-broken attempt but will attempt to fix as best I can. **I do not offer support.**
@@ -46,7 +46,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * DO NOT INSTALL THIS ON TO SPT-Aki CLIENT! ONLY INSTALL THE SERVER!
 
 ## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
-**The Wiki is under construction by various contributors. It may be broken! All instructions are also kept within the source in the wiki directory.**
+**The Wiki is has been constructed by various contributors. All instructions are also kept within the source in the wiki directory.**
   - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/Guides-English)
   - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-English)
 
@@ -62,7 +62,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 ### PREREQUISITE
 You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
 
-### Can Coop use BSG code?
+### Can Coop use BSG's Coop code?
 No. BSG server code is hidden from the client for obvious reasons. So BSG's implementation of Coop use the same online servers as PvPvE. We don't see this, so we cannot use this.
 
 ### Coding explanation
@@ -79,7 +79,7 @@ The following Aki Modules are supported.
 - aki-core
 - Aki.Common
 - Aki.Reflection
-- 50/50 on SPT-AKI Client mods. This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
+- Do SPT-AKI Client mods work? This is dependant on how well written the patches are. If they directly target GCLASSXXX or PUBLIC/PRIVATE then they will likely fail.
 
 ### Why don't you use Aki Module DLLs?
 SPT-Aki DLLs are written specifically for their own Deobfuscation technique and my own technique is not working well with Aki Modules at this moment in time.
