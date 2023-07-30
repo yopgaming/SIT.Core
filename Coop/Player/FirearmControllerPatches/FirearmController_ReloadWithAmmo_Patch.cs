@@ -3,8 +3,10 @@ using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -103,7 +105,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         CallLocally.Add(player.Profile.AccountId, true);
 
                     AmmoPack ammoPack = new(list);
-                    firearmCont.ReloadWithAmmo(ammoPack, (c) => { });
+                    //firearmCont.ReloadWithAmmo(ammoPack, (c) => { });
+                    firearmCont.StartCoroutine(ReloadWithAmmo(player, firearmCont, ammoPack));
                 }
                 catch (Exception e)
                 {
@@ -112,72 +115,30 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
         }
 
-        //bool ReplicatedGridAddressGrid(EFT.Player player, EFT.Player.FirearmController firearmCont, GridItemAddressDescriptor gridAddressGrid, MagazineClass magazine)
-        //{
-        //    if (gridAddressGrid == null)
-        //        return false;
+        private IEnumerator ReloadWithAmmo(EFT.Player player
+            , EFT.Player.FirearmController firearmCont
+            , AmmoPack ammoPack)
+        {
+            while (!firearmCont.CanStartReload())
+            {
+                yield return new WaitForSeconds(1);
+                yield return new WaitForEndOfFrame();
+            }
 
-        //    StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressGrid.Container.ContainerId, gridAddressGrid.Container.ParentId) as StashGrid;
-        //    if (grid == null)
-        //    {
-        //        Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
-        //        return false;
-        //    }
+            GetLogger(typeof(FirearmController_ReloadWithAmmo_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-        //    if (!CallLocally.ContainsKey(player.Profile.AccountId))
-        //        CallLocally.Add(player.Profile.AccountId, true);
+            firearmCont.ReloadWithAmmo(ammoPack, (c) => {
 
-        //    try
-        //    {
-
-        //        firearmCont.ReloadMag(magazine, new GridItemAddress(grid, gridAddressGrid.LocationInGrid), (IResult) =>
-        //        {
-
-        //            //Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
-
-
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Logger.LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
-        //        return false;
-        //    }
-
-        //    return true;
-        //}
-
-        //void ReplicatedGridAddressSlot(EFT.Player player, EFT.Player.FirearmController firearmCont, SlotItemAddressDescriptor gridAddressSlot, MagazineClass magazine)
-        //{
-        //    if (gridAddressSlot == null)
-        //        return;
-
-        //    StashGrid grid = player.Profile.Inventory.Equipment.FindContainer(gridAddressSlot.Container.ContainerId, gridAddressSlot.Container.ParentId) as StashGrid;
-        //    if (grid == null)
-        //    {
-        //        Logger.LogError("FirearmController_ReloadMag_Patch:Replicated:Unable to find grid!");
-        //        return;
-        //    }
-
-        //    if (!CallLocally.ContainsKey(player.Profile.AccountId))
-        //        CallLocally.Add(player.Profile.AccountId, true);
-
-        //    try
-        //    {
-
-        //        firearmCont.ReloadMag(magazine, grid.FindLocationForItem(magazine), (IResult) =>
-        //        {
-
-        //            //Logger.LogDebug($"ReloadMag:Succeed?:{IResult.Succeed}");
-
-
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Logger.LogError($"FirearmController_ReloadMag_Patch:Replicated:{ex}!");
-        //        return;
-        //    }
-        //}
+                if (c.Failed)
+                {
+                    Logger.LogError($"{player.ProfileId}: Failed to ReloadWithAmmo");
+                }
+            
+            });
+            GetLogger(typeof(FirearmController_ReloadWithAmmo_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+                
+        }
     }
 }

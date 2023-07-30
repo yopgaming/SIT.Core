@@ -3,9 +3,11 @@ using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -67,12 +69,14 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         return;
                     }
 
-                    firearmCont.QuickReloadMag(magazine, (IResult) =>
-                    {
+                    //firearmCont.QuickReloadMag(magazine, (IResult) =>
+                    //{
 
 
 
-                    });
+                    //});
+                    firearmCont.StartCoroutine(QuickReloadMag(player, firearmCont, magazine));
+
 
                 }
                 catch (Exception e)
@@ -80,6 +84,32 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     Logger.LogError(e);
                 }
             }
+        }
+
+        private IEnumerator QuickReloadMag(EFT.Player player
+            , EFT.Player.FirearmController firearmCont
+            , MagazineClass magazine)
+        {
+            while (!firearmCont.CanStartReload())
+            {
+                yield return new WaitForSeconds(1);
+                yield return new WaitForEndOfFrame();
+            }
+
+            GetLogger(typeof(FirearmController_QuickReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
+
+            firearmCont.QuickReloadMag(magazine, (c) => {
+
+                if (c.Failed)
+                {
+                    GetLogger(typeof(FirearmController_QuickReloadMag_Patch)).LogError($"{player.ProfileId}: Failed to QuickReloadMag");
+                }
+
+            });
+            GetLogger(typeof(FirearmController_QuickReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+
         }
     }
 }

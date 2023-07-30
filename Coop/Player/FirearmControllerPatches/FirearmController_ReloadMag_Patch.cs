@@ -76,6 +76,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch:Replicated");
+            Logger.LogDebug("FirearmController_ReloadMag_Patch:Replicated");
+            PatchConstants.Logger.LogDebug("FirearmController_ReloadMag_Patch:Replicated");
 
             if (HasProcessed(GetType(), player, dict))
             {
@@ -101,7 +103,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     {
                         try
                         {
-                            firearmCont.StartCoroutine(Reload(player, firearmCont, gridAddressGrid, gridAddressSlot, magAddressGrid, magAddressSlot, (MagazineClass)magazine));
+                            firearmCont.StartCoroutine(ReloadCR(player, firearmCont, gridAddressGrid, gridAddressSlot, magAddressGrid, magAddressSlot, (MagazineClass)magazine));
                         }
                         catch
                         {
@@ -122,7 +124,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
         }
 
-        private IEnumerator Reload(EFT.Player player
+        private IEnumerator ReloadCR(EFT.Player player
             , EFT.Player.FirearmController firearmCont
             , GridItemAddressDescriptor gridAddressGrid
             , SlotItemAddressDescriptor gridAddressSlot
@@ -132,9 +134,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         {
             while (!firearmCont.CanStartReload())
             {
-                yield return new WaitForSeconds(1);
-                //GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} can't reload!");
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
 
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
@@ -146,20 +146,20 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 {
                     GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
                     ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
-                    firearmCont.StopCoroutine(nameof(Reload));
+                    firearmCont.StopCoroutine(nameof(ReloadCR));
                 }
                 , () =>
                 {
 
                     if (ReplicatedGridAddressSlot(player, firearmCont, gridAddressSlot, (MagazineClass)magazine))
                     {
-                        firearmCont.StopCoroutine(nameof(Reload));
+                        firearmCont.StopCoroutine(nameof(ReloadCR));
                         GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
                         ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
                     }
                     else
                     {
-                        firearmCont.StartCoroutine(nameof(Reload));
+                        //firearmCont.StartCoroutine(nameof(Reload));
                     }
                 }
                 );
