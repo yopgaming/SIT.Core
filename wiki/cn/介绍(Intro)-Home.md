@@ -7,9 +7,9 @@
 
 ## 关于
 
-SIT(Stay in Tarkov) 项目起因是由于 Battlestate Games (尼基塔旗下的BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生啦。
+SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生了。
 
-该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在在线版本中实现PVE合作模式，该项目会立刻关停。
+该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在线版本中提供PVE合作模式**或**我收到了DMCA TAKEDWON(DMCA删除请求)该项目会立刻关停。
 
 
 __感谢__[Sayoki-Yukina](https://github.com/Sayoki-Yukina)进行的初版中文翻译工作
