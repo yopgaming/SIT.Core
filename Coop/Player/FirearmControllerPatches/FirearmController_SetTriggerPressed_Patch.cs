@@ -4,6 +4,7 @@ using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -154,7 +155,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                             var rotat = new Vector2(tpp.rX, tpp.rY);
                             player.Rotation = rotat;
                         }
-                        firearmCont.SetTriggerPressed(pressed);
+                        //firearmCont.SetTriggerPressed(pressed);
+                        firearmCont.StartCoroutine(SetTriggerPressedCR(player, firearmCont, pressed));
 
                         //ReplicatedShotEffects(player, pressed);
 
@@ -166,6 +168,20 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     }
                 }
             });
+        }
+
+        private IEnumerator SetTriggerPressedCR(EFT.Player player
+           , EFT.Player.FirearmController firearmCont
+           , bool pressed)
+        {
+            while (!firearmCont.CanPressTrigger() && pressed)
+            {
+                yield return new WaitForSeconds(1);
+                yield return new WaitForEndOfFrame();
+            }
+
+            firearmCont.SetTriggerPressed(pressed);
+
         }
 
         public class TriggerPressedPacket : BasePlayerPacket
@@ -180,6 +196,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
         }
+
+
 
     }
 }
