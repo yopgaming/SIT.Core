@@ -58,12 +58,12 @@ namespace SIT.Coop.Core.Web
 
             //_ = Request.Instance.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data));
 
-            if (useWebSocket)
-            {
-                AkiBackendCommunication.Instance.PostDownWebSocketImmediately(data);
-            }
-            else
-                //AkiBackendCommunication.Instance.SendDataToPool("/coop/server/update", data);
+            //if (useWebSocket)
+            //{
+            //    AkiBackendCommunication.Instance.PostDownWebSocketImmediately(data);
+            //}
+            //else
+            //    //AkiBackendCommunication.Instance.SendDataToPool("/coop/server/update", data);
                 AkiBackendCommunication.Instance.SendDataToPool("", data);
 
             generatedData = data;

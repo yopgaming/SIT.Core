@@ -150,10 +150,10 @@ namespace SIT.Core.Core
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             Logger.LogError($"WebSocket_OnError: {e.Message} {Environment.NewLine}");
-            OnWebSocketError();
+            WebSocket_OnError();
         }
 
-        private void OnWebSocketError()
+        private void WebSocket_OnError()
         {
             Logger.LogError($"Your PC has failed to connect and send data to the WebSocket with the port {PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort} on the Server {PatchConstants.GetBackendUrl()}! Application will now close.");
             if (
@@ -234,13 +234,13 @@ namespace SIT.Core.Core
 
                 // -------------------------------------------------------
                 // Check the packet doesn't already exist in Coop Game Component Action Packets
-                if (
-                    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
-                    coopGameComponent.ActionPackets.Contains(packet)
-                    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
-                    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
-                    )
-                    return;
+                //if (
+                //    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
+                //    coopGameComponent.ActionPackets.Contains(packet)
+                //    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
+                //    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
+                //    )
+                //    return;
 
 
                 // -------------------------------------------------------
@@ -335,7 +335,7 @@ namespace SIT.Core.Core
                                 }
                                 else
                                 {
-                                    OnWebSocketError();
+                                    WebSocket_OnError();
                                 }
                             }
                             //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
