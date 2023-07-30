@@ -18,7 +18,7 @@
 
 SIT(Stay in Tarkov) 项目是因为 Battlestate Games (BSG) 不愿推出纯PVE塔科夫版本，所以这个项目就诞生了。
 
-该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在线版本中提供PVE合作模式**或**我收到了DMCA TAKEDWON(DMCA删除请求)该项目会立刻关停。
+该项目的目标很单纯，创建一个可以保存进度的塔科夫合作离线PVE模式，如果BSG官方决定在线版本中提供PVE合作模式**或**我收到了DMCA TAKEDOWN(DMCA删除请求)该项目会立刻关停。
 
 ## 免责声明
 
