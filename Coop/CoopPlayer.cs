@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using EFT;
 using EFT.InventoryLogic;
+using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop.Player;
 using SIT.Tarkov.Core;
@@ -32,7 +33,8 @@ namespace SIT.Core.Coop
             , Func<float> getSensitivity, Func<float> getAimingSensitivity
             , IFilterCustomization filter
             , QuestControllerClass questController = null
-            , bool isYourPlayer = false)
+            , bool isYourPlayer = false
+            , bool isClientDrone = false)
         {
             CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(ResourceBundleConstants.PLAYER_BUNDLE_NAME, playerId, position, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, prefix, aiControl);
             localPlayer.IsYourPlayer = isYourPlayer;
@@ -72,6 +74,14 @@ namespace SIT.Core.Coop
             localPlayer.AggressorFound = false;
             localPlayer._animators[0].enabled = true;
             localPlayer.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
+
+            // If this is a Client Drone add Player Replicated Component
+            if(isClientDrone)
+            {
+                var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                prc.IsClientDrone = true;
+            }
+
             return localPlayer;
         }
 

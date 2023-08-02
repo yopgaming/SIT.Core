@@ -664,11 +664,11 @@ namespace SIT.Core.Coop
 
         private void ExfiltrationPoint_OnStartExtraction(ExfiltrationPoint point, EFT.Player player)
         {
-            Logger.LogInfo("ExfiltrationPoint_OnStartExtraction");
-            Logger.LogInfo(point.Settings.Name);
-            Logger.LogInfo(point.Status);
+            Logger.LogDebug("ExfiltrationPoint_OnStartExtraction");
+            Logger.LogDebug(point.Settings.Name);
+            Logger.LogDebug(point.Status);
             //Logger.LogInfo(point.ExfiltrationStartTime);
-            Logger.LogInfo(point.Settings.ExfiltrationTime);
+            Logger.LogDebug(point.Settings.ExfiltrationTime);
             bool playerHasMetRequirements = !point.UnmetRequirements(player).Any();
             //if (playerHasMetRequirements && !ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
             if (!ExtractingPlayers.ContainsKey(player.ProfileId) && !ExtractedPlayers.Contains(player.ProfileId))
@@ -685,6 +685,10 @@ namespace SIT.Core.Coop
             UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
             Logger.LogInfo("ExfiltrationPoint_OnStatusChanged");
             Logger.LogInfo(status);
+            if(status == EExfiltrationStatus.Countdown)
+            {
+
+            }
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;

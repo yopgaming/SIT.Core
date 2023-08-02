@@ -706,7 +706,7 @@ namespace SIT.Core.Coop
             {
                 if (packet["profileJson"].ToString().TrySITParseJson(out profile))
                 {
-                    Logger.LogInfo("Obtained Profile");
+                    //Logger.LogInfo("Obtained Profile");
                     profile.Skills.StartClientMode();
                     // Send to be loaded
                     PlayersToSpawnProfiles[accountId] = profile;
@@ -847,10 +847,10 @@ namespace SIT.Core.Coop
                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-               //, new CoopStatisticsManager()
                , FilterCustomizationClass.Default
                , null
                , isYourPlayer: false
+               , isClientDrone: true
                ).Result;
 
 
@@ -869,6 +869,7 @@ namespace SIT.Core.Coop
                 SpawnedPlayers.Add(profile.ProfileId, otherPlayer);
 
             // Create/Add PlayerReplicatedComponent to the LocalPlayer
+            // This shouldn't be needed. Handled in CoopPlayer.Create code
             var prc = otherPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.IsClientDrone = true;
 
@@ -1012,6 +1013,8 @@ namespace SIT.Core.Coop
             }
         }
 
+        private List<string> RemovedFromAIPlayers = new();
+
         private void ProcessPlayerPacket(Dictionary<string, object> packet)
         {
             if (packet == null)
@@ -1062,6 +1065,21 @@ namespace SIT.Core.Coop
                         //Logger.LogInfo($"Received Extracted ProfileId {packet["profileId"]}");
                         if (!coopGame.ExtractedPlayers.Contains(packet["profileId"].ToString()))
                             coopGame.ExtractedPlayers.Add(packet["profileId"].ToString());
+
+                        if (!MatchmakerAcceptPatches.IsClient)
+                        {
+                            var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
+                            if (botController != null)
+                            {
+                                if (!RemovedFromAIPlayers.Contains(plyr.Key))
+                                {
+                                    RemovedFromAIPlayers.Add(plyr.Key);
+                                    Logger.LogDebug("Removing Client Player to Enemy list");
+                                    var botSpawner = (AbstractBotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(AbstractBotSpawner)).GetValue(botController);
+                                    botSpawner.DeletePlayer(plyr.Value);
+                                }
+                            }
+                        }
                     }
                 }
             }
