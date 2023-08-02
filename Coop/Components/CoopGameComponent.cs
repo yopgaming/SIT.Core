@@ -34,6 +34,7 @@ namespace SIT.Core.Coop
         private AkiBackendCommunication RequestingObj { get; set; }
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
+        public string AccountId { get; set; } = null;
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         public EFT.Player[] PlayerUsers
         {
@@ -132,7 +133,10 @@ namespace SIT.Core.Coop
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
             Players = new Dictionary<string, EFT.Player>();
+
             var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
+            AccountId = ownPlayer.Profile.AccountId;
+
             Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
 
             //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
@@ -1216,7 +1220,6 @@ namespace SIT.Core.Coop
 
         public int ServerPing { get; set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
-        public TimeSpan LastServerPing { get; set; } = DateTime.Now.TimeOfDay;
 
         public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
