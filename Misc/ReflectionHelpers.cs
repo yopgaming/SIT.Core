@@ -212,6 +212,9 @@ namespace SIT.Core.Misc
 
         public static IEnumerable<FieldInfo> GetAllFieldsForType(Type t)
         {
+            if (t == typeof(System.Object))
+                return null;
+
             if(m_CachedFieldInfos.ContainsKey(t.FullName))
                 return m_CachedFieldInfos[t.FullName];
 
@@ -230,7 +233,7 @@ namespace SIT.Core.Misc
                 fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
             }
             var result = fields.Distinct(x => x.Name).AsEnumerable();
-            m_CachedFieldInfos.Add(t.FullName, result); 
+            //m_CachedFieldInfos.Add(t.FullName, result); 
             return result;
         }
 
