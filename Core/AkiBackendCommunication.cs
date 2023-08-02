@@ -171,7 +171,39 @@ namespace SIT.Core.Core
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
-            var packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
+            if (e.Data == null)
+                return;
+
+
+            Dictionary<string, object> packet = null;
+            if (e.Data != null)
+            {
+                if (!e.Data.StartsWith("{"))
+                    return;
+
+                if (!e.Data.EndsWith("}"))
+                    return;
+            }
+
+            if (DEBUGPACKETS)
+            {
+                Logger.LogInfo(e.Data);
+
+                try
+                {
+                    packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(e.Data);
+                    Logger.LogError(ex);
+                }
+            }
+            else
+                packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
+
+
+
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // -------------------------------------------------------
@@ -182,11 +214,14 @@ namespace SIT.Core.Core
                 // If this is a pong packet, resolve and create a smooth ping
                 if (packet.ContainsKey("pong"))
                 {
+                    var pongRaw = packet["pong"].ToString();
                     //m_ManualLogSource.LogDebug(packet["ping"].ToString());
-                    var pingStrip = ((DateTimeOffset)packet["pong"]).ToString("o");
-                    var timeStampOfPing = ParseIso8601Timestamp(pingStrip);
-                    var serverPing = (int)(DateTimeOffset.Now - timeStampOfPing).TotalMilliseconds;
-                    //Logger.LogDebug("Pong (" + pingStrip + ", " + timeStampOfPing + ", " + serverPing + ")");
+                    //Logger.LogDebug(pongRaw);
+                    //var pingStrip = ((DateTimeOffset)packet["pong"]).ToString("o");
+                    //Logger.LogDebug(pingStrip);
+                    var timeStampOfPing = ParseIso8601Timestamp(pongRaw);
+                    var serverPing = (int)(DateTimeOffset.UtcNow - timeStampOfPing).TotalMilliseconds;
+                    Logger.LogDebug($"Pong ({pongRaw},{timeStampOfPing},{serverPing})");
                     if (coopGameComponent.ServerPingSmooth.Count > 15)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
@@ -284,6 +319,11 @@ namespace SIT.Core.Core
                     //Application.Quit();
                 }
             }
+
+            // Stop resending static "player states"
+            if (PooledJsonToPost.Any(x => x == serializedData))
+                return;
+
             PooledJsonToPost.Add(serializedData);
         }
         public void SendDataToPool(string url, Dictionary<string, object> data)
@@ -410,12 +450,13 @@ namespace SIT.Core.Core
 
                                 Dictionary<string, object> packet = new Dictionary<string, object> {
                                     { "m", "Ping" },
-                                    { "t", DateTimeOffset.Now.ToString("o") },
+                                    { "t", DateTimeOffset.UtcNow.ToString("o") },
                                     { "accountId", coopGameComponent.AccountId },
                                     { "serverId", coopGameComponent.ServerId }
                                 };
 
-                                PostJson("/coop/server/update", packet.ToJson());
+                                //PostJson("/coop/server/update", packet.ToJson());
+                                WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
                             }
                         }
                     }
@@ -805,9 +846,15 @@ namespace SIT.Core.Core
             }
             else
             {
+                // I am suspecting that UK -> US -> World structures are failing. 
+                if (DateTime.TryParse(timestampString, System.Globalization.CultureInfo.CurrentCulture, System.Globalization.DateTimeStyles.None, out var dtResult))
+                {
+                    return new DateTimeOffset(dtResult).ToUniversalTime();
+                }
                 // If parsing fails, you can choose to throw an exception or return a default value
                 // We return DateTimeOffset.MinValue to indicate an error
-                return DateTimeOffset.MinValue;
+                Logger.LogError($"Could not parse Iso formatting string {timestampString}");
+                return DateTimeOffset.Now;
             }
         }
 
