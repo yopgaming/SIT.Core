@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -1044,7 +1045,15 @@ namespace SIT.Core.Coop
             var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
 
             if (!Players.Any(x => x.Key == accountId) && !registeredPlayers.Any(x => x.Profile.AccountId == accountId))
+            {
+                // Start a new thread that waits for the localplayer to exist to send death events about them
+                if (packet["m"].ToString() == "Kill")
+                {
+                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {accountId}, enqueuing death");
+                    Task.Run(() => WaitForPlayerAndProcessPacket(accountId, packet));
+                }
                 return;
+            }
 
             foreach (var plyr in
                 Players.ToArray()
@@ -1121,6 +1130,39 @@ namespace SIT.Core.Coop
                     }
                 }
                 catch (Exception) { }
+            }
+        }
+
+        private void WaitForPlayerAndProcessPacket(string accountId, Dictionary<string, object> packet)
+        {
+            // Start the timer.
+            var startTime = DateTime.Now;
+            var maxWaitTime = TimeSpan.FromMinutes(2);
+
+            while (true)
+            {
+                // Check if maximum wait time has been reached.
+                if (DateTime.Now - startTime > maxWaitTime)
+                {
+                    Logger.LogError($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {maxWaitTime.TotalMinutes} minutes, but player {accountId} still did not exist after timeout period.");
+                    return;
+                }
+
+                if (Players == null)
+                    continue;
+
+                var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
+
+                // If the player now exists, process the packet and end the thread.
+                if (Players.Any(x => x.Key == accountId) || registeredPlayers.Any(x => x.Profile.AccountId == accountId))
+                {
+                    // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {(DateTime.Now - startTime).TotalSeconds}s");
+                    ProcessPlayerPacket(packet);
+                    return;
+                }
+
+                // Wait for a short period before checking again.
+                Thread.Sleep(1000);
             }
         }
 
