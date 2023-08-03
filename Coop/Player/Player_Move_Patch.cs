@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using static SIT.Core.Coop.Player.Player_Move_Patch;
 
 namespace SIT.Core.Coop.Player
 {
@@ -49,6 +50,9 @@ namespace SIT.Core.Coop.Player
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             if (prc.IsClientDrone)
                 return false;
+
+            direction.x = (float)Math.Round(direction.x, 3);
+            direction.y = (float)Math.Round(direction.y, 3);
 
             // If this is an AI or other player, then don't run this method
             // For some reason, this breaks the AI so they can't move. AI are becoming a pain to deal with.
@@ -107,12 +111,32 @@ namespace SIT.Core.Coop.Player
 
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
             //playerMovePacket.spr = player.MovementContext.IsSprintEnabled;
+
             var serialized = playerMovePacket.Serialize();
-            //AkiBackendCommunication.Instance.SendDataToPool(playerMovePacket.ToJson());
-            //AkiBackendCommunication.Instance.PostDownWebSocketImmediately(serialized);
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
-            //LastDirections[accountId] = direction;
+            if (!PlayerMovePackets.ContainsKey(player.ProfileId))
+            {
+                PlayerMovePackets.Add(player.ProfileId, playerMovePacket);
+                AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            }
+            else
+            {
+                var lastMovePacket = (PlayerMovePackets[player.ProfileId]);
+
+                if (
+                    lastMovePacket.dX == direction.x 
+                    && lastMovePacket.dY == direction.y
+                    && lastMovePacket.pX == player.Position.x
+                    && lastMovePacket.pY == player.Position.y
+                    && lastMovePacket.pZ == player.Position.z
+                    )
+                    return;
+
+                PlayerMovePackets[player.ProfileId] = playerMovePacket;
+                AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            }
         }
+
+        private static Dictionary<string, PlayerMovePacket> PlayerMovePackets { get; } = new Dictionary<string, PlayerMovePacket>();
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
