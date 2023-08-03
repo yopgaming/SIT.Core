@@ -221,7 +221,7 @@ namespace SIT.Core.Core
                     //Logger.LogDebug(pingStrip);
                     var timeStampOfPing = ParseIso8601Timestamp(pongRaw);
                     var serverPing = (int)(DateTimeOffset.UtcNow - timeStampOfPing).TotalMilliseconds;
-                    Logger.LogDebug($"Pong ({pongRaw},{timeStampOfPing},{serverPing})");
+                    //Logger.LogDebug($"Pong ({pongRaw},{timeStampOfPing},{serverPing})");
                     if (coopGameComponent.ServerPingSmooth.Count > 15)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
@@ -302,6 +302,13 @@ namespace SIT.Core.Core
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
 
+        public BlockingCollection<KeyValuePair<string, string>> PooledJsonToPostToUrl { get; } = new();
+
+        public void SendDataToPool(string url, string serializedData)
+        {
+            PooledJsonToPostToUrl.Add(new(url, serializedData));
+        }
+
         public void SendDataToPool(string serializedData)
         {
             // ------------------------------------------------------------------------------------
@@ -348,7 +355,7 @@ namespace SIT.Core.Core
 
             PeriodicallySendPooledDataTask = Task.Run(async () =>
             {
-                int awaitPeriod = 2;
+                int awaitPeriod = 1;
                 //GCHelpers.EnableGC();
                 //GCHelpers.ClearGarbage();
                 //PatchConstants.Logger.LogDebug($"PeriodicallySendPooledData():In Async Task");
@@ -372,7 +379,6 @@ namespace SIT.Core.Core
                             {
                                 if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                                 {
-                                    //PatchConstants.Logger.LogDebug($"WS:Periodic Send");
                                     WebSocket.Send(json);
                                 }
                                 else
@@ -380,12 +386,8 @@ namespace SIT.Core.Core
                                     WebSocket_OnError();
                                 }
                             }
-                            //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
                         }
                     }
-
-                    //if (m_PooledStringToPost.Any())
-                    //await Task.Delay(awaitPeriod);
 
                     if (PooledDictionaryCollectionToPost.TryTake(out var d2))
                     {
@@ -416,6 +418,15 @@ namespace SIT.Core.Core
                                 }
                             }
                             //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
+                        }
+                    }
+
+
+                    while (PooledJsonToPostToUrl.Any())
+                    {
+                        if (PooledJsonToPostToUrl.TryTake(out var kvp))
+                        {
+                            _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
                         }
                     }
 
@@ -776,21 +787,36 @@ namespace SIT.Core.Core
             }
         }
 
-        public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false)
+        public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false, int retryAttempts = 5)
         {
-            return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
+            //return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
+
+            int attempt = 0;
+            while (attempt++ < retryAttempts)
+            {
+                try
+                {
+                    return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
+                }
+                catch (Exception ex)
+                {
+                    PatchConstants.Logger.LogError(ex);
+                }
+            }
+            throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
         }
 
         public void PostJsonAndForgetAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_LONG_MS, bool debug = false)
         {
-            try
-            {
-                _ = Task.Run(() => PostJson(url, data, compress, timeout, debug));
-            }
-            catch (Exception ex)
-            {
-                PatchConstants.Logger.LogError(ex);
-            }
+            SendDataToPool(url, data);
+            //try
+            //{
+            //    _ = Task.Run(() => PostJson(url, data, compress, timeout, debug));
+            //}
+            //catch (Exception ex)
+            //{
+            //    PatchConstants.Logger.LogError(ex);
+            //}
         }
 
 
@@ -801,14 +827,14 @@ namespace SIT.Core.Core
         /// <param name="url">URL to call</param>
         /// <param name="data">data to send</param>
         /// <returns></returns>
-        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5)
+        public async Task<T> PostJsonAsync<T>(string url, string data, int timeout = DEFAULT_TIMEOUT_MS, int retryAttempts = 5, bool debug = true)
         {
             int attempt = 0;
             while (attempt++ < retryAttempts)
             {
                 try
                 {
-                    var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug: true);
+                    var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug);
                     return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
                 }
                 catch(Exception ex)
