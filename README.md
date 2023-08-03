@@ -29,17 +29,17 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * This is purely for educational purposes. I am using this to learn Unity and TCP/UDP/Web Socket Networking and I learnt a lot from BattleState Games \o/.
 * I am not affiliated with BSG or others (on Reddit or Discord) claiming to be working on a project. Do NOT contact SPTarkov subreddit or Discord about this project.
 * This project is not affiliated with SPTarkov but uses its excellent Server.
-* 30 July 2023. I will no longer support users. This project comes "as-is". It either works for you or it doesn't.
+* I do not offer support. This project comes "as-is". It either works for you or it doesn't.
 
 ## Support
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
-* Please be aware. The Ko-Fi link is buying me a coffee, nothing else! **I do not offer support.**
+* **I do not offer support. All tutorials written by me or any other contributors are out of good faith. If you cannot get this working, I suggest going back to Live!**
+* The Ko-Fi link is buying me (or my wife) a coffee, nothing else! 
 * Pull Requests are encouraged. Thanks to all contributors!
-* Please do not hand over money expecting help or a solution. **I do not offer support.**
-* This is a hobby, for fun, project. Please don't treat it seriously. **I do not offer support.**
-* I do not BS the community. I know this is a semi-broken attempt but will attempt to fix as best I can. **I do not offer support.**
-* 30 July 2023. Issues & Discussions buttons will no longer be used. **I do not offer support.**
+* Please do not hand over money expecting help or a solution. 
+* This is a hobby, for fun, project. Please don't treat it seriously. 
+*I know this is a semi-broken attempt but will try to fix as best I can. 
 
 ## SPT-AKI Requirement
 * Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
