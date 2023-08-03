@@ -695,7 +695,13 @@ namespace SIT.Core.Coop
                 && PlayersToSpawnProfiles[accountId] != null
                 )
             {
-                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition);
+                var isDead = false;
+                if (packet.ContainsKey("isDead"))
+                {
+                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Packet for {accountId} contains DEATH message, registered handling of this on spawn");
+                    isDead = bool.Parse(packet["isDead"].ToString());
+                }
+                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition, isDead);
                 return;
             }
 
@@ -725,7 +731,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position, bool isDead = false)
         {
             try
             {
@@ -810,10 +816,15 @@ namespace SIT.Core.Coop
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                CreateLocalPlayer(profile, position, playerId);
+                LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
                 // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
                 //CreateLocalPlayerAsync(profile, position, playerId);
 
+                if (isDead)
+                {
+                    // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: CreatePhysicalOtherPlayerOrBot::Killing localPlayer with ID {playerId}");
+                    otherPlayer.ActiveHealthController.Kill(EDamageType.Undefined);
+                }
             }
             catch (Exception ex)
             {
@@ -822,7 +833,7 @@ namespace SIT.Core.Coop
 
         }
 
-        private void CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
+        private LocalPlayer CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
         {
             // If this is an actual PLAYER player that we're creating a drone for, when we set
             // aiControl to true then they'll automatically run voice lines (eg when throwing
@@ -860,7 +871,7 @@ namespace SIT.Core.Coop
 
 
             if (otherPlayer == null)
-                return;
+                return null;
 
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
@@ -908,6 +919,8 @@ namespace SIT.Core.Coop
             {
                 dogtagComponent.GroupId = otherPlayer.Profile.Info.GroupId;
             }
+
+            return otherPlayer;
         }
 
         /// <summary>
