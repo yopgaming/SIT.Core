@@ -193,6 +193,14 @@ namespace SIT.Core.Coop.Player
                             damageInfo.Weapon = w;
                         }
                     }
+                    else
+                    {
+                        var createdItem = Tarkov.Core.Spawners.ItemFactory.CreateItem(dict["d.w.id"].ToString(), dict["d.w.tpl"].ToString());
+                        if (createdItem is Weapon wep)
+                        {
+                            damageInfo.Weapon = wep;
+                        }
+                    }
                 //}
             }
 
