@@ -42,7 +42,8 @@ namespace SIT.Coop.Core.Matchmaker
             Profile ___profile_0,
             MatchMakerAcceptScreen __instance,
             DefaultUIButton ____acceptButton,
-            DefaultUIButton ____backButton
+            DefaultUIButton ____backButton,
+            MatchMakerPlayerPreview ____playerModelView
             )
         {
             //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix");
@@ -54,32 +55,33 @@ namespace SIT.Coop.Core.Matchmaker
             sitMatchMaker.RaidSettings = raidSettings;
             sitMatchMaker.OriginalAcceptButton = ____acceptButton;
             sitMatchMaker.OriginalBackButton = ____backButton;
+            sitMatchMaker.MatchMakerPlayerPreview = ____playerModelView;
 
             var rs = raidSettings;
-            ____acceptButton.OnClick.AddListener(() =>
-            {
-                if (LastClickedTime < DateTime.Now.AddSeconds(-10))
-                {
-                    LastClickedTime = DateTime.Now;
+            //____acceptButton.OnClick.AddListener(() =>
+            //{
+            //    if (LastClickedTime < DateTime.Now.AddSeconds(-10))
+            //    {
+            //        LastClickedTime = DateTime.Now;
 
-                    //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
-                    if (MatchmakerAcceptPatches.CheckForMatch(rs, out string returnedJson))
-                    {
-                        Logger.LogDebug(returnedJson);
-                        JObject result = JObject.Parse(returnedJson);
-                        var groupId = result["ServerId"].ToString();
-                        Matchmaker.MatchmakerAcceptPatches.SetGroupId(groupId);
-                        MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
-                        GC.Collect();
-                    }
-                    else
-                    {
-                        MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, rs);
-                    }
-                }
-            });
+            //        //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix:Clicked");
+            //        if (MatchmakerAcceptPatches.CheckForMatch(rs, out string returnedJson))
+            //        {
+            //            Logger.LogDebug(returnedJson);
+            //            JObject result = JObject.Parse(returnedJson);
+            //            var groupId = result["ServerId"].ToString();
+            //            Matchmaker.MatchmakerAcceptPatches.SetGroupId(groupId);
+            //            MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+            //            GC.Collect();
+            //            GC.WaitForPendingFinalizers();
+            //            GC.Collect();
+            //        }
+            //        else
+            //        {
+            //            MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, rs);
+            //        }
+            //    }
+            //});
         }
 
 
@@ -101,15 +103,15 @@ namespace SIT.Coop.Core.Matchmaker
             MatchmakerAcceptPatches.Profile = ___profile_0;
             //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
 
-            if (MatchmakerAcceptPatches.CheckForMatch(raidSettings, out string returnedJson))
-            {
-                ____acceptButton.SetHeaderText("Join Match");
-                raidSettings.BotSettings.BotAmount = EFT.Bots.EBotAmount.NoBots;
-            }
-            else
-            {
-                ____acceptButton.SetHeaderText("Start Match");
-            }
+            //if (MatchmakerAcceptPatches.CheckForMatch(raidSettings, out string returnedJson))
+            //{
+            //    ____acceptButton.SetHeaderText("Join Match");
+            //    raidSettings.BotSettings.BotAmount = EFT.Bots.EBotAmount.NoBots;
+            //}
+            //else
+            //{
+            //    ____acceptButton.SetHeaderText("Start Match");
+            //}
 
         }
     }

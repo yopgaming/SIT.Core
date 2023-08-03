@@ -499,7 +499,15 @@ namespace SIT.Core.Coop
             if (!shouldSpawnBots)
             {
                 controllerSettings.BotAmount = EBotAmount.NoBots;
-                Logger.LogDebug("Bot Spawner System has been turned off");
+
+                if(!PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem)
+                    Logger.LogDebug("Bot Spawner System has been turned off - Wave System is Disabled");
+
+                if (MatchmakerAcceptPatches.IsSinglePlayer)
+                    Logger.LogDebug("Bot Spawner System has been turned off - You are running as Single Player");
+
+                if (MatchmakerAcceptPatches.IsClient)
+                    Logger.LogDebug("Bot Spawner System has been turned off - You are running as Client");
             }
 
             var nonwaves = (WaveInfo[])ReflectionHelpers.GetFieldFromTypeByFieldType(this.nonWavesSpawnScenario_0.GetType(), typeof(WaveInfo[])).GetValue(this.nonWavesSpawnScenario_0);
