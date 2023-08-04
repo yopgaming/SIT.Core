@@ -1314,9 +1314,9 @@ namespace SIT.Core.Coop
             // PING ------
             GUI.contentColor = Color.white;
             GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
-            GUI.Label(rect, $"Ping:{(ServerPing)}");
+            GUI.Label(rect, $"RTT:{(ServerPing)}");
             rect.y += 15;
-            GUI.Label(rect, $"Ping RTT:{(ServerPing + AkiBackendCommunication.Instance.PostPing + AkiBackendCommunication.Instance.HostPing)}");
+            GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
             rect.y += 15;
             GUI.contentColor = Color.white;
 
