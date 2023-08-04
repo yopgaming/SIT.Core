@@ -214,14 +214,9 @@ namespace SIT.Core.Core
                 // If this is a pong packet, resolve and create a smooth ping
                 if (packet.ContainsKey("pong"))
                 {
-                    var pongRaw = packet["pong"].ToString();
-                    //m_ManualLogSource.LogDebug(packet["ping"].ToString());
-                    //Logger.LogDebug(pongRaw);
-                    //var pingStrip = ((DateTimeOffset)packet["pong"]).ToString("o");
-                    //Logger.LogDebug(pingStrip);
-                    var timeStampOfPing = ParseIso8601Timestamp(pongRaw);
-                    var serverPing = (int)(DateTimeOffset.UtcNow - timeStampOfPing).TotalMilliseconds;
-                    //Logger.LogDebug($"Pong ({pongRaw},{timeStampOfPing},{serverPing})");
+                    var pongRaw = long.Parse(packet["pong"].ToString());
+                    var dtPong = new DateTime(pongRaw);
+                    var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
                     if (coopGameComponent.ServerPingSmooth.Count > 15)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
@@ -461,7 +456,7 @@ namespace SIT.Core.Core
 
                                 Dictionary<string, object> packet = new Dictionary<string, object> {
                                     { "m", "Ping" },
-                                    { "t", DateTimeOffset.UtcNow.ToString("o") },
+                                    { "t", DateTime.UtcNow.Ticks.ToString("G") },
                                     { "accountId", coopGameComponent.AccountId },
                                     { "serverId", coopGameComponent.ServerId }
                                 };
