@@ -70,12 +70,12 @@ namespace SIT.Core.Coop.Components
 
         private void MovePlayerNamePanel()
         {
-            //var playerNamePanel = MatchMakerPlayerPreview.GetComponent<PlayerNamePanel>();
-            //if (playerNamePanel == null)
-            //{
-            //    Logger.LogError("Unable to retrieve PlayerNamePanel");
-            //    return;
-            //}
+            var playerNamePanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerNamePanel)).GetValue(MatchMakerPlayerPreview) as PlayerNamePanel;
+            if (playerNamePanel == null)
+            {
+                Logger.LogError("Unable to retrieve PlayerNamePanel");
+                return;
+            }
 
             //var playerLevelPanel = MatchMakerPlayerPreview.GetComponent<PlayerLevelPanel>();
             var playerLevelPanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerLevelPanel)).GetValue(MatchMakerPlayerPreview) as PlayerLevelPanel;
@@ -85,11 +85,14 @@ namespace SIT.Core.Coop.Components
                 return;
             }
 
-            RectTransform tempRectTransform = playerLevelPanel.GetComponent<RectTransform>();
-            tempRectTransform.anchoredPosition = new Vector2(-1000, 0);
-            tempRectTransform.offsetMax = new Vector2(-1000, 0);
-            tempRectTransform.offsetMin = new Vector2(-1000, 0);
-            tempRectTransform.anchoredPosition3D = new Vector3(-1000, 0, 0);
+            playerNamePanel.gameObject.SetActive(false);
+            playerLevelPanel.gameObject.SetActive(false);
+
+            //RectTransform tempRectTransform = playerLevelPanel.GetComponent<RectTransform>();
+            //tempRectTransform.anchoredPosition = new Vector2(-1000, 0);
+            //tempRectTransform.offsetMax = new Vector2(-1000, 0);
+            //tempRectTransform.offsetMin = new Vector2(-1000, 0);
+            //tempRectTransform.anchoredPosition3D = new Vector3(-1000, 0, 0);
         }
 
         private void DisableBSGButtons()
