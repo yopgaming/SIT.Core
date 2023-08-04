@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -694,7 +695,13 @@ namespace SIT.Core.Coop
                 && PlayersToSpawnProfiles[accountId] != null
                 )
             {
-                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition);
+                var isDead = false;
+                if (packet.ContainsKey("isDead"))
+                {
+                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Packet for {accountId} contains DEATH message, registered handling of this on spawn");
+                    isDead = bool.Parse(packet["isDead"].ToString());
+                }
+                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition, isDead);
                 return;
             }
 
@@ -724,7 +731,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position)
+        private void CreatePhysicalOtherPlayerOrBot(Profile profile, Vector3 position, bool isDead = false)
         {
             try
             {
@@ -809,10 +816,15 @@ namespace SIT.Core.Coop
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
-                CreateLocalPlayer(profile, position, playerId);
+                LocalPlayer otherPlayer = CreateLocalPlayer(profile, position, playerId);
                 // TODO: I would like to use the following, but it causes the drones to spawn without a weapon.
                 //CreateLocalPlayerAsync(profile, position, playerId);
 
+                if (isDead)
+                {
+                    // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: CreatePhysicalOtherPlayerOrBot::Killing localPlayer with ID {playerId}");
+                    otherPlayer.ActiveHealthController.Kill(EDamageType.Undefined);
+                }
             }
             catch (Exception ex)
             {
@@ -821,7 +833,7 @@ namespace SIT.Core.Coop
 
         }
 
-        private void CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
+        private LocalPlayer CreateLocalPlayer(Profile profile, Vector3 position, int playerId)
         {
             // If this is an actual PLAYER player that we're creating a drone for, when we set
             // aiControl to true then they'll automatically run voice lines (eg when throwing
@@ -859,7 +871,7 @@ namespace SIT.Core.Coop
 
 
             if (otherPlayer == null)
-                return;
+                return null;
 
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
@@ -907,6 +919,8 @@ namespace SIT.Core.Coop
             {
                 dogtagComponent.GroupId = otherPlayer.Profile.Info.GroupId;
             }
+
+            return otherPlayer;
         }
 
         /// <summary>
@@ -1044,7 +1058,15 @@ namespace SIT.Core.Coop
             var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
 
             if (!Players.Any(x => x.Key == accountId) && !registeredPlayers.Any(x => x.Profile.AccountId == accountId))
+            {
+                // Start a new thread that waits for the localplayer to exist to send death events about them
+                if (packet["m"].ToString() == "Kill")
+                {
+                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {accountId}, enqueuing death");
+                    Task.Run(() => WaitForPlayerAndProcessPacket(accountId, packet));
+                }
                 return;
+            }
 
             foreach (var plyr in
                 Players.ToArray()
@@ -1121,6 +1143,39 @@ namespace SIT.Core.Coop
                     }
                 }
                 catch (Exception) { }
+            }
+        }
+
+        private void WaitForPlayerAndProcessPacket(string accountId, Dictionary<string, object> packet)
+        {
+            // Start the timer.
+            var startTime = DateTime.Now;
+            var maxWaitTime = TimeSpan.FromMinutes(2);
+
+            while (true)
+            {
+                // Check if maximum wait time has been reached.
+                if (DateTime.Now - startTime > maxWaitTime)
+                {
+                    Logger.LogError($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {maxWaitTime.TotalMinutes} minutes, but player {accountId} still did not exist after timeout period.");
+                    return;
+                }
+
+                if (Players == null)
+                    continue;
+
+                var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
+
+                // If the player now exists, process the packet and end the thread.
+                if (Players.Any(x => x.Key == accountId) || registeredPlayers.Any(x => x.Profile.AccountId == accountId))
+                {
+                    // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {(DateTime.Now - startTime).TotalSeconds}s");
+                    ProcessPlayerPacket(packet);
+                    return;
+                }
+
+                // Wait for a short period before checking again.
+                Thread.Sleep(1000);
             }
         }
 
