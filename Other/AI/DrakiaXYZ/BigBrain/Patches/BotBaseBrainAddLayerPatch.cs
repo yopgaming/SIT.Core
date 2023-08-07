@@ -1,9 +1,9 @@
 ﻿using DrakiaXYZ.BigBrain.Brains;
 using HarmonyLib;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using SIT.Tarkov.Core;
 
 using AICoreLogicLayerClass = AICoreLayerClass<BotLogicDecision>;
 
@@ -38,7 +38,9 @@ namespace DrakiaXYZ.BigBrain.Patches
             {
                 if (layer.Name() == excludeInfo.excludeLayerName && excludeInfo.excludeLayerBrains.Contains(botBrain.ShortName()))
                 {
+#if DEBUG
                     Logger.LogDebug($"Skipping adding {layer.Name()} to {botBrain.ShortName()} as it was removed");
+#endif
                     __result = false;
                     return false;
                 }

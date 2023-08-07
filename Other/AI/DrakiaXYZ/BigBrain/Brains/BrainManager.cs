@@ -1,7 +1,6 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using EFT;
 using HarmonyLib;
-using SIT.Core.Misc;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -19,14 +18,14 @@ namespace DrakiaXYZ.BigBrain.Brains
         private static BrainManager _instance;
         internal static BrainManager Instance
         {
-            get
-            {
+            get 
+            { 
                 if (_instance == null)
                 {
                     _instance = new BrainManager();
                 }
 
-                return _instance;
+                return _instance; 
             }
         }
 
@@ -37,7 +36,7 @@ namespace DrakiaXYZ.BigBrain.Brains
         internal List<Type> CustomLogicList = new List<Type>();
         internal List<ExcludeLayerInfo> ExcludeLayers = new List<ExcludeLayerInfo>();
 
-        private static FieldInfo _strategyField = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(AICoreLogicAgentClass), typeof(AbstractBaseBrain));
+        private static FieldInfo _strategyField = Utils.GetFieldByType(typeof(AICoreLogicAgentClass), typeof(AICoreStrategyClass<>));
 
         // Hide the constructor so we can have this as a guaranteed singleton
         private BrainManager() { }

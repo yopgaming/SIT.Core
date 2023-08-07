@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using SIT.Core.Other.AI.DrakiaXYZ.BigBrain;
 using SIT.Core.Other.UI;
 
 namespace SIT.Core.Other
@@ -28,9 +27,6 @@ namespace SIT.Core.Other
 
             if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableAdditionalAmmoUIDescriptions", true).Value)
                 new Ammo_CachedReadOnlyAttributes_Patch().Enable();
-
-            if (config.Bind<bool>(ConfigSITOtherCategoryValue, "EnableBigBrain", true).Value)
-                new BigBrainPatch();
 
         }
     }

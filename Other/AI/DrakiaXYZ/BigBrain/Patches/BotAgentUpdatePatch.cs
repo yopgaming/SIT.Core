@@ -1,10 +1,9 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using HarmonyLib;
-using SIT.Core.Misc;
-using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Reflection;
+using SIT.Tarkov.Core;
 
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
@@ -25,10 +24,10 @@ namespace DrakiaXYZ.BigBrain.Patches
         {
             Type botAgentType = typeof(AICoreLogicAgentClass);
 
-            _strategyField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(AICoreStrategyClass<>));
-            _lastResultField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(AILogicActionResultStruct));
-            _logicInstanceDictField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(IDictionary));
-            _lazyGetterField = ReflectionHelpers.GetFieldFromTypeByFieldType(botAgentType, typeof(Delegate));
+            _strategyField = Utils.GetFieldByType(botAgentType, typeof(AICoreStrategyClass<>));
+            _lastResultField = Utils.GetFieldByType(botAgentType, typeof(AILogicActionResultStruct));
+            _logicInstanceDictField = Utils.GetFieldByType(botAgentType, typeof(IDictionary));
+            _lazyGetterField = Utils.GetFieldByType(botAgentType, typeof(Delegate));
 
             return AccessTools.Method(botAgentType, "Update");
         }
@@ -36,10 +35,12 @@ namespace DrakiaXYZ.BigBrain.Patches
         [PatchPrefix]
         public static bool PatchPrefix(object __instance)
         {
-
+#if DEBUG
+            try {
+#endif
 
                 // Get values we'll use later
-                var strategy = _strategyField.GetValue(__instance) as AICoreStrategyClass<BotLogicDecision>;
+                AbstractBaseBrain strategy = _strategyField.GetValue(__instance) as AbstractBaseBrain;
                 var aiCoreNodeDict = _logicInstanceDictField.GetValue(__instance) as IDictionary;
 
                 // Update the brain, this is instead of method_10 in the original code
@@ -80,7 +81,14 @@ namespace DrakiaXYZ.BigBrain.Patches
 
                 return false;
 
-
+#if DEBUG
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                throw ex;
+            }
+#endif
         }
     }
 }

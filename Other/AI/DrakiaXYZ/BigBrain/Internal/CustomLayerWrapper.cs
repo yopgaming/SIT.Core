@@ -26,12 +26,6 @@ namespace DrakiaXYZ.BigBrain.Internal
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(GetType().Name);
             customLayer = (CustomLayer)Activator.CreateInstance(customLayerType, new object[] { bot, priority });
-
-            if (_logicInstanceDictField == null)
-            {
-                Type botAgentType = typeof(AICoreLogicAgentClass);
-                _logicInstanceDictField = AccessTools.Field(botAgentType, "dictionary_0");
-            }
         }
 
         public override AILogicActionResultStruct GetDecision()
@@ -42,10 +36,10 @@ namespace DrakiaXYZ.BigBrain.Internal
             {
                 throw new ArgumentException($"Custom logic type {action.Type.FullName} must inherit CustomLogic");
             }
-            //#if DEBUG
-            //            Logger.LogDebug($"{botOwner_0.name} NextAction: {action.Type.FullName}");
-            //            Logger.LogDebug($"    Reason: {action.Reason}");
-            //#endif
+//#if DEBUG
+//            Logger.LogDebug($"{botOwner_0.name} NextAction: {action.Type.FullName}");
+//            Logger.LogDebug($"    Reason: {action.Reason}");
+//#endif
 
             customLayer.CurrentAction = action;
 
@@ -118,9 +112,15 @@ namespace DrakiaXYZ.BigBrain.Internal
         static internal BaseNodeClass GetLogicInstance(BotOwner botOwner)
         {
             // Sanity check
-            if (botOwner?.Brain?.Agent == null)
+            if (botOwner == null || botOwner.Brain?.Agent == null)
             {
                 return null;
+            }
+
+            if (_logicInstanceDictField == null)
+            {
+                Type botAgentType = typeof(AICoreLogicAgentClass);
+                _logicInstanceDictField = AccessTools.Field(botAgentType, "dictionary_0");
             }
 
             BotLogicDecision logicDecision = botOwner.Brain.Agent.LastResult().Action;
