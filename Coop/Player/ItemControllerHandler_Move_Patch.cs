@@ -44,26 +44,54 @@ namespace SIT.Core.Coop.Player
 
             CallLocally.Add(player.ProfileId);
             ReplicatedGrid(dict, inventoryController, item);
+            ReplicatedSlot(dict, inventoryController, item);
 
         }
 
+        /// <summary>
+        /// TODO: This method can error if it cant find the item address (needs further improvement)
+        /// </summary>
+        /// <param name="dict"></param>
+        /// <param name="inventoryController"></param>
+        /// <param name="item"></param>
         private static void ReplicatedGrid(Dictionary<string, object> dict, EFT.Player.PlayerInventoryController inventoryController, Item item)
         {
-            if (dict.ContainsKey("grad"))
+            if (!dict.ContainsKey("grad"))
+                return;
+
+            GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
+
+            try
             {
-                GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
                 ItemMovementHandler.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false);
             }
-            else
+            catch (Exception)
             {
-                ReplicatedSlot(dict, inventoryController, item);
+
             }
         }
 
+        /// <summary>
+        /// TODO: This method can error if it cant find the item address (needs further improvement)
+        /// </summary>
+        /// <param name="dict"></param>
+        /// <param name="inventoryController"></param>
+        /// <param name="item"></param>
         private static void ReplicatedSlot(Dictionary<string, object> dict, EFT.Player.PlayerInventoryController inventoryController, Item item)
         {
+            if (!dict.ContainsKey("sitad"))
+                return;
+
             SlotItemAddressDescriptor slotItemAddressDescriptor = PatchConstants.SITParseJson<SlotItemAddressDescriptor>(dict["sitad"].ToString());
-            ItemMovementHandler.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
+
+            try
+            {
+                ItemMovementHandler.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         protected override MethodBase GetTargetMethod()
@@ -104,10 +132,6 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            SlotItemAddressDescriptor slotItemAddressDescriptor = new();
-            slotItemAddressDescriptor.Container = new();
-            slotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
-            slotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
 
             Dictionary<string, object> dictionary = new()
             {
@@ -124,9 +148,17 @@ namespace SIT.Core.Coop.Player
                 dictionary.Add("grad", gridItemAddressDescriptor);
             }
 
+            if (to is SlotItemAddress slotItemAddress)
+            {
+                SlotItemAddressDescriptor slotItemAddressDescriptor = new();
+                slotItemAddressDescriptor.Container = new();
+                slotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
+                slotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
+                dictionary.Add("sitad", slotItemAddressDescriptor);
+            }
+
             dictionary.Add("id", item.Id);
             dictionary.Add("tpl", item.TemplateId);
-            dictionary.Add("sitad", slotItemAddressDescriptor);
             dictionary.Add("m", "IC_Move");
 
             HasProcessed(typeof(ItemControllerHandler_Move_Patch), player, dictionary);
