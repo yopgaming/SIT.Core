@@ -19,11 +19,17 @@ namespace SIT.Core.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
-        public Rect windowRect = new Rect(20, 20, 120, 50);
-        public Rect windowInnerRect = new Rect(20, 20, 120, 50);
-        private GUIStyle styleBrowserRaidLabel = new GUIStyle();
-        private GUIStyle styleBrowserRaidRow = new GUIStyle() { };
-        private GUIStyle styleBrowserRaidLink = new GUIStyle();
+        private Rect windowRect = new Rect(20, 20, 120, 50);
+        private Rect windowInnerRect { get; set; } = new Rect(20, 20, 120, 50);
+        private GUIStyle styleBrowserRaidLabel { get; } = new GUIStyle();
+        private GUIStyle styleBrowserRaidRow { get; } = new GUIStyle() { };
+        private GUIStyle styleBrowserRaidLink { get; } = new GUIStyle();
+
+        //private GUIStyleState styleStateBrowserWindowNormal { get; } = new GUIStyleState()
+        //{
+        //    textColor = Color.white
+        //};
+        private GUIStyle styleBrowserWindow { get; set; }
 
         private GUIStyleState styleStateBrowserBigButtonsNormal { get; } = new GUIStyleState()
         {
@@ -45,10 +51,37 @@ namespace SIT.Core.Coop.Components
         private ManualLogSource Logger { get; set; }
         public MatchMakerPlayerPreview MatchMakerPlayerPreview { get; internal set; }
 
+        public Canvas Canvas { get; set; }
+
         void Start()
         {
+            // Setup Logger
             Logger = BepInEx.Logging.Logger.CreateLogSource("SIT Matchmaker GUI");
             Logger.LogInfo("Start");
+            // Get Canvas
+            Canvas = GameObject.FindObjectOfType<Canvas>();
+            if (Canvas != null)
+            {
+                Logger.LogInfo("Canvas found");
+                foreach (Transform b in Canvas.GetComponents<Transform>())
+                {
+                    Logger.LogInfo(b);
+                }
+                //Canvas.GetComponent<UnityEngine.GUIText>();
+            }
+
+            // Create background Texture
+            Texture2D texture2D = new Texture2D(128, 128);
+            texture2D.Fill(Color.white);
+            //styleStateBrowserWindowNormal.background = texture2D;
+            //styleStateBrowserWindowNormal.textColor = Color.white;
+
+            // Create Skin for Window
+            GUISkin skin = ScriptableObject.CreateInstance<GUISkin>();
+            //skin.window = new GUIStyle();
+            //skin.window.alignment = TextAnchor.MiddleLeft;
+            //skin.window.normal = styleStateBrowserWindowNormal;
+
             m_cancellationTokenSource = new CancellationTokenSource();
             styleBrowserBigButtons = new GUIStyle()
             {
@@ -60,15 +93,21 @@ namespace SIT.Core.Coop.Components
                 hover = styleStateBrowserBigButtonsNormal,
             };
 
+            styleBrowserWindow = new GUIStyle();
+            //styleBrowserWindow.normal = styleStateBrowserWindowNormal;
+            //styleBrowserWindow.onNormal = styleStateBrowserWindowNormal;
+            styleBrowserWindow.active = styleBrowserWindow.normal;
+            styleBrowserWindow.onActive = styleBrowserWindow.onNormal;
+            //styleBrowserWindow.hover = styleStateBrowserWindowNormal;
 
             GetMatches();
             StartCoroutine(ResolveMatches());
             DisableBSGButtons();
-            MovePlayerCharacter();
-            MovePlayerNamePanel();
+            RemovePlayerCharacter();
+            RemoveOldPanels();
         }
 
-        private void MovePlayerNamePanel()
+        private void RemoveOldPanels()
         {
             var playerNamePanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerNamePanel)).GetValue(MatchMakerPlayerPreview) as PlayerNamePanel;
             if (playerNamePanel == null)
@@ -105,7 +144,7 @@ namespace SIT.Core.Coop.Components
             OriginalBackButton.Interactable = false;
         }
 
-        private void MovePlayerCharacter()
+        private void RemovePlayerCharacter()
         {
             var pmv = ReflectionHelpers.GetFieldFromTypeByFieldType(MatchMakerPlayerPreview.GetType(), typeof(PlayerModelView)).GetValue(MatchMakerPlayerPreview) as PlayerModelView;
             if (pmv == null)
@@ -122,6 +161,12 @@ namespace SIT.Core.Coop.Components
             }
 
             position.x = 7000f;
+            pmv.enabled = false;
+
+            if (pmv.PlayerBody == null)
+                return;
+
+            pmv.PlayerBody.enabled = false;
 
         }
 
@@ -169,20 +214,25 @@ namespace SIT.Core.Coop.Components
                 DestroyThis();
             }
 
-            MovePlayerCharacter();
-            MovePlayerNamePanel();
+            RemovePlayerCharacter();
+            RemoveOldPanels();
         }
 
         void OnGUI()
         {
-            var w = 0.5f; // proportional width (0..1)
-            var h = 0.8f; // proportional height (0..1)
-            windowRect.x = (float)(Screen.width * (1 - w)) / 2;
+            //var w = 0.1f; // proportional width (0..1)
+            var h = 0.9f; // proportional height (0..1)
+            //windowRect.x = (float)(Screen.width * (1 - w)) / 2;
+            //windowRect.y = (float)(Screen.height * (1 - h)) / 2;
+            //windowRect.width = Screen.width * w;
+            //windowRect.height = Screen.height * h;
+
+            windowRect.x = Screen.width * 0.01f;// (float)(Screen.width * (1 - w)) / 2;
             windowRect.y = (float)(Screen.height * (1 - h)) / 2;
-            windowRect.width = Screen.width * w;
+            windowRect.width = Screen.width * 0.3f;
             windowRect.height = Screen.height * h;
 
-            windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "SIT Match Browser");
+            windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "", styleBrowserWindow);
         }
 
         void DrawWindow(int windowID)
@@ -205,8 +255,8 @@ namespace SIT.Core.Coop.Components
             }
 
             GUI.Label(new Rect(10, 45, (windowInnerRect.width / 4), 25), "SERVER");
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), 45, (windowInnerRect.width / 4), 25), "PLAYERS");
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.8f), 45, (windowInnerRect.width / 4), 25), "LOCATION");
+            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), 45, (windowInnerRect.width / 4), 25), "PLAYERS");
+            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), 45, (windowInnerRect.width / 4), 25), "LOCATION");
             //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), 45, (windowInnerRect.width / 4), 25), "PING");
 
             if (m_Matches != null)
@@ -216,8 +266,8 @@ namespace SIT.Core.Coop.Components
                 {
                     var yPos = 60 + (index + 25);
                     GUI.Label(new Rect(10, yPos, (windowInnerRect.width / 4), 25), $"{match["HostName"].ToString()}'s Raid");
-                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), yPos, (windowInnerRect.width / 4), 25), match["PlayerCount"].ToString());
-                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.8f), yPos, (windowInnerRect.width / 4), 25), match["Location"].ToString());
+                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), yPos, (windowInnerRect.width / 4), 25), match["PlayerCount"].ToString());
+                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), yPos, (windowInnerRect.width / 4), 25), match["Location"].ToString());
                     //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width / 4), 25), "-");
                     Logger.LogInfo(match.ToJson());
                     if (GUI.Button(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width * 0.1f) - 20, 20)
@@ -243,7 +293,7 @@ namespace SIT.Core.Coop.Components
             }
 
             // Back button
-            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, windowInnerRect.height - 40, (windowInnerRect.width / 2) - 20, 20), "Back", styleBrowserBigButtons))
+            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, windowInnerRect.height - 40, (windowInnerRect.width / 2) - 20, 20), "Back (Esc)", styleBrowserBigButtons))
             {
                 OriginalBackButton.OnClick.Invoke();
                 DestroyThis();
