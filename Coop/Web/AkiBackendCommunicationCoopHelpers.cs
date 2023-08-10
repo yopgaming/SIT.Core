@@ -7,6 +7,11 @@ namespace SIT.Coop.Core.Web
 {
     public class AkiBackendCommunicationCoopHelpers : AkiBackendCommunication
     {
+        static Random Randomizer { get; }
+        static AkiBackendCommunicationCoopHelpers()
+        {
+            Randomizer = new Random();
+        }
 
         public static void PostLocalPlayerData(
             EFT.Player player
@@ -36,6 +41,10 @@ namespace SIT.Coop.Core.Web
             if (!data.ContainsKey("t"))
             {
                 data.Add("t", DateTime.Now.Ticks.ToString("G"));
+            }
+            if (!data.ContainsKey("tkn"))
+            {
+                data.Add("tkn", Randomizer.NextDouble());
             }
             if (!data.ContainsKey("accountId"))
             {

@@ -93,8 +93,27 @@ namespace SIT.Core.Core
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
 
             GetHeaders();
+            CreateWebSocket();
+            ConnectToAkiBackend();
             PeriodicallySendPing();
             PeriodicallySendPooledData();
+
+            HttpClient = new HttpClient();
+            foreach (var item in GetHeaders())
+            {
+                HttpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
+            }
+            HttpClient.MaxResponseContentBufferSize = long.MaxValue;
+            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+        }
+
+        private void ConnectToAkiBackend()
+        {
+            PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
+        }
+
+        private void CreateWebSocket()
+        {
             if (WebSocket == null)
             {
                 Logger.LogDebug("Request Instance is connecting to WebSocket");
@@ -111,26 +130,17 @@ namespace SIT.Core.Core
                 WebSocket.Connect();
                 WebSocket.Send("CONNECTED FROM SIT COOP");
                 // Continously Ping from SIT.Core (Keep Alive)
-                _ = Task.Run(async() => { 
-                
+                _ = Task.Run(async () =>
+                {
+
                     while (true)
                     {
-                        await Task.Delay(1000);
+                        await Task.Delay(3000);
                         WebSocket.Send("PING FROM SIT COOP");
                     }
 
                 });
             }
-
-
-
-            HttpClient = new HttpClient();
-            foreach (var item in GetHeaders())
-            {
-                HttpClient.DefaultRequestHeaders.Add(item.Key, item.Value);
-            }
-            HttpClient.MaxResponseContentBufferSize = long.MaxValue;
-            HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
         }
 
         public async void PostDownWebSocketImmediately(Dictionary<string, object> packet)
