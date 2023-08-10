@@ -22,7 +22,7 @@ namespace DrakiaXYZ.BigBrain.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            Type botLogicBrainType = typeof(AbstractBaseBrain);
+            Type botLogicBrainType = typeof(BaseBrain);
             Type botBaseBrainType = botLogicBrainType.BaseType;
 
             string activeLayerPropertyName = Utils.GetPropertyNameByType(botBaseBrainType, typeof(AICoreLogicLayerClass));

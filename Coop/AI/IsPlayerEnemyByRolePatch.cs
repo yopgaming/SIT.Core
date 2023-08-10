@@ -27,9 +27,7 @@ namespace SIT.Core.Coop.AI
         public static void Postfix(
             bool __result,
             WildSpawnType role,
-            BotGroupClass __instance,
-            BotGlobalsMindSettings ___botGlobalsMindSettings_0,
-            Dictionary<IAIDetails, BotSettingsClass> ___Enemies
+            BotGroupClass __instance
             )
         {
             __result = true;

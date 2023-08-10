@@ -1,4 +1,5 @@
-﻿using SIT.Core.Misc;
+﻿using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace SIT.Core.AkiSupport.Custom
     {
         protected override MethodBase GetTargetMethod()
         {
-            var desiredType = typeof(AbstractBotSpawner);
+            var desiredType = typeof(BotSpawner);
             var desiredMethod = ReflectionHelpers.GetMethodForType(desiredType, "CheckOnMax");
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
@@ -33,12 +34,12 @@ namespace SIT.Core.AkiSupport.Custom
         }
 
         [PatchPrefix]
-        private static void PatchPreFix(ref int ___int_3)
+        private static void PatchPrefix(ref int ____maxBots)
         {
             // Spawn process
-            if (___int_3 < 0)
+            if (____maxBots < 0)
             {
-                ___int_3 = 0;
+                ____maxBots = 0;
             }
         }
     }

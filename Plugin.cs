@@ -77,7 +77,9 @@ namespace SIT.Core
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "1" || majorN4 != "3")
+                        //0.13.5.0.25725
+
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "5" || majorN4 != "0")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -160,20 +162,20 @@ namespace SIT.Core
             new QTEPatch().Enable();
             new TinnitusFixPatch().Enable();
 
-            try
-            {
-                BundleManager.GetBundles();
-                new EasyAssetsPatch().Enable();
-                new EasyBundlePatch().Enable();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError("// --- ERROR -----------------------------------------------");
-                Logger.LogError("Bundle System Failed!!");
-                Logger.LogError(ex.ToString());
-                Logger.LogError("// --- ERROR -----------------------------------------------");
+            //try
+            //{
+            //    BundleManager.GetBundles();
+            //    new EasyAssetsPatch().Enable();
+            //    new EasyBundlePatch().Enable();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.LogError("// --- ERROR -----------------------------------------------");
+            //    Logger.LogError("Bundle System Failed!!");
+            //    Logger.LogError(ex.ToString());
+            //    Logger.LogError("// --- ERROR -----------------------------------------------");
 
-            }
+            //}
 
             new WavesSpawnScenarioInitPatch(Config).Enable();
             new WavesSpawnScenarioMethodPatch().Enable();

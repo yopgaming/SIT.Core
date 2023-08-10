@@ -16,7 +16,7 @@ namespace SIT.Core.Other.AI.Dvize.NoBushESP
     {
         private static RaycastHit hitInfo;
         private static LayerMask layermask;
-        private static LastPart bodyPartClass;
+        private static EnemyPart bodyPartClass;
         private static Vector3 vector;
         private static MaterialType tempMaterial;
         private static float magnitude;

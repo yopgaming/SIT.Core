@@ -1,4 +1,5 @@
 ﻿using Comfort.Common;
+using EFT;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
@@ -31,7 +32,7 @@ namespace SIT.Core.Coop.Player.Proceed
                 && x.GetParameters()[0].Name == "weapon"
                 && x.GetParameters()[0].ParameterType == typeof(EFT.InventoryLogic.Weapon)
                 && x.GetParameters()[1].Name == "callback"
-                && x.GetParameters()[1].ParameterType == typeof(Callback<IShootController>)
+                && x.GetParameters()[1].ParameterType == typeof(Callback<IFirearmHandsController>)
                 && x.GetParameters()[2].Name == "scheduled"
 
 
@@ -105,7 +106,7 @@ namespace SIT.Core.Coop.Player.Proceed
             {
                 CallLocally.Add(player.Profile.AccountId, true);
 
-                var callback = new Callback<IShootController>((IResult) => { });
+                var callback = new Callback<IFirearmHandsController>((IResult) => { });
                 method1.Invoke(player, new object[] { weapon, callback, true });
             }
         }

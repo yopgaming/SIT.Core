@@ -18,7 +18,7 @@ namespace DrakiaXYZ.BigBrain.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            Type AbstractBaseBrainType = typeof(AbstractBaseBrain);
+            Type AbstractBaseBrainType = typeof(BaseBrain);
             Type aiCoreStrategyClassType = AbstractBaseBrainType.BaseType;
 
             _activeLayerListField = AccessTools.Field(aiCoreStrategyClassType, "list_0");

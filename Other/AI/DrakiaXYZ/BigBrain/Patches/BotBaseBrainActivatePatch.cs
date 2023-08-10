@@ -17,7 +17,7 @@ namespace DrakiaXYZ.BigBrain.Patches
         private static MethodInfo _addLayer;
         protected override MethodBase GetTargetMethod()
         {
-            Type botLogicBrainType = typeof(AbstractBaseBrain);
+            Type botLogicBrainType = typeof(BaseBrain);
             Type botBaseBrainType = botLogicBrainType.BaseType;
 
             _botOwnerField = AccessTools.Field(botLogicBrainType, "botOwner_0");
@@ -31,7 +31,7 @@ namespace DrakiaXYZ.BigBrain.Patches
         {
             try
             {
-                AbstractBaseBrain botBrain = __instance as AbstractBaseBrain;
+                BaseBrain botBrain = __instance as BaseBrain;
                 BotOwner botOwner = (BotOwner)_botOwnerField.GetValue(botBrain);
 
                 foreach (BrainManager.LayerInfo layerInfo in BrainManager.Instance.CustomLayers.Values)

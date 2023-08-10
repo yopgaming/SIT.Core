@@ -1,4 +1,5 @@
-﻿using SIT.Coop.Core.Player;
+﻿using EFT.HealthSystem;
+using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;

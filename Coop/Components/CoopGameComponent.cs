@@ -1101,7 +1101,7 @@ namespace SIT.Core.Coop
                                 {
                                     RemovedFromAIPlayers.Add(plyr.Key);
                                     Logger.LogDebug("Removing Client Player to Enemy list");
-                                    var botSpawner = (AbstractBotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(AbstractBotSpawner)).GetValue(botController);
+                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(BotSpawner)).GetValue(botController);
                                     botSpawner.DeletePlayer(plyr.Value);
                                 }
                             }

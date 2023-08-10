@@ -1,3 +1,4 @@
+using EFT.HealthSystem;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;

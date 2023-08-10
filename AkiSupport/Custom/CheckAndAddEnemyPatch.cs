@@ -1,4 +1,5 @@
-﻿using SIT.Tarkov.Core;
+﻿using EFT;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

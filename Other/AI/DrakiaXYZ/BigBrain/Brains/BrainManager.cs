@@ -128,7 +128,7 @@ namespace DrakiaXYZ.BigBrain.Brains
                 return null;
             }
 
-            AbstractBaseBrain botBrainStrategy = _strategyField.GetValue(botOwner.Brain.Agent) as AbstractBaseBrain;
+            BaseBrain botBrainStrategy = _strategyField.GetValue(botOwner.Brain.Agent) as BaseBrain;
             if (botBrainStrategy == null)
             {
                 return null;

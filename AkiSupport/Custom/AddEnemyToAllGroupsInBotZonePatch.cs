@@ -62,7 +62,7 @@ namespace SIT.Core.AkiSupport.Custom
                         && group.ShallRevengeFor(target)
                         )
                     {
-                        group.AddEnemy(aggressor);
+                        group.AddEnemy(aggressor, EBotEnemyCause.AddEnemyToAllGroupsInBotZone);
                     }
                 }
             }

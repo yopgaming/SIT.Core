@@ -40,7 +40,7 @@ namespace DrakiaXYZ.BigBrain.Patches
 #endif
 
                 // Get values we'll use later
-                AbstractBaseBrain strategy = _strategyField.GetValue(__instance) as AbstractBaseBrain;
+                BaseBrain strategy = _strategyField.GetValue(__instance) as BaseBrain;
                 var aiCoreNodeDict = _logicInstanceDictField.GetValue(__instance) as IDictionary;
 
                 // Update the brain, this is instead of method_10 in the original code

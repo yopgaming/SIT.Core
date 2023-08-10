@@ -20,7 +20,7 @@ namespace DrakiaXYZ.BigBrain.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            Type botLogicBrainType = typeof(AbstractBaseBrain);
+            Type botLogicBrainType = typeof(BaseBrain);
             Type botBaseBrainType = botLogicBrainType.BaseType;
 
             _layerDictionary = AccessTools.Field(botBaseBrainType, "dictionary_0");
@@ -33,7 +33,7 @@ namespace DrakiaXYZ.BigBrain.Patches
         public static bool PatchPrefix(object __instance, int index, AICoreLogicLayerClass layer, bool activeOnStart, ref bool __result)
         {
             // Make sure we're not excluding this layer from this brain
-            AbstractBaseBrain botBrain = __instance as AbstractBaseBrain;
+            BaseBrain botBrain = __instance as BaseBrain;
             foreach (BrainManager.ExcludeLayerInfo excludeInfo in BrainManager.Instance.ExcludeLayers)
             {
                 if (layer.Name() == excludeInfo.excludeLayerName && excludeInfo.excludeLayerBrains.Contains(botBrain.ShortName()))
