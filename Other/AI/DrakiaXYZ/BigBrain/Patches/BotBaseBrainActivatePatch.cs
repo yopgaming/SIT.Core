@@ -20,7 +20,7 @@ namespace DrakiaXYZ.BigBrain.Patches
             Type botLogicBrainType = typeof(BaseBrain);
             Type botBaseBrainType = botLogicBrainType.BaseType;
 
-            _botOwnerField = AccessTools.Field(botLogicBrainType, "botOwner_0");
+            _botOwnerField = AccessTools.Field(botLogicBrainType, "_owner");
             _addLayer = AccessTools.Method(botBaseBrainType, "method_0");
 
             return AccessTools.Method(botBaseBrainType, "Activate");
@@ -29,6 +29,8 @@ namespace DrakiaXYZ.BigBrain.Patches
         [PatchPrefix]
         public static void PatchPrefix(object __instance)
         {
+            //Logger.LogDebug("BotBaseBrainActivatePatch");
+            //Logger.LogDebug(__instance.GetType());
             try
             {
                 BaseBrain botBrain = __instance as BaseBrain;
