@@ -72,12 +72,14 @@ namespace SIT.Core.Coop.Components
 
             // Create background Texture
             Texture2D texture2D = new Texture2D(128, 128);
-            texture2D.Fill(Color.white);
+            texture2D.Fill(Color.black);
+            styleStateBrowserBigButtonsNormal.background = texture2D;
+            styleStateBrowserBigButtonsNormal.textColor = Color.black;
             //styleStateBrowserWindowNormal.background = texture2D;
             //styleStateBrowserWindowNormal.textColor = Color.white;
 
             // Create Skin for Window
-            GUISkin skin = ScriptableObject.CreateInstance<GUISkin>();
+            //GUISkin skin = ScriptableObject.CreateInstance<GUISkin>();
             //skin.window = new GUIStyle();
             //skin.window.alignment = TextAnchor.MiddleLeft;
             //skin.window.normal = styleStateBrowserWindowNormal;
@@ -232,7 +234,7 @@ namespace SIT.Core.Coop.Components
             windowRect.width = Screen.width * 0.3f;
             windowRect.height = Screen.height * h;
 
-            windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "", styleBrowserWindow);
+            windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "");
         }
 
         void DrawWindow(int windowID)
@@ -248,8 +250,8 @@ namespace SIT.Core.Coop.Components
 
             if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, 20, (windowInnerRect.width / 2) - 20, 20), "Play Single Player", styleBrowserBigButtons))
             {
-                OriginalAcceptButton.OnClick.Invoke();
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
+                OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
 
             }
