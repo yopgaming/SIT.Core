@@ -34,6 +34,9 @@ namespace SIT.Core.Coop
         {
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Prefix");
 
+            if(MatchmakerAcceptPatches.IsSinglePlayer)
+                return true;
+
             return false;
         }
 
@@ -50,6 +53,9 @@ namespace SIT.Core.Coop
             string ____backendUrl
             )
         {
+            if (MatchmakerAcceptPatches.IsSinglePlayer)
+                return;
+
             //Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
             if (Singleton<NotificationManagerClass>.Instantiated)
             {
