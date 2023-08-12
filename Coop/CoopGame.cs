@@ -211,7 +211,7 @@ namespace SIT.Core.Coop
 
                 // Send a message of nothing to keep the Socket Alive whilst loading
                 AkiBackendCommunication.Instance.PostDownWebSocketImmediately("");
-                
+
                 yield return waitSeconds;
 
             }
@@ -500,7 +500,7 @@ namespace SIT.Core.Coop
             {
                 controllerSettings.BotAmount = EBotAmount.NoBots;
 
-                if(!PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem)
+                if (!PluginConfigSettings.Instance.CoopSettings.EnableAISpawnWaveSystem)
                     Logger.LogDebug("Bot Spawner System has been turned off - Wave System is Disabled");
 
                 if (MatchmakerAcceptPatches.IsSinglePlayer)
@@ -693,7 +693,7 @@ namespace SIT.Core.Coop
             UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
             Logger.LogInfo("ExfiltrationPoint_OnStatusChanged");
             Logger.LogInfo(status);
-            if(status == EExfiltrationStatus.Countdown)
+            if (status == EExfiltrationStatus.Countdown)
             {
 
             }

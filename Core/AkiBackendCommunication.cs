@@ -18,7 +18,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking.Match;
 
 namespace SIT.Core.Core
 {
@@ -464,7 +463,8 @@ namespace SIT.Core.Core
                             {
                                 // PatchConstants.Logger.LogDebug($"WS:Ping Send");
 
-                                Dictionary<string, object> packet = new Dictionary<string, object> {
+                                Dictionary<string, object> packet = new()
+                                {
                                     { "m", "Ping" },
                                     { "t", DateTime.UtcNow.Ticks.ToString("G") },
                                     { "accountId", coopGameComponent.AccountId },
@@ -842,7 +842,7 @@ namespace SIT.Core.Core
                     var json = await PostJsonAsync(url, data, compress: false, timeout: timeout, debug);
                     return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     PatchConstants.Logger.LogError(ex);
                 }

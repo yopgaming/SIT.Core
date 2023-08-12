@@ -2,9 +2,9 @@
 using DrakiaXYZ.BigBrain.Internal;
 using EFT;
 using HarmonyLib;
+using SIT.Tarkov.Core;
 using System;
 using System.Reflection;
-using SIT.Tarkov.Core;
 
 namespace DrakiaXYZ.BigBrain.Patches
 {
@@ -32,7 +32,7 @@ namespace DrakiaXYZ.BigBrain.Patches
                     logicIndex -= BrainManager.START_LOGIC_ID;
 
                     Type logicType = BrainManager.Instance.CustomLogicList[logicIndex];
-                    CustomLogicWrapper customLogicWrapper = new CustomLogicWrapper(logicType, ___botOwner_0);
+                    CustomLogicWrapper customLogicWrapper = new(logicType, ___botOwner_0);
                     __result = customLogicWrapper;
 
 

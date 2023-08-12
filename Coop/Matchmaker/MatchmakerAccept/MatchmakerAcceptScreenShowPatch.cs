@@ -1,7 +1,6 @@
 ﻿using EFT;
 using EFT.UI;
 using EFT.UI.Matchmaker;
-using Newtonsoft.Json.Linq;
 using SIT.Core.Coop.Components;
 using SIT.Tarkov.Core;
 using System;
@@ -33,7 +32,7 @@ namespace SIT.Coop.Core.Matchmaker
 
         private static DateTime LastClickedTime { get; set; } = DateTime.MinValue;
 
-        private static GameObject MatchmakerObject { get; set; }    
+        private static GameObject MatchmakerObject { get; set; }
 
         [PatchPrefix]
         private static void Pre(
@@ -48,9 +47,9 @@ namespace SIT.Coop.Core.Matchmaker
         {
             //Logger.LogDebug("MatchmakerAcceptScreenShow.PatchPrefix");
 
-            if(MatchmakerObject == null)
+            if (MatchmakerObject == null)
                 MatchmakerObject = new GameObject("MatchmakerObject");
-            
+
             var sitMatchMaker = MatchmakerObject.GetOrAddComponent<SITMatchmakerGUIComponent>();
             sitMatchMaker.RaidSettings = raidSettings;
             sitMatchMaker.OriginalAcceptButton = ____acceptButton;

@@ -9,8 +9,6 @@ using SIT.Core.Misc;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -19,7 +17,7 @@ namespace SIT.Core.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
-        private Rect windowRect = new Rect(20, 20, 120, 50);
+        private Rect windowRect = new(20, 20, 120, 50);
         private Rect windowInnerRect { get; set; } = new Rect(20, 20, 120, 50);
         private GUIStyle styleBrowserRaidLabel { get; } = new GUIStyle();
         private GUIStyle styleBrowserRaidRow { get; } = new GUIStyle() { };
@@ -71,7 +69,7 @@ namespace SIT.Core.Coop.Components
             }
 
             // Create background Texture
-            Texture2D texture2D = new Texture2D(128, 128);
+            Texture2D texture2D = new(128, 128);
             texture2D.Fill(Color.black);
             styleStateBrowserBigButtonsNormal.background = texture2D;
             styleStateBrowserBigButtonsNormal.textColor = Color.black;
@@ -211,7 +209,7 @@ namespace SIT.Core.Coop.Components
 
         void Update()
         {
-            if(Input.GetKeyDown(KeyCode.Escape))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
                 DestroyThis();
             }
@@ -276,7 +274,7 @@ namespace SIT.Core.Coop.Components
                         , $"Join"
                         ))
                     {
-                        if(MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                        if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
                         {
                             Logger.LogDebug(returnedJson);
                             JObject result = JObject.Parse(returnedJson);
@@ -304,7 +302,7 @@ namespace SIT.Core.Coop.Components
 
         void OnDestroy()
         {
-            if(m_cancellationTokenSource != null)   
+            if (m_cancellationTokenSource != null)
                 m_cancellationTokenSource.Cancel();
         }
 
@@ -315,6 +313,6 @@ namespace SIT.Core.Coop.Components
 
         }
 
-        
+
     }
 }

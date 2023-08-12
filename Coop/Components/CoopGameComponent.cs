@@ -3,7 +3,6 @@ using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using EFT.UI;
-using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
@@ -142,9 +141,10 @@ namespace SIT.Core.Coop
 
             //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
-            RequestingObj.PostJsonAsync<SITConfig>("/SIT/Config", "{}").ContinueWith(x => {
+            RequestingObj.PostJsonAsync<SITConfig>("/SIT/Config", "{}").ContinueWith(x =>
+            {
 
-                if(x.IsCanceled || x.IsFaulted)
+                if (x.IsCanceled || x.IsFaulted)
                 {
                     SITConfig = new SITConfig();
                     Logger.LogError("SIT Config Failed!");

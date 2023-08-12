@@ -8,8 +8,6 @@ using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.Coop.Player
@@ -143,7 +141,7 @@ namespace SIT.Core.Coop.Player
             var damageInfo = JObject.Parse(dict["d"].ToString()).ToObject<DamageInfo>();
             if (dict.ContainsKey("bpct"))
             {
-                if(Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType))
+                if (Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType))
                 {
                     damageInfo.BodyPartColliderType = bodyPartColliderType;
                 }
@@ -182,25 +180,25 @@ namespace SIT.Core.Coop.Player
             {
                 //if (aggressorPlayer != null)
                 //{
-                    //Item item = null;
-                    //if (!ItemFinder.TryFindItemOnPlayer(aggressorPlayer, dict["d.w.tpl"].ToString(), dict["d.w.id"].ToString(), out item))
-                    //    ItemFinder.TryFindItemInWorld(dict["d.w.id"].ToString(), out item);
+                //Item item = null;
+                //if (!ItemFinder.TryFindItemOnPlayer(aggressorPlayer, dict["d.w.tpl"].ToString(), dict["d.w.id"].ToString(), out item))
+                //    ItemFinder.TryFindItemInWorld(dict["d.w.id"].ToString(), out item);
 
-                    if (ItemFinder.TryFindItem(dict["d.w.id"].ToString(), out Item item))
+                if (ItemFinder.TryFindItem(dict["d.w.id"].ToString(), out Item item))
+                {
+                    if (item is Weapon w)
                     {
-                        if (item is Weapon w)
-                        {
-                            damageInfo.Weapon = w;
-                        }
+                        damageInfo.Weapon = w;
                     }
-                    else
+                }
+                else
+                {
+                    var createdItem = Tarkov.Core.Spawners.ItemFactory.CreateItem(dict["d.w.id"].ToString(), dict["d.w.tpl"].ToString());
+                    if (createdItem is Weapon wep)
                     {
-                        var createdItem = Tarkov.Core.Spawners.ItemFactory.CreateItem(dict["d.w.id"].ToString(), dict["d.w.tpl"].ToString());
-                        if (createdItem is Weapon wep)
-                        {
-                            damageInfo.Weapon = wep;
-                        }
+                        damageInfo.Weapon = wep;
                     }
+                }
                 //}
             }
 

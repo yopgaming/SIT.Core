@@ -1,10 +1,9 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using HarmonyLib;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Reflection;
-using SIT.Tarkov.Core;
-
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
@@ -36,7 +35,8 @@ namespace DrakiaXYZ.BigBrain.Patches
         public static bool PatchPrefix(object __instance)
         {
 #if DEBUG
-            try {
+            try
+            {
 #endif
 
                 // Get values we'll use later

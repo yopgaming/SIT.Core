@@ -335,7 +335,7 @@ namespace SIT.Coop.Core.Player
 
             if (ReplicatedDirection.HasValue)
             {
-                if(_playerMovePatch == null)
+                if (_playerMovePatch == null)
                     _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
 
                 _playerMovePatch?.ReplicatedMove(player

@@ -1,7 +1,6 @@
 ﻿using EFT;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace SIT.Core.Coop.AI

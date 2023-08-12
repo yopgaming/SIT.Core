@@ -3,9 +3,8 @@ using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using HarmonyLib;
 using System;
-using System.Reflection;
 using System.Collections;
-
+using System.Reflection;
 using AICoreLogicAgentClass = AICoreAgentClass<BotLogicDecision>;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 
@@ -19,8 +18,8 @@ namespace DrakiaXYZ.BigBrain.Internal
 
         protected ManualLogSource Logger;
         private readonly CustomLayer customLayer;
-        private AICoreActionEndStruct endAction = new AICoreActionEndStruct("Base logic", true);
-        private AICoreActionEndStruct continueAction = new AICoreActionEndStruct(null, false);
+        private AICoreActionEndStruct endAction = new("Base logic", true);
+        private AICoreActionEndStruct continueAction = new(null, false);
 
         public CustomLayerWrapper(Type customLayerType, BotOwner bot, int priority) : base(bot, priority)
         {
@@ -36,10 +35,10 @@ namespace DrakiaXYZ.BigBrain.Internal
             {
                 throw new ArgumentException($"Custom logic type {action.Type.FullName} must inherit CustomLogic");
             }
-//#if DEBUG
-//            Logger.LogDebug($"{botOwner_0.name} NextAction: {action.Type.FullName}");
-//            Logger.LogDebug($"    Reason: {action.Reason}");
-//#endif
+            //#if DEBUG
+            //            Logger.LogDebug($"{botOwner_0.name} NextAction: {action.Type.FullName}");
+            //            Logger.LogDebug($"    Reason: {action.Reason}");
+            //#endif
 
             customLayer.CurrentAction = action;
 

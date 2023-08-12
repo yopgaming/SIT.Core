@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using static SIT.Core.Coop.Player.Player_Move_Patch;
 
 namespace SIT.Core.Coop.Player
 {
@@ -123,7 +122,7 @@ namespace SIT.Core.Coop.Player
                 var lastMovePacket = (PlayerMovePackets[player.ProfileId]);
 
                 if (
-                    lastMovePacket.dX == direction.x 
+                    lastMovePacket.dX == direction.x
                     && lastMovePacket.dY == direction.y
                     && lastMovePacket.pX == player.Position.x
                     && lastMovePacket.pY == player.Position.y

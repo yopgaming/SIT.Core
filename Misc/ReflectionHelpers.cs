@@ -215,7 +215,7 @@ namespace SIT.Core.Misc
             if (t == typeof(System.Object))
                 return null;
 
-            if(m_CachedFieldInfos.ContainsKey(t.FullName))
+            if (m_CachedFieldInfos.ContainsKey(t.FullName))
                 return m_CachedFieldInfos[t.FullName];
 
             var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public).ToList();

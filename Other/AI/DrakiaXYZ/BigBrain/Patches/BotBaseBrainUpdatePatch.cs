@@ -1,10 +1,9 @@
 ﻿using DrakiaXYZ.BigBrain.Internal;
 using HarmonyLib;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using SIT.Tarkov.Core;
-
 using AICoreLogicLayerClass = AICoreLayerClass<BotLogicDecision>;
 using AILogicActionResultStruct = AICoreActionResultStruct<BotLogicDecision>;
 

@@ -128,17 +128,18 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             GetLogger(typeof(FirearmController_ReloadWithAmmo_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
             ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-            firearmCont.ReloadWithAmmo(ammoPack, (c) => {
+            firearmCont.ReloadWithAmmo(ammoPack, (c) =>
+            {
 
                 if (c.Failed)
                 {
                     Logger.LogError($"{player.ProfileId}: Failed to ReloadWithAmmo");
                 }
-            
+
             });
             GetLogger(typeof(FirearmController_ReloadWithAmmo_Patch)).LogDebug($"{player.ProfileId} Notify to use ICH Move Patch");
             ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
-                
+
         }
     }
 }

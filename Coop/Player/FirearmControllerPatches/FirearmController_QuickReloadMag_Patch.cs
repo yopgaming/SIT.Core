@@ -99,7 +99,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             GetLogger(typeof(FirearmController_QuickReloadMag_Patch)).LogDebug($"{player.ProfileId} Notify to not use ICH Move Patch");
             ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
 
-            firearmCont.QuickReloadMag(magazine, (c) => {
+            firearmCont.QuickReloadMag(magazine, (c) =>
+            {
 
                 if (c.Failed)
                 {

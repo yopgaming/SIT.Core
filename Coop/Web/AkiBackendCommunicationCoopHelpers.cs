@@ -73,7 +73,7 @@ namespace SIT.Coop.Core.Web
             //}
             //else
             //    //AkiBackendCommunication.Instance.SendDataToPool("/coop/server/update", data);
-                AkiBackendCommunication.Instance.SendDataToPool("", data);
+            AkiBackendCommunication.Instance.SendDataToPool("", data);
 
             generatedData = data;
         }

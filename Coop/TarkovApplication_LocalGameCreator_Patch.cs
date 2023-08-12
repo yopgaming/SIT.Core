@@ -34,7 +34,7 @@ namespace SIT.Core.Coop
         {
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Prefix");
 
-            if(MatchmakerAcceptPatches.IsSinglePlayer)
+            if (MatchmakerAcceptPatches.IsSinglePlayer)
                 return true;
 
             return false;

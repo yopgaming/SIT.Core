@@ -1,10 +1,9 @@
-﻿using SIT.Tarkov.Core;
-using DrakiaXYZ.BigBrain.Internal;
+﻿using DrakiaXYZ.BigBrain.Internal;
 using HarmonyLib;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using AICoreLogicLayerClass = AICoreLayerClass<BotLogicDecision>;
 
 namespace DrakiaXYZ.BigBrain.Patches

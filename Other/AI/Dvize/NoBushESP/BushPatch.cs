@@ -1,13 +1,9 @@
-﻿using EFT.Ballistics;
-using EFT;
+﻿using EFT;
+using EFT.Ballistics;
 using HarmonyLib;
 using SIT.Tarkov.Core;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SIT.Core.Other.AI.Dvize.NoBushESP
@@ -22,10 +18,11 @@ namespace SIT.Core.Other.AI.Dvize.NoBushESP
         private static float magnitude;
         private static string ObjectName;
 
-        private static readonly List<string> exclusionList = new List<string> { "filbert", "fibert", "tree", "pine", "plant", "birch", "collider",
+        private static readonly List<string> exclusionList = new()
+        { "filbert", "fibert", "tree", "pine", "plant", "birch", "collider",
         "timber", "spruce", "bush", "metal", "wood"};
 
-        private static readonly List<MaterialType> extraMaterialList = new List<MaterialType> { MaterialType.Glass, MaterialType.GlassVisor, MaterialType.GlassShattered };
+        private static readonly List<MaterialType> extraMaterialList = new() { MaterialType.Glass, MaterialType.GlassVisor, MaterialType.GlassShattered };
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(BotGroupClass), "CalcGoalForBot");

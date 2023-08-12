@@ -76,7 +76,7 @@ namespace SIT.Core.Coop
             localPlayer.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             // If this is a Client Drone add Player Replicated Component
-            if(isClientDrone)
+            if (isClientDrone)
             {
                 var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
                 prc.IsClientDrone = true;
@@ -135,7 +135,7 @@ namespace SIT.Core.Coop
                 damageInfo.Weapon = null;
 
                 packet.Add("d", await damageInfo.SITToJsonAsync());
-            //PatchConstants.Logger.LogDebug(packet["d"]);
+                //PatchConstants.Logger.LogDebug(packet["d"]);
 
                 packet.Add("d.p", playerDict);
                 packet.Add("d.w", weaponDict);
