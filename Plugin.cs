@@ -162,20 +162,20 @@ namespace SIT.Core
             new QTEPatch().Enable();
             new TinnitusFixPatch().Enable();
 
-            //try
-            //{
-            //    BundleManager.GetBundles();
-            //    new EasyAssetsPatch().Enable();
-            //    new EasyBundlePatch().Enable();
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.LogError("// --- ERROR -----------------------------------------------");
-            //    Logger.LogError("Bundle System Failed!!");
-            //    Logger.LogError(ex.ToString());
-            //    Logger.LogError("// --- ERROR -----------------------------------------------");
+            try
+            {
+                BundleManager.GetBundles();
+                new EasyAssetsPatch().Enable();
+                new EasyBundlePatch().Enable();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("// --- ERROR -----------------------------------------------");
+                Logger.LogError("Bundle System Failed!!");
+                Logger.LogError(ex.ToString());
+                Logger.LogError("// --- ERROR -----------------------------------------------");
 
-            //}
+            }
 
             new WavesSpawnScenarioInitPatch(Config).Enable();
             new WavesSpawnScenarioMethodPatch().Enable();
