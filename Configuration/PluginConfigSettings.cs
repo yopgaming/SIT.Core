@@ -50,6 +50,8 @@ namespace SIT.Core.Configuration
 
             public bool ForceHighPingMode { get; set; } = false;
             public bool RunThroughOnServerStop { get; set; } = true;
+            
+            public bool BotWavesDisableStopper { get; set; } = false;
 
             public void GetSettings()
             {
@@ -89,6 +91,9 @@ namespace SIT.Core.Configuration
 
                 RunThroughOnServerStop = Plugin.Instance.Config.Bind("Coop", "RunThroughOnServerStop", true
                         , new ConfigDescription("Controls whether clients still in-raid when server dies will receive a Run Through (true) or Survived (false).")).Value;
+
+                BotWavesDisableStopper = Plugin.Instance.Config.Bind("Coop", "BotWavesDisableStopper", false
+                        , new ConfigDescription("Disable the function StopBotSpawningAfterTimer, so not gonna disable bot spawning after 180 sec")).Value;
 
 
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");

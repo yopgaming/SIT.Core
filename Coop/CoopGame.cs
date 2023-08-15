@@ -599,6 +599,12 @@ namespace SIT.Core.Coop
 
         private IEnumerator StopBotSpawningAfterTimer()
         {
+            //  If this true we skip the stopping!
+            if (PluginConfigSettings.Instance.CoopSettings.BotWavesDisableStopper)
+            {
+                yield break;
+            }
+
             yield return new WaitForSeconds(180);
             if (this.wavesSpawnScenario_0 != null)
             {
