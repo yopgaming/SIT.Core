@@ -16,8 +16,19 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 ---
 
 <div align=center style="text-align: center">
-  **State of Stay In Tarkov**
-  As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. Stay in Tarkov is in a very broken state. ETA: Not Interested in Tarkov right now. Maybe in a few   months?
+
+## State of Stay In Tarkov
+
+**As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. Stay in Tarkov is in a very broken state.**
+
+* The problem has been caused by a change to the ID system in Tarkov & SPT-Aki.
+* The creation of matches and the flow of data between clients has been broken. You now immediately get kicked out of the match.
+* These IDs are used **everywhere** in the Client and Server mods and would need changing and testing across the board.
+* If someone wants to look into it. You would need to change the use of AccountId to ProfileId everywhere. Including the Server mod.
+* Pull Requests are still encouraged. **I don't want this project to die**. I am just too busy looking at other things right now.
+
+ETA: I am not Interested in Tarkov right now. So progress will be slow. I have a few major games coming out that are high on my list to play & mod.
+
 </div>
 
 --- 
