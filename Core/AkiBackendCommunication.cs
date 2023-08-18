@@ -111,6 +111,9 @@ namespace SIT.Core.Core
             PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
         }
 
+        /// <summary>
+        /// 0.13.5.0.25800 - This is now incorrect. I think it now best you need to pass an AccountId into the "Session" section?
+        /// </summary>
         private void CreateWebSocket()
         {
             if (WebSocket == null)

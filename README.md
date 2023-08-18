@@ -15,8 +15,6 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 ---
 
-<div align=center style="text-align: center">
-
 ## State of Stay In Tarkov
 
 **As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. Stay in Tarkov is in a very broken state.**
@@ -28,8 +26,6 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 * Pull Requests are still encouraged. **I don't want this project to die**. I am just too busy looking at other things right now.
 
 ETA: I am not Interested in Tarkov right now. So progress will be slow. I have a few major games coming out that are high on my list to play & mod.
-
-</div>
 
 --- 
 
