@@ -133,7 +133,7 @@ namespace SIT.Coop.Core.Player
                     };
 
 
-            //Logger.LogDebug(packet.ToJson());
+            Logger.LogDebug(packet.ToJson());
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
