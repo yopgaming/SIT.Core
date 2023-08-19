@@ -2,6 +2,7 @@
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using SIT.Core.Coop.Components;
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using System;
 using System.Linq;
@@ -51,10 +52,12 @@ namespace SIT.Coop.Core.Matchmaker
                 MatchmakerObject = new GameObject("MatchmakerObject");
 
             var sitMatchMaker = MatchmakerObject.GetOrAddComponent<SITMatchmakerGUIComponent>();
+            sitMatchMaker.Profile = ___profile_0;
             sitMatchMaker.RaidSettings = raidSettings;
             sitMatchMaker.OriginalAcceptButton = ____acceptButton;
             sitMatchMaker.OriginalBackButton = ____backButton;
             sitMatchMaker.MatchMakerPlayerPreview = ____playerModelView;
+
 
             var rs = raidSettings;
             //____acceptButton.OnClick.AddListener(() =>
@@ -93,13 +96,15 @@ namespace SIT.Coop.Core.Matchmaker
             DefaultUIButton ____acceptButton
             )
         {
-            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
+            Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix");
 
             // ------------------------------------------
             // Keep an instance for other patches to work
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             // ------------------------------------------
             MatchmakerAcceptPatches.Profile = ___profile_0;
+            AkiBackendCommunication.Instance.CreateWebSocket(MatchmakerAcceptPatches.Profile);
+
             //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
 
             //if (MatchmakerAcceptPatches.CheckForMatch(raidSettings, out string returnedJson))

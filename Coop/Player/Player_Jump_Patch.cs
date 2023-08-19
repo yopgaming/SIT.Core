@@ -41,21 +41,27 @@ namespace SIT.Core.Coop.Player
 
             BasePlayerPacket playerPacket = new();
             playerPacket.Method = "Jump";
-            playerPacket.AccountId = player.Profile.AccountId;
+            //playerPacket.AccountId = player.Profile.AccountId;
+            playerPacket.ProfileId = player.Profile.ProfileId;
             var serialized = playerPacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            //AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately( serialized );
+
+            Logger.LogInfo("Jump:PostPatch");
 
             // ---------------------------------------------------------------------------------------------------------------------
             // Note. If the player is AI or High Ping. Stop the double jump caused by the sent packet above
-            if (IsHighPingOrAI(player))
-            {
-                HasProcessed(typeof(Player_Jump_Patch), player, playerPacket);
-            }
+            //if (IsHighPingOrAI(player))
+            //{
+            //    HasProcessed(typeof(Player_Jump_Patch), player, playerPacket);
+            //}
         }
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
+            Logger.LogInfo("Jump:Replicated");
+
             if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
             {
                 return;

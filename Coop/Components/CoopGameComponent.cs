@@ -35,6 +35,10 @@ namespace SIT.Core.Coop
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
         public string AccountId { get; set; } = null;
+
+        /// <summary>
+        /// ProfileId to Player instance
+        /// </summary>
         public Dictionary<string, EFT.Player> Players { get; private set; } = new();
         public EFT.Player[] PlayerUsers
         {
@@ -135,9 +139,11 @@ namespace SIT.Core.Coop
             Players = new Dictionary<string, EFT.Player>();
 
             var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
-            AccountId = ownPlayer.Profile.AccountId;
+            //AccountId = ownPlayer.Profile.AccountId;
+            AccountId = ownPlayer.ProfileId;
 
-            Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
+            //Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
+            Players.Add(ownPlayer.ProfileId, ownPlayer);
 
             //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
@@ -563,26 +569,28 @@ namespace SIT.Core.Coop
                                 if (method != "PlayerSpawn")
                                     continue;
 
-                                string accountId = queuedPacket["accountId"].ToString();
+                                //string accountId = queuedPacket["accountId"].ToString();
+                                string profileId = queuedPacket["profileId"].ToString();
                                 if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                                 {
                                     if (Players == null
-                                        || Players.ContainsKey(accountId)
-                                        || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == accountId))
+                                        //|| Players.ContainsKey(accountId)
+                                        || Players.ContainsKey(profileId)
+                                        || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                                     {
-                                        Logger.LogDebug($"Ignoring call to Spawn player {accountId}. The player already exists in the game.");
+                                        Logger.LogDebug($"Ignoring call to Spawn player {profileId}. The player already exists in the game.");
                                         continue;
                                     }
                                 }
 
-                                if (PlayersToSpawn.ContainsKey(accountId))
+                                if (PlayersToSpawn.ContainsKey(profileId))
                                     continue;
 
-                                if (!PlayersToSpawnPacket.ContainsKey(accountId))
-                                    PlayersToSpawnPacket.TryAdd(accountId, queuedPacket);
+                                if (!PlayersToSpawnPacket.ContainsKey(profileId))
+                                    PlayersToSpawnPacket.TryAdd(profileId, queuedPacket);
 
-                                if (!PlayersToSpawn.ContainsKey(accountId))
-                                    PlayersToSpawn.TryAdd(accountId, ESpawnState.None);
+                                if (!PlayersToSpawn.ContainsKey(profileId))
+                                    PlayersToSpawn.TryAdd(profileId, ESpawnState.None);
 
                             }
                         }
@@ -998,7 +1006,10 @@ namespace SIT.Core.Coop
 
         private void ProcessWorldPacket(Dictionary<string, object> packet)
         {
-            if (packet.ContainsKey("accountId"))
+            //if (packet.ContainsKey("accountId"))
+            //    return;
+
+            if (packet.ContainsKey("profileId"))
                 return;
 
             if (!packet.ContainsKey("m"))
@@ -1038,16 +1049,19 @@ namespace SIT.Core.Coop
             if (packet == null)
                 return;
 
-            if (!packet.ContainsKey("accountId"))
+            if (!packet.ContainsKey("profileId"))
                 return;
 
-            if (packet["accountId"] == null || packet["accountId"].ToString() == "null")
-            {
-                Logger.LogError("Account Id is null for Packet");
-                return;
-            }
+            Logger.LogInfo(packet.ToJson());
 
-            var accountId = packet["accountId"].ToString();
+            //if (packet["accountId"] == null || packet["accountId"].ToString() == "null")
+            //{
+            //    Logger.LogError("Account Id is null for Packet");
+            //    return;
+            //}
+
+            //var accountId = packet["accountId"].ToString();
+            var profileId = packet["profileId"].ToString();
 
             if (Players == null)
                 return;
@@ -1057,20 +1071,20 @@ namespace SIT.Core.Coop
 
             var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
 
-            if (!Players.Any(x => x.Key == accountId) && !registeredPlayers.Any(x => x.Profile.AccountId == accountId))
+            if (!Players.Any(x => x.Key == profileId) && !registeredPlayers.Any(x => x.ProfileId == profileId))
             {
                 // Start a new thread that waits for the localplayer to exist to send death events about them
                 if (packet["m"].ToString() == "Kill")
                 {
-                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {accountId}, enqueuing death");
-                    Task.Run(() => WaitForPlayerAndProcessPacket(accountId, packet));
+                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {profileId}, enqueuing death");
+                    Task.Run(() => WaitForPlayerAndProcessPacket(profileId, packet));
                 }
                 return;
             }
 
             foreach (var plyr in
                 Players.ToArray()
-                .Where(x => x.Key == accountId)
+                .Where(x => x.Key == profileId)
                 .Where(x => x.Value != null)
                 )
             {
@@ -1080,7 +1094,7 @@ namespace SIT.Core.Coop
                 }
                 else
                 {
-                    Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+                    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
                 }
 
                 if (packet.ContainsKey("Extracted"))
@@ -1110,40 +1124,40 @@ namespace SIT.Core.Coop
                 }
             }
 
-            if (PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
-            {
-                try
-                {
-                    // Deal to all versions of this guy
-                    foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
-                        .Where(x => x.Profile != null && x.Profile.AccountId == accountId)
-                        .Select(x => (EFT.Player)x)
-                        )
-                    {
-                        if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                        {
-                            prc.ProcessPacket(packet);
-                        }
-                        else
-                        {
-                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                        }
-                    }
+            //if (PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
+            //{
+            //    try
+            //    {
+            //        // Deal to all versions of this guy
+            //        foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
+            //            .Where(x => x.Profile != null && x.Profile.AccountId == accountId)
+            //            .Select(x => (EFT.Player)x)
+            //            )
+            //        {
+            //            if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            //            {
+            //                prc.ProcessPacket(packet);
+            //            }
+            //            else
+            //            {
+            //                Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+            //            }
+            //        }
 
-                    foreach (var plyr in SpawnedPlayers.Values)
-                    {
-                        if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                        {
-                            prc.ProcessPacket(packet);
-                        }
-                        else
-                        {
-                            Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-                        }
-                    }
-                }
-                catch (Exception) { }
-            }
+            //        foreach (var plyr in SpawnedPlayers.Values)
+            //        {
+            //            if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+            //            {
+            //                prc.ProcessPacket(packet);
+            //            }
+            //            else
+            //            {
+            //                Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
+            //            }
+            //        }
+            //    }
+            //    catch (Exception) { }
+            //}
         }
 
         private void WaitForPlayerAndProcessPacket(string accountId, Dictionary<string, object> packet)

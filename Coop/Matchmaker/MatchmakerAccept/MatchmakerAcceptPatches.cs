@@ -107,19 +107,20 @@ namespace SIT.Coop.Core.Matchmaker
             return false;
         }
 
-        public static void CreateMatch(string accountId, RaidSettings rs)
+        //public static void CreateMatch(string accountId, RaidSettings rs)
+        public static void CreateMatch(string profileId, RaidSettings rs)
         {
 
             string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 new Dictionary<string, object>
             {
-                { "serverId", accountId }
+                { "serverId", profileId }
                 , { "settings", rs }
             }));
             if (!string.IsNullOrEmpty(text))
             {
-                PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {accountId}");
-                SetGroupId(accountId);
+                PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
+                SetGroupId(profileId);
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
                 return;
             }

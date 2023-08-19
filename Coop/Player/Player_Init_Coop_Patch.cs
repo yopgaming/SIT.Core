@@ -85,7 +85,8 @@ namespace SIT.Coop.Core.Player
                         },
                         {
                             "accountId",
-                            player.Profile.AccountId
+                            //player.Profile.AccountId
+                            player.ProfileId
                         },
                         {
                             "profileId",
@@ -107,24 +108,6 @@ namespace SIT.Coop.Core.Player
                             "sPz",
                             player.Transform.position.z
                         },
-                        //{
-                        //    "p.info",
-                        //    JsonConvert.SerializeObject(player.Profile.Info
-                        //        , Formatting.None
-                        //        , new JsonSerializerSettings() { })//.SITToJson()
-                        //},
-                        //{
-                        //    "p.cust",
-                        //     player.Profile.Customization.ToJson()
-                        //},
-                        //{
-                        //    "p.equip",
-                        //    player.Profile.Inventory.Equipment.SITToJson()
-                        //},
-                        //{
-                        //    "side",
-                        //    player.Profile.Side.ToString()
-                        //},
                         {
                             "profileJson",
                             profileJson
