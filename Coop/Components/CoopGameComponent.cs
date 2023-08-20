@@ -34,7 +34,8 @@ namespace SIT.Core.Coop
         private AkiBackendCommunication RequestingObj { get; set; }
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
-        public string AccountId { get; set; } = null;
+
+        public EFT.Player OwnPlayer { get; set; }
 
         /// <summary>
         /// ProfileId to Player instance
@@ -138,12 +139,9 @@ namespace SIT.Core.Coop
             // Always clear "Players" when creating a new CoopGameComponent
             Players = new Dictionary<string, EFT.Player>();
 
-            var ownPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer);
-            //AccountId = ownPlayer.Profile.AccountId;
-            AccountId = ownPlayer.ProfileId;
+            OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
-            //Players.Add(ownPlayer.Profile.AccountId, ownPlayer);
-            Players.Add(ownPlayer.ProfileId, ownPlayer);
+            Players.Add(OwnPlayer.ProfileId, OwnPlayer);
 
             //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
@@ -441,7 +439,7 @@ namespace SIT.Core.Coop
                     if (!player.isActiveAndEnabled)
                         continue;
 
-                    if (playerStates.Any(x => x.ContainsKey("accountId") && x["accountId"].ToString() == player.Profile.AccountId))
+                    if (playerStates.Any(x => x.ContainsKey("profileId") && x["profileId"].ToString() == player.ProfileId))
                         continue;
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
@@ -525,7 +523,7 @@ namespace SIT.Core.Coop
                 if (Players.Keys.Any())
                     playerList.AddRange(Players.Keys.ToArray());
                 if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
-                    playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.Profile.AccountId));
+                    playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.ProfileId));
             }
             //
             // -----------------------------------------------------------------------------------------------------------
@@ -570,12 +568,10 @@ namespace SIT.Core.Coop
                                 if (method != "PlayerSpawn")
                                     continue;
 
-                                //string accountId = queuedPacket["accountId"].ToString();
                                 string profileId = queuedPacket["profileId"].ToString();
                                 if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                                 {
                                     if (Players == null
-                                        //|| Players.ContainsKey(accountId)
                                         || Players.ContainsKey(profileId)
                                         || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                                     {
@@ -627,7 +623,7 @@ namespace SIT.Core.Coop
                     // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
                     if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                     {
-                        if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == p.Key))
+                        if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == p.Key))
                         {
                             if (PlayersToSpawn.ContainsKey(p.Key))
                                 PlayersToSpawn[p.Key] = ESpawnState.Ignore;
@@ -675,23 +671,23 @@ namespace SIT.Core.Coop
             }
         }
 
-        private void ProcessPlayerBotSpawn(Dictionary<string, object> packet, string accountId, Vector3 newPosition, bool isBot)
+        private void ProcessPlayerBotSpawn(Dictionary<string, object> packet, string profileId, Vector3 newPosition, bool isBot)
         {
             // If not showing drones. Check whether the "Player" has been registered, if they have, then ignore the drone
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
             {
-                if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == accountId))
+                if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                 {
-                    if (PlayersToSpawn.ContainsKey(accountId))
-                        PlayersToSpawn[accountId] = ESpawnState.Ignore;
+                    if (PlayersToSpawn.ContainsKey(profileId))
+                        PlayersToSpawn[profileId] = ESpawnState.Ignore;
 
                     return;
                 }
 
-                if (Players.Keys.Any(x => x == accountId))
+                if (Players.Keys.Any(x => x == profileId))
                 {
-                    if (PlayersToSpawn.ContainsKey(accountId))
-                        PlayersToSpawn[accountId] = ESpawnState.Ignore;
+                    if (PlayersToSpawn.ContainsKey(profileId))
+                        PlayersToSpawn[profileId] = ESpawnState.Ignore;
 
                     return;
                 }
@@ -699,27 +695,27 @@ namespace SIT.Core.Coop
 
 
             // If CreatePhysicalOtherPlayerOrBot has been done before. Then ignore the Deserialization section and continue.
-            if (PlayersToSpawn.ContainsKey(accountId)
-                && PlayersToSpawnProfiles.ContainsKey(accountId)
-                && PlayersToSpawnProfiles[accountId] != null
+            if (PlayersToSpawn.ContainsKey(profileId)
+                && PlayersToSpawnProfiles.ContainsKey(profileId)
+                && PlayersToSpawnProfiles[profileId] != null
                 )
             {
                 var isDead = false;
                 if (packet.ContainsKey("isDead"))
                 {
-                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Packet for {accountId} contains DEATH message, registered handling of this on spawn");
+                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Packet for {profileId} contains DEATH message, registered handling of this on spawn");
                     isDead = bool.Parse(packet["isDead"].ToString());
                 }
-                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[accountId], newPosition, isDead);
+                CreatePhysicalOtherPlayerOrBot(PlayersToSpawnProfiles[profileId], newPosition, isDead);
                 return;
             }
 
-            if (PlayersToSpawnProfiles.ContainsKey(accountId))
+            if (PlayersToSpawnProfiles.ContainsKey(profileId))
                 return;
 
-            PlayersToSpawnProfiles.Add(accountId, null);
+            PlayersToSpawnProfiles.Add(profileId, null);
 
-            Logger.LogDebug($"ProcessPlayerBotSpawn:{accountId}");
+            Logger.LogDebug($"ProcessPlayerBotSpawn:{profileId}");
 
             Profile profile = new();
             if (packet.ContainsKey("profileJson"))
@@ -729,12 +725,12 @@ namespace SIT.Core.Coop
                     //Logger.LogInfo("Obtained Profile");
                     profile.Skills.StartClientMode();
                     // Send to be loaded
-                    PlayersToSpawnProfiles[accountId] = profile;
+                    PlayersToSpawnProfiles[profileId] = profile;
                 }
                 else
                 {
                     Logger.LogError("Unable to Parse Profile");
-                    PlayersToSpawn[accountId] = ESpawnState.Error;
+                    PlayersToSpawn[profileId] = ESpawnState.Error;
                     return;
                 }
             }
@@ -747,14 +743,14 @@ namespace SIT.Core.Coop
                 // A final check to stop duplicate clones spawning on Server
                 if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
                 {
-                    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+                    if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profile.ProfileId))
                         return;
 
 
-                    if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Any(x => x.Profile.AccountId == profile.AccountId))
+                    if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Any(x => x.ProfileId == profile.ProfileId))
                         return;
 
-                    if (Players.Keys.Any(x => x == profile.AccountId))
+                    if (Players.Keys.Any(x => x == profile.ProfileId))
                         return;
                 }
 
@@ -771,15 +767,15 @@ namespace SIT.Core.Coop
                     return;
                 }
 
-                PlayersToSpawn.TryAdd(profile.AccountId, ESpawnState.None);
-                if (PlayersToSpawn[profile.AccountId] == ESpawnState.None)
+                PlayersToSpawn.TryAdd(profile.ProfileId, ESpawnState.None);
+                if (PlayersToSpawn[profile.ProfileId] == ESpawnState.None)
                 {
-                    PlayersToSpawn[profile.AccountId] = ESpawnState.Loading;
+                    PlayersToSpawn[profile.ProfileId] = ESpawnState.Loading;
                     IEnumerable<ResourceKey> allPrefabPaths = profile.GetAllPrefabPaths();
                     if (allPrefabPaths.Count() == 0)
                     {
                         Logger.LogError($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::PrefabPaths are empty!");
-                        PlayersToSpawn[profile.AccountId] = ESpawnState.Error;
+                        PlayersToSpawn[profile.ProfileId] = ESpawnState.Error;
                         return;
                     }
 
@@ -788,7 +784,7 @@ namespace SIT.Core.Coop
                         {
                             if (x.IsCompleted)
                             {
-                                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawning;
+                                PlayersToSpawn[profile.ProfileId] = ESpawnState.Spawning;
                                 Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Load Complete.");
                             }
                             else if (x.IsFaulted)
@@ -807,21 +803,21 @@ namespace SIT.Core.Coop
 
                 // ------------------------------------------------------------------
                 // Its loading on the previous pass, ignore this one until its finished
-                if (PlayersToSpawn[profile.AccountId] == ESpawnState.Loading)
+                if (PlayersToSpawn[profile.ProfileId] == ESpawnState.Loading)
                 {
                     return;
                 }
 
                 // ------------------------------------------------------------------
                 // It has already spawned, we should never reach this point if Players check is working in previous step
-                if (PlayersToSpawn[profile.AccountId] == ESpawnState.Spawned)
+                if (PlayersToSpawn[profile.ProfileId] == ESpawnState.Spawned)
                 {
                     Logger.LogDebug($"CreatePhysicalOtherPlayerOrBot::{profile.Info.Nickname}::Is already spawned");
                     return;
                 }
 
                 // Move this here. Ensure that this is run before it attempts again on slow PCs
-                PlayersToSpawn[profile.AccountId] = ESpawnState.Spawned;
+                PlayersToSpawn[profile.ProfileId] = ESpawnState.Spawned;
 
                 // ------------------------------------------------------------------
                 // Create Local Player drone
@@ -884,10 +880,10 @@ namespace SIT.Core.Coop
 
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
-            if (!Players.ContainsKey(profile.AccountId))
-                Players.Add(profile.AccountId, otherPlayer);
+            if (!Players.ContainsKey(profile.ProfileId))
+                Players.Add(profile.ProfileId, otherPlayer);
 
-            if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == profile.AccountId))
+            if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
 
             if (!SpawnedPlayers.ContainsKey(profile.ProfileId))
@@ -938,12 +934,10 @@ namespace SIT.Core.Coop
         /// <param name="person"></param>
         public void SetWeaponInHandsOfNewPlayer(EFT.Player person, Action successCallback)
         {
-            //Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId}");
-
             var equipment = person.Profile.Inventory.Equipment;
             if (equipment == null)
             {
-                Logger.LogError($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} has no Equipment!");
+                Logger.LogError($"SetWeaponInHandsOfNewPlayer: {person.Profile.ProfileId} has no Equipment!");
             }
             Item item = null;
 
@@ -961,17 +955,15 @@ namespace SIT.Core.Coop
 
             if (item == null)
             {
-                Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.AccountId}");
+                Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to find any weapon for {person.Profile.ProfileId}");
             }
-
-            //Logger.LogDebug($"SetWeaponInHandsOfNewPlayer: {person.Profile.AccountId} {item.TemplateId}");
 
             person.SetItemInHands(item, (IResult) =>
             {
 
                 if (IResult.Failed == true)
                 {
-                    Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to set item {item} in hands for {person.Profile.AccountId}");
+                    Logger.LogError($"SetWeaponInHandsOfNewPlayer:Unable to set item {item} in hands for {person.Profile.ProfileId}");
                 }
 
                 if (IResult.Succeed == true)
@@ -1007,9 +999,6 @@ namespace SIT.Core.Coop
 
         private void ProcessWorldPacket(Dictionary<string, object> packet)
         {
-            //if (packet.ContainsKey("accountId"))
-            //    return;
-
             if (packet.ContainsKey("profileId"))
                 return;
 
@@ -1121,43 +1110,9 @@ namespace SIT.Core.Coop
                 }
             }
 
-            //if (PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGSpawnDronesOnServer)
-            //{
-            //    try
-            //    {
-            //        // Deal to all versions of this guy
-            //        foreach (var plyr in Singleton<GameWorld>.Instance.RegisteredPlayers
-            //            .Where(x => x.Profile != null && x.Profile.AccountId == accountId)
-            //            .Select(x => (EFT.Player)x)
-            //            )
-            //        {
-            //            if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            //            {
-            //                prc.ProcessPacket(packet);
-            //            }
-            //            else
-            //            {
-            //                Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-            //            }
-            //        }
-
-            //        foreach (var plyr in SpawnedPlayers.Values)
-            //        {
-            //            if (plyr.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            //            {
-            //                prc.ProcessPacket(packet);
-            //            }
-            //            else
-            //            {
-            //                Logger.LogError($"Player {accountId} doesn't have a PlayerReplicatedComponent!");
-            //            }
-            //        }
-            //    }
-            //    catch (Exception) { }
-            //}
         }
 
-        private void WaitForPlayerAndProcessPacket(string accountId, Dictionary<string, object> packet)
+        private void WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)
         {
             // Start the timer.
             var startTime = DateTime.Now;
@@ -1168,7 +1123,7 @@ namespace SIT.Core.Coop
                 // Check if maximum wait time has been reached.
                 if (DateTime.Now - startTime > maxWaitTime)
                 {
-                    Logger.LogError($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {maxWaitTime.TotalMinutes} minutes, but player {accountId} still did not exist after timeout period.");
+                    Logger.LogError($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {maxWaitTime.TotalMinutes} minutes, but player {profileId} still did not exist after timeout period.");
                     return;
                 }
 
@@ -1178,7 +1133,7 @@ namespace SIT.Core.Coop
                 var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
 
                 // If the player now exists, process the packet and end the thread.
-                if (Players.Any(x => x.Key == accountId) || registeredPlayers.Any(x => x.Profile.AccountId == accountId))
+                if (Players.Any(x => x.Key == profileId) || registeredPlayers.Any(x => x.Profile.ProfileId == profileId))
                 {
                     // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {(DateTime.Now - startTime).TotalSeconds}s");
                     ProcessPlayerPacket(packet);
@@ -1195,7 +1150,6 @@ namespace SIT.Core.Coop
             Dictionary<string, object> dictPlayerState = new();
 
             // --- The important Ids
-            dictPlayerState.Add("accountId", player.Profile.AccountId);
             dictPlayerState.Add("profileId", player.ProfileId);
             dictPlayerState.Add("serverId", GetServerId());
 

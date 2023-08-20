@@ -83,11 +83,11 @@ namespace SIT.Coop.Core.Player
                         "isAI",
                             player.IsAI || !player.Profile.Id.StartsWith("pmc")
                         },
-                        {
-                            "accountId",
-                            //player.Profile.AccountId
-                            player.ProfileId
-                        },
+                        //{
+                        //    "accountId",
+                        //    //player.Profile.AccountId
+                        //    player.ProfileId
+                        //},
                         {
                             "profileId",
                             player.ProfileId

@@ -35,7 +35,7 @@ namespace SIT.Core.Coop.Player
             Logger.LogInfo("PlayerInventoryController_ThrowItem_Patch:PrePatch");
             var result = false;
 
-            if (CallLocally.TryGetValue(___profile_0.AccountId, out _))
+            if (CallLocally.TryGetValue(___profile_0.ProfileId, out _))
                 result = true;
 
             return result;
@@ -50,14 +50,14 @@ namespace SIT.Core.Coop.Player
         {
             Logger.LogInfo("PlayerInventoryController_ThrowItem_Patch:PostPatch");
 
-            if (CallLocally.TryGetValue(___profile_0.AccountId, out _))
+            if (CallLocally.TryGetValue(___profile_0.ProfileId, out _))
             {
-                CallLocally.Remove(___profile_0.AccountId);
+                CallLocally.Remove(___profile_0.ProfileId);
                 return;
             }
 
             var _item = item;
-            ItemPlayerPacket itemPacket = new(___profile_0.AccountId, _item.Id, _item.TemplateId, "PlayerInventoryController_ThrowItem");
+            ItemPlayerPacket itemPacket = new(___profile_0.ProfileId, _item.Id, _item.TemplateId, "PlayerInventoryController_ThrowItem");
             var serialized = itemPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
@@ -91,7 +91,7 @@ namespace SIT.Core.Coop.Player
                     {
                         if (ItemFinder.TryFindItem(itemPacket.ItemId, out Item item))
                         {
-                            CallLocally.Add(player.Profile.AccountId, true);
+                            CallLocally.Add(player.Profile.ProfileId, true);
                             Logger.LogInfo($"PlayerInventoryController_ThrowItem_Patch.Replicated. Calling ThrowItem ({itemPacket.ItemId})");
                             invController.ThrowItem(item, new List<ItemsCount>());
                         }

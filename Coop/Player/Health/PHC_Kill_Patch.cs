@@ -54,8 +54,7 @@ namespace SIT.Core.Coop.Player.Health
 
 
 
-            KillPacket killPacket = new();
-            killPacket.AccountId = player.Profile.AccountId;
+            KillPacket killPacket = new(player.ProfileId);
             killPacket.DamageType = damageType;
             var json = killPacket.ToJson();
             //Logger.LogInfo(json);
@@ -89,9 +88,8 @@ namespace SIT.Core.Coop.Player.Health
         {
             public EDamageType DamageType { get; set; }
 
-            public KillPacket()
+            public KillPacket(string profileId) : base(profileId, "Kill")
             {
-                Method = "Kill";
             }
         }
     }

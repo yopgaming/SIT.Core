@@ -17,8 +17,9 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 ## State of Stay In Tarkov
 
-**As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. SPT-Aki is in a partially working state. Keep up to date with it on their Discord. They post updates daily!**
-**As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. Stay in Tarkov has many issues with IDs. This is work in progress.**
+** As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. **
+* SPT-Aki is in a partially working state. Keep up to date with it on their Discord. They post updates daily.
+* Stay in Tarkov has many issues with IDs. This is work in progress.
 
 --- 
 

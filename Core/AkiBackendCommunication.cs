@@ -478,8 +478,7 @@ namespace SIT.Core.Core
                                 {
                                     { "m", "Ping" },
                                     { "t", DateTime.UtcNow.Ticks.ToString("G") },
-                                    //{ "accountId", coopGameComponent.AccountId },
-                                    { "accountId", coopGameComponent.AccountId },
+                                    { "profileId", coopGameComponent.OwnPlayer.ProfileId },
                                     { "serverId", coopGameComponent.ServerId }
                                 };
 

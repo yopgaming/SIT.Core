@@ -339,7 +339,7 @@ namespace SIT.Coop.Core.Player
                     _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
 
                 _playerMovePatch?.ReplicatedMove(player
-                    , new Player_Move_Patch.PlayerMovePacket()
+                    , new Player_Move_Patch.PlayerMovePacket(player.ProfileId)
                     {
                         dX = ReplicatedDirection.Value.x,
                         dY = ReplicatedDirection.Value.y,

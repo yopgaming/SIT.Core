@@ -31,7 +31,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
                 result = true;
 
             return result;
@@ -49,16 +49,16 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
 
             foreach (var light in lightsStates)
             {
-                LightStatePacket lightStatePacket = new(light.Id, light.IsActive, light.LightMode, player.Profile.AccountId);
+                LightStatePacket lightStatePacket = new(light.Id, light.IsActive, light.LightMode, player.ProfileId);
                 AkiBackendCommunication.Instance.SendDataToPool(lightStatePacket.Serialize());
             }
 
@@ -80,10 +80,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                 return;
 
-            if (CallLocally.ContainsKey(player.Profile.AccountId))
+            if (CallLocally.ContainsKey(player.ProfileId))
                 return;
 
-            CallLocally.Add(player.Profile.AccountId, true);
+            CallLocally.Add(player.ProfileId, true);
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
@@ -109,13 +109,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             public bool IsActive { get; set; }
             public int LightMode { get; set; }
 
-            public LightStatePacket(string id, bool isActive, int lightMode, string accountId)
+            public LightStatePacket(string id, bool isActive, int lightMode, string profileId)
+                : base(profileId, "SetLightsState")
             {
                 Id = id;
                 IsActive = isActive;
                 LightMode = lightMode;
-                AccountId = accountId;
-                Method = "SetLightsState";
             }
         }
     }

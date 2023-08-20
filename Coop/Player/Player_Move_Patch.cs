@@ -99,8 +99,7 @@ namespace SIT.Core.Coop.Player
             //else if (LastDirections[accountId] == direction)
             //    return;
 
-            PlayerMovePacket playerMovePacket = new();
-            playerMovePacket.AccountId = accountId;
+            PlayerMovePacket playerMovePacket = new(player.ProfileId);
             playerMovePacket.pX = player.Position.x;
             playerMovePacket.pY = player.Position.y;
             playerMovePacket.pZ = player.Position.z;
@@ -143,15 +142,15 @@ namespace SIT.Core.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket pmp = new();
+            PlayerMovePacket pmp = new(player.ProfileId);
             if (dict.ContainsKey("data"))
             {
-                pmp = new PlayerMovePacket();
+                pmp = new PlayerMovePacket(player.ProfileId);
                 pmp.DeserializePacketSIT(dict["data"].ToString());
             }
             else
             {
-                pmp = new Player_Move_Patch.PlayerMovePacket()
+                pmp = new Player_Move_Patch.PlayerMovePacket(player.ProfileId)
                 {
                     dX = float.Parse(dict["dX"].ToString()),
                     dY = float.Parse(dict["dY"].ToString()),
@@ -239,9 +238,8 @@ namespace SIT.Core.Coop.Player
             public float spd { get; set; }
             //public bool spr { get; set; }
 
-            public PlayerMovePacket() : base()
+            public PlayerMovePacket(string profileId) : base(profileId, "Move")
             {
-                Method = "Move";
             }
 
         }
