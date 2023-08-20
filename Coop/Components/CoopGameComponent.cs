@@ -280,7 +280,8 @@ namespace SIT.Core.Coop
             return quitState;
         }
 
-        void LateUpdate()
+        void Update()
+        //void LateUpdate()
         {
             var coopGame = LocalGameInstance as CoopGame;
             if (coopGame == null)
@@ -1052,15 +1053,11 @@ namespace SIT.Core.Coop
             if (!packet.ContainsKey("profileId"))
                 return;
 
-            Logger.LogInfo(packet.ToJson());
-
-            //if (packet["accountId"] == null || packet["accountId"].ToString() == "null")
+            //if (packet["m"].ToString() != "PlayerState")
             //{
-            //    Logger.LogError("Account Id is null for Packet");
-            //    return;
+            //    Logger.LogInfo(packet.ToJson());
             //}
 
-            //var accountId = packet["accountId"].ToString();
             var profileId = packet["profileId"].ToString();
 
             if (Players == null)

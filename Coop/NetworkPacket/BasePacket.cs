@@ -10,6 +10,9 @@ namespace SIT.Core.Coop.NetworkPacket
 {
     public abstract class BasePacket : ISITPacket
     {
+        [JsonIgnore]
+        static Random Randomizer { get; } = new Random();
+
         [JsonProperty(PropertyName = "serverId")]
         public string ServerId { get; set; } = CoopGameComponent.GetServerId();
 
@@ -32,6 +35,16 @@ namespace SIT.Core.Coop.NetworkPacket
             }
         }
 
+        private double? _token;
+
+        [JsonProperty(PropertyName = "tkn")]
+        public double Token
+        {
+            get { return _token.HasValue ? _token.Value : Randomizer.NextDouble(); }
+            set { _token = value; }
+        }
+
+
         [JsonProperty(PropertyName = "m")]
         public virtual string Method { get; set; } = null;
 
@@ -50,7 +63,8 @@ namespace SIT.Core.Coop.NetworkPacket
             binaryWriter.WriteNonPrefixedString("?");
             foreach (var prop in allProps
                 .Where(x => x.Name != "ServerId" && x.Name != "Method")
-                .OrderByDescending(x => x.Name == "AccountId")
+                //.OrderByDescending(x => x.Name == "AccountId")
+                .OrderByDescending(x => x.Name == "ProfileId")
                 )
             {
                 binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
@@ -113,6 +127,9 @@ namespace SIT.Core.Coop.NetworkPacket
                     case "Int":
                     case "Int32":
                         prop.SetValue(obj, int.Parse(separatedPacket[index].ToString()));
+                        break;
+                    case "Double":
+                        prop.SetValue(obj, double.Parse(separatedPacket[index].ToString()));
                         break;
                     default:
                         PatchConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");

@@ -273,9 +273,14 @@ namespace SIT.Core.Core
                 // If this is a SIT serialization packet
                 if (packet.ContainsKey("data") && packet.ContainsKey("m"))
                 {
-                    if (!packet.ContainsKey("accountId"))
+                    //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
+                    //Logger.LogInfo(" ==================SIT Packet============= ");
+                    //Logger.LogInfo(packet.ToJson());
+                    //Logger.LogInfo(" ========================================= ");
+                    //if (!packet.ContainsKey("accountId"))
+                    if (!packet.ContainsKey("profileId"))
                     {
-                        packet.Add("accountId", packet["data"].ToString().Split(',')[0]);
+                        packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
                     }
                 }
 

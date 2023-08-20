@@ -39,15 +39,15 @@ namespace SIT.Core.Coop.Player
 
             var player = __instance;
 
-            BasePlayerPacket playerPacket = new();
-            playerPacket.Method = "Jump";
-            //playerPacket.AccountId = player.Profile.AccountId;
-            playerPacket.ProfileId = player.Profile.ProfileId;
+            BasePlayerPacket playerPacket = new(player.ProfileId, "Jump");
             var serialized = playerPacket.Serialize();
-            //AkiBackendCommunication.Instance.SendDataToPool(serialized);
-            AkiBackendCommunication.Instance.PostDownWebSocketImmediately( serialized );
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            //AkiBackendCommunication.Instance.PostDownWebSocketImmediately( serialized );
 
-            Logger.LogInfo("Jump:PostPatch");
+            //Logger.LogInfo("================================");
+            //Logger.LogInfo("Jump:PostPatch");
+            //Logger.LogInfo(serialized);
+            //Logger.LogInfo("================================");
 
             // ---------------------------------------------------------------------------------------------------------------------
             // Note. If the player is AI or High Ping. Stop the double jump caused by the sent packet above
