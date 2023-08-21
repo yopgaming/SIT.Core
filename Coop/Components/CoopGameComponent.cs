@@ -524,10 +524,12 @@ namespace SIT.Core.Coop
                     playerList.AddRange(Players.Keys.ToArray());
                 if (Singleton<GameWorld>.Instance.RegisteredPlayers.Any())
                     playerList.AddRange(Singleton<GameWorld>.Instance.RegisteredPlayers.Select(x => x.ProfileId));
+                if (Singleton<GameWorld>.Instance.AllAlivePlayersList.Count > 0)
+                    playerList.AddRange(Singleton<GameWorld>.Instance.AllAlivePlayersList.Select(x => x.ProfileId));
             }
             //
             // -----------------------------------------------------------------------------------------------------------
-            d["pL"] = playerList.Distinct();
+            d["pL"] = playerList;//.Distinct();
             var jsonDataToSend = d.ToJson();
 
             try
