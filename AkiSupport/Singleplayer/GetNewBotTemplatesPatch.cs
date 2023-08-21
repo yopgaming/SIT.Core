@@ -1,4 +1,5 @@
 using EFT;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -59,6 +60,9 @@ namespace SIT.Core.AkiSupport.Singleplayer
         [PatchPrefix]
         public static bool PatchPrefix(ref Task<Profile> __result, BotsPresets __instance, List<Profile> ___list_0, CreationData data, ref bool withDelete)
         {
+            if (MatchmakerAcceptPatches.IsClient)
+                return false;
+
             //PatchConstants.Logger.LogInfo("Prefix");
             //Logger.LogInfo("Prefix");
             //GetLogger(typeof(GetNewBotTemplatesPatch)).LogInfo("Prefix");
