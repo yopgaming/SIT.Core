@@ -1,6 +1,8 @@
 ﻿using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
+using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -16,7 +18,7 @@ namespace SIT.Coop.Core.Player
 
         public override string MethodName => "ProceedMeds";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static List<string> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -36,10 +38,11 @@ namespace SIT.Coop.Core.Player
            EFT.Player __instance
             )
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-            {
+            if (CallLocally.Contains(__instance.ProfileId))
                 return true;
-            }
+
+            if (IsHighPingOrAI(__instance))
+                return true;
 
             return false;
         }
@@ -48,9 +51,9 @@ namespace SIT.Coop.Core.Player
         public static void PostPatch(EFT.Player __instance
             , Meds0 meds, EBodyPart bodyPart, int animationVariant, bool scheduled)
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-            {
-                CallLocally.Remove(__instance.Profile.AccountId);
+            if (CallLocally.Contains(__instance.ProfileId))
+            { 
+                CallLocally.Remove(__instance.ProfileId);
                 return;
             }
 
@@ -61,23 +64,33 @@ namespace SIT.Coop.Core.Player
                     return;
             }
 
-            Dictionary<string, object> args = new();
-            ItemAddressHelpers.ConvertItemAddressToDescriptor(meds.CurrentAddress, ref args);
+            //Dictionary<string, object> args = new();
+            //ItemAddressHelpers.ConvertItemAddressToDescriptor(meds.CurrentAddress, ref args);
 
             //Logger.LogInfo($"PlayerOnTryProceedPatch:Patch");
-            args.Add("m", "ProceedMeds");
-            args.Add("t", DateTime.Now.Ticks);
-            args.Add("bodyPart", bodyPart.ToString());
-            args.Add("item.id", meds.Id);
-            args.Add("item.tpl", meds.TemplateId);
-            args.Add("variant", animationVariant);
-            args.Add("s", scheduled.ToString());
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(__instance, args);
+            //args.Add("m", "ProceedMeds");
+            //args.Add("t", DateTime.Now.Ticks);
+            //args.Add("bodyPart", bodyPart.ToString());
+            //args.Add("item.id", meds.Id);
+            //args.Add("item.tpl", meds.TemplateId);
+            //args.Add("variant", animationVariant);
+            //args.Add("s", scheduled.ToString());
+            //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(__instance, args);
+            var packet = new ProceedMedsPacket(__instance.ProfileId, meds.Id, meds.TemplateId, bodyPart.ToString(), animationVariant);
+            AkiBackendCommunication.Instance.SendDataToPool(packet.Serialize());
+
+            if (IsHighPingOrAI(__instance))
+            {
+                HasProcessed(typeof(Player_Proceed_Meds_Patch), __instance, packet);
+            }
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            ProceedMedsPacket proceedMedsPacket = new(player.ProfileId, null, null, null, 0);
+            proceedMedsPacket.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, proceedMedsPacket))
                 return;
 
             var coopGC = CoopGameComponent.GetCoopGameComponent();
@@ -85,18 +98,18 @@ namespace SIT.Coop.Core.Player
                 return;
 
             Item item;
-            if (!ItemFinder.TryFindItemOnPlayer(player, dict["item.tpl"].ToString(), dict["item.id"].ToString(), out item))
-                ItemFinder.TryFindItemInWorld(dict["item.id"].ToString(), out item);
+            if (!ItemFinder.TryFindItemOnPlayer(player, proceedMedsPacket.TemplateId, proceedMedsPacket.ItemId, out item))
+                ItemFinder.TryFindItemInWorld(proceedMedsPacket.ItemId, out item);
 
-            if (item != null)
-            {
-                var meds = item as Meds0;
-                if (meds != null)
-                {
-                    CallLocally.Add(player.Profile.AccountId, true);
-                    player.Proceed(meds, (EBodyPart)Enum.Parse(typeof(EBodyPart), dict["bodyPart"].ToString(), true), (IResult) => { }, 1, true);
-                }
-            }
+            if (item == null)
+                return;
+
+            var meds = item as Meds0;
+            if (meds == null)
+                return;
+
+            CallLocally.Add(player.ProfileId);
+            player.Proceed(meds, (EBodyPart)Enum.Parse(typeof(EBodyPart), proceedMedsPacket.BodyPart, true), (IResult) => { }, proceedMedsPacket.Variant, true);
         }
     }
 }
