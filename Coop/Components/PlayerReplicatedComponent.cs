@@ -3,6 +3,7 @@ using EFT;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
+using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Coop.Player;
 using SIT.Core.Misc;
 using SIT.Core.SP.Raid;
@@ -339,7 +340,7 @@ namespace SIT.Coop.Core.Player
                     _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
 
                 _playerMovePatch?.ReplicatedMove(player
-                    , new Player_Move_Patch.PlayerMovePacket(player.ProfileId)
+                    , new PlayerMovePacket(player.ProfileId)
                     {
                         dX = ReplicatedDirection.Value.x,
                         dY = ReplicatedDirection.Value.y,
