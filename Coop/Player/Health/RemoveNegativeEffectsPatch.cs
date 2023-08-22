@@ -60,7 +60,7 @@ namespace SIT.Core.Coop.Player.Health
 
 
             RemoveNegativeEffectsPacket removeNegativeEffectsPacket = new();
-            removeNegativeEffectsPacket.AccountId = player.Profile.AccountId;
+            removeNegativeEffectsPacket.ProfileId = player.ProfileId;
             removeNegativeEffectsPacket.BodyPart = bodyPart;
             var json = removeNegativeEffectsPacket.ToJson();
             AkiBackendCommunication.Instance.SendDataToPool(json);

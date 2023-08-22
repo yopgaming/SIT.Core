@@ -52,7 +52,7 @@ namespace SIT.Core.Coop.Player.Health
 
 
             RestoreBodyPartPacket restoreBodyPartPacket = new();
-            restoreBodyPartPacket.AccountId = player.Profile.AccountId;
+            restoreBodyPartPacket.ProfileId = player.ProfileId;
             restoreBodyPartPacket.BodyPart = bodyPart;
             restoreBodyPartPacket.HealthPenalty = healthPenalty;
             var json = restoreBodyPartPacket.ToJson();

@@ -92,7 +92,7 @@ namespace SIT.Core.Core
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
 
             GetHeaders();
-            CreateWebSocket();
+            //CreateWebSocket();
             ConnectToAkiBackend();
             PeriodicallySendPing();
             PeriodicallySendPooledData();
@@ -111,35 +111,41 @@ namespace SIT.Core.Core
             PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
         }
 
-        private void CreateWebSocket()
+        /// <summary>
+        /// 0.13.5.0.25800 - This is now incorrect. I think it now best you need to pass an AccountId into the "Session" section?
+        /// </summary>
+        public void CreateWebSocket(Profile profile)
         {
-            if (WebSocket == null)
+            Logger.LogInfo("CreateWebSocket");
+            if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
+                return;
+
+            Logger.LogDebug("Request Instance is connecting to WebSocket");
+
+            var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
+            //var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{Session}?";
+            //var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{profile.AccountId}?";
+            var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?";
+            Logger.LogDebug(webSocketPort);
+            Logger.LogDebug(PatchConstants.GetREALWSURL());
+            Logger.LogDebug(wsUrl);
+
+            WebSocket = new WebSocketSharp.WebSocket(wsUrl);
+            WebSocket.OnError += WebSocket_OnError;
+            WebSocket.OnMessage += WebSocket_OnMessage;
+            WebSocket.Connect();
+            WebSocket.Send("CONNECTED FROM SIT COOP");
+            // Continously Ping from SIT.Core (Keep Alive)
+            _ = Task.Run(async () =>
             {
-                Logger.LogDebug("Request Instance is connecting to WebSocket");
 
-                var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
-                var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{Session}?";
-                Logger.LogDebug(webSocketPort);
-                Logger.LogDebug(PatchConstants.GetREALWSURL());
-                Logger.LogDebug(wsUrl);
-
-                WebSocket = new WebSocketSharp.WebSocket(wsUrl);
-                WebSocket.OnError += WebSocket_OnError;
-                WebSocket.OnMessage += WebSocket_OnMessage;
-                WebSocket.Connect();
-                WebSocket.Send("CONNECTED FROM SIT COOP");
-                // Continously Ping from SIT.Core (Keep Alive)
-                _ = Task.Run(async () =>
+                while (true)
                 {
+                    await Task.Delay(3000);
+                    WebSocket.Send("PING FROM SIT COOP");
+                }
 
-                    while (true)
-                    {
-                        await Task.Delay(3000);
-                        WebSocket.Send("PING FROM SIT COOP");
-                    }
-
-                });
-            }
+            });
         }
 
         public async void PostDownWebSocketImmediately(Dictionary<string, object> packet)
@@ -267,9 +273,14 @@ namespace SIT.Core.Core
                 // If this is a SIT serialization packet
                 if (packet.ContainsKey("data") && packet.ContainsKey("m"))
                 {
-                    if (!packet.ContainsKey("accountId"))
+                    //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
+                    //Logger.LogInfo(" ==================SIT Packet============= ");
+                    //Logger.LogInfo(packet.ToJson());
+                    //Logger.LogInfo(" ========================================= ");
+                    //if (!packet.ContainsKey("accountId"))
+                    if (!packet.ContainsKey("profileId"))
                     {
-                        packet.Add("accountId", packet["data"].ToString().Split(',')[0]);
+                        packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
                     }
                 }
 
@@ -283,7 +294,7 @@ namespace SIT.Core.Core
                 //    )
                 //    return;
 
-
+                //Logger.LogInfo(packet.ToJson());
                 // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
                 coopGameComponent.ActionPackets.TryAdd(packet);
@@ -467,7 +478,7 @@ namespace SIT.Core.Core
                                 {
                                     { "m", "Ping" },
                                     { "t", DateTime.UtcNow.Ticks.ToString("G") },
-                                    { "accountId", coopGameComponent.AccountId },
+                                    { "profileId", coopGameComponent.OwnPlayer.ProfileId },
                                     { "serverId", coopGameComponent.ServerId }
                                 };
 

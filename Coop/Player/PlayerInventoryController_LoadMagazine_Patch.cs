@@ -58,7 +58,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            LoadMagazinePacket itemPacket = new(___profile_0.AccountId, sourceAmmo.Id, sourceAmmo.TemplateId, magazine.Id, magazine.TemplateId
+            LoadMagazinePacket itemPacket = new(___profile_0.ProfileId, sourceAmmo.Id, sourceAmmo.TemplateId, magazine.Id, magazine.TemplateId
                 , loadCount > 0 ? loadCount : sourceAmmo.StackObjectsCount
                 , ignoreRestrictions);
 
@@ -146,16 +146,15 @@ namespace SIT.Core.Coop.Player
             public bool IgnoreRestrictions { get; set; }
 
             public LoadMagazinePacket(
-                string accountId
+                string profileId
                 , string sourceAmmoId
                 , string sourceTemplateId
                 , string magazineId
                 , string magazineTemplateId
                 , int loadCount
                 , bool ignoreRestrictions)
+                :base(profileId, "PlayerInventoryController_LoadMagazine")
             {
-                AccountId = accountId;
-                Method = "PlayerInventoryController_LoadMagazine";
                 this.SourceAmmoId = sourceAmmoId;
                 this.SourceTemplateId = sourceTemplateId;
                 this.MagazineId = magazineId;

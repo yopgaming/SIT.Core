@@ -98,11 +98,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         {
             public bool Pickup { get; set; }
 
-            public FCPickupPicket(string accountId, bool pickup)
+            public FCPickupPicket(string profileId, bool pickup) : base(profileId, "FCPickup")
             {
-                AccountId = accountId;
                 Pickup = pickup;
-                Method = "FCPickup";
             }
         }
     }

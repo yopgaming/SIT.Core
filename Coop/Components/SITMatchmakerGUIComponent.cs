@@ -50,6 +50,7 @@ namespace SIT.Core.Coop.Components
         public MatchMakerPlayerPreview MatchMakerPlayerPreview { get; internal set; }
 
         public Canvas Canvas { get; set; }
+        public Profile Profile { get; internal set; }
 
         void Start()
         {
@@ -177,6 +178,8 @@ namespace SIT.Core.Coop.Components
             {
                 while (!StopAllTasks)
                 {
+                    //AkiBackendCommunication.Instance.CreateWebSocket(Profile);
+
                     //var result = AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson()).Result;
                     var result = await AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000, debug: false);
                     if (result != null)
@@ -240,7 +243,8 @@ namespace SIT.Core.Coop.Components
             if (GUI.Button(new Rect(10, 20, (windowInnerRect.width / 2) - 20, 20), "Host Match", styleBrowserBigButtons))
             {
 
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, RaidSettings);
+                //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, RaidSettings);
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
 

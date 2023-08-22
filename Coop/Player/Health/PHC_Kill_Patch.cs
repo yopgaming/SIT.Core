@@ -31,7 +31,7 @@ namespace SIT.Core.Coop.Player.Health
             var player = __instance.Player;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
                 result = true;
             return result;
         }
@@ -46,16 +46,15 @@ namespace SIT.Core.Coop.Player.Health
 
             var player = __instance.Player;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
 
 
-            KillPacket killPacket = new();
-            killPacket.AccountId = player.Profile.AccountId;
+            KillPacket killPacket = new(player.ProfileId);
             killPacket.DamageType = damageType;
             var json = killPacket.ToJson();
             //Logger.LogInfo(json);
@@ -69,12 +68,12 @@ namespace SIT.Core.Coop.Player.Health
             if (HasProcessed(GetType(), player, killPacket))
                 return;
 
-            if (CallLocally.ContainsKey(player.Profile.AccountId))
+            if (CallLocally.ContainsKey(player.ProfileId))
                 return;
 
-            Logger.LogDebug($"Replicated KILL {player.Profile.AccountId}");
+            Logger.LogDebug($"Replicated KILL {player.ProfileId}");
 
-            CallLocally.Add(player.Profile.AccountId, true);
+            CallLocally.Add(player.ProfileId, true);
             player.ActiveHealthController.Kill(killPacket.DamageType);
             //player.PlayerHealthController.Kill(killPacket.DamageType);
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
@@ -89,9 +88,8 @@ namespace SIT.Core.Coop.Player.Health
         {
             public EDamageType DamageType { get; set; }
 
-            public KillPacket()
+            public KillPacket(string profileId) : base(profileId, "Kill")
             {
-                Method = "Kill";
             }
         }
     }

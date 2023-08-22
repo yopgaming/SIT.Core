@@ -46,11 +46,11 @@ namespace SIT.Coop.Core.Web
             {
                 data.Add("tkn", Randomizer.NextDouble());
             }
-            if (!data.ContainsKey("accountId"))
-            {
-                var profile = player.Profile; //  PatchConstants.GetPlayerProfile(player);
-                data.Add("accountId", profile.AccountId); // PatchConstants.GetPlayerProfileAccountId(profile));
-            }
+            //if (!data.ContainsKey("accountId"))
+            //{
+            //    var profile = player.Profile; //  PatchConstants.GetPlayerProfile(player);
+            //    data.Add("accountId", profile.AccountId); // PatchConstants.GetPlayerProfileAccountId(profile));
+            //}
             if (!data.ContainsKey("serverId"))
             {
                 data.Add("serverId", CoopGameComponent.GetServerId());

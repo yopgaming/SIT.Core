@@ -12,19 +12,11 @@ namespace SIT.Core.Coop.Player
 {
 
     /// <summary>
-    /// Move does not work in a traditional MRP as Bots call this function every frame. Only Players can use this MRP.
     /// </summary>
     internal class Player_Move_Patch : ModuleReplicationPatch
     {
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "Move";
-
-        //public static Request RequestInstance = null;
-
-        //public Player_Move_Patch()
-        //{
-        //    RequestInstance = Request.GetRequestInstance(true, Logger);
-        //}
 
         protected override MethodBase GetTargetMethod()
         {
@@ -52,13 +44,6 @@ namespace SIT.Core.Coop.Player
 
             direction.x = (float)Math.Round(direction.x, 3);
             direction.y = (float)Math.Round(direction.y, 3);
-
-            // If this is an AI or other player, then don't run this method
-            // For some reason, this breaks the AI so they can't move. AI are becoming a pain to deal with.
-            //if (!player.IsYourPlayer)
-            //{
-            //    return false;
-            //}
 
             return true;
 
@@ -99,8 +84,7 @@ namespace SIT.Core.Coop.Player
             //else if (LastDirections[accountId] == direction)
             //    return;
 
-            PlayerMovePacket playerMovePacket = new();
-            playerMovePacket.AccountId = accountId;
+            PlayerMovePacket playerMovePacket = new(player.ProfileId);
             playerMovePacket.pX = player.Position.x;
             playerMovePacket.pY = player.Position.y;
             playerMovePacket.pZ = player.Position.z;
@@ -143,15 +127,15 @@ namespace SIT.Core.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket pmp = new();
+            PlayerMovePacket pmp = new(player.ProfileId);
             if (dict.ContainsKey("data"))
             {
-                pmp = new PlayerMovePacket();
+                pmp = new PlayerMovePacket(player.ProfileId);
                 pmp.DeserializePacketSIT(dict["data"].ToString());
             }
             else
             {
-                pmp = new Player_Move_Patch.PlayerMovePacket()
+                pmp = new PlayerMovePacket(player.ProfileId)
                 {
                     dX = float.Parse(dict["dX"].ToString()),
                     dY = float.Parse(dict["dY"].ToString()),
@@ -188,37 +172,14 @@ namespace SIT.Core.Coop.Player
 
                     UnityEngine.Vector2 direction = new(playerMovePacket.dX, playerMovePacket.dY);
                     float spd = playerMovePacket.spd;
-                    //bool spr = playerMovePacket.spr;
-                    //playerReplicatedComponent.ShouldSprint = spr;
+                   
                     playerReplicatedComponent.ReplicatedMovementSpeed = spd;
                     playerReplicatedComponent.ReplicatedDirection = null;
 
                     player.InputDirection = direction;
                     player.MovementContext.MovementDirection = direction;
 
-                    //if (!spr)
-                    //{
-                    //player.CurrentManagedState.ChangeSpeed(spd);
                     player.MovementContext.CharacterMovementSpeed = spd;
-                    //}
-
-                    //if (spr)
-                    //{
-                    //    //Logger.LogInfo(player.CurrentManagedState.GetType().Name);
-                    //    //Logger.LogInfo("Enabling Sprint");
-                    //    //player.CurrentManagedState.EnableSprint(spr, true);
-                    //    //player.Physical.Sprint(spr);
-                    //    //player.MovementContext.PlayerAnimatorEnableSprint(true);
-                    //}
-                    //else if (!spr)
-                    //{
-                    //    //Logger.LogInfo("Disabling Sprint");
-                    //    //player.Physical.Sprint(spr);
-                    //    //player.CurrentManagedState.EnableSprint(spr, true);
-                    //    //player.MovementContext.PlayerAnimatorEnableSprint(false);
-
-                    //}
-
 
                     player.CurrentManagedState.Move(direction);
 
@@ -228,22 +189,6 @@ namespace SIT.Core.Coop.Player
             }
         }
 
-        public class PlayerMovePacket : BasePlayerPacket
-        {
-            public float pX { get; set; }
-            public float pY { get; set; }
-            public float pZ { get; set; }
-
-            public float dX { get; set; }
-            public float dY { get; set; }
-            public float spd { get; set; }
-            //public bool spr { get; set; }
-
-            public PlayerMovePacket() : base()
-            {
-                Method = "Move";
-            }
-
-        }
+        
     }
 }

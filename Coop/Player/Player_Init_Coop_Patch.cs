@@ -33,7 +33,7 @@ namespace SIT.Coop.Core.Player
                 return;
 
             var player = __instance;
-            var accountId = player.Profile.AccountId;
+            var profileId = player.ProfileId;
 
             //await __result;
             //Logger.LogInfo($"{nameof(EFT.LocalPlayer)}.Init:{accountId}:IsAi={player.IsAI}");
@@ -49,10 +49,10 @@ namespace SIT.Coop.Core.Player
 
             if (Singleton<GameWorld>.Instance != null)
             {
-                if (!coopGC.Players.ContainsKey(accountId))
-                    coopGC.Players.Add(accountId, player);
+                if (!coopGC.Players.ContainsKey(profileId))
+                    coopGC.Players.Add(profileId, player);
 
-                if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.AccountId == accountId))
+                if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                     Singleton<GameWorld>.Instance.RegisterPlayer(player);
             }
             else
@@ -83,10 +83,11 @@ namespace SIT.Coop.Core.Player
                         "isAI",
                             player.IsAI || !player.Profile.Id.StartsWith("pmc")
                         },
-                        {
-                            "accountId",
-                            player.Profile.AccountId
-                        },
+                        //{
+                        //    "accountId",
+                        //    //player.Profile.AccountId
+                        //    player.ProfileId
+                        //},
                         {
                             "profileId",
                             player.ProfileId
@@ -107,24 +108,6 @@ namespace SIT.Coop.Core.Player
                             "sPz",
                             player.Transform.position.z
                         },
-                        //{
-                        //    "p.info",
-                        //    JsonConvert.SerializeObject(player.Profile.Info
-                        //        , Formatting.None
-                        //        , new JsonSerializerSettings() { })//.SITToJson()
-                        //},
-                        //{
-                        //    "p.cust",
-                        //     player.Profile.Customization.ToJson()
-                        //},
-                        //{
-                        //    "p.equip",
-                        //    player.Profile.Inventory.Equipment.SITToJson()
-                        //},
-                        //{
-                        //    "side",
-                        //    player.Profile.Side.ToString()
-                        //},
                         {
                             "profileJson",
                             profileJson
@@ -133,7 +116,7 @@ namespace SIT.Coop.Core.Player
                     };
 
 
-            Logger.LogDebug(packet.ToJson());
+            //Logger.LogDebug(packet.ToJson());
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;

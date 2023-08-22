@@ -26,9 +26,9 @@ namespace SIT.Core.Coop.NetworkPacket
         [JsonProperty(PropertyName = "tpl")]
         public string TemplateId { get; set; }
 
-        public ItemPlayerPacket(string accountId, string itemId, string templateId, string method) : base()
+        public ItemPlayerPacket(string profileId, string itemId, string templateId, string method)
+            : base(profileId, method)
         {
-            AccountId = accountId;
             ItemId = itemId;
             TemplateId = templateId;
             Method = method;

@@ -118,7 +118,13 @@ namespace SIT.Core.Coop.Player
 
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("ItemControllerHandler_Move_Patch.Postfix");
             var inventoryController = itemController as EFT.Player.PlayerInventoryController;
-            var player = coopGameComponent.Players.First(x => x.Key == inventoryController.Profile.AccountId).Value;
+            if(!coopGameComponent.Players.Any(x => x.Key == inventoryController.Profile.ProfileId))
+            {
+                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"Unable to find player of Id {inventoryController.Profile.ProfileId} in Raid.");
+                return;
+            }
+
+            var player = coopGameComponent.Players.First(x => x.Key == inventoryController.Profile.ProfileId).Value;
 
             if (DisableForPlayer.Contains(player.ProfileId))
             {

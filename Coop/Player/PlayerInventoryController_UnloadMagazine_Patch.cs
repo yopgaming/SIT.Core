@@ -58,7 +58,7 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            UnloadMagazinePacket unloadMagazinePacket = new(___profile_0.AccountId, magazine.Id, magazine.TemplateId);
+            UnloadMagazinePacket unloadMagazinePacket = new(___profile_0.ProfileId, magazine.Id, magazine.TemplateId);
             var serialized = unloadMagazinePacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
@@ -126,13 +126,12 @@ namespace SIT.Core.Coop.Player
             public string MagazineTemplateId { get; set; }
 
             public UnloadMagazinePacket(
-                string accountId
+                string profileId
                 , string magazineId
                 , string magazineTemplateId
                 )
+                : base(profileId, "PlayerInventoryController_UnloadMagazine")
             {
-                AccountId = accountId;
-                Method = "PlayerInventoryController_UnloadMagazine";
                 this.MagazineId = magazineId;
                 this.MagazineTemplateId = magazineTemplateId;
             }

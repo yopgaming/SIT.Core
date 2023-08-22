@@ -56,7 +56,8 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
             Dictionary<string, object> packet = new()
             {
-                { "diedAID", __instance.Profile.AccountId }
+                { "diedAID", __instance.Profile.AccountId },
+                { "diedProfileId", __instance.ProfileId }
             };
             if (__instance.Profile.Info != null)
             {
@@ -66,12 +67,14 @@ namespace SIT.Core.SP.PlayerPatches.Health
             }
             if (killedBy != null)
             {
+                packet.Add("killedByProfileId", killedBy.ProfileId);
                 packet.Add("killedByAID", killedBy.Profile.AccountId);
                 packet.Add("killerFaction", killedBy.Side);
             }
             if (killedByLastAggressor != null)
             {
                 packet.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
+                packet.Add("killedByLastAggressorProfileId", killedByLastAggressor.ProfileId);
             }
             AkiBackendCommunication.Instance.PostJsonAndForgetAsync("/client/raid/person/killed", JsonConvert.SerializeObject(packet));
         }

@@ -91,8 +91,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             LastPress[player.ProfileId] = pressed;
 
-            TriggerPressedPacket triggerPressedPacket = new();
-            triggerPressedPacket.AccountId = player.Profile.AccountId;
+            TriggerPressedPacket triggerPressedPacket = new(player.ProfileId);
             triggerPressedPacket.pr = pressed;
             if (pressed)
             {
@@ -124,7 +123,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
             taskScheduler.Do((s) =>
             {
-                TriggerPressedPacket tpp = new();
+                TriggerPressedPacket tpp = new(player.ProfileId);
 
                 //Logger.LogInfo("Pressed:Replicated");
                 if (!dict.ContainsKey("data"))
@@ -190,9 +189,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             public float rX { get; set; }
             public float rY { get; set; }
 
-            public TriggerPressedPacket() : base()
+            public TriggerPressedPacket(string profileId) : base(profileId, "SetTriggerPressed")
             {
-                Method = "SetTriggerPressed";
             }
 
         }
