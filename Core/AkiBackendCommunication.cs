@@ -114,9 +114,9 @@ namespace SIT.Core.Core
         /// <summary>
         /// 0.13.5.0.25800 - This is now incorrect. I think it now best you need to pass an AccountId into the "Session" section?
         /// </summary>
-        public void CreateWebSocket(Profile profile)
+        public void WebSocketCreate(Profile profile)
         {
-            Logger.LogInfo("CreateWebSocket");
+            Logger.LogDebug("WebSocketCreate");
             if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
                 return;
 
@@ -148,11 +148,24 @@ namespace SIT.Core.Core
             });
         }
 
+        public void WebSocketClose()
+        {
+            if(WebSocket != null)
+            {
+                Logger.LogDebug("WebSocketClose");
+                WebSocket.OnError -= WebSocket_OnError;
+                WebSocket.OnMessage -= WebSocket_OnMessage;
+                WebSocket.Close(WebSocketSharp.CloseStatusCode.Normal);
+                WebSocket = null;
+            }
+        }
+
         public async void PostDownWebSocketImmediately(Dictionary<string, object> packet)
         {
             await Task.Run(() =>
             {
-                WebSocket.Send(packet.SITToJson());
+                if(WebSocket != null)
+                    WebSocket.Send(packet.SITToJson());
             });
         }
 
@@ -160,7 +173,8 @@ namespace SIT.Core.Core
         {
             await Task.Run(() =>
             {
-                WebSocket.Send(packet);
+                if(WebSocket != null)
+                    WebSocket.Send(packet);
             });
         }
 
@@ -232,7 +246,7 @@ namespace SIT.Core.Core
                     var pongRaw = long.Parse(packet["pong"].ToString());
                     var dtPong = new DateTime(pongRaw);
                     var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
-                    if (coopGameComponent.ServerPingSmooth.Count > 15)
+                    if (coopGameComponent.ServerPingSmooth.Count > 60)
                         coopGameComponent.ServerPingSmooth.TryDequeue(out _);
                     coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
                     coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
