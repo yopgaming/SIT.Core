@@ -1,5 +1,8 @@
 ﻿using EFT.InventoryLogic;
+using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
@@ -32,7 +35,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
                 result = true;
 
             //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PrePatch");
@@ -50,17 +53,20 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.TryGetValue(player.ProfileId, out var expecting) && expecting)
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("f", fireMode.ToString());
-            dictionary.Add("m", "ChangeFireMode");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            //Dictionary<string, object> dictionary = new();
+            //dictionary.Add("f", fireMode.ToString());
+            //dictionary.Add("m", "ChangeFireMode");
+            //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
             //Logger.LogInfo("FirearmController_ChangeFireMode_Patch:PostPatch");
+
+            FireModePacket fireModePacket = new FireModePacket(____player.ProfileId, fireMode);
+            AkiBackendCommunication.Instance.SendDataToPool(fireModePacket.Serialize());
 
         }
 
@@ -68,23 +74,22 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
-            //if (!ProcessedCalls.Contains(timestamp))
-            //    ProcessedCalls.Add(timestamp);
-            //else
-            //{
-            //    ProcessedCalls.RemoveAll(x => x <= DateTime.Now.AddHours(-1).Ticks);
-            //    return;
-            //}
-            if (HasProcessed(GetType(), player, dict))
+
+            FireModePacket fmp = new(player.ProfileId, Weapon.EFireMode.single);
+
+            if (dict.ContainsKey("data"))
+                fmp = fmp.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, fmp))
                 return;
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 try
                 {
-                    CallLocally.Add(player.Profile.AccountId, true);
-                    if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
+                    CallLocally.Add(player.ProfileId, true);
+                    //if (Enum.TryParse<Weapon.EFireMode>(dict["f"].ToString(), out var firemode))
+                    var firemode = (Weapon.EFireMode)fmp.FireMode;
                     {
                         //Logger.LogInfo("Replicated: Calling Change FireMode");
                         firearmCont.ChangeFireMode(firemode);
@@ -94,6 +99,18 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 {
                     Logger.LogInfo(e);
                 }
+            }
+        }
+
+        public class FireModePacket : BasePlayerPacket
+        {
+            [JsonProperty("f")]
+            public byte FireMode { get; set; }
+
+            public FireModePacket(string profileId, Weapon.EFireMode fireMode)
+                : base(profileId, "ChangeFireMode")
+            {
+                FireMode = (byte)fireMode;
             }
         }
     }

@@ -1,10 +1,13 @@
 ﻿using SIT.Coop.Core.Web;
+using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using static SIT.Core.Coop.Player.FirearmControllerPatches.FirearmController_SetLightsState_Patch;
 
 namespace SIT.Core.Coop.Player.FirearmControllerPatches
 {
@@ -19,7 +22,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
+        public static List<string> CallLocally
             = new();
 
 
@@ -33,7 +36,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
 
             var result = false;
-            if (CallLocally.ContainsKey(player.ProfileId))
+            if (CallLocally.Contains(player.ProfileId))
                 result = true;
 
 
@@ -52,34 +55,32 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.ContainsKey(player.ProfileId))
+            if (CallLocally.Contains(player.ProfileId))
             {
                 CallLocally.Remove(player.ProfileId);
                 return;
             }
 
-            Dictionary<string, object> dictionary = new();
-            dictionary.Add("m", "CheckAmmo");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            //Dictionary<string, object> dictionary = new();
+            //dictionary.Add("m", "CheckAmmo");
+            //AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+
+            AkiBackendCommunication.Instance.SendDataToPool(new BasePlayerPacket(player.ProfileId, "CheckAmmo").Serialize());
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogInfo($"CheckAmmo_replicated");
+            BasePlayerPacket checkAmmoPacket = new();
 
-            var timestamp = long.Parse(dict["t"].ToString());
-            if (HasProcessed(GetType(), player, dict))
-            {
-                //Logger.LogInfo($"CheckAmmo_hasprocessed!");
+            if (dict.ContainsKey("data"))
+                checkAmmoPacket = checkAmmoPacket.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, checkAmmoPacket))
                 return;
-            }
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
-                //Logger.LogInfo($"CheckAmmo_calllocally!");
-
-                CallLocally.Add(player.ProfileId, true);
-                //Logger.LogInfo("FirearmControllerCheckAmmoPatch:Replicated:CheckAmmo");
+                CallLocally.Add(player.ProfileId);
                 firearmCont.CheckAmmo();
             }
         }
