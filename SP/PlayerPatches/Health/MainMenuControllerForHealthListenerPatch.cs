@@ -19,9 +19,6 @@ namespace SIT.Core.SP.PlayerPatches.Health
             var desiredType = typeof(MainMenuController);
             var desiredMethod = ReflectionHelpers.GetMethodForType(desiredType, "ShowScreen");
 
-            //Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
-            //Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
-
             return desiredMethod;
         }
 
@@ -31,7 +28,6 @@ namespace SIT.Core.SP.PlayerPatches.Health
             var healthController = __instance.HealthController;
             var listener = HealthListener.Instance;
 
-            //Logger.LogInfo("MainMenuControllerForHealthListenerPatch:PatchPostfix");
             if (healthController == null)
             {
                 Logger.LogInfo("MainMenuControllerPatch() - healthController is null");
@@ -48,9 +44,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
             }
 
 
-            if (HealthListener.Instance != null)
-                AkiBackendCommunication.Instance.PostJson("/player/health/sync", HealthListener.Instance.CurrentHealth.ToJson());
-
+            listener.Update(healthController, false);
 
         }
     }

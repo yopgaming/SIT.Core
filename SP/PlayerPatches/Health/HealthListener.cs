@@ -1,4 +1,5 @@
-﻿using SIT.Core.Misc;
+﻿using SIT.Core.Core;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,17 +48,28 @@ namespace SIT.Core.SP.PlayerPatches.Health
         public void Init(object healthController, bool inRaid)
         {
             if (healthController != null && healthController == MyHealthController)
+            {
+                //PatchConstants.Logger.LogDebug("HealthListener is Same. Ignoring.");
                 return;
+            }
 
-            PatchConstants.Logger.LogInfo("HealthListener.Init");
+            PatchConstants.Logger.LogDebug("HealthListener.Init");
 
             // init dependencies
             MyHealthController = healthController;
 
             CurrentHealth.IsAlive = true;
 
-            // init current health
-            //SetCurrentHealth(MyHealthController, CurrentHealth.Health, EBodyPart.Common);
+            Update(healthController, inRaid);
+
+        }
+
+        public void Update(object healthController, bool inRaid)
+        {
+            PatchConstants.Logger.LogDebug("HealthListener.Update and Sync.");
+
+            MyHealthController = healthController;
+
             SetCurrentHealth(MyHealthController, CurrentHealth.Health, EBodyPart.Head);
             SetCurrentHealth(MyHealthController, CurrentHealth.Health, EBodyPart.Chest);
             SetCurrentHealth(MyHealthController, CurrentHealth.Health, EBodyPart.Stomach);
@@ -68,13 +80,13 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
             SetCurrent("Energy");
             SetCurrent("Hydration");
-            //SetCurrent("Temperature");
 
+            AkiBackendCommunication.Instance.PostJson("/player/health/sync", Instance.CurrentHealth.ToJson());
         }
 
         private void SetCurrent(string v)
         {
-            //PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
+            PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
 
             if (ReflectionHelpers.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v))
             {
@@ -82,9 +94,9 @@ namespace SIT.Core.SP.PlayerPatches.Health
                 if (valuestruct == null)
                     return;
 
-                var currentEnergy = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
-                //PatchConstants.Logger.LogInfo(currentEnergy);
-                CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentEnergy.ToString()));
+                var currentAmount = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
+                PatchConstants.Logger.LogInfo(currentAmount);
+                CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentAmount.ToString()));
             }
             else if (ReflectionHelpers.GetAllFieldsForObject(MyHealthController).Any(x => x.Name == v))
             {
@@ -92,10 +104,10 @@ namespace SIT.Core.SP.PlayerPatches.Health
                 if (valuestruct == null)
                     return;
 
-                var currentEnergy = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
-                //PatchConstants.Logger.LogInfo(currentEnergy);
+                var currentAmount = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
+                PatchConstants.Logger.LogInfo(currentAmount);
 
-                CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentEnergy.ToString()));
+                CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentAmount.ToString()));
             }
 
         }
