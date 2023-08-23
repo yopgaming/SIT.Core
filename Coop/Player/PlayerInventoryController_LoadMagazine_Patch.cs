@@ -18,7 +18,7 @@ namespace SIT.Core.Coop.Player
 
         public override string MethodName => "PlayerInventoryController_LoadMagazine";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static List<string> CallLocally = new();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -37,7 +37,7 @@ namespace SIT.Core.Coop.Player
             //Logger.LogInfo("PlayerInventoryController_LoadMagazine_Patch:PrePatch");
             var result = false;
 
-            if (CallLocally.TryGetValue(___profile_0.AccountId, out _))
+            if (CallLocally.Contains(___profile_0.ProfileId))
                 result = true;
 
             __result = new Task<IResult>(() => { return null; });
@@ -52,9 +52,9 @@ namespace SIT.Core.Coop.Player
         {
             //Logger.LogInfo("PlayerInventoryController_LoadMagazine_Patch:PostPatch");
 
-            if (CallLocally.TryGetValue(___profile_0.AccountId, out _))
+            if (CallLocally.Contains(___profile_0.ProfileId))
             {
-                CallLocally.Remove(___profile_0.AccountId);
+                CallLocally.Remove(___profile_0.ProfileId);
                 return;
             }
 
@@ -90,10 +90,10 @@ namespace SIT.Core.Coop.Player
                 if (HasProcessed(GetType(), player, itemPacket))
                     return;
 
-                //if (CallLocally.ContainsKey(player.Profile.AccountId))
+                //if (CallLocally.ContainsKey(player.Profile.ProfileId))
                 //    return;
 
-                ////Logger.LogInfo($"ItemUiContext_ThrowItem_Patch.Replicated Profile Id {itemPacket.AccountId}");
+                ////Logger.LogInfo($"ItemUiContext_ThrowItem_Patch.Replicated Profile Id {itemPacket.ProfileId}");
 
                 var fieldInfoInvController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController));
                 if (fieldInfoInvController != null)
@@ -105,7 +105,7 @@ namespace SIT.Core.Coop.Player
                         {
                             if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
                             {
-                                CallLocally.Add(player.Profile.AccountId, true);
+                                CallLocally.Add(player.ProfileId);
                                 //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Calling LoadMagazine ({bullet.Id}:{magazine.Id}:{itemPacket.LoadCount})");
                                 invController.LoadMagazine((BulletClass)bullet, (MagazineClass)magazine, itemPacket.LoadCount);
                             }

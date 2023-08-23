@@ -103,20 +103,7 @@ namespace SIT.Coop.Core.Matchmaker
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             // ------------------------------------------
             MatchmakerAcceptPatches.Profile = ___profile_0;
-            AkiBackendCommunication.Instance.CreateWebSocket(MatchmakerAcceptPatches.Profile);
-
-            //Logger.LogInfo("MatchmakerAcceptScreenShow.PatchPostfix:" + ___profile_0.AccountId);
-
-            //if (MatchmakerAcceptPatches.CheckForMatch(raidSettings, out string returnedJson))
-            //{
-            //    ____acceptButton.SetHeaderText("Join Match");
-            //    raidSettings.BotSettings.BotAmount = EFT.Bots.EBotAmount.NoBots;
-            //}
-            //else
-            //{
-            //    ____acceptButton.SetHeaderText("Start Match");
-            //}
-
+            AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
         }
     }
 

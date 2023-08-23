@@ -212,7 +212,7 @@ namespace SIT.Core.Misc
 
         public static IEnumerable<FieldInfo> GetAllFieldsForType(Type t)
         {
-            if (t == typeof(System.Object))
+            if (t == typeof(object))
                 return null;
 
             if (m_CachedFieldInfos.ContainsKey(t.FullName))
@@ -223,7 +223,7 @@ namespace SIT.Core.Misc
             fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
             fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
             fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
-            if (t.BaseType != null)
+            if (t.BaseType != null && t.BaseType != typeof(object))
             {
                 t = t.BaseType;
                 fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.Public));
@@ -233,7 +233,7 @@ namespace SIT.Core.Misc
                 fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
             }
             var result = fields.Distinct(x => x.Name).AsEnumerable();
-            //m_CachedFieldInfos.Add(t.FullName, result); 
+            //m_CachedFieldInfos.Add(t.FullName, result);
             return result;
         }
 
