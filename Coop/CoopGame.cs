@@ -125,7 +125,8 @@ namespace SIT.Core.Coop
             //Logger.LogInfo("location.BossLocationSpawn");
             //Logger.LogInfo(location.BossLocationSpawn.ToJson());
 
-            WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
+            //WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
+            WildSpawnWave[] spawnWaveArray = location.waves;
             //Logger.LogInfo("spawnWaveArray");
             //Logger.LogInfo(spawnWaveArray.ToJson());
 
@@ -667,8 +668,8 @@ namespace SIT.Core.Coop
 
         private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
         {
-            Logger.LogInfo("ExfiltrationPoint_OnCancelExtraction");
-            Logger.LogInfo(point.Status);
+            Logger.LogDebug("ExfiltrationPoint_OnCancelExtraction");
+            Logger.LogDebug(point.Status);
 
             ExtractingPlayers.Remove(player.ProfileId);
 
@@ -697,8 +698,8 @@ namespace SIT.Core.Coop
         private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus status)
         {
             UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
-            Logger.LogInfo("ExfiltrationPoint_OnStatusChanged");
-            Logger.LogInfo(status);
+            Logger.LogDebug("ExfiltrationPoint_OnStatusChanged");
+            Logger.LogDebug(status);
             if (status == EExfiltrationStatus.Countdown)
             {
 
@@ -729,6 +730,11 @@ namespace SIT.Core.Coop
         {
             Logger.LogInfo("CoopGame.Stop");
 
+            if (MatchmakerAcceptPatches.IsServer)
+            {
+                AkiBackendCommunication.Instance.WebSocketClose();
+            }
+
             if (this.BossWaveManager != null)
                 this.BossWaveManager.Stop();
 
@@ -755,5 +761,11 @@ namespace SIT.Core.Coop
 
         private Func<EFT.Player, GamePlayerOwner> func_1;
 
+
+        public new void method_6(string backendUrl, string locationId, int variantId)
+        {
+            Logger.LogInfo("CoopGame:method_6");
+            return;
+        }
     }
 }
