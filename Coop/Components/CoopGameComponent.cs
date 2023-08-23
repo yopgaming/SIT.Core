@@ -171,6 +171,7 @@ namespace SIT.Core.Coop
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
             StartCoroutine(SendWeatherToClients());
+            StartCoroutine(EverySecondCoroutine());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
@@ -184,7 +185,62 @@ namespace SIT.Core.Coop
 
         }
 
+        private IEnumerator EverySecondCoroutine()
+        {
+            var waitSeconds = new WaitForSeconds(1.0f);
+            var coopGame = LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                yield return null;
 
+            while (RunAsyncTasks)
+            {
+                yield return waitSeconds;
+
+                var playersToExtract = new List<string>();
+                // TODO: Store the exfil point in the ExtractingPlayers dict, need it for timer
+                foreach (var exfilPlayer in coopGame.ExtractingPlayers)
+                {
+                    var exfilTime = new TimeSpan(0, 0, (int)exfilPlayer.Value.Item1);
+                    var timeInExfil = new TimeSpan(DateTime.Now.Ticks - exfilPlayer.Value.Item2);
+                    if (timeInExfil >= exfilTime)
+                    {
+                        if (!playersToExtract.Contains(exfilPlayer.Key))
+                        {
+                            Logger.LogDebug(exfilPlayer.Key + " should extract");
+                            playersToExtract.Add(exfilPlayer.Key);
+                        }
+                    }
+                    else
+                    {
+                        Logger.LogDebug(exfilPlayer.Key + " extracting " + timeInExfil);
+
+                    }
+                }
+
+                foreach (var player in playersToExtract)
+                {
+                    coopGame.ExtractingPlayers.Remove(player);
+                    coopGame.ExtractedPlayers.Add(player);
+                    //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
+                }
+
+                // Hide extracted Players
+                foreach (var playerId in coopGame.ExtractedPlayers)
+                {
+                    var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
+                    if (player == null)
+                        continue;
+
+                    AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(((EFT.Player)player)
+                        , new Dictionary<string, object>() { { "Extracted", true } }
+                        , true);
+
+                    ((EFT.Player)player).SwitchRenderer(false);
+                    //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
+                    //GameObject.Destroy(player);
+                }
+            }
+        }
 
         void OnDestroy()
         {
@@ -308,46 +364,7 @@ namespace SIT.Core.Coop
 
             }
 
-            var playersToExtract = new List<string>();
-            // TODO: Store the exfil point in the ExtractingPlayers dict, need it for timer
-            foreach (var exfilPlayer in coopGame.ExtractingPlayers)
-            {
-                var exfilTime = exfilPlayer.Value.Item1;
-                var timeInExfil = new TimeSpan(DateTime.Now.Ticks - exfilPlayer.Value.Item2).Seconds;
-                if (timeInExfil > exfilTime)
-                {
-                    Logger.LogDebug(exfilPlayer.Key + " should extract");
-                    playersToExtract.Add(exfilPlayer.Key);
-                }
-                else
-                {
-                    //Logger.LogInfo(exfilPlayer.Key + " extracting " + timeInExfil);
-
-                }
-            }
-
-            foreach (var player in playersToExtract)
-            {
-                coopGame.ExtractingPlayers.Remove(player);
-                coopGame.ExtractedPlayers.Add(player);
-                //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
-            }
-
-            // Hide extracted Players
-            foreach (var playerId in coopGame.ExtractedPlayers)
-            {
-                var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
-                if (player == null)
-                    continue;
-
-                AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(((EFT.Player)player)
-                    , new Dictionary<string, object>() { { "Extracted", true } }
-                    , true);
-
-                ((EFT.Player)player).SwitchRenderer(false);
-                //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
-                //GameObject.Destroy(player);
-            }
+            
 
 
             if (ServerHasStopped && !ServerHasStoppedActioned)
@@ -529,7 +546,8 @@ namespace SIT.Core.Coop
             }
             //
             // -----------------------------------------------------------------------------------------------------------
-            d["pL"] = playerList;//.Distinct();
+            // Ensure this is a distinct list of Ids
+            d["pL"] = playerList.Distinct();
             var jsonDataToSend = d.ToJson();
 
             try
@@ -575,7 +593,8 @@ namespace SIT.Core.Coop
                                 {
                                     if (Players == null
                                         || Players.ContainsKey(profileId)
-                                        || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
+                                        || Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId)
+                                        )
                                     {
                                         Logger.LogDebug($"Ignoring call to Spawn player {profileId}. The player already exists in the game.");
                                         continue;
