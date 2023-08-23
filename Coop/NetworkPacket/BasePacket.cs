@@ -49,6 +49,9 @@ namespace SIT.Core.Coop.NetworkPacket
         [JsonProperty(PropertyName = "m")]
         public virtual string Method { get; set; } = null;
 
+        [JsonProperty(PropertyName = "pong")]
+        public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
+
         public BasePacket()
         {
             ServerId = CoopGameComponent.GetServerId();
@@ -67,7 +70,7 @@ namespace SIT.Core.Coop.NetworkPacket
         {
             using BinaryWriter binaryWriter = new(new MemoryStream());
             binaryWriter.WriteNonPrefixedString("SIT"); // 3
-            binaryWriter.WriteNonPrefixedString(ServerId); // 24
+            binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
             binaryWriter.WriteNonPrefixedString(Method); // Unknown
             binaryWriter.WriteNonPrefixedString("?");
 
@@ -133,6 +136,9 @@ namespace SIT.Core.Coop.NetworkPacket
                         break;
                     case "Double":
                         prop.SetValue(obj, double.Parse(separatedPacket[index].ToString()));
+                        break;
+                    case "Byte":
+                        prop.SetValue(obj, byte.Parse(separatedPacket[index].ToString()));
                         break;
                     default:
                         PatchConstants.Logger.LogError($"{prop.Name} of type {prop.PropertyType.Name} could not be parsed by SIT Deserializer!");
