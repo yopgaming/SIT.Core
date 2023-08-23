@@ -93,63 +93,30 @@ namespace SIT.Core.Coop
             botControllerClass = null;
 
             Logger = BepInEx.Logging.Logger.CreateLogSource("Coop Game Mode");
-
-            //Logger = new ManualLogSource(typeof(CoopGame).Name);
             Logger.LogInfo("CoopGame.Create");
+
             if (wavesSettings.BotAmount == EBotAmount.NoBots && MatchmakerAcceptPatches.IsServer)
                 wavesSettings.BotAmount = EBotAmount.Medium;
-
-            // pre changes
-            //location.OldSpawn = true;
-            //location.OfflineOldSpawn = true;
-            //location.NewSpawn = false;
-            //location.OfflineNewSpawn = false;
-            //location.BotSpawnCountStep = 1;
-            //location.BotSpawnPeriodCheck = 1;
-            //location.BotSpawnTimeOffMin = 1;
-            //location.BotSpawnTimeOffMax = int.MaxValue;
-            //location.BotSpawnTimeOnMin = 1;
-            //location.BotSpawnTimeOnMax = int.MaxValue;
-            //// post changes
-            //Logger.LogInfo(location.ToJson());
 
             CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
-
-            //Logger.LogInfo($"wavesettings: {wavesSettings.BotAmount.ToString()}");
-
-            //Logger.LogInfo("location.waves");
-            //Logger.LogInfo(location.waves.ToJson());
-
-            //Logger.LogInfo("location.BossLocationSpawn");
-            //Logger.LogInfo(location.BossLocationSpawn.ToJson());
-
-            //WildSpawnWave[] spawnWaveArray = CoopGame.CreateSpawnWaveArray(wavesSettings, location.waves);
-            WildSpawnWave[] spawnWaveArray = location.waves;
-            //Logger.LogInfo("spawnWaveArray");
-            //Logger.LogInfo(spawnWaveArray.ToJson());
 
             // Non Waves Scenario setup
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
                 (null, new object[] { coopGame, location, coopGame.PBotsController });
             coopGame.nonWavesSpawnScenario_0.ImplementWaveSettings(wavesSettings);
 
-            //location.OldSpawn = true;
             // Waves Scenario setup
             coopGame.wavesSpawnScenario_0 = (WavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(WavesSpawnScenario), "smethod_0").Invoke
                 (null, new object[] {
                     coopGame.gameObject
-                    , spawnWaveArray
+                    , location.waves
                     , new Action<Wave>((wave) => coopGame.PBotsController.ActivateBotsByWave(wave))
                     , location });
-            //Logger.LogInfo("spawn scenario waves");
-            //Logger.LogInfo(coopGame.wavesSpawnScenario_0.SpawnWaves.ToJson());
-
-            coopGame.bossSpawnAdjustments = CoopGame.AdjustBossSpawnParams(wavesSettings, location.BossLocationSpawn);
 
             var bosswavemanagerValue = ReflectionHelpers.GetMethodForType(typeof(BossWaveManager), "smethod_0").Invoke
-                (null, new object[] { coopGame.bossSpawnAdjustments, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
+                (null, new object[] { location.BossLocationSpawn, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
             //(null, new object[] { location.BossLocationSpawn, new Action<BossLocationSpawn>((bossWave) => { coopGame.PBotsController.ActivateBotsByWave(bossWave); }) });
             ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
             coopGame.BossWaveManager = bosswavemanagerValue as BossWaveManager;
@@ -278,48 +245,48 @@ namespace SIT.Core.Coop
 
 
 
-        private static WildSpawnWave[] CreateSpawnWaveArray(WavesSettings wavesSettings, WildSpawnWave[] waves)
-        {
-            foreach (WildSpawnWave wildSpawnWave in waves)
-            {
-                //Logger.LogInfo(wildSpawnWave.WildSpawnType);
-                wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 0);
-                wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 1);
+        //private static WildSpawnWave[] CreateSpawnWaveArray(WavesSettings wavesSettings, WildSpawnWave[] waves)
+        //{
+        //    foreach (WildSpawnWave wildSpawnWave in waves)
+        //    {
+        //        //Logger.LogInfo(wildSpawnWave.WildSpawnType);
+        //        wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 0);
+        //        wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 1);
 
-                wildSpawnWave.time_min = -1;
-                //wildSpawnWave.time_max = 5;
+        //        wildSpawnWave.time_min = -1;
+        //        //wildSpawnWave.time_max = 5;
 
-                //if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
-                //{
-                //    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
-                //}
-                //if (wavesSettings.IsBosses)
-                //{
-                //    wildSpawnWave.time_min += 5;
-                //    wildSpawnWave.time_max += 15;
-                //}
-                wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
-                //if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
-                //{
-                //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
-                //}
-                //if (wildSpawnWave.WildSpawnType == WildSpawnType.pmcBot)
-                //{
-                //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
-                //}
-                //if ((int)wildSpawnWave.WildSpawnType == 34)
-                //{
-                //    wildSpawnWave.time_min = -1;
-                //    wildSpawnWave.time_max = -1;
-                //    wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 1);
-                //    wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
-                //}
+        //        //if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
+        //        //{
+        //        //    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
+        //        //}
+        //        //if (wavesSettings.IsBosses)
+        //        //{
+        //        //    wildSpawnWave.time_min += 5;
+        //        //    wildSpawnWave.time_max += 15;
+        //        //}
+        //        wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
+        //        //if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
+        //        //{
+        //        //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
+        //        //}
+        //        //if (wildSpawnWave.WildSpawnType == WildSpawnType.pmcBot)
+        //        //{
+        //        //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
+        //        //}
+        //        //if ((int)wildSpawnWave.WildSpawnType == 34)
+        //        //{
+        //        //    wildSpawnWave.time_min = -1;
+        //        //    wildSpawnWave.time_max = -1;
+        //        //    wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 1);
+        //        //    wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
+        //        //}
 
-                //wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
+        //        //wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
 
-            }
-            return waves;
-        }
+        //    }
+        //    return waves;
+        //}
 
         private static BossLocationSpawn[] AdjustBossSpawnParams(WavesSettings wavesSettings, BossLocationSpawn[] bossLocationSpawn)
         {
