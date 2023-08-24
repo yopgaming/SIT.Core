@@ -19,7 +19,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
+        public static List<string> CallLocally
             = new();
 
 
@@ -34,17 +34,17 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (CoopGameComponent.GetCoopGameComponent() == null)
                 return false;
 
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && ____player.IsYourPlayer)
-            {
-                return true;
-            }
+            //if (CoopGameComponent.GetCoopGameComponent().HighPingMode && ____player.IsYourPlayer)
+            //{
+            //    return true;
+            //}
 
             var player = ____player;
             if (player == null)
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
                 result = true;
 
             return result;
@@ -56,15 +56,20 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             , EFT.Player ____player
             , bool p)
         {
+            GetLogger(typeof(FirearmController_Pickup_Patch)).LogInfo("PostPatch");
+
             var player = ____player;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
-            FCPickupPicket pickupPicket = new(player.Profile.AccountId, p);
+            FCPickupPicket pickupPicket = new(player.ProfileId, p);
             AkiBackendCommunication.Instance.SendDataToPool(pickupPicket.Serialize());
+
+            
+
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -78,18 +83,14 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
             FCPickupPicket pp = new(null, false);
-
-            if (dict.ContainsKey("data"))
-            {
-                pp = pp.DeserializePacketSIT(dict["data"].ToString());
-            }
+            pp = pp.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, pp))
                 return;
 
-            if (player.HandsController is EFT.Player.FirearmController firearmCont)
+            if (player.HandsController is EFT.Player.FirearmController firearmCont && pp.Pickup)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(pp.ProfileId);
                 firearmCont.Pickup(pp.Pickup);
             }
         }

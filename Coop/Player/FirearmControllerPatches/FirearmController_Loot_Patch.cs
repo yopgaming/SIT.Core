@@ -19,7 +19,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
+        public static List<string> CallLocally
             = new();
 
 
@@ -33,7 +33,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
                 result = true;
 
             return result;
@@ -42,13 +42,15 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         [PatchPostfix]
         public static void PostPatch(EFT.Player.FirearmController __instance, ref bool p)
         {
+            GetLogger(typeof(FirearmController_Loot_Patch)).LogInfo("Loot");
+
             var player = ReflectionHelpers.GetAllFieldsForObject(__instance).First(x => x.Name == "_player").GetValue(__instance) as EFT.Player;
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -60,13 +62,12 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var timestamp = long.Parse(dict["t"].ToString());
             if (HasProcessed(GetType(), player, dict))
                 return;
 
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
                 var p = bool.Parse(dict["p"].ToString());
                 firearmCont.Loot(p);
             }
