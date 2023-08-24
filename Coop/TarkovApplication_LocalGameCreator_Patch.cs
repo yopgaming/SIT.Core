@@ -56,6 +56,8 @@ namespace SIT.Core.Coop
             if (MatchmakerAcceptPatches.IsSinglePlayer)
                 return;
 
+            MatchmakerAcceptPatches.TimeHasComeScreenController = timeHasComeScreenController;
+
             //Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
             if (Singleton<NotificationManagerClass>.Instantiated)
             {

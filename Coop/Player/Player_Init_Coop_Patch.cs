@@ -50,7 +50,7 @@ namespace SIT.Coop.Core.Player
             if (Singleton<GameWorld>.Instance != null)
             {
                 if (!coopGC.Players.ContainsKey(profileId))
-                    coopGC.Players.Add(profileId, player);
+                    coopGC.Players.TryAdd(profileId, player);
 
                 if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                     Singleton<GameWorld>.Instance.RegisterPlayer(player);

@@ -40,7 +40,7 @@ namespace SIT.Core.Coop
         /// <summary>
         /// ProfileId to Player instance
         /// </summary>
-        public Dictionary<string, EFT.Player> Players { get; private set; } = new();
+        public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
         public EFT.Player[] PlayerUsers
         {
             get
@@ -120,11 +120,11 @@ namespace SIT.Core.Coop
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            // If DLSS or FSR are enabled, set a screen scale value
-            if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
-            {
-                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-            }
+            //// If DLSS or FSR are enabled, set a screen scale value
+            //if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
+            //{
+            //    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+            //}
 
         }
 
@@ -133,15 +133,15 @@ namespace SIT.Core.Coop
         void Start()
         {
             Logger.LogDebug("CoopGameComponent:Start");
-            GameCamera = Camera.current;
+            //GameCamera = Camera.current;
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
-            Players = new Dictionary<string, EFT.Player>();
+            Players = new ConcurrentDictionary<string, EFT.Player>();
 
             OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
-            Players.Add(OwnPlayer.ProfileId, OwnPlayer);
+            Players.TryAdd(OwnPlayer.ProfileId, OwnPlayer);
 
             //RequestingObj = AkiBackendCommunication.GetRequestInstance(true, Logger);
             RequestingObj = AkiBackendCommunication.GetRequestInstance(false, Logger);
@@ -263,8 +263,10 @@ namespace SIT.Core.Coop
             PlayersToSpawnProfiles.Clear();
             PlayersToSpawnPositions.Clear();
             PlayersToSpawnPacket.Clear();
-            StopCoroutine(ProcessServerCharacters());
             RunAsyncTasks = false;
+            StopCoroutine(ProcessServerCharacters());
+            StopCoroutine(SendWeatherToClients());
+            StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
         }
@@ -294,6 +296,18 @@ namespace SIT.Core.Coop
 
             var coopGame = LocalGameInstance as CoopGame;
             if (coopGame == null)
+                return quitState;
+
+            if (Players == null)
+                return quitState;
+
+            if (PlayerUsers == null)
+                return quitState;
+
+            if (coopGame.ExtractedPlayers == null)
+                return quitState;
+
+            if (coopGame.PlayerOwner == null)
                 return quitState;
 
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
@@ -337,6 +351,8 @@ namespace SIT.Core.Coop
         void Update()
         //void LateUpdate()
         {
+            GameCamera = Camera.current;
+
             var coopGame = LocalGameInstance as CoopGame;
             if (coopGame == null)
                 return;
@@ -902,7 +918,7 @@ namespace SIT.Core.Coop
             // ----------------------------------------------------------------------------------------------------
             // Add the player to the custom Players list
             if (!Players.ContainsKey(profile.ProfileId))
-                Players.Add(profile.ProfileId, otherPlayer);
+                Players.TryAdd(profile.ProfileId, otherPlayer);
 
             if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.Profile.ProfileId == profile.ProfileId))
                 Singleton<GameWorld>.Instance.RegisteredPlayers.Add(otherPlayer);
@@ -1390,7 +1406,7 @@ namespace SIT.Core.Coop
             //}
 
 
-            OnGUI_DrawPlayerList(rect);
+            //OnGUI_DrawPlayerList(rect);
             OnGUI_DrawPlayerFriendlyTags(rect);
 
         }
@@ -1408,28 +1424,49 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            if (PlayerUsers != null)
+            if (FPSCamera.Instance == null)
+                return;
+
+            if (Players == null)
+                return;
+
+            if (PlayerUsers == null)
+                return;
+
+            if (Camera.current == null)
+                return;
+
+            if (!Singleton<GameWorld>.Instantiated)
+                return;
+
+
+            if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
+                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+
+            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+            if (ownPlayer == null)
+                return;
+
+            foreach (var pl in PlayerUsers)
             {
-                if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
-                    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+                if (pl == null) 
+                    continue;
 
-                var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-                //foreach (var pl in Players.Values)
-                foreach (var pl in PlayerUsers)
+                if (pl.HealthController == null)
+                    continue;
+
+                if (pl.IsYourPlayer && pl.HealthController.IsAlive)
+                    continue;
+
+                Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f));
+                Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+                if (screenPos.z > 0)
                 {
-                    if (pl.IsYourPlayer && pl.HealthController.IsAlive)
-                        continue;
+                    rect.x = (screenPos.x * screenScale) - (rect.width / 2);
+                    rect.y = Screen.height - (screenPos.y * screenScale);
 
-                    Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f));
-                    Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
-                    if (screenPos.z > 0)
-                    {
-                        rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                        rect.y = Screen.height - (screenPos.y * screenScale);
-
-                        var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
-                        GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
-                    }
+                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
+                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
                 }
             }
 

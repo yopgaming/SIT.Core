@@ -76,10 +76,10 @@ namespace SIT.Coop.Core.LocalGame
                 return;
             }
 
-            if (__instance is CoopGame coopGame)
-            {
-                coopGame.CreateCoopGameComponent();
-            }
+            //if (__instance is CoopGame coopGame)
+            //{
+            //    coopGame.CreateCoopGameComponent();
+            //}
 
             //LocalGamePatches.LocalGameInstance = __instance;
             var gameWorld = Singleton<GameWorld>.Instance;
@@ -106,70 +106,18 @@ namespace SIT.Coop.Core.LocalGame
                 AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson(), timeout: 9999, debug: true);
             }
 
-            SendOrReceiveSpawnPoint(Singleton<GameWorld>.Instance.MainPlayer);
+            //SendOrReceiveSpawnPoint(Singleton<GameWorld>.Instance.MainPlayer);
 
-            CoopPatches.EnableDisablePatches();
+            //CoopPatches.EnableDisablePatches();
 
 
-            // Add FreeCamController to GameWorld GameObject
-            gameWorld.gameObject.GetOrAddComponent<FreeCameraController>();
+            //// Add FreeCamController to GameWorld GameObject
+            //gameWorld.gameObject.GetOrAddComponent<FreeCameraController>();
 
 
         }
 
-        public static void SendOrReceiveSpawnPoint(EFT.Player player)
-        {
-            Logger.LogDebug(player.ProfileId + " " + player.Profile.Nickname);
-            if (!player.ProfileId.StartsWith("pmc"))
-                return;
-
-            var position = player.Transform.position;
-            if (!Matchmaker.MatchmakerAcceptPatches.IsClient)
-            {
-                Dictionary<string, object> packet = new()
-                {
-                    {
-                        "m",
-                        "SpawnPointForCoop"
-                    },
-                    {
-                        "serverId",
-                        CoopGameComponent.GetServerId()
-                    },
-                    {
-                        "x",
-                        position.x
-                    },
-                    {
-                        "y",
-                        position.y
-                    },
-                    {
-                        "z",
-                        position.z
-                    }
-                };
-                Logger.LogInfo("Setting Spawn Point to " + position);
-                AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson());
-                //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
-                //Logger.LogInfo("Retreived Spawn Point " + json);
-            }
-            else if (Matchmaker.MatchmakerAcceptPatches.IsClient)
-            {
-                if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
-                {
-                    var json = AkiBackendCommunication.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
-                    Logger.LogInfo("Retreived Spawn Point " + json);
-                    var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
-                    var x = float.Parse(retrievedPacket["x"].ToString());
-                    var y = float.Parse(retrievedPacket["y"].ToString());
-                    var z = float.Parse(retrievedPacket["z"].ToString());
-                    var teleportPosition = new Vector3(x, y, z);
-                    player.Teleport(teleportPosition, true);
-                }
-            }
-            //}
-        }
+        
 
     }
 }

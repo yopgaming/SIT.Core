@@ -51,6 +51,9 @@ namespace SIT.Core.Coop.Components
 
         public Canvas Canvas { get; set; }
         public Profile Profile { get; internal set; }
+        public bool showHostGameWindow { get; private set; }
+        public Rect hostGameWindowInnerRect { get; private set; }
+        public bool showServerBrowserWindow { get; private set; } = true;
 
         void Start()
         {
@@ -223,7 +226,8 @@ namespace SIT.Core.Coop.Components
 
         void OnGUI()
         {
-            //var w = 0.1f; // proportional width (0..1)
+
+            //var w = 0.33f; // proportional width (0..1)
             var h = 0.9f; // proportional height (0..1)
             //windowRect.x = (float)(Screen.width * (1 - w)) / 2;
             //windowRect.y = (float)(Screen.height * (1 - h)) / 2;
@@ -235,19 +239,30 @@ namespace SIT.Core.Coop.Components
             windowRect.width = Screen.width * 0.3f;
             windowRect.height = Screen.height * h;
 
-            windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "");
+            if (showServerBrowserWindow)
+            {
+                windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "");
+            }
+            if(showHostGameWindow)
+            {
+                var hostGameWindowRect = new Rect();
+                hostGameWindowRect.x = (float)(Screen.width * 0.33f);
+                hostGameWindowRect.y = Screen.height * 0.2f;
+                hostGameWindowRect.width = Screen.width * 0.33f;
+                hostGameWindowRect.height = Screen.height * 0.33f;
+                hostGameWindowInnerRect = GUI.Window(1, hostGameWindowRect, DrawHostGameWindow, "");
+            }
         }
 
         void DrawWindow(int windowID)
         {
             if (GUI.Button(new Rect(10, 20, (windowInnerRect.width / 2) - 20, 20), "Host Match", styleBrowserBigButtons))
             {
-
-                //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.AccountId, RaidSettings);
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
-                OriginalAcceptButton.OnClick.Invoke();
-                DestroyThis();
-
+                //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
+                //OriginalAcceptButton.OnClick.Invoke();
+                //DestroyThis();
+                showServerBrowserWindow = false;
+                showHostGameWindow = true;
             }
 
             if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, 20, (windowInnerRect.width / 2) - 20, 20), "Play Single Player", styleBrowserBigButtons))
@@ -273,9 +288,10 @@ namespace SIT.Core.Coop.Components
                     GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), yPos, (windowInnerRect.width / 4), 25), match["PlayerCount"].ToString());
                     GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), yPos, (windowInnerRect.width / 4), 25), match["Location"].ToString());
                     //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width / 4), 25), "-");
-                    Logger.LogInfo(match.ToJson());
+                    //Logger.LogInfo(match.ToJson());
                     if (GUI.Button(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width * 0.1f) - 20, 20)
                         , $"Join"
+                        , styleBrowserBigButtons
                         ))
                     {
                         if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
@@ -304,17 +320,82 @@ namespace SIT.Core.Coop.Components
             }
         }
 
+        void DrawHostGameWindow(int windowID)
+        {
+            var rows = 2;
+            var halfWindowWidth = hostGameWindowInnerRect.width / 2;
+
+            for (var iRow = 0; iRow < rows; iRow++)
+            {
+                var y = 20 + (iRow * 25);
+                switch (iRow)
+                {
+                    case 0:
+                        GUI.Label(new Rect(10, y, halfWindowWidth, 20), "Number of players to wait for", new GUIStyle() {  fontSize = 14, normal = new GUIStyleState() { textColor = Color.white } });
+                        break;
+                    case 1:
+                        if (GUI.Button(new Rect(10, y, 100, 20), "-", styleBrowserBigButtons))
+                        {
+                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - 1 > 0)
+                            {
+                                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers -= 1;
+                            }
+
+                            //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
+                            //OriginalAcceptButton.OnClick.Invoke();
+                            //DestroyThis();
+                        }
+
+                        GUI.Label(new Rect(halfWindowWidth, y, 100, 20), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString());
+
+                        if (GUI.Button(new Rect((hostGameWindowInnerRect.width - 100) - 20, y, 100, 20), "+", styleBrowserBigButtons))
+                        {
+                            //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
+                            //OriginalAcceptButton.OnClick.Invoke();
+                            //DestroyThis();
+                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers + 1 < 11)
+                            {
+                                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers += 1;
+                            }
+                        }
+                        break;
+                }
+
+            }
+
+
+            // Start button
+            if (GUI.Button(new Rect(10, hostGameWindowInnerRect.height - 40, (hostGameWindowInnerRect.width / 2) - 20, 20), "Start", styleBrowserBigButtons))
+            {
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
+                OriginalAcceptButton.OnClick.Invoke();
+                DestroyThis();
+            }
+
+            // Close button
+            if (GUI.Button(new Rect((hostGameWindowInnerRect.width / 2) + 10, hostGameWindowInnerRect.height - 40, (hostGameWindowInnerRect.width / 2) - 20, 20), "Close", styleBrowserBigButtons))
+            {
+                showHostGameWindow = false;
+                showServerBrowserWindow = true;
+            }
+        }
+
+
         void OnDestroy()
         {
             if (m_cancellationTokenSource != null)
                 m_cancellationTokenSource.Cancel();
+
+
+            StopAllTasks = true;
         }
 
         void DestroyThis()
         {
+            StopAllTasks = true;
+
             GameObject.DestroyImmediate(this.gameObject);
             GameObject.DestroyImmediate(this);
-
         }
 
 

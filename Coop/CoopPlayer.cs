@@ -185,5 +185,17 @@ namespace SIT.Core.Coop
             //}
         }
 
+        public override void Heal(EBodyPart bodyPart, float value)
+        {
+            //PatchConstants.Logger.LogDebug("Heal");
+            base.Heal(bodyPart, value);
+        }
+
+        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)
+        {
+            //PatchConstants.Logger.LogDebug("ApplyShot");
+            return base.ApplyShot(damageInfo, bodyPartType, shotId);
+        }
+
     }
 }

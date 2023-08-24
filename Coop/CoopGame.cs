@@ -10,6 +10,7 @@ using EFT.Weather;
 using JsonType;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Configuration;
+using SIT.Core.Coop.FreeCamera;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -128,7 +129,7 @@ namespace SIT.Core.Coop
             return coopGame;
         }
 
-        BossLocationSpawn[] bossSpawnAdjustments;
+        //BossLocationSpawn[] bossSpawnAdjustments;
 
         public void CreateCoopGameComponent()
         {
@@ -243,76 +244,7 @@ namespace SIT.Core.Coop
         }
 
 
-
-
-        //private static WildSpawnWave[] CreateSpawnWaveArray(WavesSettings wavesSettings, WildSpawnWave[] waves)
-        //{
-        //    foreach (WildSpawnWave wildSpawnWave in waves)
-        //    {
-        //        //Logger.LogInfo(wildSpawnWave.WildSpawnType);
-        //        wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 0);
-        //        wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 1);
-
-        //        wildSpawnWave.time_min = -1;
-        //        //wildSpawnWave.time_max = 5;
-
-        //        //if (wavesSettings.IsTaggedAndCursed && wildSpawnWave.WildSpawnType == WildSpawnType.assault)
-        //        //{
-        //        //    wildSpawnWave.WildSpawnType = WildSpawnType.cursedAssault;
-        //        //}
-        //        //if (wavesSettings.IsBosses)
-        //        //{
-        //        //    wildSpawnWave.time_min += 5;
-        //        //    wildSpawnWave.time_max += 15;
-        //        //}
-        //        wildSpawnWave.BotDifficulty = wavesSettings.BotDifficulty.ToBotDifficulty();
-        //        //if (wildSpawnWave.WildSpawnType == WildSpawnType.exUsec)
-        //        //{
-        //        //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
-        //        //}
-        //        //if (wildSpawnWave.WildSpawnType == WildSpawnType.pmcBot)
-        //        //{
-        //        //    wildSpawnWave.slots_min = wildSpawnWave.slots_min < 1 ? 1 : wildSpawnWave.slots_min;
-        //        //}
-        //        //if ((int)wildSpawnWave.WildSpawnType == 34)
-        //        //{
-        //        //    wildSpawnWave.time_min = -1;
-        //        //    wildSpawnWave.time_max = -1;
-        //        //    wildSpawnWave.slots_min = Math.Max(wildSpawnWave.slots_min, 1);
-        //        //    wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_max, 2);
-        //        //}
-
-        //        //wildSpawnWave.slots_max = Math.Max(wildSpawnWave.slots_min, wildSpawnWave.slots_max);
-
-        //    }
-        //    return waves;
-        //}
-
-        private static BossLocationSpawn[] AdjustBossSpawnParams(WavesSettings wavesSettings, BossLocationSpawn[] bossLocationSpawn)
-        {
-            //if (!wavesSettings.IsBosses)
-            //{
-            //    return new BossLocationSpawn[0];
-            //}
-            //Logger.LogInfo($"bossLocationSpawn.Length:{bossLocationSpawn.Length}");
-            //foreach (var wave in bossLocationSpawn)
-            //{
-            //    //wave.Time = -1;
-            //    if (wave.BossName == "gifter")
-            //    {
-            //        wave.Activated = false;
-            //    }
-            //    else
-            //    {
-            //        Logger.LogInfo($"bossLocationSpawn.name:{wave.BossName}");
-            //        //wave.Activated = true;
-            //        //wave.Time = -1;
-            //        //wave.Delay = 0;
-            //        wave.BossChance = 100;
-            //    }
-            //}
-            return bossLocationSpawn;
-        }
+      
 
         public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 
@@ -394,7 +326,62 @@ namespace SIT.Core.Coop
         /// <param name="timeBeforeDeploy"></param>
         public override void vmethod_1(float timeBeforeDeploy)
         {
+
             base.vmethod_1(timeBeforeDeploy);
+        }
+
+        public static void SendOrReceiveSpawnPoint(EFT.Player player)
+        {
+            Logger.LogDebug(player.ProfileId + " " + player.Profile.Nickname);
+            if (!player.ProfileId.StartsWith("pmc"))
+                return;
+
+            var position = player.Transform.position;
+            if (!MatchmakerAcceptPatches.IsClient)
+            {
+                Dictionary<string, object> packet = new()
+                {
+                    {
+                        "m",
+                        "SpawnPointForCoop"
+                    },
+                    {
+                        "serverId",
+                        CoopGameComponent.GetServerId()
+                    },
+                    {
+                        "x",
+                        position.x
+                    },
+                    {
+                        "y",
+                        position.y
+                    },
+                    {
+                        "z",
+                        position.z
+                    }
+                };
+                Logger.LogInfo("Setting Spawn Point to " + position);
+                AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson());
+                //var json = Request.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
+                //Logger.LogInfo("Retreived Spawn Point " + json);
+            }
+            else if (MatchmakerAcceptPatches.IsClient)
+            {
+                if (PluginConfigSettings.Instance.CoopSettings.AllPlayersSpawnTogether)
+                {
+                    var json = AkiBackendCommunication.Instance.GetJson($"/coop/server/spawnPoint/{CoopGameComponent.GetServerId()}");
+                    Logger.LogInfo("Retreived Spawn Point " + json);
+                    var retrievedPacket = json.ParseJsonTo<Dictionary<string, string>>();
+                    var x = float.Parse(retrievedPacket["x"].ToString());
+                    var y = float.Parse(retrievedPacket["y"].ToString());
+                    var z = float.Parse(retrievedPacket["z"].ToString());
+                    var teleportPosition = new Vector3(x, y, z);
+                    player.Teleport(teleportPosition, true);
+                }
+            }
+            //}
         }
 
         /// <summary>
@@ -417,29 +404,70 @@ namespace SIT.Core.Coop
         /// <param name="statisticsManager"></param>
         /// <param name="questController"></param>
         /// <returns></returns>
-        public override Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
+        public override async Task<LocalPlayer> vmethod_2(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
         {
             //Logger.LogInfo("Creating CoopPlayer!");
+            this.CreateCoopGameComponent();
+            CoopGameComponent.GetCoopGameComponent().LocalGameInstance = this;
+
+
+            var myPlayer = await CoopPlayer
+               .Create(
+               playerId
+               , position
+               , rotation
+               , "Player"
+               , ""
+               , EPointOfView.FirstPerson
+               , profile
+               , aiControl: false
+               , base.UpdateQueue
+               , armsUpdateMode
+               , EFT.Player.EUpdateMode.Auto
+               , BackendConfigManager.Config.CharacterController.ClientPlayerMode
+               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+               , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+               , new FilterCustomizationClass()
+               , questController
+               , isYourPlayer: true);
+            SendOrReceiveSpawnPoint(myPlayer);
+
+            // ---------------------------------------------
+            // Here we can wait for other players, if desired
+            if (MatchmakerAcceptPatches.IsServer)
+            {
+                await Task.Run(async () =>
+                {
+                    while(CoopGameComponent.GetCoopGameComponent() == null)
+                    {
+
+                    }
+
+                    //var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
+                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
+                    do
+                    {
+                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
+                        if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                        {
+                            MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)");
+                        }
+                    } while (numbersOfPlayersToWaitFor > 0);
+                    await Task.Delay(1000);
+                });
+            }
+
+            // ---------------------------------------------
+
+
+            CoopPatches.EnableDisablePatches();
+
+
+           
+
             profile.SetSpawnedInSession(value: false);
-            return CoopPlayer
-                .Create(
-                playerId
-                , position
-                , rotation
-                , "Player"
-                , ""
-                , EPointOfView.FirstPerson
-                , profile
-                , aiControl: false
-                , base.UpdateQueue
-                , armsUpdateMode
-                , EFT.Player.EUpdateMode.Auto
-                , BackendConfigManager.Config.CharacterController.ClientPlayerMode
-                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                , new FilterCustomizationClass()
-                , questController
-                , isYourPlayer: true);
+
+            return myPlayer;
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
         }
 
@@ -483,7 +511,7 @@ namespace SIT.Core.Coop
             LocalGameBotCreator profileCreator =
                 new(BackEndSession
                 , this.wavesSpawnScenario_0.SpawnWaves
-                , bossSpawnAdjustments
+                , Location_0.BossLocationSpawn
                 , nonwaves
                 , true);
             BotCreator botCreator = new(this, profileCreator, this.CreatePhysicalBot);
@@ -493,8 +521,8 @@ namespace SIT.Core.Coop
                 , botZones
                 , spawnSystem
                 , this.wavesSpawnScenario_0.BotLocationModifier
-                , controllerSettings.IsEnabled
-                , controllerSettings.IsScavWars
+                , controllerSettings.IsEnabled && controllerSettings.BotAmount != EBotAmount.NoBots
+                , false // controllerSettings.IsScavWars
                 , true
                 , false
                 , false
@@ -520,10 +548,6 @@ namespace SIT.Core.Coop
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
 
-            // ---------------------------------------------
-            // Here we can wait for other players, if desired
-
-            // ---------------------------------------------
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
             {
@@ -539,10 +563,6 @@ namespace SIT.Core.Coop
                     Logger.LogDebug($"Running Wave Scenarios with Spawn Wave length : {this.wavesSpawnScenario_0.SpawnWaves.Length}");
                     this.wavesSpawnScenario_0.Run(EBotsSpawnMode.Anyway);
                 }
-                //else
-                //{
-                //    this.nonWavesSpawnScenario_0.Run();
-                //}
 
                 StartCoroutine(StopBotSpawningAfterTimer());
             }
@@ -555,6 +575,9 @@ namespace SIT.Core.Coop
                 if (this.BossWaveManager != null)
                     this.BossWaveManager.Stop();
             }
+
+           
+
             yield return new WaitForEndOfFrame();
             Logger.LogInfo("vmethod_4.SessionRun");
             CreateExfiltrationPointAndInitDeathHandler();
@@ -562,6 +585,8 @@ namespace SIT.Core.Coop
             // No longer need this ping. Load complete and all other data should keep happening after this point.
             StopCoroutine(ClientLoadingPinger());
 
+            // Add FreeCamController to GameWorld GameObject
+            Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
             yield break;
         }
 

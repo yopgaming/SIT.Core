@@ -1,4 +1,5 @@
 ﻿using EFT;
+using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
 using SIT.Core.Coop.Matchmaker;
 using SIT.Core.Core;
@@ -36,7 +37,7 @@ namespace SIT.Coop.Core.Matchmaker
         public static bool IsServer => MatchingType == EMatchmakerType.GroupLeader;
         public static bool IsClient => MatchingType == EMatchmakerType.GroupPlayer;
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
-        public static int HostExpectedNumberOfPlayers { get; set; }
+        public static int HostExpectedNumberOfPlayers { get; set; } = 1;
         private static string groupId;
         #endregion
 
@@ -59,6 +60,7 @@ namespace SIT.Coop.Core.Matchmaker
         }
 
         public static GameObject EnvironmentUIRoot { get; internal set; }
+        public static MatchmakerTimeHasCome.TimeHasComeScreenController TimeHasComeScreenController { get; internal set; }
         #endregion
 
         public static void Run()
