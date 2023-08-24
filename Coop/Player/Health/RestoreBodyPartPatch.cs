@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
 
 namespace SIT.Core.Coop.Player.Health
 {
@@ -53,22 +54,27 @@ namespace SIT.Core.Coop.Player.Health
 
             RestoreBodyPartPacket restoreBodyPartPacket = new();
             restoreBodyPartPacket.ProfileId = player.ProfileId;
-            restoreBodyPartPacket.BodyPart = bodyPart;
+            restoreBodyPartPacket.BodyPart = bodyPart.ToString();
             restoreBodyPartPacket.HealthPenalty = healthPenalty;
-            var json = restoreBodyPartPacket.ToJson();
+            //var json = restoreBodyPartPacket.ToJson();
             //Logger.LogInfo(json);
-            AkiBackendCommunication.Instance.SendDataToPool(json);
+            AkiBackendCommunication.Instance.SendDataToPool(restoreBodyPartPacket.Serialize());
         }
 
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (HasProcessed(GetType(), player, dict))
+            RestoreBodyPartPacket restoreBodyPartPacket = new();
+            restoreBodyPartPacket.DeserializePacketSIT(dict["data"].ToString());
+
+            if (HasProcessed(GetType(), player, restoreBodyPartPacket))
                 return;
 
             if (player.HealthController != null && player.HealthController.IsAlive)
             {
-                //Logger.LogDebug("Replicated: Calling RestoreBodyPart");
+                Logger.LogDebug("Replicated: Calling RestoreBodyPart");
+                Logger.LogDebug(restoreBodyPartPacket.ToJson());
+
                 if (dict == null)
                 {
                     Logger.LogError($"Dictionary packet is null?");
@@ -77,34 +83,36 @@ namespace SIT.Core.Coop.Player.Health
                 }
                 //Logger.LogInfo(dict.ToJson());
 
-                RestoreBodyPartPacket restoreBodyPartPacket = Json.Deserialize<RestoreBodyPartPacket>(dict.ToJson());
+                var bodyPart = (EBodyPart)Enum.Parse(typeof(EBodyPart), restoreBodyPartPacket.BodyPart, true);
                 var bodyPartDict = GetBodyPartDictionary(player);
 
-                var state = bodyPartDict[restoreBodyPartPacket.BodyPart];
+
+                var state = bodyPartDict[bodyPart];
                 if (state == null)
                 {
                     Logger.LogError($"Could not retreive {player.ProfileId}'s Health State for Body Part {restoreBodyPartPacket.BodyPart}");
                     return;
                 }
-                bodyPartDict[restoreBodyPartPacket.BodyPart].IsDestroyed = false;
+                bodyPartDict[bodyPart].IsDestroyed = false;
                 var healthPenalty = restoreBodyPartPacket.HealthPenalty + (1f - restoreBodyPartPacket.HealthPenalty) * (float)player.Skills.SurgeryReducePenalty;
                 Logger.LogDebug("RestoreBodyPart::HealthPenalty::" + healthPenalty);
-                bodyPartDict[restoreBodyPartPacket.BodyPart].Health
-                    = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartDict[restoreBodyPartPacket.BodyPart].Health.Maximum * healthPenalty)), 0f);
+                bodyPartDict[bodyPart].Health
+                    = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartDict[bodyPart].Health.Maximum * healthPenalty)), 0f);
             }
 
 
         }
 
-        private IReadOnlyDictionary<EBodyPart, AHealthController<AbstractHealth.AbstractHealthEffect2>.BodyPartState> GetBodyPartDictionary(EFT.Player player)
+        private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)
         {
             try
             {
                 var bodyPartDict
-                = ReflectionHelpers.GetFieldOrPropertyFromInstance<IReadOnlyDictionary<EBodyPart, AHealthController<AbstractHealth.AbstractHealthEffect2>.BodyPartState>>(player.PlayerHealthController, "IReadOnlyDictionary_0", false);
+                = ReflectionHelpers.GetFieldOrPropertyFromInstance<Dictionary<EBodyPart, BodyPartState>>
+                (player.PlayerHealthController, "Dictionary_0", false);
                 if (bodyPartDict == null)
                 {
-                    Logger.LogError($"Could not retreive {player.Id}'s Health State Dictionary");
+                    Logger.LogError($"Could not retreive {player.ProfileId}'s Health State Dictionary");
                     return null;
                 }
                 //Logger.LogInfo(bodyPartDict.ToJson());
@@ -113,7 +121,7 @@ namespace SIT.Core.Coop.Player.Health
             catch (Exception)
             {
 
-                var field = ReflectionHelpers.GetFieldFromType(player.PlayerHealthController.GetType(), "IReadOnlyDictionary_0");
+                var field = ReflectionHelpers.GetFieldFromType(player.PlayerHealthController.GetType(), "Dictionary_0");
                 Logger.LogError(field);
                 var type = field.DeclaringType;
                 Logger.LogError(type);
@@ -128,7 +136,7 @@ namespace SIT.Core.Coop.Player.Health
 
         public class RestoreBodyPartPacket : BasePlayerPacket
         {
-            public EBodyPart BodyPart { get; set; }
+            public string BodyPart { get; set; }
             public float HealthPenalty { get; set; }
 
             public RestoreBodyPartPacket() : base()
