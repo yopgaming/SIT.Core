@@ -126,6 +126,7 @@ namespace SIT.Core.Coop
             //coopGame.StartCoroutine(coopGame.DebugObjects());
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
+
             return coopGame;
         }
 
@@ -721,6 +722,8 @@ namespace SIT.Core.Coop
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
             Logger.LogInfo("CoopGame.Stop");
+
+            GCHelpers.DisableGC();
 
             if (MatchmakerAcceptPatches.IsServer)
             {

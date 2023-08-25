@@ -57,7 +57,7 @@ namespace SIT.Coop.Core.Player
                 }
             }
 
-            GCHelpers.EnableGC();
+            //GCHelpers.EnableGC();
         }
 
         public void ProcessPacket(Dictionary<string, object> packet)

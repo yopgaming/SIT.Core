@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace SIT.Core.Coop
 {
@@ -173,6 +174,8 @@ namespace SIT.Core.Coop
             StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
+            StartCoroutine(PeriodicEnableDisableGC());
+
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
@@ -183,6 +186,34 @@ namespace SIT.Core.Coop
 
             Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
+        }
+
+        /// <summary>
+        /// Method that turns on GC for 10 seconds and off for 50. This clears out the RAM usage very effectively.
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator PeriodicEnableDisableGC()
+        {
+            var waitSeconds10 = new WaitForSeconds(10.0f);
+            var waitSeconds50 = new WaitForSeconds(50.0f);
+            var coopGame = LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                yield return null;
+
+            while (RunAsyncTasks)
+            {
+
+                if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
+                {
+                    GCHelpers.EnableGC();
+                    yield return waitSeconds10;
+                }
+                else
+                {
+                    GCHelpers.DisableGC();
+                    yield return waitSeconds50;
+                }
+            }
         }
 
         private IEnumerator EverySecondCoroutine()
