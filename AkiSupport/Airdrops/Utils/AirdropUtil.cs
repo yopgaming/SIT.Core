@@ -1,4 +1,5 @@
-﻿using EFT;
+﻿using Aki.Custom.Airdrops.Models;
+using EFT;
 using EFT.Airdrop;
 using Newtonsoft.Json;
 using SIT.Core.AkiSupport.Airdrops.Models;

@@ -1,57 +1,57 @@
 ﻿using Comfort.Common;
 using EFT;
+using UnityEngine;
 using EFT.Interactive;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
-using SIT.Core.AkiSupport.Airdrops.Models;
-using SIT.Core.Core;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using SIT.Core.AkiSupport.Airdrops;
+using Aki.Custom.Airdrops.Models;
+using SIT.Core.Core;
 
-namespace SIT.Core.AkiSupport.Airdrops.Utils
+namespace Aki.Custom.Airdrops.Utils
 {
     public class ItemFactoryUtil
     {
-        private ItemFactory itemFactory;
-        private static readonly string DropContainer = "6223349b3136504a544d1608";
+        private readonly ItemFactory itemFactory;
 
         public ItemFactoryUtil()
         {
             itemFactory = Singleton<ItemFactory>.Instance;
         }
 
-        public void BuildContainer(LootableContainer container)
+        public void BuildContainer(LootableContainer container, AirdropConfigModel config, string dropType)
         {
-            if (itemFactory.ItemTemplates.TryGetValue(DropContainer, out var template))
+            var containerId = config.ContainerIds[dropType];
+            if (itemFactory.ItemTemplates.TryGetValue(containerId, out var template))
             {
-                Item item = itemFactory.CreateItem(DropContainer, template._id, null);
+                Item item = itemFactory.CreateItem(containerId, template._id, null);
                 LootItem.CreateLootContainer(container, item, "CRATE", Singleton<GameWorld>.Instance);
             }
             else
             {
-                Debug.LogError($"[AKI-AIRDROPS]: unable to find template: {DropContainer}");
+                Debug.LogError($"[AKI-AIRDROPS]: unable to find template: {containerId}");
             }
         }
 
-        public async void AddLoot(LootableContainer container)
+        public async void AddLoot(LootableContainer container, AirdropLootResultModel lootToAdd)
         {
-            List<AirdropLootModel> loot = GetLoot();
-
             Item actualItem;
-
-            foreach (var item in loot)
+            foreach (var item in lootToAdd.Loot)
             {
                 ResourceKey[] resources;
                 if (item.IsPreset)
                 {
                     actualItem = itemFactory.GetPresetItem(item.Tpl);
+                    actualItem.SpawnedInSession = true;
+                    actualItem.GetAllItems().ExecuteForEach(x => x.SpawnedInSession = true);
                     resources = actualItem.GetAllItems().Select(x => x.Template).SelectMany(x => x.AllResources).ToArray();
                 }
                 else
                 {
                     actualItem = itemFactory.CreateItem(item.ID, item.Tpl, null);
                     actualItem.StackObjectsCount = item.StackCount;
+                    actualItem.SpawnedInSession = true;
 
                     resources = actualItem.Template.AllResources.ToArray();
                 }
@@ -61,12 +61,12 @@ namespace SIT.Core.AkiSupport.Airdrops.Utils
             }
         }
 
-        private List<AirdropLootModel> GetLoot()
+        public AirdropLootResultModel GetLoot()
         {
             var json = AkiBackendCommunication.Instance.GetJson("/client/location/getAirdropLoot");
-            var loot = JsonConvert.DeserializeObject<List<AirdropLootModel>>(json);
+            var result = JsonConvert.DeserializeObject<AirdropLootResultModel>(json);
 
-            return loot;
+            return result;
         }
     }
 }

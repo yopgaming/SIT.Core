@@ -1,4 +1,6 @@
-﻿namespace SIT.Core.AkiSupport.Airdrops.Models
+﻿using Aki.Custom.Airdrops.Models;
+
+namespace SIT.Core.AkiSupport.Airdrops.Models
 {
     public class AirdropParametersModel
     {

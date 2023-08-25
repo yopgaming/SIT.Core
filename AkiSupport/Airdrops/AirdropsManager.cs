@@ -1,24 +1,31 @@
-﻿using Comfort.Common;
+﻿using Aki.Custom.Airdrops.Models;
+using Aki.Custom.Airdrops.Utils;
+using Comfort.Common;
 using EFT;
 using SIT.Core.AkiSupport.Airdrops.Models;
 using SIT.Core.AkiSupport.Airdrops.Utils;
+using SIT.Core.AkiSupport.Airdrops;
 using UnityEngine;
 
-namespace SIT.Core.AkiSupport.Airdrops
+namespace Aki.Custom.Airdrops
 {
     public class AirdropsManager : MonoBehaviour
     {
         private AirdropPlane airdropPlane;
         private AirdropBox airdropBox;
         private ItemFactoryUtil factory;
-        private AirdropParametersModel airdropParameters;
+
         public bool isFlareDrop;
+        private AirdropParametersModel airdropParameters;
 
         public async void Start()
         {
             var gameWorld = Singleton<GameWorld>.Instance;
 
-            if (gameWorld == null) Destroy(this);
+            if (gameWorld == null)
+            {
+                Destroy(this);
+            }
 
             airdropParameters = AirdropUtil.InitAirdropParams(gameWorld, isFlareDrop);
 
@@ -30,14 +37,17 @@ namespace SIT.Core.AkiSupport.Airdrops
 
             try
             {
-                airdropPlane = await AirdropPlane.Init(airdropParameters.RandomAirdropPoint,
-                    airdropParameters.DropHeight, airdropParameters.Config.PlaneVolume, airdropParameters.Config.PlaneSpeed);
+                airdropPlane = await AirdropPlane.Init(
+                    airdropParameters.RandomAirdropPoint,
+                    airdropParameters.DropHeight,
+                    airdropParameters.Config.PlaneVolume,
+                    airdropParameters.Config.PlaneSpeed);
                 airdropBox = await AirdropBox.Init(airdropParameters.Config.CrateFallSpeed);
                 factory = new ItemFactoryUtil();
             }
             catch
             {
-                Debug.LogError($"[AKI-AIRDROPS]: Unable to create plane or crate, airdrop won't occur");
+                Debug.LogError("[AKI-AIRDROPS]: Unable to create plane or crate, airdrop won't occur");
                 Destroy(this);
                 throw;
             }
@@ -54,12 +64,15 @@ namespace SIT.Core.AkiSupport.Airdrops
                 StartPlane();
             }
 
-            if (!airdropParameters.PlaneSpawned) return;
+            if (!airdropParameters.PlaneSpawned)
+            {
+                return;
+            }
 
             if (airdropParameters.DistanceTraveled >= airdropParameters.DistanceToDrop && !airdropParameters.BoxSpawned)
             {
                 StartBox();
-                BuildLootContainer();
+                BuildLootContainer(airdropParameters.Config);
             }
 
             if (airdropParameters.DistanceTraveled < airdropParameters.DistanceToTravel)
@@ -90,10 +103,11 @@ namespace SIT.Core.AkiSupport.Airdrops
             airdropBox.StartCoroutine(airdropBox.DropCrate(dropPos));
         }
 
-        private void BuildLootContainer()
+        private void BuildLootContainer(AirdropConfigModel config)
         {
-            factory.BuildContainer(airdropBox.container);
-            factory.AddLoot(airdropBox.container);
+            var lootData = factory.GetLoot();
+            factory.BuildContainer(airdropBox.container, config, lootData.DropType);
+            factory.AddLoot(airdropBox.container, lootData);
         }
 
         private void SetDistanceToDrop()
