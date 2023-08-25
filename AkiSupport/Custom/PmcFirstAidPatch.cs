@@ -21,7 +21,7 @@ namespace Aki.Custom.Patches
         [PatchPrefix]
         private static bool PatchPrefix(BotOwner ___botOwner_0)
         {
-            if (___botOwner_0.IsRole((WildSpawnType)34) || ___botOwner_0.IsRole((WildSpawnType)35))
+            if (___botOwner_0.IsRole((WildSpawnType)0x26) || ___botOwner_0.IsRole((WildSpawnType)0x27))
             {
                 var healthController = ___botOwner_0.GetPlayer.ActiveHealthController;
 
