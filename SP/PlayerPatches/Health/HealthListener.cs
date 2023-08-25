@@ -86,7 +86,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
         private void SetCurrent(string v)
         {
-            PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
+            //PatchConstants.Logger.LogInfo("HealthListener:SetCurrent:" + v);
 
             if (ReflectionHelpers.GetAllPropertiesForObject(MyHealthController).Any(x => x.Name == v))
             {
@@ -95,7 +95,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
                     return;
 
                 var currentAmount = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
-                PatchConstants.Logger.LogInfo(currentAmount);
+                //PatchConstants.Logger.LogInfo(currentAmount);
                 CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentAmount.ToString()));
             }
             else if (ReflectionHelpers.GetAllFieldsForObject(MyHealthController).Any(x => x.Name == v))
@@ -105,7 +105,7 @@ namespace SIT.Core.SP.PlayerPatches.Health
                     return;
 
                 var currentAmount = ReflectionHelpers.GetAllFieldsForObject(valuestruct).FirstOrDefault(x => x.Name == "Current").GetValue(valuestruct);
-                PatchConstants.Logger.LogInfo(currentAmount);
+                //PatchConstants.Logger.LogInfo(currentAmount);
 
                 CurrentHealth.GetType().GetProperty(v).SetValue(CurrentHealth, float.Parse(currentAmount.ToString()));
             }
