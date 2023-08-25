@@ -19,6 +19,21 @@ namespace SIT.Core.SP.Raid
         [PatchPostfix]
         public static void PatchPostfix(Player __instance, Player aggressor, DamageInfo damageInfo)
         {
+            if (__instance == null) 
+                return;
+
+            if (__instance.Profile == null)
+                return;
+
+            if (aggressor == null) 
+                return;
+
+            if (!Singleton<GameWorld>.Instantiated)
+                return;
+
+            if (Singleton<GameWorld>.Instance.MainPlayer == null)
+                return;
+
             if (__instance.Profile.Info.Side == EPlayerSide.Savage)
                 return;
 
@@ -50,7 +65,9 @@ namespace SIT.Core.SP.Raid
             dogTagComponent.Status = "Killed by ";
             dogTagComponent.KillerAccountId = aggressor.Profile.AccountId;
             dogTagComponent.KillerProfileId = aggressor.Profile.Id;
-            dogTagComponent.WeaponName = damageInfo.Weapon.Name;
+
+            if(damageInfo.Weapon != null)
+                dogTagComponent.WeaponName = damageInfo.Weapon.Name;
 
             if (__instance.Profile.Info.Experience > 0)
                 dogTagComponent.Level = victimProfileInfo.Level;
