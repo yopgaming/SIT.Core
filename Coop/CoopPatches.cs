@@ -81,7 +81,6 @@ namespace SIT.Core.Coop
             {
                 NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
-                NoMRPPatches.Add(new Player_LeavingGame_Patch());
                 NoMRPPatches.Add(new Switch_Interact_Patch());
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
                 NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
@@ -96,8 +95,9 @@ namespace SIT.Core.Coop
                     patch.Disable();
             }
 
-            var moduleReplicationPatches = Assembly.GetAssembly(typeof(ModuleReplicationPatch)).GetTypes().Where(x => x.GetInterface("IModuleReplicationPatch") != null);
-            ////Logger.LogInfo($"{moduleReplicationPatches.Count()} Module Replication Patches found");
+            var moduleReplicationPatches = Assembly.GetAssembly(typeof(ModuleReplicationPatch))
+                .GetTypes()
+                .Where(x => x.GetInterface("IModuleReplicationPatch") != null);
             foreach (var module in moduleReplicationPatches)
             {
                 if (module.IsAbstract

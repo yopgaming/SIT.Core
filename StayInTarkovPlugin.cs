@@ -274,6 +274,8 @@ namespace SIT.Core
             new IsPlayerEnemyByRolePatch().Enable();
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
+            new CustomAiPatch().Enable();
+            new LocationLootCacheBustingPatch().Enable();
 
             var enabled = config.Bind<bool>("SIT.SP", "EnableBotPatches", true);
             if (!enabled.Value)
