@@ -49,8 +49,8 @@ namespace SIT.Core.Coop.NetworkPacket
         [JsonProperty(PropertyName = "m")]
         public virtual string Method { get; set; } = null;
 
-        [JsonProperty(PropertyName = "pong")]
-        public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
+        //[JsonProperty(PropertyName = "pong")]
+        //public virtual string Pong { get; set; } = DateTime.UtcNow.Ticks.ToString("G");
 
         public BasePacket()
         {
