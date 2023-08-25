@@ -5,6 +5,7 @@ using Comfort.Common;
 using EFT;
 using EFT.Communications;
 using EFT.UI;
+using Newtonsoft.Json;
 using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
 using SIT.Core.AkiSupport.Singleplayer;
@@ -25,8 +26,12 @@ using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -42,6 +47,8 @@ namespace SIT.Core
         private bool ShownDependancyError { get; set; }
         public static string EFTVersionMajor { get; internal set; }
 
+        public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();    
+
         private void Awake()
         {
             Instance = this;
@@ -51,6 +58,8 @@ namespace SIT.Core
             new VersionLabelPatch(Config).Enable();
             StartCoroutine(VersionChecks());
 
+            ReadInLanguageDictionary();
+
             EnableCorePatches();
             EnableSPPatches();
             EnableCoopPatches();
@@ -58,6 +67,42 @@ namespace SIT.Core
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private void ReadInLanguageDictionary()
+        {
+
+            Logger.LogDebug(Thread.CurrentThread.CurrentCulture);
+
+            var languageFiles = new List<string>();
+            foreach(var mrs in typeof(Plugin).Assembly.GetManifestResourceNames().Where(x=>x.StartsWith("SIT.Core.Resources.Language")))
+            {
+                languageFiles.Add(mrs);
+                Logger.LogInfo(mrs);
+            }
+
+            var firstPartOfLang = Thread.CurrentThread.CurrentCulture.Name.ToLower().Substring(0, 2);
+            Logger.LogDebug(firstPartOfLang);
+            Stream stream = null;
+            switch (firstPartOfLang)
+            {
+                case "en":
+                default:
+                    stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
+                    StreamReader sr = new StreamReader(stream);
+                    var str = sr.ReadToEnd();
+
+                    var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                    foreach(var kvp in result)
+                    {
+                        LanguageDictionary.Add(kvp.Key, kvp.Value);
+                    }
+                    break;
+
+            }
+
+            Logger.LogDebug("Loaded in the following Language Dictionary");
+            Logger.LogDebug(LanguageDictionary.ToJson());
         }
 
         private IEnumerator VersionChecks()

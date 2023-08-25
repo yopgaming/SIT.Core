@@ -256,7 +256,7 @@ namespace SIT.Core.Coop.Components
 
         void DrawWindow(int windowID)
         {
-            if (GUI.Button(new Rect(10, 20, (windowInnerRect.width / 2) - 20, 20), "Host Match", styleBrowserBigButtons))
+            if (GUI.Button(new Rect(10, 20, (windowInnerRect.width / 2) - 20, 20), Plugin.LanguageDictionary["HOST_RAID"], styleBrowserBigButtons))
             {
                 //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
                 //OriginalAcceptButton.OnClick.Invoke();
@@ -265,7 +265,7 @@ namespace SIT.Core.Coop.Components
                 showHostGameWindow = true;
             }
 
-            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, 20, (windowInnerRect.width / 2) - 20, 20), "Play Single Player", styleBrowserBigButtons))
+            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, 20, (windowInnerRect.width / 2) - 20, 20), Plugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], styleBrowserBigButtons))
             {
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
                 OriginalAcceptButton.OnClick.Invoke();
@@ -273,9 +273,9 @@ namespace SIT.Core.Coop.Components
 
             }
 
-            GUI.Label(new Rect(10, 45, (windowInnerRect.width / 4), 25), "SERVER");
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), 45, (windowInnerRect.width / 4), 25), "PLAYERS");
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), 45, (windowInnerRect.width / 4), 25), "LOCATION");
+            GUI.Label(new Rect(10, 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["SERVER"]);
+            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["PLAYERS"]);
+            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["LOCATION"]);
             //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), 45, (windowInnerRect.width / 4), 25), "PING");
 
             if (m_Matches != null)
@@ -284,12 +284,12 @@ namespace SIT.Core.Coop.Components
                 foreach (var match in m_Matches)
                 {
                     var yPos = 60 + (index + 25);
-                    GUI.Label(new Rect(10, yPos, (windowInnerRect.width / 4), 25), $"{match["HostName"].ToString()}'s Raid");
-                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), yPos, (windowInnerRect.width / 4), 25), match["PlayerCount"].ToString());
-                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), yPos, (windowInnerRect.width / 4), 25), match["Location"].ToString());
+                    GUI.Label(new Rect(10, yPos, (windowInnerRect.width / 4), 25), $"{match["HostName"].ToString()} {Plugin.LanguageDictionary["RAID"]}");
+                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.5f), yPos, (windowInnerRect.width / 4), 25), match["PlayerCount"].ToString());
+                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.65f), yPos, (windowInnerRect.width / 4), 25), match["Location"].ToString());
                     //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width / 4), 25), "-");
                     //Logger.LogInfo(match.ToJson());
-                    if (GUI.Button(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width * 0.1f) - 20, 20)
+                    if (GUI.Button(new Rect(10 + (windowInnerRect.width * 0.85f), yPos, (windowInnerRect.width * 0.15f) - 20, 20)
                         , $"Join"
                         , styleBrowserBigButtons
                         ))
@@ -313,10 +313,11 @@ namespace SIT.Core.Coop.Components
             }
 
             // Back button
-            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, windowInnerRect.height - 40, (windowInnerRect.width / 2) - 20, 20), "Back (Esc)", styleBrowserBigButtons))
+            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, windowInnerRect.height - 40, (windowInnerRect.width / 2) - 20, 20), Plugin.LanguageDictionary["BACK"], styleBrowserBigButtons))
             {
                 OriginalBackButton.OnClick.Invoke();
                 DestroyThis();
+                AkiBackendCommunication.Instance.WebSocketClose();
             }
         }
 
@@ -331,7 +332,7 @@ namespace SIT.Core.Coop.Components
                 switch (iRow)
                 {
                     case 0:
-                        GUI.Label(new Rect(10, y, halfWindowWidth, 20), "Number of players to wait for", new GUIStyle() {  fontSize = 14, normal = new GUIStyleState() { textColor = Color.white } });
+                        GUI.Label(new Rect(10, y, halfWindowWidth, 20), "Number of players to wait for (including you)", new GUIStyle() {  fontSize = 14, normal = new GUIStyleState() { textColor = Color.white } });
                         break;
                     case 1:
                         if (GUI.Button(new Rect(10, y, 100, 20), "-", styleBrowserBigButtons))
