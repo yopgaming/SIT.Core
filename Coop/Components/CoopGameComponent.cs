@@ -430,8 +430,8 @@ namespace SIT.Core.Coop
 
             var DateTimeStart = DateTime.Now;
 
-            if (!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
-                HighPingMode = ServerPing > PING_LIMIT_HIGH && MatchmakerAcceptPatches.IsClient;
+            //if (!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
+            //    HighPingMode = ServerPing > PING_LIMIT_HIGH && MatchmakerAcceptPatches.IsClient;
 
 
             if (ActionPackets == null)
