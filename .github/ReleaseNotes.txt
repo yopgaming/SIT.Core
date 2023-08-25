@@ -2,12 +2,24 @@
 
 **SPT-Aki 3.7.0 & 0.13.5.0.* support is still under development. Both SIT and SPT-Aki may contain game breaking bugs.**
 
-## SUMMARY
+## New features
 
-* Update to 0.13.5.0.*
-* Support 0.13.5.0.* methods
-* Extensive changes from using AccountId to ProfileId for entire Coop & Replication infrastructure
-* Bundle support is missing
+* The host can now wait for a certain amount of players to join the Raid before starting it (essentially adding the Waiting for Players)
+
+## Fixes
+
+* Fix CMS/Survival kits not working
+* Fix not being able to extract via Car Extracts
+* Fix the usage of Health, Food & Drink were not saving to the Server when in the menus
+
+## Misc
+
+* Change more functions to use the SIT Serializer rather than JSON. (resulting in less bytes being sent/received)
+* Start adding Language Localization for in game menus. I've started with English as an example.
+* Begun looking into performance improvements that can be made
+	* RAM gets eaten up if I leave Garbage Collection (GC) as normal (thanks to BSG and Unity)
+	* My own GC functions do affect performance quite badly but keep RAM usage fairly stable
+	* I have moved GC from enabling with each Player Replicated Component to the Coop Game Component and run every minute. This has improved frame by frame performance but could result in noticeable lag every minute.
 
 ---
 
