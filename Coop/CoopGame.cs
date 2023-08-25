@@ -9,6 +9,7 @@ using EFT.UI;
 using EFT.Weather;
 using JsonType;
 using SIT.Coop.Core.Matchmaker;
+using SIT.Coop.Core.Player;
 using SIT.Core.Configuration;
 using SIT.Core.Coop.FreeCamera;
 using SIT.Core.Core;
@@ -17,6 +18,7 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -722,6 +724,56 @@ namespace SIT.Core.Coop
         public override void Stop(string profileId, ExitStatus exitStatus, string exitName, float delay = 0f)
         {
             Logger.LogInfo("CoopGame.Stop");
+
+            // Notify that I have left the Server
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(new Dictionary<string, object>() {
+                { "m", "PlayerLeft" },
+                { "profileId", Singleton<GameWorld>.Instance.MainPlayer.ProfileId },
+                { "serverId", CoopGameComponent.GetServerId() }
+
+            });
+
+            // If I am the Host/Server, then ensure all the bots have left too
+            if (MatchmakerAcceptPatches.IsServer)
+            {
+                foreach (var p in CoopGameComponent.GetCoopGameComponent().Players)
+                {
+                    AkiBackendCommunication.Instance.PostDownWebSocketImmediately(new Dictionary<string, object>() {
+
+                            { "m", "PlayerLeft" },
+                            { "profileId", p.Value.ProfileId },
+                            { "serverId", CoopGameComponent.GetServerId() }
+
+                        });
+                }
+            }
+
+            foreach (var p in CoopGameComponent.GetCoopGameComponent().Players)
+            {
+                if (p.Value == null)
+                    continue;
+
+                if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                {
+                    GameObject.Destroy(prc);
+                }
+            }
+
+            var component = CoopGameComponent.GetCoopGameComponent();
+            if (component != null)
+            {
+                foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
+                {
+                    GameObject.DestroyImmediate(prc);
+                }
+
+                foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
+                {
+                    GameObject.DestroyImmediate(pl);
+                }
+
+                GameObject.DestroyImmediate(component);
+            }
 
             GCHelpers.DisableGC();
 
