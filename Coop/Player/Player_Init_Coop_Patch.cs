@@ -63,7 +63,14 @@ namespace SIT.Coop.Core.Player
 
             SendPlayerDataToServer(player);
 
-            if (PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
+            //if (PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed)
+            //    DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
+
+            // If a Player
+            if(
+                PluginConfigSettings.Instance.CoopSettings.SETTING_ShowFeed
+                && ( __instance.ProfileId.StartsWith("pmc") || __instance.ProfileId.StartsWith("scav"))
+                )
                 DisplayMessageNotifications.DisplayMessageNotification($"{__instance.Profile.Nickname}[{__instance.Side}][{__instance.Profile.Info.Settings.Role}] has spawned");
 
         }
@@ -120,7 +127,7 @@ namespace SIT.Coop.Core.Player
 
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, packet);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
         }
     }
 }
