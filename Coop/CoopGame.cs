@@ -767,15 +767,16 @@ namespace SIT.Core.Coop
                     GameObject.DestroyImmediate(prc);
                 }
 
-                foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
-                {
-                    GameObject.DestroyImmediate(pl);
-                }
+                //foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
+                //{
+                //    GameObject.DestroyImmediate(pl);
+                //}
 
+                component.RunAsyncTasks = false;
                 GameObject.DestroyImmediate(component);
             }
 
-            GCHelpers.DisableGC();
+            GCHelpers.DisableGC(true);
 
             if (MatchmakerAcceptPatches.IsServer)
             {
