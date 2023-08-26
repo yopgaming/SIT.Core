@@ -42,6 +42,7 @@ namespace SIT.Core.Coop
         /// ProfileId to Player instance
         /// </summary>
         public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
+
         public EFT.Player[] PlayerUsers
         {
             get
@@ -51,6 +52,19 @@ namespace SIT.Core.Coop
                     return null;
 
                 return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
+            }
+        }
+
+        public EFT.Player[] PlayerBots
+        {
+            get
+            {
+                if (LocalGameInstance is CoopGame coopGame)
+                {
+                    return coopGame.Bots.Values.ToArray();
+                }
+
+                return null;
             }
         }
 
@@ -67,7 +81,6 @@ namespace SIT.Core.Coop
 
         public List<EFT.LocalPlayer> SpawnedPlayersToFinalize { get; private set; } = new();
 
-
         /**
          * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
          */
@@ -78,9 +91,11 @@ namespace SIT.Core.Coop
 
         private Dictionary<string, object>[] m_CharactersJson;
 
-        private bool RunAsyncTasks = true;
+        public bool RunAsyncTasks { get; set; } = true;
 
         float screenScale = 1.0f;
+
+        Camera GameCamera { get; set; }
 
         #endregion
 
@@ -113,6 +128,9 @@ namespace SIT.Core.Coop
 
         #region Unity Component Methods
 
+        /// <summary>
+        /// Unity Component Awake Method
+        /// </summary>
         void Awake()
         {
 
@@ -121,16 +139,13 @@ namespace SIT.Core.Coop
             Logger = BepInEx.Logging.Logger.CreateLogSource("CoopGameComponent");
             Logger.LogDebug("CoopGameComponent:Awake");
 
-            //// If DLSS or FSR are enabled, set a screen scale value
-            //if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
-            //{
-            //    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
-            //}
-
         }
 
-        Camera GameCamera;
 
+
+        /// <summary>
+        /// Unity Component Start Method
+        /// </summary>
         void Start()
         {
             Logger.LogDebug("CoopGameComponent:Start");
@@ -262,7 +277,7 @@ namespace SIT.Core.Coop
                     if (player == null)
                         continue;
 
-                    AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(((EFT.Player)player)
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(((EFT.Player)player)
                         , new Dictionary<string, object>() { { "Extracted", true } }
                         , true);
 
@@ -1400,6 +1415,8 @@ namespace SIT.Core.Coop
             GUI.Label(rect, $"Players (Dead): {numberOfPlayersDead}");
             rect.y += 15;
             GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
+            rect.y += 15;
+            GUI.Label(rect, $"Bots: {PlayerBots.Length}");
             rect.y += 15;
 
             var quitState = GetQuitState();
