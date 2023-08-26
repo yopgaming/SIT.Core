@@ -5,12 +5,23 @@ using System.Collections.Generic;
 
 namespace SIT.Coop.Core.Web
 {
-    public class AkiBackendCommunicationCoopHelpers : AkiBackendCommunication
+    public class AkiBackendCommunicationCoop : AkiBackendCommunication
     {
         static Random Randomizer { get; }
-        static AkiBackendCommunicationCoopHelpers()
+
+        /// <summary>
+        /// Static Constructor is run when the Assembly is loaded
+        /// </summary>
+        static AkiBackendCommunicationCoop()
         {
             Randomizer = new Random();
+        }
+
+        /// <summary>
+        /// Constructor of this instance
+        /// </summary>
+        AkiBackendCommunicationCoop() : base(null)
+        {
         }
 
         public static void PostLocalPlayerData(
