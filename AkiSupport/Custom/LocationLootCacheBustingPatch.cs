@@ -1,4 +1,5 @@
-﻿using SIT.Tarkov.Core;
+﻿using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -13,7 +14,7 @@ namespace Aki.Custom.Patches
         protected override MethodBase GetTargetMethod()
         {
             var desiredType = PatchConstants.EftTypes.Single(x => x.Name == "LocalGame").BaseType; // BaseLocalGame
-            var desiredMethod = desiredType.GetMethods(PatchConstants.PrivateFlags).Single(x => IsTargetMethod(x)); // method_6
+            var desiredMethod = ReflectionHelpers.GetAllMethodsForType(desiredType).Single(x => IsTargetMethod(x)); // method_6
 
             Logger.LogDebug($"{this.GetType().Name} Type: {desiredType?.Name}");
             Logger.LogDebug($"{this.GetType().Name} Method: {desiredMethod?.Name}");
