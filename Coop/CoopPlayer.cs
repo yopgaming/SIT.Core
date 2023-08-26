@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using EFT;
+using EFT.Interactive;
 using EFT.InventoryLogic;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
@@ -195,6 +196,11 @@ namespace SIT.Core.Coop
         {
             //PatchConstants.Logger.LogDebug("ApplyShot");
             return base.ApplyShot(damageInfo, bodyPartType, shotId);
+        }
+
+        public override Corpse CreateCorpse()
+        {
+            return base.CreateCorpse();
         }
 
     }

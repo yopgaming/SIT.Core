@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace SIT.Core.Coop.Player
 {
@@ -45,6 +46,7 @@ namespace SIT.Core.Coop.Player
             CallLocally.Add(player.ProfileId);
             ReplicatedGrid(dict, inventoryController, item);
             ReplicatedSlot(dict, inventoryController, item);
+            CallLocally.Remove(player.ProfileId);
 
         }
 
@@ -65,9 +67,9 @@ namespace SIT.Core.Coop.Player
             {
                 ItemMovementHandler.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"An error occurred in ReplicatedGrid with the Message {ex.Message}");
             }
         }
 
@@ -88,15 +90,30 @@ namespace SIT.Core.Coop.Player
             {
                 ItemMovementHandler.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"An error occurred in ReplicatedSlot with the Message {ex.Message}");
             }
         }
 
         protected override MethodBase GetTargetMethod()
         {
             return ReflectionHelpers.GetMethodForType(InstanceType, "Move");
+        }
+
+        [PatchPrefix]
+        public static bool Prefix(
+            object __instance,
+            Item item
+            , ItemAddress to
+            , ItemController itemController
+            , bool simulate = false
+            )
+        {
+            if (simulate)
+                return true;
+
+            return true;
         }
 
         [PatchPostfix]
