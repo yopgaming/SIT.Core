@@ -169,7 +169,7 @@ namespace SIT.Core.Coop.Player
 
             HasProcessed(typeof(ItemControllerHandler_Move_Patch), player, dictionary);
 
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("Sent");
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo(dictionary.ToJson());
 

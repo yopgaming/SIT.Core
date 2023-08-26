@@ -144,7 +144,7 @@ namespace SIT.Core.Coop
                 packet.Add("ab", absorbed.ToString());
                 packet.Add("hs", headSegment.ToString());
                 packet.Add("m", "ApplyDamageInfo");
-                AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(this, packet, true);
+                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
             });
         }
 

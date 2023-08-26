@@ -94,7 +94,7 @@ namespace SIT.Core.Coop.Player
             packet.Add("bpct", bodyPartColliderType.ToString());
             packet.Add("ammoid", shotammoid);
             packet.Add("m", "ApplyShot");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, packet);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

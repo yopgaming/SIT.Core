@@ -59,7 +59,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "ga", gridAddressDict },
                 { "m", "ReloadMag" }
             };
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary, true);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary, true);
             GetLogger(typeof(FirearmController_ReloadMag_Patch)).LogDebug("FirearmController_ReloadMag_Patch:PostPatch");
 
             // ---------------------------------------------------------------------------------------------------------------------

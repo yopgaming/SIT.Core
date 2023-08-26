@@ -83,7 +83,7 @@ namespace SIT.Core.Coop.Player.Proceed
             args.Add("item.id", weapon.Id);
             args.Add("item.tpl", weapon.TemplateId);
             args.Add("s", scheduled.ToString());
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(__instance, args);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(__instance, args);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

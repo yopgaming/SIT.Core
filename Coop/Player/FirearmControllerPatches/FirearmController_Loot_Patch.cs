@@ -57,7 +57,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             Dictionary<string, object> dictionary = new();
             dictionary.Add("p", p);
             dictionary.Add("m", "Loot");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)

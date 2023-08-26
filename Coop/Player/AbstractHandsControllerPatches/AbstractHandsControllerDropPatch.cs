@@ -55,7 +55,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             Dictionary<string, object> dictionary = new();
             dictionary.Add("m", "CheckAmmo");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
         }
 
         private static ConcurrentBag<long> ProcessedCalls = new();

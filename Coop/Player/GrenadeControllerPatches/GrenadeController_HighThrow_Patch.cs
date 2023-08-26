@@ -88,7 +88,7 @@ namespace SIT.Core.Coop.Player.GrenadeControllerPatches
             dictionary.Add("rX", ____player.Rotation.x);
             dictionary.Add("rY", ____player.Rotation.y);
             dictionary.Add("m", "HighThrow");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(____player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
 
             //Logger.LogDebug("GrenadeController_HighThrow_Patch:PostPatch");
 

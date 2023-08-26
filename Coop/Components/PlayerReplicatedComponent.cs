@@ -279,7 +279,7 @@ namespace SIT.Coop.Core.Player
                     var packet = new Dictionary<string, object>();
                     packet.Add("dmt", EDamageType.Undefined.ToString());
                     packet.Add("m", "Kill");
-                    AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, packet, true);
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet, true);
                 }
             }
         }

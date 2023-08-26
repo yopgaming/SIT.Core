@@ -53,7 +53,7 @@ namespace SIT.Core.Coop.Player
             Dictionary<string, object> dictionary = new();
             dictionary.Add("g", gesture.ToString());
             dictionary.Add("m", "Gesture");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
 
             if (!LastGesture.ContainsKey(player.Profile.AccountId))
                 LastGesture.Add(player.Profile.AccountId, gesture);

@@ -40,7 +40,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 { "ma", magAddressDict },
                 { "m", "ReloadMag" }
             };
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(____player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(____player, dictionary);
 
             // Quick Reload is not Round Tripped. 
             HasProcessed(typeof(FirearmController_QuickReloadMag_Patch), ____player, dictionary);

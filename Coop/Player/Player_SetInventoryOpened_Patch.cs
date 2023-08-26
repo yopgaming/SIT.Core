@@ -50,7 +50,7 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("t", DateTime.Now.Ticks);
             dictionary.Add("o", opened.ToString());
             dictionary.Add("m", "SetInventoryOpened");
-            AkiBackendCommunicationCoopHelpers.PostLocalPlayerData(player, dictionary);
+            AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
             //dictionary.Clear();
             //dictionary = null;
         }
