@@ -30,12 +30,12 @@ namespace SIT.Core.Misc
             }
         }
 
-        public static void DisableGC()
+        public static void DisableGC(bool forceCollect = false)
         {
 
             if (GarbageCollector.GCMode == GarbageCollector.Mode.Enabled)
             {
-                Collect(true);
+                Collect(forceCollect);
                 PatchConstants.Logger.LogDebug($"DisableGC():Disabled GC");
                 GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
             }
