@@ -203,5 +203,10 @@ namespace SIT.Core.Coop
             return base.CreateCorpse();
         }
 
+        public override void OnItemAddedOrRemoved(Item item, ItemAddress location, bool added)
+        {
+            BepInLogger.LogDebug("OnItemAddedOrRemoved");
+            base.OnItemAddedOrRemoved(item, location, added);
+        }
     }
 }
