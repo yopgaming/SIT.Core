@@ -2,10 +2,13 @@
 using BepInEx;
 using BepInEx.Bootstrap;
 using Comfort.Common;
+using DrakiaXYZ.BigBrain.Brains;
+using DrakiaXYZ.Waypoints.BrainLogic;
 using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
+using SIT.Core.AI.PMCLogic.RushSpawn;
 using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
 using SIT.Core.AkiSupport.Singleplayer;
@@ -284,6 +287,11 @@ namespace SIT.Core
             new AddEnemyToAllGroupsInBotZonePatch().Enable();
             new CheckAndAddEnemyPatch().Enable();
 
+
+
+            BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 1);
+
+
         }
 
         private void EnableCoopPatches()
@@ -376,63 +384,7 @@ namespace SIT.Core
 
         }
 
-        //private void GetPoolManager()
-        //{
-        //    if (PatchConstants.PoolManagerType == null)
-        //    {
-        //        PatchConstants.PoolManagerType = PatchConstants.EftTypes.Single(x => ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "LoadBundlesAndCreatePools"));
-        //        Type generic = typeof(Singleton<>);
-        //        Type[] typeArgs = { PatchConstants.PoolManagerType };
-        //        ConstructedBundleAndPoolManagerSingletonType = generic.MakeGenericType(typeArgs);
-        //    }
-        //}
-
-        //private Type ConstructedBundleAndPoolManagerSingletonType { get; set; }
-        //public static object BundleAndPoolManager { get; set; }
-
-        //public static Type poolsCategoryType { get; set; }
-        //public static Type assemblyTypeType { get; set; }
-
-        //public static MethodInfo LoadBundlesAndCreatePoolsMethod { get; set; }
-
-        //    public static Task LoadBundlesAndCreatePools(ResourceKey[] resources)
-        //    {
-        //        try
-        //        {
-        //            if (BundleAndPoolManager == null)
-        //            {
-        //                PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: BundleAndPoolManager is missing");
-        //                return null;
-        //            }
-
-        //            var raidE = Enum.Parse(poolsCategoryType, "Raid");
-        //            //PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: raidE is " + raidE.ToString());
-
-        //            var localE = Enum.Parse(assemblyTypeType, "Local");
-        //            //PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: localE is " + localE.ToString());
-
-        //            var GenProp = ReflectionHelpers.GetPropertyFromType(PatchConstants.JobPriorityType, "General").GetValue(null, null);
-        //            //PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: GenProp is " + GenProp.ToString());
-
-
-        //            return PatchConstants.InvokeAsyncStaticByReflection(
-        //                LoadBundlesAndCreatePoolsMethod,
-        //                BundleAndPoolManager
-        //                , raidE
-        //                , localE
-        //                , resources
-        //                , GenProp
-        //                , (object o) => { PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools: Progressing!"); }
-        //                , default(CancellationToken)
-        //                );
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            PatchConstants.Logger.LogInfo("LoadBundlesAndCreatePools -- ERROR ->>>");
-        //            PatchConstants.Logger.LogInfo(ex.ToString());
-        //        }
-        //        return null;
-        //    }
+       
 
     }
 }

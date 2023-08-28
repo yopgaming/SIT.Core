@@ -128,6 +128,7 @@ namespace SIT.Core.Coop
             //coopGame.StartCoroutine(coopGame.DebugObjects());
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
+            GCHelpers.EnableGC();
 
             return coopGame;
         }
