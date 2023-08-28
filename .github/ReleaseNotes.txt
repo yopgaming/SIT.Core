@@ -4,22 +4,23 @@
 
 ## New features
 
-* The host can now wait for a certain amount of players to join the Raid before starting it (essentially adding the Waiting for Players)
+* Bots Count on Coop UI
+* Update Airdrop Logic from Aki (still yet to be replicated)
+* Add DrakiaXYZ Waypoints solution back in (with Roaming AI enabled)
+* Add PMC AI Archetype (PMCRushSpawn) 
 
 ## Fixes
 
-* Fix CMS/Survival kits not working
-* Fix not being able to extract via Car Extracts
-* Fix the usage of Health, Food & Drink were not saving to the Server when in the menus
+* Fix Item Movement Replication into Containers
+* Fix Ping Display & High Ping mode
+* Fix Coop Session was not ending after host leaves (therefore showing as still running on Browser)
 
 ## Misc
 
-* Change more functions to use the SIT Serializer rather than JSON. (resulting in less bytes being sent/received)
-* Start adding Language Localization for in game menus. I've started with English as an example.
-* Begun looking into performance improvements that can be made
+* Continue looking into performance improvements that can be made
 	* RAM gets eaten up if I leave Garbage Collection (GC) as normal (thanks to BSG and Unity)
 	* My own GC functions do affect performance quite badly but keep RAM usage fairly stable
-	* I have moved GC from enabling with each Player Replicated Component to the Coop Game Component and run every minute. This has improved frame by frame performance but could result in noticeable lag every minute.
+	* There is a known issue of noticeable lag every minute or so
 
 ---
 
