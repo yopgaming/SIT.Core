@@ -1,4 +1,6 @@
-﻿using EFT.InventoryLogic;
+﻿using Comfort.Common;
+using EFT;
+using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
@@ -61,15 +63,73 @@ namespace SIT.Core.Coop.Player
             if (!dict.ContainsKey("grad"))
                 return;
 
+            if(item == null)
+            {
+                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError("Item is NULL");
+                return;
+            }
+
+            Logger.LogDebug(dict["grad"].ToString());
+
             GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
 
             try
             {
-                ItemMovementHandler.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false);
+                // If container exists on this player / inventory controller
+                if (
+                    gridItemAddressDescriptor != null
+                    && gridItemAddressDescriptor.Container != null
+                    && inventoryController != null
+                    && inventoryController.Inventory != null
+                    && inventoryController.Inventory.Equipment != null
+                    && inventoryController.Inventory.Equipment
+                        .FindContainer(
+                        gridItemAddressDescriptor.Container.ContainerId
+                        , gridItemAddressDescriptor.Container.ParentId)
+                        != null
+                    )
+                {
+                    GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("Moving item to/in Player");
+
+                    ItemMovementHandler.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false, false);
+                }
+                // This must be placing an item into a world container. Lets find out where.
+                else
+                {
+                    // Find the Controller by the ParentId of the Container
+                    var contrByParentId = Singleton<GameWorld>.Instance.FindControllerById(gridItemAddressDescriptor.Container.ParentId);
+                    if (contrByParentId != null)
+                        GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("Found ItemController by Parent Id");
+
+                    if (contrByParentId == null)
+                    {
+                        GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"Could not find ItemController by Parent Id");
+                        return;
+                    }
+
+                    var itemAddress = contrByParentId.ToItemAddress(gridItemAddressDescriptor);
+                    if (itemAddress == null)
+                    {
+                        GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"Could not find Item Address in {contrByParentId.ContainerName}");
+                        return;
+                    }
+
+                    // Move the item to the Controller to the Item Address in the Descriptor
+                    ItemMovementHandler.Move(item, contrByParentId.ToItemAddress(gridItemAddressDescriptor), contrByParentId, false, true);
+
+                    //contrByParentId.Add(item, contrByParentId.ToItemAddress(gridItemAddressDescriptor));
+
+                    //var itemOwnerById = Singleton<GameWorld>.Instance.FindOwnerById(gridItemAddressDescriptor.Container.ParentId);
+                    //if (itemOwnerById != null)
+                    //    GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("Found ItemOwner by Parent Id");
+
+                }
+
             }
             catch (Exception ex)
             {
-                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"An error occurred in ReplicatedGrid with the Message {ex.Message}");
+                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"An error occurred in ReplicatedGrid with the Message {ex.Message}");
+                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"{ex.ToString()}");
             }
         }
 
@@ -84,11 +144,20 @@ namespace SIT.Core.Coop.Player
             if (!dict.ContainsKey("sitad"))
                 return;
 
+            Logger.LogDebug(dict["sitad"].ToString());
+
             SlotItemAddressDescriptor slotItemAddressDescriptor = PatchConstants.SITParseJson<SlotItemAddressDescriptor>(dict["sitad"].ToString());
 
             try
             {
-                ItemMovementHandler.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
+                // If slot exists on this player / inventory controller
+                if (
+                    slotItemAddressDescriptor.Container != null
+                    && inventoryController.Inventory.Equipment.FindContainer(
+                        slotItemAddressDescriptor.Container.ContainerId, slotItemAddressDescriptor.Container.ParentId)
+                     != null
+                    )
+                    ItemMovementHandler.Move(item, inventoryController.ToItemAddress(slotItemAddressDescriptor), inventoryController, false);
             }
             catch (Exception ex)
             {
@@ -184,11 +253,9 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("tpl", item.TemplateId);
             dictionary.Add("m", "IC_Move");
 
-            HasProcessed(typeof(ItemControllerHandler_Move_Patch), player, dictionary);
+            //HasProcessed(typeof(ItemControllerHandler_Move_Patch), player, dictionary);
 
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
-            //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("Sent");
-            //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo(dictionary.ToJson());
 
         }
 
