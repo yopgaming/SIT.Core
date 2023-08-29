@@ -26,6 +26,9 @@ namespace DrakiaXYZ.Waypoints
 
             // Make sure plugin folders exist
             Directory.CreateDirectory(CustomFolder);
+            Directory.CreateDirectory(NavMeshFolder);
+            Logger.LogInfo($"Remember to install navmashes to {NavMeshFolder} for Waypoints to work!");
+            //Logger.LogDebug(NavMeshFolder);
 
             try
             {
@@ -45,10 +48,10 @@ namespace DrakiaXYZ.Waypoints
                 throw;
             }
 
-// Note: We only include this in debug builds for now, because we're not shipping BigBrain
-#if DEBUG
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 1);
-#endif
+            // Note: We only include this in debug builds for now, because we're not shipping BigBrain
+//#if DEBUG
+            //BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 2);
+//#endif
         }
     }
 }
