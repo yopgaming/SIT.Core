@@ -317,7 +317,7 @@ namespace SIT.Core
             new BotCreatorTeleportPMCPatch().Enable();
 
 
-            BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 1);
+            BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 
         }
