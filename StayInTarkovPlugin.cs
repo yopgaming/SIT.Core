@@ -40,7 +40,7 @@ using UnityEngine.SceneManagement;
 
 namespace SIT.Core
 {
-    [BepInPlugin("SIT.Core", "SIT.Core", "1.0.0")]
+    [BepInPlugin("SIT.Core", "SIT.Core", "1.8.0")]
     [BepInProcess("EscapeFromTarkov.exe")]
     public class Plugin : BaseUnityPlugin
     {
@@ -84,24 +84,52 @@ namespace SIT.Core
                 Logger.LogInfo(mrs);
             }
 
+            Logger.LogDebug(Thread.CurrentThread.CurrentCulture.Name);
             var firstPartOfLang = Thread.CurrentThread.CurrentCulture.Name.ToLower().Substring(0, 2);
             Logger.LogDebug(firstPartOfLang);
             Stream stream = null;
+            StreamReader sr = null;
+            string str = null;
+            Dictionary<string, string> resultLocaleDictionary = null;
             switch (firstPartOfLang)
             {
+                case "zh":
+                    switch(Thread.CurrentThread.CurrentCulture.Name.ToLower())
+                    {
+                        case "zh_TW":
+                            stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("TraditionalChinese.json")));
+                            sr = new StreamReader(stream);
+                            str = sr.ReadToEnd();
+
+                            resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                            break;
+                        case "zh_CN":
+                        default:
+                            stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("SimplifiedChinese.json")));
+                            sr = new StreamReader(stream);
+                            str = sr.ReadToEnd();
+
+                            resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                            break;
+                    }
+                    break;
                 case "en":
                 default:
                     stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
-                    StreamReader sr = new StreamReader(stream);
-                    var str = sr.ReadToEnd();
+                    sr = new StreamReader(stream);
+                    str = sr.ReadToEnd();
 
-                    var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
-                    foreach(var kvp in result)
-                    {
-                        LanguageDictionary.Add(kvp.Key, kvp.Value);
-                    }
+                    resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
                     break;
 
+            }
+
+            if (resultLocaleDictionary == null)
+                return;
+
+            foreach (var kvp in resultLocaleDictionary)
+            {
+                LanguageDictionary.Add(kvp.Key, kvp.Value);
             }
 
             Logger.LogDebug("Loaded in the following Language Dictionary");
@@ -286,7 +314,7 @@ namespace SIT.Core
 
             new AddEnemyToAllGroupsInBotZonePatch().Enable();
             new CheckAndAddEnemyPatch().Enable();
-
+            new BotCreatorTeleportPMCPatch().Enable();
 
 
             BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 1);
