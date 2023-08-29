@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SIT.Coop.Core.Web;
+using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
