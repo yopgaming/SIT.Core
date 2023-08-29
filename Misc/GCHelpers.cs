@@ -81,13 +81,16 @@ namespace SIT.Core.Misc
 
         public static void Collect(bool force = false)
         {
-            Collect(2, GCCollectionMode.Optimized, isBlocking: true, compacting: false, force);
+            Collect(2, GCCollectionMode.Optimized, isBlocking: force, compacting: false, force);
         }
 
         public static void Collect(int generation, GCCollectionMode gcMode, bool isBlocking, bool compacting, bool force)
         {
             GC.Collect();
-            GC.WaitForPendingFinalizers();
+
+            if(force)
+                GC.WaitForPendingFinalizers();
+
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect(generation, gcMode, isBlocking, compacting);
         }
