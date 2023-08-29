@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 
-namespace SIT.Core.Coop.Player
+namespace SIT.Core.Coop.ItemControllerPatches
 {
     internal class ItemControllerHandler_Move_Patch : ModuleReplicationPatch
     {
@@ -26,7 +26,7 @@ namespace SIT.Core.Coop.Player
         {
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("ItemControllerHandler_Move_Patch.Replicated");
 
-            if (HasProcessed(this.GetType(), player, dict))
+            if (HasProcessed(GetType(), player, dict))
                 return;
 
             if (DisableForPlayer.Contains(player.ProfileId))
@@ -63,7 +63,7 @@ namespace SIT.Core.Coop.Player
             if (!dict.ContainsKey("grad"))
                 return;
 
-            if(item == null)
+            if (item == null)
             {
                 GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError("Item is NULL");
                 return;
@@ -71,7 +71,7 @@ namespace SIT.Core.Coop.Player
 
             Logger.LogDebug(dict["grad"].ToString());
 
-            GridItemAddressDescriptor gridItemAddressDescriptor = PatchConstants.SITParseJson<GridItemAddressDescriptor>(dict["grad"].ToString());
+            GridItemAddressDescriptor gridItemAddressDescriptor = dict["grad"].ToString().SITParseJson<GridItemAddressDescriptor>();
 
             try
             {
@@ -93,9 +93,25 @@ namespace SIT.Core.Coop.Player
 
                     ItemMovementHandler.Move(item, inventoryController.ToItemAddress(gridItemAddressDescriptor), inventoryController, false, false);
                 }
-                // This must be placing an item into a world container. Lets find out where.
                 else
                 {
+                    // TODO: This is bad. Need to somehow avoid this loop.
+                    // Check whether this is on a player
+                    foreach (var player in CoopGameComponent.GetCoopGameComponent().Players.Values) 
+                    {
+                        var containerOnPlayer = player.Inventory.Equipment.FindContainer(gridItemAddressDescriptor.Container.ContainerId, gridItemAddressDescriptor.Container.ParentId);
+                        if(containerOnPlayer != null)
+                        {
+                            GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("Found player to place item");
+                            var playerInventoryController = ItemFinder.GetPlayerInventoryController(player);
+                            if(playerInventoryController != null)
+                                ItemMovementHandler.Move(item, playerInventoryController.ToItemAddress(gridItemAddressDescriptor), playerInventoryController, false, false);
+
+                            return;
+                        }
+                    }
+
+                    // This must be placing an item into a world container. Lets find out where.
                     // Find the Controller by the ParentId of the Container
                     var contrByParentId = Singleton<GameWorld>.Instance.FindControllerById(gridItemAddressDescriptor.Container.ParentId);
                     if (contrByParentId != null)
@@ -146,7 +162,7 @@ namespace SIT.Core.Coop.Player
 
             Logger.LogDebug(dict["sitad"].ToString());
 
-            SlotItemAddressDescriptor slotItemAddressDescriptor = PatchConstants.SITParseJson<SlotItemAddressDescriptor>(dict["sitad"].ToString());
+            SlotItemAddressDescriptor slotItemAddressDescriptor = dict["sitad"].ToString().SITParseJson<SlotItemAddressDescriptor>();
 
             try
             {
@@ -204,7 +220,7 @@ namespace SIT.Core.Coop.Player
 
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogInfo("ItemControllerHandler_Move_Patch.Postfix");
             var inventoryController = itemController as EFT.Player.PlayerInventoryController;
-            if(!coopGameComponent.Players.Any(x => x.Key == inventoryController.Profile.ProfileId))
+            if (!coopGameComponent.Players.Any(x => x.Key == inventoryController.Profile.ProfileId))
             {
                 GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"Unable to find player of Id {inventoryController.Profile.ProfileId} in Raid.");
                 return;
@@ -251,10 +267,11 @@ namespace SIT.Core.Coop.Player
 
             dictionary.Add("id", item.Id);
             dictionary.Add("tpl", item.TemplateId);
+            dictionary.Add("icId", itemController.ID);
+            dictionary.Add("icCId", itemController.CurrentId);
             dictionary.Add("m", "IC_Move");
 
-            //HasProcessed(typeof(ItemControllerHandler_Move_Patch), player, dictionary);
-
+            Logger.LogInfo(dictionary.ToJson());
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
 
         }
