@@ -1,12 +1,15 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
 using EFT;
-using UnityEngine.AI;
+using System;
 using UnityEngine;
+using UnityEngine.AI;
 
-namespace SIT.Core.AI.PMCLogic.RushSpawn
+namespace DrakiaXYZ.Waypoints.BrainLogic
 {
-    internal class PMCRushSpawnLogic : CustomLogic
+// Note: We only include this in debug builds for now, because we're not shipping BigBrain
+#if DEBUG
+    internal class RoamingLogic : CustomLogic
     {
         protected ManualLogSource Logger;
         Vector3? targetPos = null;
@@ -14,7 +17,7 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
         NavMeshPath navMeshPath;
         private BotSteering baseSteeringLogic;
 
-        public PMCRushSpawnLogic(BotOwner bot) : base(bot)
+        public RoamingLogic(BotOwner bot) : base(bot)
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(GetType().Name);
             navMeshPath = new NavMeshPath();
@@ -106,4 +109,5 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
 
 
     }
+#endif
 }

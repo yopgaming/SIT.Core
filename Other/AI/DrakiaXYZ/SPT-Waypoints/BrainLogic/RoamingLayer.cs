@@ -1,26 +1,27 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
-using DrakiaXYZ.Waypoints.BrainLogic;
 using EFT;
 using UnityEngine;
 
-namespace SIT.Core.AI.PMCLogic.RushSpawn
+namespace DrakiaXYZ.Waypoints.BrainLogic
 {
-    internal class PMCRushSpawnLayer : CustomLayer
+// Note: We only include this in debug builds for now, because we're not shipping BigBrain
+#if DEBUG
+    internal class RoamingLayer : CustomLayer
     {
         protected ManualLogSource Logger;
         protected float nextRoamCheckTime = 0f;
         protected bool isActive = false;
 
-        public PMCRushSpawnLayer(BotOwner botOwner, int priority) : base(botOwner, priority)
+        public RoamingLayer(BotOwner botOwner, int priority) : base(botOwner, priority)
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(this.GetType().Name);
-            Logger.LogInfo($"Added PMCRushSpawnLayer to {botOwner.name}");
+            Logger.LogInfo($"Added roaming to {botOwner.name}");
         }
 
         public override string GetName()
         {
-            return "PMCRushSpawn";
+            return "Roaming";
         }
 
         public override bool IsActive()
@@ -60,7 +61,7 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
 
         public override Action GetNextAction()
         {
-            return new Action(typeof(RoamingLogic), "PMCRushSpawn");
+            return new Action(typeof(RoamingLogic), "Roaming");
         }
 
         public override bool IsCurrentActionEnding()
@@ -69,4 +70,5 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
             return false;
         }
     }
+#endif
 }

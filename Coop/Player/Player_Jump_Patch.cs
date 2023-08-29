@@ -60,7 +60,7 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("Jump:Replicated");
+            GetLogger(typeof(Player_Jump_Patch)).LogDebug("Jump:Replicated");
 
             if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
             {

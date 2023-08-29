@@ -61,6 +61,9 @@ namespace SIT.Core.Coop
             {
                 if (LocalGameInstance is CoopGame coopGame)
                 {
+                    if (MatchmakerAcceptPatches.IsClient || coopGame.Bots.Count == 0)
+                        return Players.Values.Where(x => !x.ProfileId.StartsWith("pmc")).ToArray();
+
                     return coopGame.Bots.Values.ToArray();
                 }
 
@@ -189,7 +192,7 @@ namespace SIT.Core.Coop
             StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
-            StartCoroutine(PeriodicEnableDisableGC());
+            //StartCoroutine(PeriodicEnableDisableGC());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
@@ -207,29 +210,29 @@ namespace SIT.Core.Coop
         /// Method that turns on GC for 10 seconds and off for 50. This clears out the RAM usage very effectively.
         /// </summary>
         /// <returns></returns>
-        private IEnumerator PeriodicEnableDisableGC()
-        {
-            var waitSeconds10 = new WaitForSeconds(10.0f);
-            var waitSeconds50 = new WaitForSeconds(50.0f);
-            var coopGame = LocalGameInstance as CoopGame;
-            if (coopGame == null)
-                yield return null;
+        //private IEnumerator PeriodicEnableDisableGC()
+        //{
+        //    var waitSeconds10 = new WaitForSeconds(10.0f);
+        //    var waitSeconds50 = new WaitForSeconds(50.0f);
+        //    var coopGame = LocalGameInstance as CoopGame;
+        //    if (coopGame == null)
+        //        yield return null;
 
-            while (RunAsyncTasks)
-            {
+        //    while (RunAsyncTasks)
+        //    {
 
-                if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
-                {
-                    GCHelpers.EnableGC();
-                    yield return waitSeconds10;
-                }
-                else
-                {
-                    GCHelpers.DisableGC();
-                    yield return waitSeconds50;
-                }
-            }
-        }
+        //        if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
+        //        {
+        //            GCHelpers.EnableGC();
+        //            yield return waitSeconds10;
+        //        }
+        //        else
+        //        {
+        //            GCHelpers.DisableGC();
+        //            yield return waitSeconds50;
+        //        }
+        //    }
+        //}
 
         private IEnumerator EverySecondCoroutine()
         {
