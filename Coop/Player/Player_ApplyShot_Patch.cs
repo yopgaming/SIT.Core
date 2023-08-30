@@ -14,7 +14,7 @@ namespace SIT.Core.Coop.Player
 {
     internal class Player_ApplyShot_Patch : ModuleReplicationPatch
     {
-        public static Dictionary<string, bool> CallLocally = new();
+        public static List<string> CallLocally = new();
         public override Type InstanceType => typeof(EFT.Player);
         public override string MethodName => "ApplyShot";
 
@@ -29,7 +29,7 @@ namespace SIT.Core.Coop.Player
         public static bool PrePatch(EFT.Player __instance)
         {
             var result = false;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(__instance.ProfileId))
                 result = true;
 
             return result;
@@ -46,9 +46,9 @@ namespace SIT.Core.Coop.Player
             //Logger.LogDebug("Player_ApplyShot_Patch:PostPatch");
 
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -108,7 +108,7 @@ namespace SIT.Core.Coop.Player
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if (CallLocally.ContainsKey(player.Profile.AccountId))
+            if (CallLocally.Contains(player.ProfileId))
                 return;
 
             try
@@ -126,7 +126,7 @@ namespace SIT.Core.Coop.Player
                     shotId = new ShotId(dict["ammoid"].ToString(), 1);
                 }
 
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
                 player.ApplyShot(damageInfo, bodyPartType, shotId);
             }
             catch (Exception e)
