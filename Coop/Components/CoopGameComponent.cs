@@ -153,6 +153,8 @@ namespace SIT.Core.Coop
         {
             Logger.LogDebug("CoopGameComponent:Start");
             //GameCamera = Camera.current;
+            GCHelpers.ClearGarbage(unloadAssets: false);
+
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
@@ -192,7 +194,7 @@ namespace SIT.Core.Coop
             StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
-            //StartCoroutine(PeriodicEnableDisableGC());
+            Task.Run(() => PeriodicEnableDisableGC());
 
             ListOfInteractiveObjects = FindObjectsOfType<WorldInteractiveObject>();
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
@@ -207,32 +209,51 @@ namespace SIT.Core.Coop
         }
 
         /// <summary>
-        /// Method that turns on GC for 10 seconds and off for 50. This clears out the RAM usage very effectively.
+        /// This clears out the RAM usage very effectively.
         /// </summary>
         /// <returns></returns>
-        //private IEnumerator PeriodicEnableDisableGC()
-        //{
-        //    var waitSeconds10 = new WaitForSeconds(10.0f);
-        //    var waitSeconds50 = new WaitForSeconds(50.0f);
-        //    var coopGame = LocalGameInstance as CoopGame;
-        //    if (coopGame == null)
-        //        yield return null;
+        private async Task PeriodicEnableDisableGC()
+        {
+            var coopGame = LocalGameInstance as CoopGame;
+            if (coopGame == null)
+                return;
 
-        //    while (RunAsyncTasks)
-        //    {
 
-        //        if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
-        //        {
-        //            GCHelpers.EnableGC();
-        //            yield return waitSeconds10;
-        //        }
-        //        else
-        //        {
-        //            GCHelpers.DisableGC();
-        //            yield return waitSeconds50;
-        //        }
-        //    }
-        //}
+            int counter = 0;
+            int runClearCount = 0;
+            await Task.Run(async () =>
+            {
+                do
+                {
+                    await Task.Delay(1000);
+
+                    counter++;
+                    //Logger.LogInfo(counter);
+
+                    //GCHelpers.Collect(counter % 3 == 0);
+
+
+                    if (counter == (60 * 3))
+                    {
+                        //if (runClearCount < 1)
+                        //{
+                        //    runClearCount++;
+                        //    // Complete clear after 30 seconds
+                        //    GCHelpers.ClearGarbage(emptyTheSet: false, unloadAssets: false);
+                        //}
+                        counter = 0;
+
+                        GCHelpers.EnableGC();
+                        GCHelpers.Collect(true);
+                        GCHelpers.DisableGC();
+
+                    }
+
+                    //await Task.Delay(1000);
+
+                } while (RunAsyncTasks);
+            });
+        }
 
         private IEnumerator EverySecondCoroutine()
         {
@@ -1459,6 +1480,7 @@ namespace SIT.Core.Coop
 
             //OnGUI_DrawPlayerList(rect);
             OnGUI_DrawPlayerFriendlyTags(rect);
+            OnGUI_DrawPlayerEnemyTags(rect);
 
         }
 
@@ -1498,7 +1520,7 @@ namespace SIT.Core.Coop
             if (ownPlayer == null)
                 return;
 
-            foreach (var pl in PlayerUsers)
+            foreach (var pl in PlayerBots)
             {
                 if (pl == null) 
                     continue;
@@ -1516,108 +1538,72 @@ namespace SIT.Core.Coop
                     rect.x = (screenPos.x * screenScale) - (rect.width / 2);
                     rect.y = Screen.height - (screenPos.y * screenScale);
 
-                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position), 1);
+                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
                     GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
                 }
             }
+        }
 
-            //if (SITConfig == null)
-            //{
-            //    Logger.LogError($"SITConfig is NULL");
-            //    return;
-            //}
+        private void OnGUI_DrawPlayerEnemyTags(Rect rect)
+        {
+            if (SITConfig == null)
+            {
+                Logger.LogError("SITConfig is null?");
+                return;
+            }
 
-            //if (!SITConfig.showPlayerNameTags)
-            //{
-            //    Logger.LogDebug($"SITConfig.showPlayerNameTags:{SITConfig.showPlayerNameTags}");
-            //    return;
-            //}
+            if (!SITConfig.showPlayerNameTags)
+            {
+                return;
+            }
 
-            //if (!SITConfig.showPlayerNameTags && !SITConfig.showPlayerNameTagsOnlyWhenVisible)
-            //{
-            //    Logger.LogDebug($"SITConfig.showPlayerNameTags:{SITConfig.showPlayerNameTags}");
-            //    Logger.LogDebug($"SITConfig.showPlayerNameTagsOnlyWhenVisible:{SITConfig.showPlayerNameTagsOnlyWhenVisible}");
-            //    return;
-            //}
+            if (FPSCamera.Instance == null)
+                return;
 
-            //if(Players.Count == 0)
-            //{
-            //    Logger.LogError($"Players is Empty?");
-            //    return;
-            //}
+            if (Players == null)
+                return;
 
-            ////if (PlayerUsers == null)
-            ////{
-            ////    return;
-            ////}
+            if (PlayerUsers == null)
+                return;
 
-            //if (FPSCamera.Instance.SSAA.isActiveAndEnabled)
-            //    screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
+            if (Camera.current == null)
+                return;
 
-            //var centerOfScreen = new Vector2(Screen.width / 2, Screen.height / 2);
-            //var tagStyle = new GUIStyle(GUI.skin.label);
-            //tagStyle.fontSize = 18;
-            //tagStyle.fontStyle = FontStyle.Bold;
-            //tagStyle.alignment = TextAnchor.UpperCenter;
-
-            //var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
-            ////foreach (var pl in PlayerUsers)
-            //foreach (var pl in Players.Values)
-            //{
-            //    // Only show your player when you are dead (showing your own player is good to know where you died)
-            //    //if (pl.IsYourPlayer && !pl.HealthController.IsAlive)
-            //    //    continue;
-
-            //    //if (pl.IsYourPlayer || !pl.HealthController.IsAlive) //added alive check
-            //    //    continue;
-
-            //    //if (!SITConfig.showPlayerNameTagsForEnemies && !PlayerUsers.Contains(pl))
-            //    //    continue;
-
-            //    Vector3 aboveBotHeadPos = pl.Position + (pl.HealthController.IsAlive ? (Vector3.up * 1.75f) : (Vector3.up * 0.5f));
-            //    Vector3 screenPos = GameCamera.WorldToScreenPoint(aboveBotHeadPos);
-            //    tagStyle.fontSize = 18; //reset it
-            //    //if (screenPos.z <= 0)
-            //    //    continue;
-
-            //    rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-            //    rect.y = Screen.height - (screenPos.y * screenScale);
-            //    var distanceFromCamera = Math.Round(Vector3.Distance(GameCamera.gameObject.transform.position, pl.Position), 1);
-
-            //    // Paulov: This won't work. What if you are a USEC and your friend is BEAR?
-            //    //if (pl.Side == ownPlayer.Side)
-            //    //    GUI.contentColor = Color.green; //same team
-            //    //else if (pl.Side == EPlayerSide.Savage)
-            //    //    GUI.contentColor = Color.yellow; //player scav someday? :)
-            //    //else
-            //    //    GUI.contentColor = Color.red; //opposing side
-
-            //    // TODO: Finish this function
-            //    //if (SITConfig.showPlayerNameTagsOnlyWhenVisible)
-            //    //{
-            //    //    //Ray ray = new Ray(Camera.current.gameObject.transform.position, pl.Position);
-            //    //    RaycastHit hit;
-            //    //    // Does the ray intersect any objects excluding the player layer
-            //    //    if (Physics.Raycast(Camera.current.gameObject.transform.position, pl.Position, out hit, Mathf.Infinity, LayerMaskClass.HighPolyWithTerrainNoGrassMask))
-            //    //    {
-            //    //        UnityEngine.Debug.DrawRay(Camera.current.gameObject.transform.position, pl.Position, Color.yellow);
-            //    //    }
-            //    //    else
-            //    //    {
-            //    //        UnityEngine.Debug.DrawRay(Camera.current.gameObject.transform.position, pl.Position, Color.white);
-            //    //    }
-            //    //}
+            if (!Singleton<GameWorld>.Instantiated)
+                return;
 
 
+            if (FPSCamera.Instance.SSAA != null && FPSCamera.Instance.SSAA.isActiveAndEnabled)
+                screenScale = (float)FPSCamera.Instance.SSAA.GetOutputWidth() / (float)FPSCamera.Instance.SSAA.GetInputWidth();
 
-            //    //tagStyle.fontSize = Mathf.Max(tagStyle.fontSize - (int)(distanceFromCamera * 0.05f), 6); //scale with dist but not too small
-            //                                                                                             //if crosshair within 150px left or right of player and we're close enough, show player info.
-            //    //if (rect.center.x - centerOfScreen.x > -150 && rect.center.x - centerOfScreen.x < 150 && distanceFromCamera <= 50.0)
-            //    //if (pl.Side != EPlayerSide.Savage)
-            //        GUI.Label(rect, $"(lvl{pl.Profile.Info.Level}){pl.Profile.Info.Nickname} - {distanceFromCamera}m", tagStyle);
-            //    //else
-            //    //    GUI.Label(rect, $"{distanceFromCamera}m", tagStyle); //far away just show distance
-            //}
+            var ownPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+            if (ownPlayer == null)
+                return;
+
+            foreach (var pl in PlayerUsers)
+            {
+                if (pl == null)
+                    continue;
+
+                if (pl.HealthController == null)
+                    continue;
+
+                if (!pl.HealthController.IsAlive)
+                    continue;
+
+                Vector3 aboveBotHeadPos = pl.Position + (Vector3.up * (pl.HealthController.IsAlive ? 1.5f : 0.5f));
+                Vector3 screenPos = Camera.current.WorldToScreenPoint(aboveBotHeadPos);
+                if (screenPos.z > 0)
+                {
+                    rect.x = (screenPos.x * screenScale) - (rect.width / 2);
+                    rect.y = Screen.height - (screenPos.y * screenScale);
+
+                    var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
+                    GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);
+                    rect.y += 15;
+                    GUI.Label(rect, $"X", middleLabelStyle);
+                }
+            }
         }
 
         private void OnGUI_DrawPlayerList(Rect rect)

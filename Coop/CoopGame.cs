@@ -274,11 +274,10 @@ namespace SIT.Core.Coop
             {
                 int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
-                //LocalPlayer botPlayer
-                //    = await LocalPlayer.Create(num, position, Quaternion.identity, "Player", "", EPointOfView.ThirdPerson, profile, true, base.UpdateQueue, EFT.Player.EUpdateMode.Auto, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.BotPlayerMode
-                //    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                //    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                //    , new StatisticsManager(), FilterCustomizationClass1.Default, null, false);
+
+
+
+             
                 CoopPlayer botPlayer
                    = (CoopPlayer)(await CoopPlayer.Create(
                        num
@@ -306,6 +305,10 @@ namespace SIT.Core.Coop
                 {
                     this.Bots.Add(botPlayer.ProfileId, botPlayer);
                 }
+
+
+               
+
                 localPlayer = botPlayer;
             }
             return localPlayer;
@@ -518,6 +521,7 @@ namespace SIT.Core.Coop
                 , Location_0.BossLocationSpawn
                 , nonwaves
                 , true);
+
             BotCreator botCreator = new(this, profileCreator, this.CreatePhysicalBot);
             BotZone[] botZones = LocationScene.GetAllObjects<BotZone>(false).ToArray<BotZone>();
             this.PBotsController.Init(this
@@ -588,6 +592,7 @@ namespace SIT.Core.Coop
 
             // No longer need this ping. Load complete and all other data should keep happening after this point.
             StopCoroutine(ClientLoadingPinger());
+            GCHelpers.ClearGarbage(emptyTheSet: true, unloadAssets: false);
 
             // Add FreeCamController to GameWorld GameObject
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
@@ -700,11 +705,15 @@ namespace SIT.Core.Coop
             {
 
             }
+            if (status == EExfiltrationStatus.NotPresent)
+            {
+
+            }
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
         public string MyExitLocation { get; set; } = null;
-        private ISpawnSystem SpawnSystem { get; set; }
+        public ISpawnSystem SpawnSystem { get; set; }
         public int MaxBotCount { get; private set; }
 
         private void HealthController_DiedEvent(EDamageType obj)
@@ -712,6 +721,7 @@ namespace SIT.Core.Coop
             //Logger.LogInfo(ScreenManager.Instance.CurrentScreenController.ScreenType);
 
             //Logger.LogInfo("CoopGame.HealthController_DiedEvent");
+
 
             gparam_0.Player.HealthController.DiedEvent -= method_15;
             gparam_0.Player.HealthController.DiedEvent -= HealthController_DiedEvent;

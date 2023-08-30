@@ -3,6 +3,8 @@ using DrakiaXYZ.BigBrain.Brains;
 using EFT;
 using UnityEngine.AI;
 using UnityEngine;
+using Comfort.Common;
+using SIT.Core.Coop;
 
 namespace SIT.Core.AI.PMCLogic.RushSpawn
 {
@@ -12,13 +14,13 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
         Vector3? targetPos = null;
         float sprintCheckTime;
         NavMeshPath navMeshPath;
-        private BotSteering baseSteeringLogic;
+        //private BotSteering baseSteeringLogic;
 
         public PMCRushSpawnLogic(BotOwner bot) : base(bot)
         {
             Logger = BepInEx.Logging.Logger.CreateLogSource(GetType().Name);
             navMeshPath = new NavMeshPath();
-            baseSteeringLogic = new BotSteering(bot);
+            //baseSteeringLogic = new BotSteering(bot);
         }
 
         public override void Start()
@@ -43,30 +45,30 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
             BotOwner.Steering.LookToMovingDirection();
             BotOwner.SetTargetMoveSpeed(1f);
 
-            // Alternate between running and walking
-            if (BotOwner.Mover.Sprinting && BotOwner.GetPlayer.Physical.Stamina.NormalValue < 0.3f)
-            {
-                //Logger.LogDebug($"{BotOwner.name} Ending Sprint");
-                BotOwner.GetPlayer.EnableSprint(false);
-            }
+            //// Alternate between running and walking
+            //if (BotOwner.Mover.Sprinting && BotOwner.GetPlayer.Physical.Stamina.NormalValue < 0.3f)
+            //{
+            //    //Logger.LogDebug($"{BotOwner.name} Ending Sprint");
+            //    BotOwner.GetPlayer.EnableSprint(false);
+            //}
 
-            // Enough stamina to check? See if we're within our time window
-            if (!BotOwner.Mover.Sprinting && BotOwner.GetPlayer.Physical.Stamina.NormalValue > 0.8f)
-            {
-                if (sprintCheckTime < Time.time)
-                {
-                    sprintCheckTime = Time.time + 5f;
+            //// Enough stamina to check? See if we're within our time window
+            //if (!BotOwner.Mover.Sprinting && BotOwner.GetPlayer.Physical.Stamina.NormalValue > 0.8f)
+            //{
+            //    if (sprintCheckTime < Time.time)
+            //    {
+            //        sprintCheckTime = Time.time + 5f;
 
-                    // Random chance to sprint
-                    int randomChance = UnityEngine.Random.Range(0, 1000);
-                    //Logger.LogDebug($"{BotOwner.name} Stamina: {BotOwner.GetPlayer.Physical.Stamina.NormalValue}  Random: {randomChance}  Chance: {BotOwner.Settings.FileSettings.Patrol.SPRINT_BETWEEN_CACHED_POINTS}");
-                    if (randomChance < BotOwner.Settings.FileSettings.Patrol.SPRINT_BETWEEN_CACHED_POINTS)
-                    {
-                        //Logger.LogDebug($"{BotOwner.name} Starting Sprint");
-                        BotOwner.GetPlayer.EnableSprint(true);
-                    }
-                }
-            }
+            //        // Random chance to sprint
+            //        int randomChance = UnityEngine.Random.Range(0, 1000);
+            //        //Logger.LogDebug($"{BotOwner.name} Stamina: {BotOwner.GetPlayer.Physical.Stamina.NormalValue}  Random: {randomChance}  Chance: {BotOwner.Settings.FileSettings.Patrol.SPRINT_BETWEEN_CACHED_POINTS}");
+            //        if (randomChance < BotOwner.Settings.FileSettings.Patrol.SPRINT_BETWEEN_CACHED_POINTS)
+            //        {
+            //            //Logger.LogDebug($"{BotOwner.name} Starting Sprint");
+            //            BotOwner.GetPlayer.EnableSprint(true);
+            //        }
+            //    }
+            //}
 
             // If we have a target position, and we're already there, clear it
             if (targetPos != null && (targetPos.Value - BotOwner.Position).sqrMagnitude < 4f)
@@ -75,28 +77,53 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
                 targetPos = null;
             }
 
-            // If we don't have a target position yet, pick one
-            int i = 0;
-            while (targetPos == null && i < 10)
+            if (targetPos == null)
             {
-                Vector3 randomPos = UnityEngine.Random.insideUnitSphere * 100f;
-                randomPos += BotOwner.Position;
-                if (NavMesh.SamplePosition(randomPos, out var navHit, 100f, NavMesh.AllAreas))
+                var coopGC = CoopGameComponent.GetCoopGameComponent();
+                if (coopGC == null)
+                    return;
+
+                if ((coopGC.LocalGameInstance as CoopGame) == null)
+                    return;
+
+                var spawnSystem = (coopGC.LocalGameInstance as CoopGame).SpawnSystem;
+                if (spawnSystem == null)
+                    return;
+
+                var selectedSpawnPointToRush = spawnSystem.SelectSpawnPoint(EFT.Game.Spawning.ESpawnCategory.Player, EPlayerSide.Usec);
+
+                var shortestPointToTarget = Vector3.zero;
+                float distanceToTarget = float.MaxValue;
+                // If we don't have a target position yet, pick one
+                for (var i = 0; i < 5; i++)
                 {
-                    if (NavMesh.CalculatePath(BotOwner.Position, navHit.position, NavMesh.AllAreas, navMeshPath) && navMeshPath.status == NavMeshPathStatus.PathComplete)
+                    Vector3 randomPos = UnityEngine.Random.insideUnitSphere * 150f;
+                    randomPos += BotOwner.Position;
+
+                    if (NavMesh.SamplePosition(randomPos, out var navHit, 150f, NavMesh.AllAreas))
                     {
-                        targetPos = navHit.position;
-                        BotOwner.GoToPoint(targetPos.Value, true, -1f, false, true, true);
-                        Logger.LogDebug($"{BotOwner.name} going to {targetPos.Value}");
+                        if (Vector3.Distance(navHit.position, selectedSpawnPointToRush.Position) < distanceToTarget)
+                        {
+                            shortestPointToTarget = navHit.position;
+                            distanceToTarget = Vector3.Distance(navHit.position, selectedSpawnPointToRush.Position);
+                        }
                     }
                 }
 
-                i++;
+                if (NavMesh.CalculatePath(BotOwner.Position, shortestPointToTarget, NavMesh.AllAreas, navMeshPath) && navMeshPath.status == NavMeshPathStatus.PathComplete)
+                {
+                    targetPos = shortestPointToTarget;
+                    BotOwner.GoToPoint(targetPos.Value, true, -1f, false, false, true);
+                    Logger.LogDebug($"{BotOwner.Profile.Nickname} going to {targetPos.Value}");
+                }
             }
+
+            //if (targetPos.HasValue)
+            //    BotOwner.GoToPoint(targetPos.Value, true, -1f, false, false, true);
 
             if (targetPos == null)
             {
-                Logger.LogError($"Unable to find a location for {BotOwner.name}");
+                //Logger.LogError($"Unable to find a location for {BotOwner.name}");
             }
 
             BotOwner.DoorOpener.Update();

@@ -102,6 +102,11 @@ namespace SIT.Core.Coop
                 return false;
             }
 
+            if (ProcessedCalls[type][playerId].Count > 1000)
+            {
+                Logger.LogDebug($"Processed calls for {type}{playerId} seem a little high. Lets trim this collection.");
+            }
+
             return true;
         }
 

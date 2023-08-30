@@ -1,4 +1,5 @@
-﻿using SIT.Coop.Core.Player;
+﻿using EFT;
+using SIT.Coop.Core.Player;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -51,6 +52,8 @@ namespace SIT.Core.Coop.Player
 
         public static Dictionary<string, Vector2> LastDirections { get; } = new();
 
+        static PlayerMovePacket playerMovePacket = new();//null;// new(player.ProfileId);
+
         [PatchPostfix]
         public static void PostPatch(
            EFT.Player __instance,
@@ -62,7 +65,6 @@ namespace SIT.Core.Coop.Player
             if (__instance == null)
                 return;
 
-            var accountId = player.Profile.AccountId;
             if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
             {
                 Logger.LogError($"Unable to find PRC on {player.ProfileId}");
@@ -84,7 +86,8 @@ namespace SIT.Core.Coop.Player
             //else if (LastDirections[accountId] == direction)
             //    return;
 
-            PlayerMovePacket playerMovePacket = new(player.ProfileId);
+            //PlayerMovePacket playerMovePacket = new(player.ProfileId);
+            playerMovePacket.ProfileId = player.ProfileId;
             playerMovePacket.pX = player.Position.x;
             playerMovePacket.pY = player.Position.y;
             playerMovePacket.pZ = player.Position.z;
@@ -121,21 +124,22 @@ namespace SIT.Core.Coop.Player
 
         private static Dictionary<string, PlayerMovePacket> PlayerMovePackets { get; } = new Dictionary<string, PlayerMovePacket>();
 
+        PlayerMovePacket ReplicatedPMP = null;// new(player.ProfileId);
+
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
             // Player Moves happen too often for this check. This would be a large mem leak!
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            PlayerMovePacket pmp = new(player.ProfileId);
             if (dict.ContainsKey("data"))
             {
-                pmp = new PlayerMovePacket(player.ProfileId);
-                pmp.DeserializePacketSIT(dict["data"].ToString());
+                ReplicatedPMP = new PlayerMovePacket(player.ProfileId);
+                ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
             }
             else
             {
-                pmp = new PlayerMovePacket(player.ProfileId)
+                ReplicatedPMP = new PlayerMovePacket(player.ProfileId)
                 {
                     dX = float.Parse(dict["dX"].ToString()),
                     dY = float.Parse(dict["dY"].ToString()),
@@ -143,9 +147,9 @@ namespace SIT.Core.Coop.Player
                     //spr = bool.Parse(dict["spr"].ToString()),
                 };
             }
-            ReplicatedMove(player, pmp);
+            ReplicatedMove(player, ReplicatedPMP);
 
-            pmp = null;
+            ReplicatedPMP = null;
             dict = null;
         }
 

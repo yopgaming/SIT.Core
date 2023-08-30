@@ -1,4 +1,5 @@
-﻿using SIT.Tarkov.Core;
+﻿using BepInEx.Logging;
+using SIT.Tarkov.Core;
 using System;
 using System.Diagnostics;
 using System.Runtime;
@@ -13,6 +14,13 @@ namespace SIT.Core.Misc
         [DllImport("psapi.dll", EntryPoint = "EmptyWorkingSet")]
         private static extern bool EmptyWorkingSetCall(IntPtr hProcess);
 
+        private static ManualLogSource Logger { get; set; }
+
+        static GCHelpers()
+        {
+            Logger = BepInEx.Logging.Logger.CreateLogSource("GCHelpers");
+        }
+
         public static void EmptyWorkingSet()
         {
             EmptyWorkingSetCall(Process.GetCurrentProcess().Handle);
@@ -24,7 +32,7 @@ namespace SIT.Core.Misc
         {
             if (GarbageCollector.GCMode == GarbageCollector.Mode.Disabled)
             {
-                PatchConstants.Logger.LogDebug($"EnableGC():Enabled GC");
+                Logger.LogDebug($"EnableGC():Enabled GC");
                 //GarbageCollector.CollectIncremental(1000000);
                 GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
             }
@@ -41,7 +49,7 @@ namespace SIT.Core.Misc
             }
         }
 
-        public static void ClearGarbage(bool emptyTheSet = false)
+        public static void ClearGarbage(bool emptyTheSet = false, bool unloadAssets = true)
         {
             PatchConstants.Logger.LogDebug($"ClearGarbage()");
             EnableGC();
@@ -49,7 +57,9 @@ namespace SIT.Core.Misc
             if (Emptying)
                 return;
 
-            Resources.UnloadUnusedAssets();
+            if (unloadAssets)
+                Resources.UnloadUnusedAssets();
+
             if (emptyTheSet)
             {
                 Emptying = true;
@@ -81,16 +91,15 @@ namespace SIT.Core.Misc
 
         public static void Collect(bool force = false)
         {
-            Collect(2, GCCollectionMode.Optimized, isBlocking: force, compacting: false, force);
+            Logger.LogDebug($"Collect({force})");
+
+            Collect(2, GCCollectionMode.Optimized, isBlocking: force, compacting: force, force);
         }
 
         public static void Collect(int generation, GCCollectionMode gcMode, bool isBlocking, bool compacting, bool force)
         {
             GC.Collect();
-
-            if(force)
-                GC.WaitForPendingFinalizers();
-
+            GC.WaitForPendingFinalizers();
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect(generation, gcMode, isBlocking, compacting);
         }

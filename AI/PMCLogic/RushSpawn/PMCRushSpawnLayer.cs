@@ -9,7 +9,6 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
     internal class PMCRushSpawnLayer : CustomLayer
     {
         protected ManualLogSource Logger;
-        protected float nextRoamCheckTime = 0f;
         protected bool isActive = false;
 
         public PMCRushSpawnLayer(BotOwner botOwner, int priority) : base(botOwner, priority)
@@ -37,30 +36,19 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
                 return true;
             }
 
-            // If it's been long enough, check if we should roam
-            if (Time.time > nextRoamCheckTime)
+            // If we are not Pmc. Then don't run this.
+            if (BotOwner.Side != EPlayerSide.Usec && BotOwner.Side != EPlayerSide.Bear)
             {
-                Logger.LogDebug($"Checking if {BotOwner.name} should roam");
-                nextRoamCheckTime = Time.time + 10f;
-
-                if (Random.Range(0, 100) > 50)
-                {
-                    Logger.LogDebug("  Roaming");
-                    isActive = true;
-                    return true;
-                }
-                else
-                {
-                    Logger.LogDebug("  Not Roaming");
-                }
+                return false;
             }
 
-            return false;
+            isActive = true;
+            return true;
         }
 
         public override Action GetNextAction()
         {
-            return new Action(typeof(RoamingLogic), "PMCRushSpawn");
+            return new Action(typeof(PMCRushSpawnLogic), "PMCRushSpawn");
         }
 
         public override bool IsCurrentActionEnding()

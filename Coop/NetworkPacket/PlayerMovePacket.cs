@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SIT.Core.Coop.NetworkPacket
 {
-    public class PlayerMovePacket : BasePlayerPacket
+    public class PlayerMovePacket : BasePlayerPacket, IDisposable
     {
         [JsonProperty(PropertyName = "pX")]
         public float pX { get; set; }
@@ -22,9 +22,19 @@ namespace SIT.Core.Coop.NetworkPacket
         public float dY { get; set; }
         public float spd { get; set; }
 
+        public PlayerMovePacket() : base(null, "Move")
+        {
+
+        }
+
         public PlayerMovePacket(string profileId) : base(profileId, "Move")
         {
         }
 
+        public void Dispose()
+        {
+            ProfileId = null;
+            Method = null;
+        }
     }
 }

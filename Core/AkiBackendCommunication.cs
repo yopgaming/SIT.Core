@@ -135,17 +135,17 @@ namespace SIT.Core.Core
             WebSocket.OnMessage += WebSocket_OnMessage;
             WebSocket.Connect();
             WebSocket.Send("CONNECTED FROM SIT COOP");
-            // Continously Ping from SIT.Core (Keep Alive)
-            _ = Task.Run(async () =>
-            {
+            //// Continously Ping from SIT.Core (Keep Alive)
+            //_ = Task.Run(async () =>
+            //{
 
-                while (true)
-                {
-                    await Task.Delay(3000);
-                    WebSocket.Send("PING FROM SIT COOP");
-                }
+            //    while (true)
+            //    {
+            //        await Task.Delay(3000);
+            //        WebSocket.Send("PING FROM SIT COOP");
+            //    }
 
-            });
+            //});
         }
 
         public void WebSocketClose()
@@ -394,6 +394,12 @@ namespace SIT.Core.Core
 
                 while (true)
                 {
+                    if (WebSocket == null)
+                    {
+                        await Task.Delay(awaitPeriod);
+                        continue;
+                    }
+
                     swPing.Restart();
                     await Task.Delay(awaitPeriod);
                     //await Task.Delay(100);
@@ -403,7 +409,8 @@ namespace SIT.Core.Core
                         if (PooledDictionariesToPost.TryTake(out d))
                         {
                             var url = d.Key;
-                            var json = JsonConvert.SerializeObject(d.Value);
+                            //var json = JsonConvert.SerializeObject(d.Value);
+                            var json = d.Value.ToJson();
                             if (WebSocket != null)
                             {
                                 if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
@@ -415,6 +422,7 @@ namespace SIT.Core.Core
                                     WebSocket_OnError();
                                 }
                             }
+                            GC.Collect();
                         }
                     }
 
@@ -425,7 +433,6 @@ namespace SIT.Core.Core
                         {
                             if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
                             {
-                                //PatchConstants.Logger.LogDebug($"WS:Periodic Send:PooledDictionaryCollectionToPost");
                                 WebSocket.Send(json);
                             }
                             else
@@ -433,6 +440,7 @@ namespace SIT.Core.Core
                                 PatchConstants.Logger.LogError($"WS:Periodic Send:PooledDictionaryCollectionToPost:Failed!");
                             }
                         }
+                        json = null;
                     }
 
                     while (PooledJsonToPost.Any())
@@ -446,7 +454,7 @@ namespace SIT.Core.Core
                                     PostDownWebSocketImmediately(json);
                                 }
                             }
-                            //_ = await PostJsonAsync(url, json, timeout: 3000 + PostPing, debug: true);
+                            json = null;
                         }
                     }
 
@@ -469,7 +477,7 @@ namespace SIT.Core.Core
             });
         }
 
-        private Task PeriodicallySendPingTask;
+        private Task PeriodicallySendPingTask { get; set; }
 
         private void PeriodicallySendPing()
         {
