@@ -52,7 +52,7 @@ namespace SIT.Core.Coop.Player
 
         public static Dictionary<string, Vector2> LastDirections { get; } = new();
 
-        static PlayerMovePacket playerMovePacket = new();//null;// new(player.ProfileId);
+        //static PlayerMovePacket playerMovePacket = new();//null;// new(player.ProfileId);
 
         [PatchPostfix]
         public static void PostPatch(
@@ -71,22 +71,11 @@ namespace SIT.Core.Coop.Player
                 return;
             }
 
-            // If this is an AI or other player, then don't run this method
-            //if (!player.IsYourPlayer)
-            //{
-            //    prc.ReplicatedDirection = direction;
-            //    return;
-            //}
-
             if (prc.IsClientDrone)
                 return;
 
-            //if (!LastDirections.ContainsKey(accountId))
-            //    LastDirections.Add(accountId, direction);
-            //else if (LastDirections[accountId] == direction)
-            //    return;
 
-            //PlayerMovePacket playerMovePacket = new(player.ProfileId);
+            PlayerMovePacket playerMovePacket = new(player.ProfileId);
             playerMovePacket.ProfileId = player.ProfileId;
             playerMovePacket.pX = player.Position.x;
             playerMovePacket.pY = player.Position.y;
@@ -96,8 +85,7 @@ namespace SIT.Core.Coop.Player
             playerMovePacket.dY = direction.y;
 
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
-            //playerMovePacket.spr = player.MovementContext.IsSprintEnabled;
-
+            
             var serialized = playerMovePacket.Serialize();
             if (!PlayerMovePackets.ContainsKey(player.ProfileId))
             {
@@ -124,7 +112,7 @@ namespace SIT.Core.Coop.Player
 
         private static Dictionary<string, PlayerMovePacket> PlayerMovePackets { get; } = new Dictionary<string, PlayerMovePacket>();
 
-        PlayerMovePacket ReplicatedPMP = null;// new(player.ProfileId);
+        //PlayerMovePacket ReplicatedPMP = null;// new(player.ProfileId);
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
@@ -132,21 +120,23 @@ namespace SIT.Core.Coop.Player
             //if (HasProcessed(this.GetType(), player, dict))
             //    return;
 
-            if (dict.ContainsKey("data"))
-            {
-                ReplicatedPMP = new PlayerMovePacket(player.ProfileId);
-                ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
-            }
-            else
-            {
-                ReplicatedPMP = new PlayerMovePacket(player.ProfileId)
-                {
-                    dX = float.Parse(dict["dX"].ToString()),
-                    dY = float.Parse(dict["dY"].ToString()),
-                    spd = float.Parse(dict["spd"].ToString()),
-                    //spr = bool.Parse(dict["spr"].ToString()),
-                };
-            }
+            PlayerMovePacket ReplicatedPMP = new(player.ProfileId);
+
+            //if (dict.ContainsKey("data"))
+            //{
+            ReplicatedPMP = new PlayerMovePacket(player.ProfileId);
+            ReplicatedPMP.DeserializePacketSIT(dict["data"].ToString());
+            //GetLogger(typeof(Player_Move_Patch)).LogDebug(dict["data"].ToString());
+            //}
+            //else
+            //{
+            //    ReplicatedPMP = new PlayerMovePacket(player.ProfileId)
+            //    {
+            //        dX = float.Parse(dict["dX"].ToString()),
+            //        dY = float.Parse(dict["dY"].ToString()),
+            //        spd = float.Parse(dict["spd"].ToString()),
+            //    };
+            //}
             ReplicatedMove(player, ReplicatedPMP);
 
             ReplicatedPMP = null;
