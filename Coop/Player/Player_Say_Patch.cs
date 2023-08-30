@@ -23,7 +23,7 @@ namespace SIT.Core.Coop.Player
         public static bool PrePatch(EFT.Player __instance)
         {
             var result = false;
-            if (CallLocally.Contains(__instance.Profile.AccountId))
+            if (CallLocally.Contains(__instance.ProfileId))
                 result = true;
 
             return result;
@@ -42,9 +42,9 @@ namespace SIT.Core.Coop.Player
         {
             var player = __instance;
 
-            if (CallLocally.Contains(player.Profile.AccountId))
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -66,12 +66,12 @@ namespace SIT.Core.Coop.Player
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if (CallLocally.Contains(player.Profile.AccountId))
+            if (CallLocally.Contains(player.ProfileId))
                 return;
 
             try
             {
-                CallLocally.Add(player.Profile.AccountId);
+                CallLocally.Add(player.ProfileId);
                 player.Say(
                     (EPhraseTrigger)Enum.Parse(typeof(EPhraseTrigger), dict["event"].ToString())
                     , demand: bool.Parse(dict["demand"].ToString())
