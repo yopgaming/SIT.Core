@@ -1480,7 +1480,7 @@ namespace SIT.Core.Coop
 
             //OnGUI_DrawPlayerList(rect);
             OnGUI_DrawPlayerFriendlyTags(rect);
-            OnGUI_DrawPlayerEnemyTags(rect);
+            //OnGUI_DrawPlayerEnemyTags(rect);
 
         }
 
@@ -1520,7 +1520,7 @@ namespace SIT.Core.Coop
             if (ownPlayer == null)
                 return;
 
-            foreach (var pl in PlayerBots)
+            foreach (var pl in PlayerUsers)
             {
                 if (pl == null) 
                     continue;
@@ -1552,7 +1552,7 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            if (!SITConfig.showPlayerNameTags)
+            if (!SITConfig.showPlayerNameTagsForEnemies)
             {
                 return;
             }
@@ -1580,7 +1580,7 @@ namespace SIT.Core.Coop
             if (ownPlayer == null)
                 return;
 
-            foreach (var pl in PlayerUsers)
+            foreach (var pl in PlayerBots)
             {
                 if (pl == null)
                     continue;
@@ -1596,7 +1596,7 @@ namespace SIT.Core.Coop
                 if (screenPos.z > 0)
                 {
                     rect.x = (screenPos.x * screenScale) - (rect.width / 2);
-                    rect.y = Screen.height - (screenPos.y * screenScale);
+                    rect.y = Screen.height - (screenPos.y * screenScale) - 15;
 
                     var distanceFromCamera = Math.Round(Vector3.Distance(Camera.current.gameObject.transform.position, pl.Position));
                     GUI.Label(rect, $"{pl.Profile.Nickname} {distanceFromCamera}m", middleLabelStyle);

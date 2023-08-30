@@ -11,7 +11,7 @@
 
 ## Fixes
 
-* Fix Item Movement Replication into Containers
+* Fix Item Movement Replication into Containers & Dead Bodies
 * Fix Ping Display & High Ping mode
 * Fix Coop Session was not ending after host leaves (therefore showing as still running on Browser)
 
@@ -19,8 +19,8 @@
 
 * Continue looking into performance improvements that can be made
 	* RAM gets eaten up if I leave Garbage Collection (GC) as normal (thanks to BSG and Unity)
-	* My own GC functions do affect performance quite badly but keep RAM usage fairly stable
-	* There is a known issue of noticeable lag every minute or so
+	* My own GC functions do affect performance but keep RAM usage fairly stable
+	* There is a known issue of noticeable lag every few minutes or so
 
 ---
 
