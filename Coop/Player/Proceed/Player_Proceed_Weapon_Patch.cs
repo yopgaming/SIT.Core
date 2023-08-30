@@ -17,7 +17,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
         public override string MethodName => "ProceedWeapon";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static List<string> CallLocally = new();
 
         public static MethodInfo method1 = null;
 
@@ -47,7 +47,7 @@ namespace SIT.Core.Coop.Player.Proceed
            EFT.Player __instance
             )
         {
-            //if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            //if (CallLocally.TryGetValue(__instance.ProfileId, out var expecting) && expecting)
             //{
             //    return true;
             //}
@@ -61,9 +61,9 @@ namespace SIT.Core.Coop.Player.Proceed
             , EFT.InventoryLogic.Weapon weapon
             , bool scheduled)
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(__instance.ProfileId))
             {
-                CallLocally.Remove(__instance.Profile.AccountId);
+                CallLocally.Remove(__instance.ProfileId);
                 return;
             }
 
@@ -104,7 +104,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
             if (item != null && item is EFT.InventoryLogic.Weapon weapon)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
 
                 var callback = new Callback<IFirearmHandsController>((IResult) => { });
                 method1.Invoke(player, new object[] { weapon, callback, true });
