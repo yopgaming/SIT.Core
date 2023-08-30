@@ -128,7 +128,7 @@ namespace SIT.Core.Coop
             //coopGame.StartCoroutine(coopGame.DebugObjects());
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
-            GCHelpers.EnableGC();
+            //GCHelpers.EnableGC();
 
             return coopGame;
         }
@@ -459,8 +459,10 @@ namespace SIT.Core.Coop
                         {
                             MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)");
                         }
+
+                        await Task.Delay(1000);
+
                     } while (numbersOfPlayersToWaitFor > 0);
-                    await Task.Delay(1000);
                 });
             }
 
