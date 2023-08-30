@@ -24,7 +24,7 @@ namespace SIT.Core.Coop.Player
         public static bool PrePatch(EFT.Player __instance)
         {
             var result = false;
-            if (CallLocally.Contains(__instance.Profile.AccountId))
+            if (CallLocally.Contains(__instance.ProfileId))
                 result = true;
 
             return result;
