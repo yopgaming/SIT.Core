@@ -38,15 +38,15 @@ namespace SIT.Core.Coop.Player
         {
             var player = __instance;
 
-            if (LastGesture.ContainsKey(player.Profile.AccountId))
+            if (LastGesture.ContainsKey(player.ProfileId))
             {
-                if (LastGesture[player.Profile.AccountId] == gesture)
+                if (LastGesture[player.ProfileId] == gesture)
                     return;
             }
 
-            if (CallLocally.Contains(player.Profile.AccountId))
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -55,10 +55,10 @@ namespace SIT.Core.Coop.Player
             dictionary.Add("m", "Gesture");
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, dictionary);
 
-            if (!LastGesture.ContainsKey(player.Profile.AccountId))
-                LastGesture.Add(player.Profile.AccountId, gesture);
+            if (!LastGesture.ContainsKey(player.ProfileId))
+                LastGesture.Add(player.ProfileId, gesture);
 
-            LastGesture[player.Profile.AccountId] = gesture;
+            LastGesture[player.ProfileId] = gesture;
         }
 
 
@@ -67,12 +67,12 @@ namespace SIT.Core.Coop.Player
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if (CallLocally.Contains(player.Profile.AccountId))
+            if (CallLocally.Contains(player.ProfileId))
                 return;
 
             try
             {
-                CallLocally.Add(player.Profile.AccountId);
+                CallLocally.Add(player.ProfileId);
                 if (!player.HandsController.IsInInteractionStrictCheck() && Enum.TryParse<EGesture>(dict["g"].ToString(), out var g))
                 {
                     player.HandsController.ShowGesture(g);
