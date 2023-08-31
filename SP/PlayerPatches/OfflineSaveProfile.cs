@@ -91,7 +91,7 @@ namespace SIT.Core.SP.PlayerPatches
             var convertedJson = request.SITToJson();
             //Logger.LogDebug("SaveProfileProgress =====================================================");
             //Logger.LogDebug(convertedJson);
-            _ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson, timeout: 10 * 1000, debug: true);
+            _ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson);
             //_ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson, timeout: 10 * 1000, debug: false);
 
 
