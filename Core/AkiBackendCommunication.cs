@@ -23,7 +23,7 @@ namespace SIT.Core.Core
 {
     public class AkiBackendCommunication : IDisposable
     {
-        public const int DEFAULT_TIMEOUT_MS = 1000;
+        public const int DEFAULT_TIMEOUT_MS = 5000;
         public const int DEFAULT_TIMEOUT_LONG_MS = 9999;
 
         private string m_Session;
@@ -111,20 +111,18 @@ namespace SIT.Core.Core
             PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
         }
 
-        /// <summary>
-        /// 0.13.5.0.25800 - This is now incorrect. I think it now best you need to pass an AccountId into the "Session" section?
-        /// </summary>
         public void WebSocketCreate(Profile profile)
         {
             Logger.LogDebug("WebSocketCreate");
             if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
+            {
+                Logger.LogDebug("WebSocketCreate:WebSocket already exits");
                 return;
+            }
 
             Logger.LogDebug("Request Instance is connecting to WebSocket");
 
             var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
-            //var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{Session}?";
-            //var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{profile.AccountId}?";
             var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?";
             Logger.LogDebug(webSocketPort);
             Logger.LogDebug(PatchConstants.GetREALWSURL());
@@ -135,17 +133,17 @@ namespace SIT.Core.Core
             WebSocket.OnMessage += WebSocket_OnMessage;
             WebSocket.Connect();
             WebSocket.Send("CONNECTED FROM SIT COOP");
-            //// Continously Ping from SIT.Core (Keep Alive)
-            //_ = Task.Run(async () =>
-            //{
+            // Continously Ping from SIT.Core (Keep Alive)
+            _ = Task.Run(async () =>
+            {
 
-            //    while (true)
-            //    {
-            //        await Task.Delay(3000);
-            //        WebSocket.Send("PING FROM SIT COOP");
-            //    }
+                while (WebSocket != null)
+                {
+                    WebSocket.Send((new { RandomPing = 0 }).ToJson());
+                    await Task.Delay(1000);
+                }
 
-            //});
+            });
         }
 
         public void WebSocketClose()
@@ -203,11 +201,13 @@ namespace SIT.Core.Core
             if (e.Data == null)
                 return;
 
+            if (string.IsNullOrEmpty(e.Data))
+                return;
 
             Dictionary<string, object> packet = null;
             if (e.Data != null)
             {
-                if (!e.Data.StartsWith("{"))
+                if (e.Data.IndexOf("{") > 0)
                     return;
 
                 if (!e.Data.EndsWith("}"))
@@ -229,90 +229,100 @@ namespace SIT.Core.Core
                 }
             }
             else
-                packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
-
-
-
-            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
-                // -------------------------------------------------------
-                // WARNING: This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
-                // coopGameComponent.ReadFromServerLastActionsParseData(packet);
-                // -------------------------------------------------------
-
-                // If this is a pong packet, resolve and create a smooth ping
-                if (packet.ContainsKey("pong"))
+                using (var streamReader = new StreamReader(new MemoryStream(e.RawData)))
                 {
-                    var pongRaw = long.Parse(packet["pong"].ToString());
-                    var dtPong = new DateTime(pongRaw);
-                    var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
-                    if (coopGameComponent.ServerPingSmooth.Count > 60)
-                        coopGameComponent.ServerPingSmooth.TryDequeue(out _);
-                    coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
-                    coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
-                    return;
-                }
-
-                if (packet.ContainsKey("HostPing"))
-                {
-                    var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
-                    var timeSpanOfHostToMe = DateTime.Now - dtHP;
-                    Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
-                }
-
-                // Syncronize RaidTimer
-                if (packet.ContainsKey("RaidTimer"))
-                {
-                    var tsRaidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
-
-                    //if(coopGameComponent.LocalGameInstance is CoopGame)
-                    //{
-                    //    coopGameComponent.LocalGameInstance.GameTimer.ChangeSessionTime(tsRaidTimer);
-                    //}
-                    return;
-                }
-
-                // If this is an endSession packet, end the session for the clients
-                if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
-                {
-                    Logger.LogDebug("Received EndSession from Server. Ending Game.");
-                    if (coopGameComponent.LocalGameInstance == null)
-                        return;
-
-                    coopGameComponent.ServerHasStopped = true;
-                    //coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
-                    return;
-                }
-
-                // If this is a SIT serialization packet
-                if (packet.ContainsKey("data") && packet.ContainsKey("m"))
-                {
-                    //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
-                    //Logger.LogInfo(" ==================SIT Packet============= ");
-                    //Logger.LogInfo(packet.ToJson());
-                    //Logger.LogInfo(" ========================================= ");
-                    //if (!packet.ContainsKey("accountId"))
-                    if (!packet.ContainsKey("profileId"))
+                    using (var reader = new JsonTextReader(streamReader))
                     {
-                        packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
+                        var serializer = new JsonSerializer();
+                        packet = serializer.Deserialize<Dictionary<string, object>>(reader);
                     }
                 }
-
-                // -------------------------------------------------------
-                // Check the packet doesn't already exist in Coop Game Component Action Packets
-                //if (
-                //    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
-                //    coopGameComponent.ActionPackets.Contains(packet)
-                //    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
-                //    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
-                //    )
-                //    return;
-
-                //Logger.LogInfo(packet.ToJson());
-                // -------------------------------------------------------
-                // Add to the Coop Game Component Action Packets
-                coopGameComponent.ActionPackets.TryAdd(packet);
             }
+
+
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                return;
+
+
+            // -------------------------------------------------------
+            // WARNING: This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
+            // coopGameComponent.ReadFromServerLastActionsParseData(packet);
+            // -------------------------------------------------------
+
+            // If this is a pong packet, resolve and create a smooth ping
+            if (packet.ContainsKey("pong"))
+            {
+                var pongRaw = long.Parse(packet["pong"].ToString());
+                var dtPong = new DateTime(pongRaw);
+                var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
+                if (coopGameComponent.ServerPingSmooth.Count > 60)
+                    coopGameComponent.ServerPingSmooth.TryDequeue(out _);
+                coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
+                coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
+                return;
+            }
+
+            if (packet.ContainsKey("HostPing"))
+            {
+                var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
+                var timeSpanOfHostToMe = DateTime.Now - dtHP;
+                Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
+            }
+
+            // Syncronize RaidTimer
+            if (packet.ContainsKey("RaidTimer"))
+            {
+                var tsRaidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
+
+                //if(coopGameComponent.LocalGameInstance is CoopGame)
+                //{
+                //    coopGameComponent.LocalGameInstance.GameTimer.ChangeSessionTime(tsRaidTimer);
+                //}
+                return;
+            }
+
+            // If this is an endSession packet, end the session for the clients
+            if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
+            {
+                Logger.LogDebug("Received EndSession from Server. Ending Game.");
+                if (coopGameComponent.LocalGameInstance == null)
+                    return;
+
+                coopGameComponent.ServerHasStopped = true;
+                //coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                return;
+            }
+
+            // If this is a SIT serialization packet
+            if (packet.ContainsKey("data") && packet.ContainsKey("m"))
+            {
+                //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
+                //Logger.LogInfo(" ==================SIT Packet============= ");
+                //Logger.LogInfo(packet.ToJson());
+                //Logger.LogInfo(" ========================================= ");
+                //if (!packet.ContainsKey("accountId"))
+                if (!packet.ContainsKey("profileId"))
+                {
+                    packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
+                }
+            }
+
+            // -------------------------------------------------------
+            // Check the packet doesn't already exist in Coop Game Component Action Packets
+            //if (
+            //    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
+            //    coopGameComponent.ActionPackets.Contains(packet)
+            //    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
+            //    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
+            //    )
+            //    return;
+
+            //Logger.LogInfo(packet.ToJson());
+            // -------------------------------------------------------
+            // Add to the Coop Game Component Action Packets
+            coopGameComponent.ActionPackets.TryAdd(packet);
+
         }
 
         public static AkiBackendCommunication GetRequestInstance(bool createInstance = false, ManualLogSource logger = null)
@@ -340,27 +350,30 @@ namespace SIT.Core.Core
 
         public void SendDataToPool(string serializedData)
         {
-            // ------------------------------------------------------------------------------------
-            // DEBUG: This is a sanity check to see if we are flooding packets.
-            if (DEBUGPACKETS)
-            {
-                if (PooledJsonToPost.Count() >= 11)
-                {
-                    Logger.LogError("Holy moly. There is too much data being OUTPUT from this client!");
-                    while (PooledJsonToPost.Any())
-                    {
-                        if (PooledJsonToPost.TryTake(out var item, -1))
-                            Logger.LogError($"{item}");
-                    }
-                    //Application.Quit();
-                }
-            }
+            //// ------------------------------------------------------------------------------------
+            //// DEBUG: This is a sanity check to see if we are flooding packets.
+            //if (DEBUGPACKETS)
+            //{
+            //    if (PooledJsonToPost.Count() >= 11)
+            //    {
+            //        Logger.LogError("Holy moly. There is too much data being OUTPUT from this client!");
+            //        while (PooledJsonToPost.Any())
+            //        {
+            //            if (PooledJsonToPost.TryTake(out var item, -1))
+            //                Logger.LogError($"{item}");
+            //        }
+            //        //Application.Quit();
+            //    }
+            //}
 
-            // Stop resending static "player states"
-            if (PooledJsonToPost.Any(x => x == serializedData))
-                return;
+            //// Stop resending static "player states"
+            //if (PooledJsonToPost.Any(x => x == serializedData))
+            //    return;
 
-            PooledJsonToPost.Add(serializedData);
+            //PooledJsonToPost.Add(serializedData);
+
+            if(WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                WebSocket.SendAsync(serializedData, (bool b) => { });
         }
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
@@ -446,22 +459,24 @@ namespace SIT.Core.Core
                         json = null;
                     }
 
-                    while (PooledJsonToPost.Any())
-                    {
-                        await Task.Delay(awaitPeriod);
+                    //do
+                    //{
 
-                        if (PooledJsonToPost.TryTake(out var json))
-                        {
-                            if (WebSocket != null)
-                            {
-                                if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                                {
-                                    PostDownWebSocketImmediately(json);
-                                }
-                            }
-                            json = null;
-                        }
-                    }
+                    //    if (PooledJsonToPost.TryTake(out var json))
+                    //    {
+                    //        if (WebSocket != null)
+                    //        {
+                    //            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                    //            {
+                    //                PostDownWebSocketImmediately(json);
+                    //            }
+                    //        }
+                    //        json = null;
+                    //    }
+
+                    //    await Task.Delay(awaitPeriod);
+
+                    //} while (PooledJsonToPost.Any());
 
 
                     while (PooledJsonToPostToUrl.Any())
@@ -495,27 +510,27 @@ namespace SIT.Core.Core
                 {
                     await Task.Delay(awaitPeriod);
 
-                    if (WebSocket != null)
+                    if (WebSocket == null)
+                        continue;
+
+                    if (WebSocket.ReadyState != WebSocketSharp.WebSocketState.Open)
+                        continue;
+
+                    if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                        continue;
+
+                    // PatchConstants.Logger.LogDebug($"WS:Ping Send");
+
+                    var packet = new 
                     {
-                        if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                        {
-                            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                            {
-                                // PatchConstants.Logger.LogDebug($"WS:Ping Send");
+                        m = "Ping",
+                        t = DateTime.UtcNow.Ticks.ToString("G") ,
+                        profileId = coopGameComponent.OwnPlayer.ProfileId ,
+                        serverId = coopGameComponent.ServerId 
+                    };
 
-                                Dictionary<string, object> packet = new()
-                                {
-                                    { "m", "Ping" },
-                                    { "t", DateTime.UtcNow.Ticks.ToString("G") },
-                                    { "profileId", coopGameComponent.OwnPlayer.ProfileId },
-                                    { "serverId", coopGameComponent.ServerId }
-                                };
-
-                                //PostJson("/coop/server/update", packet.ToJson());
-                                WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
-                            }
-                        }
-                    }
+                    WebSocket.Send(Encoding.UTF8.GetBytes(packet.ToJson()));
+                    packet = null;
                 }
             });
         }
@@ -541,79 +556,6 @@ namespace SIT.Core.Core
                 }
             }
             return m_RequestHeaders;
-        }
-
-        private async Task SendAndForgetAsync(string url, string method, string data, bool compress = true, int timeout = 1000, bool debug = false)
-        {
-            if (method == "GET")
-            {
-                throw new NotSupportedException("GET wont work on a SendAndForget call. It won't receive anything!");
-            }
-
-            if (data == null)
-            {
-                throw new ArgumentNullException("data", "data value must be provided");
-            }
-
-            // Force to DEBUG mode if not Compressing.
-            debug = debug || !compress;
-
-            method = method.ToUpper();
-
-            var fullUri = url;
-            if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
-                fullUri = RemoteEndPoint + fullUri;
-
-            var uri = new Uri(fullUri);
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.ServerCertificateValidationCallback = delegate { return true; };
-
-            foreach (var item in GetHeaders())
-            {
-                request.Headers.Add(item.Key, item.Value);
-            }
-
-            if (!debug && method == "POST")
-            {
-                request.Headers.Add("Accept-Encoding", "deflate");
-            }
-
-            request.Method = method;
-            request.Timeout = timeout;
-
-            if (debug && method == "POST")
-            {
-                compress = false;
-                request.Headers.Add("debug", "1");
-            }
-
-            // set request body
-            var inputDataBytes = Encoding.UTF8.GetBytes(data);
-            byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : Encoding.UTF8.GetBytes(data);
-            data = null;
-            request.ContentType = "application/json";
-            request.ContentLength = bytes.Length;
-            if (compress)
-                request.Headers.Add("content-encoding", "deflate");
-
-            try
-            {
-                using (Stream stream = await request.GetRequestStreamAsync())
-                {
-                    stream.Write(bytes, 0, bytes.Length);
-                }
-                await request.GetResponseAsync();
-            }
-            catch (Exception e)
-            {
-                PatchConstants.Logger.LogError(e);
-            }
-            finally
-            {
-                bytes = null;
-                inputDataBytes = null;
-            }
         }
 
         /// <summary>
@@ -647,35 +589,23 @@ namespace SIT.Core.Core
             }
             else if (method == "POST" || method == "PUT")
             {
-
                 var uri = new Uri(fullUri);
                 return SendAndReceivePostOld(uri, method, data, compress, timeout, debug);
-                //HttpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                //if (!debug && compress)
-                //{
-                //    HttpClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("deflate"));
-                //}
-
-                //if(debug)
-                //    HttpClient.DefaultRequestHeaders.Add("debug", "1");
-
-                //Task<HttpResponseMessage> responseMessageTask;
-                //var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                //if (compress && !debug)
-                //    responseMessageTask = HttpClient.PostAsync(uri, new ByteArrayContent(Zlib.Compress(inputDataBytes, ZlibCompression.Fastest)));
-                //else
-                //    responseMessageTask = HttpClient.PostAsync(uri, new ByteArrayContent(inputDataBytes));
-
-
-                //var responseMessageResult = responseMessageTask.Result;
-                //var resultBytes = responseMessageResult.Content.ReadAsByteArrayAsync().Result;
-
-                //return new MemoryStream(resultBytes);
             }
 
             throw new ArgumentException($"Unknown method {method}");
         }
 
+        /// <summary>
+        /// TODO: Replace this with a HTTPClient Post command. 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="method"></param>
+        /// <param name="data"></param>
+        /// <param name="compress"></param>
+        /// <param name="timeout"></param>
+        /// <param name="debug"></param>
+        /// <returns></returns>
         MemoryStream SendAndReceivePostOld(Uri uri, string method = "GET", string data = null, bool compress = true, int timeout = 9999, bool debug = false)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
@@ -778,35 +708,6 @@ namespace SIT.Core.Core
             }
         }
 
-        public async Task<string> GetJsonAsync(string url, bool compress = true, int timeout = 9999)
-        {
-            try
-            {
-                var fullUri = url;
-                if (!Uri.IsWellFormedUriString(fullUri, UriKind.Absolute))
-                    fullUri = RemoteEndPoint + fullUri;
-
-                using (var ms = new MemoryStream())
-                {
-                    var stream = await HttpClient.GetStreamAsync(fullUri);
-                    stream.CopyTo(ms);
-
-                    var bytes = ms.ToArray();
-                    var dec = Zlib.Decompress(bytes);
-                    var result = Encoding.UTF8.GetString(dec);
-                    dec = null;
-                    bytes = null;
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                PatchConstants.Logger.LogDebug(ex);
-            }
-
-            return null;
-        }
-
         public string PostJson(string url, string data, bool compress = true, int timeout = 9999, bool debug = false)
         {
             using (MemoryStream stream = SendAndReceive(url, "POST", data, compress, timeout, debug))
@@ -834,8 +735,6 @@ namespace SIT.Core.Core
 
         public async Task<string> PostJsonAsync(string url, string data, bool compress = true, int timeout = DEFAULT_TIMEOUT_MS, bool debug = false, int retryAttempts = 5)
         {
-            //return await Task.FromResult(PostJson(url, data, compress, timeout, debug));
-
             int attempt = 0;
             while (attempt++ < retryAttempts)
             {
@@ -888,45 +787,6 @@ namespace SIT.Core.Core
                 }
             }
             throw new Exception($"Unable to communicate with Aki Server {url} to post json data: {data}");
-        }
-
-        //public Texture2D GetImage(string url, bool compress = true)
-        //{
-        //    using (Stream stream = SendAndReceive(url, "GET", null, compress))
-        //    {
-        //        using (MemoryStream ms = new MemoryStream())
-        //        {
-        //            if (stream == null)
-        //                return null;
-        //            Texture2D texture = new Texture2D(8, 8);
-
-        //            stream.CopyTo(ms);
-        //            texture.LoadImage(ms.ToArray());
-        //            return texture;
-        //        }
-        //    }
-        //}
-
-        public DateTimeOffset ParseIso8601Timestamp(string timestampString)
-        {
-            // Parse the timestamp string using the DateTimeOffset.TryParseExact method
-            // The format "o" represents the ISO 8601 format
-            if (DateTimeOffset.TryParseExact(timestampString, "o", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out DateTimeOffset parsedTimestamp))
-            {
-                return parsedTimestamp;
-            }
-            else
-            {
-                // I am suspecting that UK -> US -> World structures are failing. 
-                if (DateTime.TryParse(timestampString, System.Globalization.CultureInfo.CurrentCulture, System.Globalization.DateTimeStyles.None, out var dtResult))
-                {
-                    return new DateTimeOffset(dtResult).ToUniversalTime();
-                }
-                // If parsing fails, you can choose to throw an exception or return a default value
-                // We return DateTimeOffset.MinValue to indicate an error
-                Logger.LogError($"Could not parse Iso formatting string {timestampString}");
-                return DateTimeOffset.Now;
-            }
         }
 
         public void Dispose()

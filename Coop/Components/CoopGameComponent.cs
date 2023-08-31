@@ -200,7 +200,9 @@ namespace SIT.Core.Coop
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
-            //GCHelpers.EnableGC();
+            GCHelpers.EnableGC();
+            GCHelpers.DisableGC();
+
 
             HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
 
@@ -220,7 +222,7 @@ namespace SIT.Core.Coop
 
 
             int counter = 0;
-            int runClearCount = 0;
+            //int runClearCount = 0;
             await Task.Run(async () =>
             {
                 do
@@ -492,7 +494,6 @@ namespace SIT.Core.Coop
                 var actionPacketLimitationTime = 11;
                 while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
                 {
-                    Thread.Sleep(1);
                     ProcessLastActionDataPacket(result);
                 }
                 PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
@@ -1173,7 +1174,7 @@ namespace SIT.Core.Coop
                 if (packet["m"].ToString() == "Kill")
                 {
                     Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {profileId}, enqueuing death");
-                    Task.Run(() => WaitForPlayerAndProcessPacket(profileId, packet));
+                    Task.Run(async() => await WaitForPlayerAndProcessPacket(profileId, packet));
                 }
                 return;
             }
@@ -1222,7 +1223,7 @@ namespace SIT.Core.Coop
 
         }
 
-        private void WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)
+        private async Task WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)
         {
             // Start the timer.
             var startTime = DateTime.Now;
@@ -1251,7 +1252,7 @@ namespace SIT.Core.Coop
                 }
 
                 // Wait for a short period before checking again.
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
             }
         }
 

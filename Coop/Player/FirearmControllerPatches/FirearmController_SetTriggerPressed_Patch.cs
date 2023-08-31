@@ -180,7 +180,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             }
 
             firearmCont.SetTriggerPressed(pressed);
-
+            yield break;
         }
 
         public class TriggerPressedPacket : BasePlayerPacket

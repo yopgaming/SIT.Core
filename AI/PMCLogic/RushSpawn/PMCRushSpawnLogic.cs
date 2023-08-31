@@ -12,7 +12,7 @@ namespace SIT.Core.AI.PMCLogic.RushSpawn
     {
         protected ManualLogSource Logger;
         Vector3? targetPos = null;
-        float sprintCheckTime;
+        //float sprintCheckTime;
         NavMeshPath navMeshPath;
         //private BotSteering baseSteeringLogic;
 
