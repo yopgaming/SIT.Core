@@ -153,7 +153,7 @@ namespace SIT.Core.Coop
         {
             Logger.LogDebug("CoopGameComponent:Start");
             //GameCamera = Camera.current;
-            GCHelpers.ClearGarbage(unloadAssets: false);
+            //GCHelpers.ClearGarbage(unloadAssets: false);
 
 
             // ----------------------------------------------------
@@ -492,6 +492,7 @@ namespace SIT.Core.Coop
                 var actionPacketLimitationTime = 11;
                 while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
                 {
+                    Thread.Sleep(1);
                     ProcessLastActionDataPacket(result);
                 }
                 PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
@@ -1123,6 +1124,8 @@ namespace SIT.Core.Coop
                     }
                 }
             }
+
+            
 
             switch (packet["m"].ToString())
             {

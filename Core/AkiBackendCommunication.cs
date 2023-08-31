@@ -405,9 +405,12 @@ namespace SIT.Core.Core
                     //await Task.Delay(100);
                     while (PooledDictionariesToPost.Any())
                     {
+                        await Task.Delay(awaitPeriod);
+
                         KeyValuePair<string, Dictionary<string, object>> d;
                         if (PooledDictionariesToPost.TryTake(out d))
                         {
+
                             var url = d.Key;
                             //var json = JsonConvert.SerializeObject(d.Value);
                             var json = d.Value.ToJson();
@@ -445,6 +448,8 @@ namespace SIT.Core.Core
 
                     while (PooledJsonToPost.Any())
                     {
+                        await Task.Delay(awaitPeriod);
+
                         if (PooledJsonToPost.TryTake(out var json))
                         {
                             if (WebSocket != null)
@@ -461,6 +466,8 @@ namespace SIT.Core.Core
 
                     while (PooledJsonToPostToUrl.Any())
                     {
+                        await Task.Delay(awaitPeriod);
+
                         if (PooledJsonToPostToUrl.TryTake(out var kvp))
                         {
                             _ = await PostJsonAsync(kvp.Key, kvp.Value, timeout: 1000, debug: true);
