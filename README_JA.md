@@ -15,6 +15,14 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 
 ---
 
+## SITの進行状況
+
+** タルコフの0.13.5.0.25800とSPT-Akiサーバの3.7.0について **
+* 現在、SPT-Akiの側は不完全な状況で作業を続いています。SPT-AkiのDiscordにて一日的に作業を続いております。
+* SITもその影響を受けたり、IDと関連された色んな部分に問題がしてあるかもしれませんので、こっちらSITもWIP（作業中）に続いております。
+
+--- 
+
 ## このプロジェクトについて
 
 ステイ・イン・タルコフ（Stay In Tarkov）プロジェクトはBattlestate Gamesが普段のPvE（プレイヤー対環境）バージョンのタルコフにすることを向かないから誕生しました。
@@ -37,7 +45,6 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
 * 助けや解決先を為にお金は払わないことにして下さい。
 * これはただ趣味で、楽で作成するプロジェクトです。軽く受け入れて下さい。
 * 私はコミュニティに騙すことはしません。これが半分失敗したこととしても私は精一杯で直していこうと思います。
-* Pull Requestはいつでも開いています！
 
 ## SPT-AKI 要件
 * Stay in Tarkovは[AKIサーバー最新版](https://dev.sp-tarkov.com/SPT-AKI/Server)を使用して動作できます。SPT-Akiについては[こっち](https://www.sp-tarkov.com/)で詳しく調べます。
@@ -48,17 +55,17 @@ SPT-Akiサーバー基盤の「オフライン」協力プレイを目標とし�
   - ### [Setup Manuals](https://github.com/paulov-t/SIT.Core/wiki/Guides-English)
   - ### [FAQs](https://github.com/paulov-t/SIT.Core/wiki/FAQs-English)
 
-## Coop
+## 協力プレイ
 
 ### Coop Summary
-**BE AWARE**
-* Coop is in early stages of development. 
-* Most features work (ish) and it is "playable (ish) with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
-* My tests have included all maps. The maps that work best are Factory and Labs. Performance is very dependant on the CPU / Internet on the Server and Clients and AI count on the Server
-* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-English.md)
+**下記の事項はご注意ください**
+* 協力プレイ機能はまだ開発中です。
+* ほとんどの機能の利用は可能ですが、問題点とバグが多くあり、完璧ではなりません。
+* こっちの人達から全ての地域をテストしましたが、最もいい作動はFACTORYとTHE LABでした。CPUとネットワークからのリソースが消耗しやすいですがこっちらに影響を与えるのは他の人の繋がりとAIの数でした。
+* ホストをする方法と協力プレイをする方法はこっちらから英語ですが詳しく読めます。 [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/HOSTING-English.md)
 
-### PREREQUISITE
-You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
+### 要件
+まず、進むためには [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) が要件となります。このモジュールをサーバに適用してから作動します。協力プレイのモジュールが必要がなければBepInExのコンフィグのファイルで直接修正する必要があります。
 
 ### 協力プレイはBSGのコードを使いますか？
 いいえ、BSGサーバーのコードは明確な理由でクライアントから隠されてあります。
@@ -97,7 +104,7 @@ BepInEx 5は必ずインストールし、設定が終わったあとになる�
 ビルドされた.dllファイルをBepInExのpluginsフォルダーに置きます。
 
 ## タルコフでのテスト
-- まずBepInExがインストールされたタルコフのフォルダーに進みます。
+- まず、BepInExがインストールされたタルコフのフォルダーに進みます。
 - configに進みます。
 - BepInEx.cfgを開きます。
 - [Logging.Console]の設定値をTrueにします。
@@ -113,12 +120,11 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -con
 - SPT-Aki team
 - MTGA team
 - SPT-Aki Modding Community
-- DrakiaXYZ (Waypoints, BigBrain)
-- Props (AIBushPatch, AIAwakeOrSleepPatch - Currently unused)
+- DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain))
+- Dvize ([NoBushESP](https://github.com/dvize/NoBushESP))
 
 ## ライセンス
 
 - DrakiaXYZのプロジェクトはMITライセンスを含んでます。
 - 95%の機能はSPT-Akiチームが完成しました。そっちのソースには関連されたライセンスがある可能性があるかもしれません。
 - 私の作業はライセンスなどはありません。ただ楽しめるためのプロジェクトであります。あなたがこれで何をしても構わないです。
-- None of my own work is Licensed. This is solely a just for fun project. I don't care what you do with it.
