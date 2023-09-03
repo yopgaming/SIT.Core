@@ -172,7 +172,11 @@ namespace SIT.Core.Coop.FreeCamera
             // If we don't have the UI Component cached, go look for it in the scene
             if (_playerUi == null)
             {
-                _playerUi = GameObject.Find("BattleUIScreen").GetComponent<BattleUIScreen>();
+                var gameObject = GameObject.Find("BattleUIScreen");
+                if (gameObject == null)
+                    return;
+
+                _playerUi = gameObject.GetComponent<BattleUIScreen>();
 
                 if (_playerUi == null)
                 {
