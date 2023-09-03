@@ -274,11 +274,8 @@ namespace SIT.Core.Coop
             {
                 int num = 999 + Bots.Count;
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
-
-
-
              
-                CoopPlayer botPlayer
+                localPlayer
                    = (CoopPlayer)(await CoopPlayer.Create(
                        num
                        , position
@@ -295,21 +292,23 @@ namespace SIT.Core.Coop
                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
                     , FilterCustomizationClass1.Default));
-                botPlayer.Location = base.Location_0.Id;
-                if (this.Bots.ContainsKey(botPlayer.ProfileId))
+                localPlayer.Location = base.Location_0.Id;
+                if (this.Bots.ContainsKey(localPlayer.ProfileId))
                 {
-                    GameObject.Destroy(botPlayer);
+                    GameObject.Destroy(localPlayer);
                     return null;
                 }
                 else
                 {
-                    this.Bots.Add(botPlayer.ProfileId, botPlayer);
+                    this.Bots.Add(localPlayer.ProfileId, localPlayer);
                 }
 
 
-               
+                GCHelpers.EnableGC();
+                //GCHelpers.Collect(true);
+                GCHelpers.DisableGC();
+                //GC.Collect(4, GCCollectionMode.Forced, false, false);
 
-                localPlayer = botPlayer;
             }
             return localPlayer;
         }
@@ -804,6 +803,9 @@ namespace SIT.Core.Coop
 
             if (this.wavesSpawnScenario_0 != null)
                 this.wavesSpawnScenario_0.Stop();
+
+            // @konstantin90s suggestion to disable patches as the game closes
+            CoopPatches.EnableDisablePatches();
 
             base.Stop(profileId, exitStatus, exitName, delay);
         }
