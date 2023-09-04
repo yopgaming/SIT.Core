@@ -41,10 +41,21 @@ namespace DrakiaXYZ.BigBrain.Patches
             try
             {
 #endif
+                if (__instance == null)
+                {
+                    __result = null;
+                    return false;
+                }
 
                 // Get values we'll use later
                 List<AICoreLogicLayerClass> activeLayerList = _activeLayerListField.GetValue(__instance) as List<AICoreLogicLayerClass>;
                 AICoreLogicLayerClass activeLayer = _activeLayerGetter.Invoke(__instance, null) as AICoreLogicLayerClass;
+
+                if (activeLayerList == null)
+                {
+                    __result = null;
+                    return false;
+                }
 
                 foreach (AICoreLogicLayerClass layer in activeLayerList)
                 {
