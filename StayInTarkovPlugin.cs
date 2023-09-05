@@ -113,6 +113,13 @@ namespace SIT.Core
                             break;
                     }
                     break;
+                case "ja":
+                    stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("Japanese.json")));
+                    sr = new StreamReader(stream);
+                    str = sr.ReadToEnd();
+
+                    resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                    break;
                 case "en":
                 default:
                     stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
@@ -202,6 +209,9 @@ namespace SIT.Core
             //new TarkovTransportWSInstanceHookPatch().Enable();
             //new TarkovTransportHttpInstanceHookPatch().Enable();
             new SendCommandsPatch().Enable();
+
+            //new TarkovTransportHttpMethodDebugPatch().Enable();
+            new TarkovTransportHttpMethodDebugPatch2().Enable();
         }
 
         private void EnableSPPatches()
