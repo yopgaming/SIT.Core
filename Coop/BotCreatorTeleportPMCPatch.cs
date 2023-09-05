@@ -14,7 +14,7 @@ namespace SIT.Core.Coop
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetAllMethodsForType(typeof(BotCreator), true)
+            return ReflectionHelpers.GetAllMethodsForType(typeof(BotCreator), false)
                  .Single(x =>
                   x.GetParameters().Length > 2
                   && x.GetParameters()[0].Name == "zone"

@@ -97,7 +97,7 @@ namespace SIT.Core.AkiSupport.Custom
         {
             if (botOwner.Profile.Info.IsStreamerModeAvailable && botOwner.Profile.Info.Settings.Role == WildSpawnType.assaultGroup)
             {
-                Logger.LogError($"Broken PMC found: {botOwner.Profile.Nickname}, was {botOwner.Profile.Info.Settings.Role}");
+                //Logger.LogError($"Broken PMC found: {botOwner.Profile.Nickname}, was {botOwner.Profile.Info.Settings.Role}");
                 // Its a PMC, figure out what the bot originally was and return it
                 return botOwner.Profile.Info.Side == EPlayerSide.Bear
                     ? (WildSpawnType)0x26
