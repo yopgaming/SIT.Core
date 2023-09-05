@@ -19,7 +19,7 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 ** As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. **
 * SPT-Aki is in a partially working state. Keep up to date with it on their Discord. They post updates daily.
-* Stay in Tarkov has many issues with IDs. This is work in progress.
+* SIT is making slow progress.
 
 --- 
 
@@ -47,7 +47,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * Pull Requests are encouraged. Thanks to all contributors!
 * Please do not hand over money expecting help or a solution. 
 * This is a hobby, for fun, project. Please don't treat it seriously. 
-*I know this is a semi-broken attempt but will try to fix as best I can. 
+* I know this is a semi-broken attempt but will try to fix as best I can. 
 
 ## SPT-AKI Requirement
 * Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
@@ -66,6 +66,8 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * Most features work (ish) and it is "playable (ish) with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
 * My tests have included all maps. The maps that work best are Factory and Labs. Performance is very dependant on the CPU / Internet on the Server and Clients and AI count on the Server
 * More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-English.md)
+* The Host & Server must have a good stable connection with an upload speed of at least 5-10mbps. The AI take a lot of CPU & Network bandwidth to run.
+* Despite many people saying otherwise. You can play with people across the world (not just LAN). I have played with people with over 200 ping. They get lag similar to live, just shown in a different way.
 
 ### PREREQUISITE
 You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
