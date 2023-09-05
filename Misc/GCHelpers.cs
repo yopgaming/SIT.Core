@@ -44,14 +44,14 @@ namespace SIT.Core.Misc
             if (GarbageCollector.GCMode == GarbageCollector.Mode.Enabled)
             {
                 Collect(forceCollect);
-                PatchConstants.Logger.LogDebug($"DisableGC():Disabled GC");
+                Logger.LogDebug($"DisableGC():Disabled GC");
                 GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
             }
         }
 
         public static void ClearGarbage(bool emptyTheSet = false, bool unloadAssets = true)
         {
-            PatchConstants.Logger.LogDebug($"ClearGarbage()");
+            Logger.LogDebug($"ClearGarbage()");
             EnableGC();
             Collect(force: true);
             if (Emptying)
@@ -85,7 +85,7 @@ namespace SIT.Core.Misc
                 }
                 array = null;
                 stopwatch.Stop();
-                PatchConstants.Logger.LogDebug($"Heap pre-allocation for {num} mBs took {stopwatch.ElapsedMilliseconds} ms");
+                Logger.LogDebug($"Heap pre-allocation for {num} mBs took {stopwatch.ElapsedMilliseconds} ms");
             }
         }
 
@@ -93,7 +93,7 @@ namespace SIT.Core.Misc
         {
             Logger.LogDebug($"Collect({force})");
 
-            Collect(2, GCCollectionMode.Optimized, isBlocking: force, compacting: force, force);
+            Collect(2, force ? GCCollectionMode.Forced : GCCollectionMode.Optimized, isBlocking: force, compacting: force, force);
         }
 
         public static void Collect(int generation, GCCollectionMode gcMode, bool isBlocking, bool compacting, bool force)
