@@ -7,6 +7,7 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Configuration;
+using SIT.Core.Coop.Components;
 using SIT.Core.Coop.World;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -41,7 +42,7 @@ namespace SIT.Core.Coop
         /// <summary>
         /// ProfileId to Player instance
         /// </summary>
-        public ConcurrentDictionary<string, EFT.Player> Players { get; private set; } = new();
+        public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
 
         public EFT.Player[] PlayerUsers
         {
@@ -87,18 +88,17 @@ namespace SIT.Core.Coop
         /**
          * https://stackoverflow.com/questions/48919414/poor-performance-with-concurrent-queue
          */
-        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPackets => ActionPacketHandler.ActionPackets;
 
-        int PacketQueueSize_Receive { get; set; } = 0;
-        int PacketQueueSize_Send { get; set; } = 0;
-
-        private Dictionary<string, object>[] m_CharactersJson;
+        private Dictionary<string, object>[] m_CharactersJson { get; set; }
 
         public bool RunAsyncTasks { get; set; } = true;
 
         float screenScale = 1.0f;
 
         Camera GameCamera { get; set; }
+
+        public ActionPacketHandlerComponent ActionPacketHandler { get; set; }
 
         #endregion
 
@@ -109,8 +109,11 @@ namespace SIT.Core.Coop
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
 
-            CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent);
-            return coopGameComponent;
+            if(CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
+                return coopGameComponent;
+
+
+            return null;
         }
 
         public static bool TryGetCoopGameComponent(out CoopGameComponent coopGameComponent)
@@ -154,11 +157,12 @@ namespace SIT.Core.Coop
             Logger.LogDebug("CoopGameComponent:Start");
             //GameCamera = Camera.current;
             //GCHelpers.ClearGarbage(unloadAssets: false);
+            ActionPacketHandler = this.GetOrAddComponent<ActionPacketHandlerComponent>();
 
 
             // ----------------------------------------------------
             // Always clear "Players" when creating a new CoopGameComponent
-            Players = new ConcurrentDictionary<string, EFT.Player>();
+            //Players = new ConcurrentDictionary<string, EFT.Player>();
 
             OwnPlayer = (LocalPlayer)Singleton<GameWorld>.Instance.MainPlayer;
 
@@ -200,8 +204,8 @@ namespace SIT.Core.Coop
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
-            GCHelpers.EnableGC();
-            GCHelpers.DisableGC();
+            //GCHelpers.EnableGC();
+            //GCHelpers.DisableGC();
 
 
             HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
@@ -248,6 +252,7 @@ namespace SIT.Core.Coop
                         GCHelpers.EnableGC();
                         GCHelpers.Collect(true);
                         GCHelpers.DisableGC();
+                        //GC.Collect(4, GCCollectionMode.Forced, false, false);
 
                     }
 
@@ -420,14 +425,12 @@ namespace SIT.Core.Coop
             return quitState;
         }
 
+        CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
+
         void Update()
         //void LateUpdate()
         {
             GameCamera = Camera.current;
-
-            var coopGame = LocalGameInstance as CoopGame;
-            if (coopGame == null)
-                return;
 
             var quitState = GetQuitState();
 
@@ -439,10 +442,10 @@ namespace SIT.Core.Coop
                 )
             {
                 RequestQuitGame = true;
-                ((CoopGame)LocalGameInstance).Stop(
+                CoopGame.Stop(
                     Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                    , ((CoopGame)LocalGameInstance).MyExitStatus
-                    , ((CoopGame)LocalGameInstance).MyExitLocation
+                    , CoopGame.MyExitStatus
+                    , CoopGame.MyExitLocation
                     , 0);
                 return;
             }
@@ -451,9 +454,6 @@ namespace SIT.Core.Coop
             {
 
             }
-
-            
-
 
             if (ServerHasStopped && !ServerHasStoppedActioned)
             {
@@ -469,7 +469,7 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            var DateTimeStart = DateTime.Now;
+            //var DateTimeStart = DateTime.Now;
 
             //if (!PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode)
             //    HighPingMode = ServerPing > PING_LIMIT_HIGH && MatchmakerAcceptPatches.IsClient;
@@ -487,18 +487,22 @@ namespace SIT.Core.Coop
             if (Singleton<GameWorld>.Instance == null)
                 return;
 
-            if (ActionPackets.Count > 0)
-            {
-                Dictionary<string, object> result = null;
-                swActionPackets.Restart();
-                var actionPacketLimitationTime = 11;
-                while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
-                {
-                    ProcessLastActionDataPacket(result);
-                }
-                PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
+            if (RequestingObj == null)
+                return;
 
-            }
+            //if (ActionPackets.Count > 0)
+            //{
+            //    Dictionary<string, object> result = null;
+            //    swActionPackets.Restart();
+            //    var actionPacketLimitationTime = 11;
+            //    while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
+            //    {
+            //        ProcessLastActionDataPacket(result);
+            //        //Thread.Sleep(1);
+            //    }
+            //    PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
+
+            //}
 
             List<Dictionary<string, object>> playerStates = new();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
@@ -526,32 +530,31 @@ namespace SIT.Core.Coop
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
 
-                foreach (var regPlayer in Singleton<GameWorld>.Instance.RegisteredPlayers)
-                {
-                    var player = (EFT.Player)regPlayer;
-                    if (player == null)
-                        continue;
+                //foreach (var regPlayer in Singleton<GameWorld>.Instance.RegisteredPlayers)
+                //{
+                //    var player = (EFT.Player)regPlayer;
+                //    if (player == null)
+                //        continue;
 
-                    if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                        continue;
+                //    if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                //        continue;
 
-                    if (prc.IsClientDrone)
-                        continue;
+                //    if (prc.IsClientDrone)
+                //        continue;
 
-                    if (!player.enabled)
-                        continue;
+                //    if (!player.enabled)
+                //        continue;
 
-                    if (!player.isActiveAndEnabled)
-                        continue;
+                //    if (!player.isActiveAndEnabled)
+                //        continue;
 
-                    if (playerStates.Any(x => x.ContainsKey("profileId") && x["profileId"].ToString() == player.ProfileId))
-                        continue;
+                //    if (playerStates.Any(x => x.ContainsKey("profileId") && x["profileId"].ToString() == player.ProfileId))
+                //        continue;
 
-                    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
-                }
+                //    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
+                //}
 
-                if (RequestingObj == null)
-                    return;
+
 
                 //Logger.LogDebug(playerStates.SITToJson());
                 RequestingObj.SendListDataToPool(string.Empty, playerStates);
@@ -586,9 +589,9 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(0);
+            //MonoBehaviourSingleton<PreloaderUI>.Instance.SetBlackImageAlpha(0);
 
-            LateUpdateSpan = DateTime.Now - DateTimeStart;
+            //LateUpdateSpan = DateTime.Now - DateTimeStart;
         }
 
         #endregion
@@ -1102,11 +1105,11 @@ namespace SIT.Core.Coop
             }
 
             ProcessPlayerPacket(packet);
-            ProcessWorldPacket(packet);
+            ProcessWorldPacket(ref packet);
 
         }
 
-        private void ProcessWorldPacket(Dictionary<string, object> packet)
+        private void ProcessWorldPacket(ref Dictionary<string, object> packet)
         {
             if (packet.ContainsKey("profileId"))
                 return;
@@ -1121,7 +1124,7 @@ namespace SIT.Core.Coop
                 {
                     if (imrwp.MethodName == packet["m"].ToString())
                     {
-                        imrwp.Replicated(packet);
+                        imrwp.Replicated(ref packet);
                     }
                 }
             }
@@ -1180,7 +1183,7 @@ namespace SIT.Core.Coop
             }
 
             foreach (var plyr in
-                Players.ToArray()
+                Players
                 .Where(x => x.Key == profileId)
                 .Where(x => x.Value != null)
                 )

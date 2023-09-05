@@ -9,7 +9,7 @@ namespace SIT.Core.Coop
         public string MethodName { get; }
         public bool DisablePatch { get; }
 
-        public void Replicated(Dictionary<string, object> packet);
+        public void Replicated(ref Dictionary<string, object> packet);
 
     }
 }

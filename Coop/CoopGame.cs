@@ -304,9 +304,9 @@ namespace SIT.Core.Coop
                 }
 
 
-                GCHelpers.EnableGC();
-                //GCHelpers.Collect(true);
-                GCHelpers.DisableGC();
+                //GCHelpers.EnableGC();
+                ////GCHelpers.Collect(true);
+                //GCHelpers.DisableGC();
                 //GC.Collect(4, GCCollectionMode.Forced, false, false);
 
             }

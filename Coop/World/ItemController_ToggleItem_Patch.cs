@@ -59,7 +59,7 @@ namespace SIT.Core.Coop.World
             //Request.Instance.SendDataToPool(dictionary.ToJson());
         }
 
-        public void Replicated(Dictionary<string, object> packet)
+        public void Replicated(ref Dictionary<string, object> packet)
         {
             if (HasProcessed(packet))
                 return;
