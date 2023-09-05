@@ -788,6 +788,8 @@ namespace SIT.Core.Coop
                 GameObject.DestroyImmediate(component);
             }
 
+            CoopPatches.EnableDisablePatches();
+
             GCHelpers.DisableGC(true);
 
             if (MatchmakerAcceptPatches.IsServer)
