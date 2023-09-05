@@ -8,18 +8,26 @@
 * Update Airdrop Logic from Aki (still yet to be replicated)
 * Add DrakiaXYZ Waypoints solution back in (with Roaming AI enabled)
 * Add PMC AI Archetype (PMCRushSpawn) 
+* Add Chinese Localization for Match Hosting / Browsing system, thanks @w123456w30w
+* Add Japanese Localization for Match Hosting / Browsing system, thanks @debisuchan
 
 ## Fixes
 
 * Fix Item Movement Replication into Containers & Dead Bodies
 * Fix Ping Display & High Ping mode
 * Fix Coop Session was not ending after host leaves (therefore showing as still running on Browser)
+* Fix memory leak whilst "Waiting for Players" as a Host
+* Fix memory leak during long matches on large maps
+* Performance Improvements
+* Fix dual/double packet issue
+* Fix multiple Player Sync packets being sent
+* Divided ActionPacketHandlerComponent from CoopGameComponent improving frame performance
 
 ## Misc
 
 * Continue looking into performance improvements that can be made
 	* RAM gets eaten up if I leave Garbage Collection (GC) as normal (thanks to BSG and Unity)
-	* My own GC functions do affect performance but keep RAM usage fairly stable
+	* My own GC keeps RAM usage fairly stable
 	* There is a known issue of noticeable lag every few minutes or so
 
 ---
