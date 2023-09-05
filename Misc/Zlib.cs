@@ -1,6 +1,7 @@
 using ComponentAce.Compression.Libs.zlib;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SIT.Core.Misc
@@ -93,41 +94,45 @@ namespace SIT.Core.Misc
         /// </summary>
         public static byte[] Decompress(byte[] data)
         {
-            byte[] buffer = new byte[4096];
+            return Encoding.UTF8.GetBytes(Pooled9LevelZLib.DecompressNonAlloc(data, data.Length));
 
-            ZStream zs = new()
-            {
-                avail_in = data.Length,
-                next_in = data,
-                next_in_index = 0,
-                avail_out = buffer.Length,
-                next_out = buffer,
-                next_out_index = 0
-            };
+            //byte[] buffer = new byte[4096];
 
-            zs.inflateInit();
+            //ZStream zs = new()
+            //{
+            //    avail_in = data.Length,
+            //    next_in = data,
+            //    next_in_index = 0,
+            //    avail_out = buffer.Length,
+            //    next_out = buffer,
+            //    next_out_index = 0
+            //};
 
-            using (MemoryStream ms = new())
-            {
-                do
-                {
-                    zs.avail_out = buffer.Length;
-                    zs.next_out = buffer;
-                    zs.next_out_index = 0;
+            //zs.inflateInit();
 
-                    int result = zs.inflate(0);
+            //using (MemoryStream ms = new())
+            //{
+            //    do
+            //    {
+            //        zs.avail_out = buffer.Length;
+            //        zs.next_out = buffer;
+            //        zs.next_out_index = 0;
 
-                    if (result != 0 && result != 1)
-                    {
-                        break;
-                    }
+            //        int result = zs.inflate(0);
 
-                    ms.Write(zs.next_out, 0, zs.next_out_index);
-                }
-                while (zs.avail_in > 0 || zs.avail_out == 0);
+            //        if (result != 0 && result != 1)
+            //        {
+            //            break;
+            //        }
 
-                return ms.ToArray();
-            }
+            //        ms.Write(zs.next_out, 0, zs.next_out_index);
+            //    }
+            //    while (zs.avail_in > 0 || zs.avail_out == 0);
+
+            //    zs.free();
+            //    zs = null;
+            //    return ms.ToArray();
+            //}
         }
     }
 }
