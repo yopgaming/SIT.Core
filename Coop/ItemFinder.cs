@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Misc;
 using System;
 using System.Collections.Generic;
@@ -78,6 +79,27 @@ namespace SIT.Core.Coop
         {
             var inventoryController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController)).GetValue(player) as EFT.Player.PlayerInventoryController;
             return inventoryController;
+        }
+
+        public static bool TryFindItemController(string controllerId, out ItemController itemController)
+        {
+            // Find in World
+            itemController = Singleton<GameWorld>.Instance.FindControllerById(controllerId);
+            if (itemController != null)
+                return true;
+
+            // Find a Player
+            var coopGC = CoopGameComponent.GetCoopGameComponent();
+            if (coopGC == null) 
+                return false;
+
+            if (!coopGC.Players.ContainsKey(controllerId))
+                return false;
+
+            itemController = GetPlayerInventoryController(coopGC.Players[controllerId]);
+
+            return itemController != null;
+
         }
     }
 }

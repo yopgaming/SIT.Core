@@ -118,6 +118,10 @@
 		  <Private>False</Private>
     </Reference>
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Coop\Player\InventoryControllerPatches\" />
+  </ItemGroup>
  
   
 </Project>

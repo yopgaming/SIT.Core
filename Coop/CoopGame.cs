@@ -594,7 +594,7 @@ namespace SIT.Core.Coop
 
             // No longer need this ping. Load complete and all other data should keep happening after this point.
             StopCoroutine(ClientLoadingPinger());
-            GCHelpers.ClearGarbage(emptyTheSet: true, unloadAssets: false);
+            //GCHelpers.ClearGarbage(emptyTheSet: true, unloadAssets: false);
 
             // Add FreeCamController to GameWorld GameObject
             Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<FreeCameraController>();
@@ -788,6 +788,8 @@ namespace SIT.Core.Coop
                 component.RunAsyncTasks = false;
                 GameObject.DestroyImmediate(component);
             }
+
+            CoopPatches.EnableDisablePatches();
 
             GCHelpers.DisableGC(true);
 

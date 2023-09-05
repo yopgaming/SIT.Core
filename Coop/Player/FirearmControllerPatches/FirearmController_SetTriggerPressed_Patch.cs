@@ -6,6 +6,7 @@ using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -31,7 +32,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             LastPress.Clear();
         }
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static List<string> CallLocally = new();
 
         public static Dictionary<string, bool> LastPress = new();
 
@@ -56,7 +57,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 return false;
 
             var result = false;
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
                 result = true;
 
             return result;
@@ -73,9 +74,9 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (player == null)
                 return;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(player.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally = CallLocally.Where(x => x != player.ProfileId).ToList();
                 return;
             }
 
@@ -113,16 +114,16 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             if (!player.PlayerHealthController.IsAlive)
             {
-                if (player.HandsController is EFT.Player.FirearmController firearmCont)
+                if (player.HandsController is EFT.Player.FirearmController fc)
                 {
-                    firearmCont.SetTriggerPressed(false);
+                    fc.SetTriggerPressed(false);
                 }
                 return;
             }
 
-            var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            taskScheduler.Do((s) =>
-            {
+            //var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            //taskScheduler.Do((s) =>
+            //{
                 TriggerPressedPacket tpp = new(player.ProfileId);
 
                 //Logger.LogInfo("Pressed:Replicated");
@@ -137,10 +138,10 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                 if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                     return;
 
-                if (CallLocally.ContainsKey(player.Profile.AccountId))
+                if (CallLocally.Contains(player.ProfileId))
                     return;
 
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
 
                 bool pressed = tpp.pr; // bool.Parse(dict["pr"].ToString());
 
@@ -166,7 +167,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                         Logger.LogInfo(e);
                     }
                 }
-            });
+            //});
         }
 
         private IEnumerator SetTriggerPressedCR(EFT.Player player
@@ -175,12 +176,11 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         {
             while (!firearmCont.CanPressTrigger() && pressed)
             {
-                yield return new WaitForSeconds(1);
                 yield return new WaitForEndOfFrame();
             }
 
             firearmCont.SetTriggerPressed(pressed);
-
+            yield break;
         }
 
         public class TriggerPressedPacket : BasePlayerPacket
