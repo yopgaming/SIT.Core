@@ -118,6 +118,7 @@ namespace SIT.Coop.Core.Matchmaker
             {
                 { "serverId", profileId }
                 , { "settings", rs }
+                , { "expectedNumberOfPlayers", MatchmakerAcceptPatches.HostExpectedNumberOfPlayers }
             }));
             if (!string.IsNullOrEmpty(text))
             {
