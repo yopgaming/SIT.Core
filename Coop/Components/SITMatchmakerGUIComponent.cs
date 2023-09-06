@@ -274,8 +274,8 @@ namespace SIT.Core.Coop.Components
             }
 
             GUI.Label(new Rect(10, 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["SERVER"]);
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.55f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["PLAYERS"]);
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.7f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["LOCATION"]);
+            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.5f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["PLAYERS"]);
+            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.65f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["LOCATION"]);
             //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), 45, (windowInnerRect.width / 4), 25), "PING");
 
             if (m_Matches != null)
@@ -298,6 +298,12 @@ namespace SIT.Core.Coop.Components
                         {
                             Logger.LogDebug(returnedJson);
                             JObject result = JObject.Parse(returnedJson);
+
+                            if (!result.ContainsKey("ServerId"))
+                            {
+                                throw new ArgumentNullException("ServerId");
+                            }
+
                             var groupId = result["ServerId"].ToString();
                             MatchmakerAcceptPatches.SetGroupId(groupId);
                             MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
