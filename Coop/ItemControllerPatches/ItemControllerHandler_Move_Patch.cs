@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
@@ -22,6 +23,11 @@ namespace SIT.Core.Coop.ItemControllerPatches
         public static List<string> CallLocally = new();
 
         public static List<string> DisableForPlayer = new();
+
+        private ManualLogSource GetLogger()
+        {
+            return GetLogger(typeof(ItemControllerHandler_Move_Patch));
+        }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
@@ -141,8 +147,8 @@ namespace SIT.Core.Coop.ItemControllerPatches
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("ItemControllerHandler_Move_Patch.Replicated");
 
             var itemControllerId = packet["icId"].ToString();
-            GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"Item Controller Id: {itemControllerId}");
-            GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug($"Item Controller Current Id: {packet["icCId"]}");
+            GetLogger().LogDebug($"Item Controller Id: {itemControllerId}");
+            GetLogger().LogDebug($"Item Controller Current Id: {packet["icCId"]}");
 
 
 
@@ -152,16 +158,26 @@ namespace SIT.Core.Coop.ItemControllerPatches
             //var inventoryController = ItemFinder.GetPlayerInventoryController(player);
             //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("ItemControllerHandler_Move_Patch.Replicated." + inventoryController.GetType());
 
-            if (!ItemFinder.TryFindItem(packet["id"].ToString(), out Item item))
+            var itemId = packet["id"].ToString();
+            if (!ItemFinder.TryFindItem(itemId, out Item item))
             {
-                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError("Item not found!");
+                GetLogger().LogError("Item not found!");
                 return;
+            }
+
+            var lootItems = Singleton<GameWorld>.Instance.LootItems.Where(x => x.ItemId == itemId);
+            if (lootItems.Any())
+            {
+                foreach(var i in lootItems)
+                {
+                    i.Kill();
+                }
             }
 
             //GetGetLogger(typeof(ItemControllerHandler_Move_Patch))(typeof(ItemControllerHandler_Move_Patch)).LogInfo(item);
             if (CallLocally.Contains(itemControllerId))
             {
-                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"CallLocally already contains {itemControllerId}");
+                GetLogger().LogError($"CallLocally already contains {itemControllerId}");
                 return;
             }
 
@@ -171,7 +187,7 @@ namespace SIT.Core.Coop.ItemControllerPatches
             {
                 if (packet.ContainsKey("grad"))
                 {
-                    GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug(packet["grad"].ToString());
+                    GetLogger().LogDebug(packet["grad"].ToString());
 
                     GridItemAddressDescriptor gridItemAddressDescriptor = packet["grad"].ToString().SITParseJson<GridItemAddressDescriptor>();
                     if (!ItemFinder.TryFindItemController(gridItemAddressDescriptor.Container.ParentId, out var itemController))
@@ -184,6 +200,25 @@ namespace SIT.Core.Coop.ItemControllerPatches
                     }
 
                     ItemMovementHandler.Move(item, itemController.ToItemAddress(gridItemAddressDescriptor), itemController, false, true);
+                }
+
+                if (packet.ContainsKey("sitad"))
+                {
+                    //GetLogger().LogError("sitad has not been handled!");
+                    GetLogger().LogInfo(packet["sitad"].ToString());
+
+                    SlotItemAddressDescriptor slotItemAddressDescriptor = packet["sitad"].ToString().SITParseJson<SlotItemAddressDescriptor>();
+
+                    if (!ItemFinder.TryFindItemController(slotItemAddressDescriptor.Container.ParentId, out var itemController))
+                    {
+                        if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
+                        {
+                            GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError("Unable to find ItemController");
+                            return;
+                        }
+                    }
+
+                    ItemMovementHandler.Move(item, itemController.ToItemAddress(slotItemAddressDescriptor), itemController, false, true);
                 }
 
             }
