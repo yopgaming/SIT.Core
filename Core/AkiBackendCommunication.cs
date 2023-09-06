@@ -111,8 +111,12 @@ namespace SIT.Core.Core
             PooledJsonToPostToUrl.Add(new KeyValuePair<string, string>("/coop/connect", "{}"));
         }
 
+        private Profile MyProfile { get; set; }
+
         public void WebSocketCreate(Profile profile)
         {
+            MyProfile = profile;
+
             Logger.LogDebug("WebSocketCreate");
             if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
             {
@@ -178,8 +182,11 @@ namespace SIT.Core.Core
 
         private void WebSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            Logger.LogError($"WebSocket_OnError: {e.Message} {Environment.NewLine}");
+            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Message} {Environment.NewLine}");
+            Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Exception}");
             WebSocket_OnError();
+            WebSocketClose();
+            WebSocketCreate(MyProfile);
         }
 
         private void WebSocket_OnError()
@@ -198,130 +205,155 @@ namespace SIT.Core.Core
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
-            if (e.Data == null)
-                return;
-
-            if (string.IsNullOrEmpty(e.Data))
-                return;
-
-            Dictionary<string, object> packet = null;
-            if (e.Data != null)
+            try
             {
+                //Logger.LogInfo($"Step.0. WebSocket_OnMessage");
+
+
+                if (sender == null)
+                    return;
+
+                if (e == null)
+                    return;
+
+                if (string.IsNullOrEmpty(e.Data))
+                    return;
+
+                if (e.RawData == null)
+                    return;
+
+                if (e.RawData.Length == 0)
+                    return;
+
+                Dictionary<string, object> packet = null;
                 if (e.Data.IndexOf("{") > 0)
                     return;
 
                 if (!e.Data.EndsWith("}"))
                     return;
-            }
 
-            if (DEBUGPACKETS)
-            {
-                Logger.LogInfo(e.Data);
+                if (DEBUGPACKETS)
+                {
+                    Logger.LogInfo(e.Data);
 
-                try
-                {
-                    packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(e.Data);
-                    Logger.LogError(ex);
-                }
-            }
-            else
-            {
-                using (var streamReader = new StreamReader(new MemoryStream(e.RawData)))
-                {
-                    using (var reader = new JsonTextReader(streamReader))
+                    try
                     {
-                        var serializer = new JsonSerializer();
-                        packet = serializer.Deserialize<Dictionary<string, object>>(reader);
+                        packet = JsonConvert.DeserializeObject<Dictionary<string, object>>(e.Data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(e.Data);
+                        Logger.LogError(ex);
                     }
                 }
-            }
+                else
+                {
+                    using (var streamReader = new StreamReader(new MemoryStream(e.RawData)))
+                    {
+                        using (var reader = new JsonTextReader(streamReader))
+                        {
+                            var serializer = new JsonSerializer();
+                            packet = serializer.Deserialize<Dictionary<string, object>>(reader);
+                        }
+                    }
+                }
 
 
-            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
-                return;
-
-
-            // -------------------------------------------------------
-            // WARNING: This can cause Unity crash (different threads) but would be ideal >> FAST << sync logic! If it worked!
-            // coopGameComponent.ReadFromServerLastActionsParseData(packet);
-            // -------------------------------------------------------
-
-            // If this is a pong packet, resolve and create a smooth ping
-            if (packet.ContainsKey("pong"))
-            {
-                var pongRaw = long.Parse(packet["pong"].ToString());
-                var dtPong = new DateTime(pongRaw);
-                var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
-                if (coopGameComponent.ServerPingSmooth.Count > 60)
-                    coopGameComponent.ServerPingSmooth.TryDequeue(out _);
-                coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
-                coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
-                return;
-            }
-
-            if (packet.ContainsKey("HostPing"))
-            {
-                var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
-                var timeSpanOfHostToMe = DateTime.Now - dtHP;
-                Instance.HostPing = timeSpanOfHostToMe.Milliseconds;
-            }
-
-            // Syncronize RaidTimer
-            if (packet.ContainsKey("RaidTimer"))
-            {
-                var tsRaidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
-
-                //if(coopGameComponent.LocalGameInstance is CoopGame)
-                //{
-                //    coopGameComponent.LocalGameInstance.GameTimer.ChangeSessionTime(tsRaidTimer);
-                //}
-                return;
-            }
-
-            // If this is an endSession packet, end the session for the clients
-            if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
-            {
-                Logger.LogDebug("Received EndSession from Server. Ending Game.");
-                if (coopGameComponent.LocalGameInstance == null)
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     return;
 
-                coopGameComponent.ServerHasStopped = true;
-                //coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
-                return;
-            }
+                if (coopGameComponent == null)
+                    return;
 
-            // If this is a SIT serialization packet
-            if (packet.ContainsKey("data") && packet.ContainsKey("m"))
-            {
-                //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
-                //Logger.LogInfo(" ==================SIT Packet============= ");
-                //Logger.LogInfo(packet.ToJson());
-                //Logger.LogInfo(" ========================================= ");
-                //if (!packet.ContainsKey("accountId"))
-                if (!packet.ContainsKey("profileId"))
+                if (packet == null)
+                    return;
+
+                //Logger.LogInfo($"Step.1. Packet exists. {packet.ToJson()}");
+
+                // If this is a pong packet, resolve and create a smooth ping
+                if (packet.ContainsKey("pong"))
                 {
-                    packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
+                    var pongRaw = long.Parse(packet["pong"].ToString());
+                    var dtPong = new DateTime(pongRaw);
+                    var serverPing = (int)(DateTime.UtcNow - dtPong).TotalMilliseconds;
+                    if (coopGameComponent.ServerPingSmooth.Count > 60)
+                        coopGameComponent.ServerPingSmooth.TryDequeue(out _);
+                    coopGameComponent.ServerPingSmooth.Enqueue(serverPing);
+                    coopGameComponent.ServerPing = coopGameComponent.ServerPingSmooth.Count > 0 ? (int)Math.Round(coopGameComponent.ServerPingSmooth.Average()) : 1;
+                    return;
                 }
+
+                if (packet.ContainsKey("HostPing"))
+                {
+                    var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
+                    var timeSpanOfHostToMe = DateTime.Now - dtHP;
+                    HostPing = (int)Math.Round(timeSpanOfHostToMe.TotalMilliseconds);
+                }
+
+                // Syncronize RaidTimer
+                if (packet.ContainsKey("RaidTimer"))
+                {
+                    var tsRaidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
+
+                    //if(coopGameComponent.LocalGameInstance is CoopGame)
+                    //{
+                    //    coopGameComponent.LocalGameInstance.GameTimer.ChangeSessionTime(tsRaidTimer);
+                    //}
+                    return;
+                }
+
+                // If this is an endSession packet, end the session for the clients
+                if (packet.ContainsKey("endSession") && MatchmakerAcceptPatches.IsClient)
+                {
+                    Logger.LogDebug("Received EndSession from Server. Ending Game.");
+                    if (coopGameComponent.LocalGameInstance == null)
+                        return;
+
+                    coopGameComponent.ServerHasStopped = true;
+                    //coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
+                    return;
+                }
+
+                // If this is a SIT serialization packet
+                if (packet.ContainsKey("data") && packet.ContainsKey("m"))
+                {
+                    var data = packet["data"];
+                    if (data == null)
+                        return;
+                    //Logger.LogInfo(" =============WebSocket_OnMessage========= ");
+                    //Logger.LogInfo(" ==================SIT Packet============= ");
+                    //Logger.LogInfo(packet.ToJson());
+                    //Logger.LogInfo(" ========================================= ");
+                    //if (!packet.ContainsKey("accountId"))
+                    if (!packet.ContainsKey("profileId"))
+                    {
+                        packet.Add("profileId", packet["data"].ToString().Split(',')[0]);
+                    }
+                }
+
+                // -------------------------------------------------------
+                // Check the packet doesn't already exist in Coop Game Component Action Packets
+                //if (
+                //    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
+                //    coopGameComponent.ActionPackets.Contains(packet)
+                //    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
+                //    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
+                //    )
+                //    return;
+
+                //Logger.LogInfo($"Step.2. Packet process. {packet.ToJson()}");
+                // -------------------------------------------------------
+                // Add to the Coop Game Component Action Packets
+                if (coopGameComponent == null || coopGameComponent.ActionPackets == null)
+                    return;
+
+                coopGameComponent.ActionPackets.TryAdd(packet);
+
             }
-
-            // -------------------------------------------------------
-            // Check the packet doesn't already exist in Coop Game Component Action Packets
-            //if (
-            //    // Quick Check -> This would likely not work because Contains uses Equals which doesn't work very well with Dictionary
-            //    coopGameComponent.ActionPackets.Contains(packet)
-            //    // Timestamp Check -> This would only work on the Dictionary (not the SIT serialization) packet
-            //    || coopGameComponent.ActionPackets.Any(x => packet.ContainsKey("t") && x.ContainsKey("t") && x["t"].ToString() == packet["t"].ToString())
-            //    )
-            //    return;
-
-            //Logger.LogInfo(packet.ToJson());
-            // -------------------------------------------------------
-            // Add to the Coop Game Component Action Packets
-            coopGameComponent.ActionPackets.TryAdd(packet);
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+            }
 
         }
 
