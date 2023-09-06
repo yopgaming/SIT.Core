@@ -26,7 +26,7 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-
+            Logger.LogInfo("Replicated");
         }
 
         [PatchPrefix]
@@ -39,12 +39,12 @@ namespace SIT.Core.Coop.Player
             Log.LogDebug(location.ToJson());
             var player = __instance;
             var profileId = player.ProfileId;
-            if(!added)
-            {
+            //if(!added)
+            //{
                 OnItemAddedOrRemovedPacket itemAddedOrRemovedPacket
                     = new OnItemAddedOrRemovedPacket(profileId, item.Id, item.TemplateId, location.GetType().FullName, location.ToJson(), added);
                 AkiBackendCommunication.Instance.SendDataToPool(itemAddedOrRemovedPacket.Serialize());
-            }
+            //}
 
             return true;
         }

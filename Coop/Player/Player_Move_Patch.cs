@@ -74,7 +74,6 @@ namespace SIT.Core.Coop.Player
             if (prc.IsClientDrone)
                 return;
 
-
             PlayerMovePacket playerMovePacket = new(player.ProfileId);
             playerMovePacket.ProfileId = player.ProfileId;
             playerMovePacket.pX = player.Position.x;
@@ -87,6 +86,9 @@ namespace SIT.Core.Coop.Player
             playerMovePacket.spd = player.MovementContext.CharacterMovementSpeed;
             
             var serialized = playerMovePacket.Serialize();
+            if (serialized == null)
+                return;
+
             if (!PlayerMovePackets.ContainsKey(player.ProfileId))
             {
                 PlayerMovePackets.Add(player.ProfileId, playerMovePacket);
