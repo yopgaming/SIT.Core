@@ -64,7 +64,7 @@ namespace SIT.Core.Coop
             get
             {
                 if (WeatherController.Instance != null)
-                    return WeatherController.Instance.WeatherCurve;
+                    return new WeatherCurve(new WeatherClass[1] { new WeatherClass() });
 
                 return null;
             }
@@ -129,6 +129,7 @@ namespace SIT.Core.Coop
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
             //GCHelpers.EnableGC();
+            coopGame.timeAndWeatherSettings = timeAndWeather;
 
             return coopGame;
         }
@@ -235,6 +236,69 @@ namespace SIT.Core.Coop
             }
         }
 
+        private WeatherDebug WeatherClear { get; set; } = new WeatherDebug()
+        {
+            Enabled = true,
+            CloudDensity = -0.7f,
+            Fog = 0,
+            LightningThunderProbability = 0,
+            MBOITFog = false,
+            Rain = 0,
+            ScatterGreyscale = 0,
+            Temperature = 24,
+            WindMagnitude = 0,
+            WindDirection = WeatherDebug.Direction.North,
+            TopWindDirection = Vector2.up
+        };
+
+        private WeatherDebug WeatherSlightCloud { get; } = new WeatherDebug()
+        {
+            Enabled = true,
+            CloudDensity = -0.35f,
+            Fog = 0.004f,
+            LightningThunderProbability = 0,
+            MBOITFog = false,
+            Rain = 0,
+            ScatterGreyscale = 0,
+            Temperature = 24,
+            WindDirection = WeatherDebug.Direction.North,
+            WindMagnitude = 0.02f,
+            TopWindDirection = Vector2.up
+        };
+
+        private WeatherDebug WeatherCloud { get; } = new WeatherDebug()
+        {
+            Enabled = true,
+            CloudDensity = 0f,
+            Fog = 0.01f,
+            LightningThunderProbability = 0,
+            MBOITFog = false,
+            Rain = 0,
+            ScatterGreyscale = 0,
+            Temperature = 20,
+            WindDirection = WeatherDebug.Direction.North,
+            WindMagnitude = 0.02f,
+            TopWindDirection = Vector2.up
+        };
+
+        private WeatherDebug WeatherRainDrizzle { get; } = new WeatherDebug()
+        {
+            Enabled = true,
+            CloudDensity = 0f,
+            Fog = 0.01f,
+            LightningThunderProbability = 0,
+            MBOITFog = false,
+            Rain = 0.01f,
+            ScatterGreyscale = 0,
+            Temperature = 19,
+            WindDirection = WeatherDebug.Direction.North,
+            WindMagnitude = 0.02f,
+            TopWindDirection = Vector2.up
+        };
+
+        private TimeAndWeatherSettings timeAndWeatherSettings { get; set; }
+
+
         public IEnumerator ReplicatedWeather()
         {
             var waitSeconds = new WaitForSeconds(15f);
@@ -243,7 +307,21 @@ namespace SIT.Core.Coop
             {
                 yield return waitSeconds;
                 if (WeatherController.Instance != null)
+                {
                     WeatherController.Instance.SetWeatherForce(new WeatherClass() { });
+
+                    WeatherController.Instance.WeatherDebug.Enabled = true;
+                    WeatherController.Instance.WeatherDebug.CloudDensity = -0.35f;
+                    WeatherController.Instance.WeatherDebug.Fog = 0;
+                    WeatherController.Instance.WeatherDebug.LightningThunderProbability = 0;
+                    WeatherController.Instance.WeatherDebug.MBOITFog = false;
+                    WeatherController.Instance.WeatherDebug.Rain = 0;
+                    WeatherController.Instance.WeatherDebug.ScatterGreyscale = 0;
+                    WeatherController.Instance.WeatherDebug.Temperature = 24;
+                    WeatherController.Instance.WeatherDebug.WindDirection = WeatherDebug.Direction.North;
+                    WeatherController.Instance.WeatherDebug.TopWindDirection = Vector2.up;
+                    //WeatherController.Instance.WeatherDebug.SetHour(12);
+                }
             }
         }
 
