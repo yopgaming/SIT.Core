@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using DrakiaXYZ.BigBrain.Brains;
-using DrakiaXYZ.Waypoints.BrainLogic;
 using EFT;
 using UnityEngine;
 

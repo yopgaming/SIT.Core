@@ -3,11 +3,11 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using Comfort.Common;
 using DrakiaXYZ.BigBrain.Brains;
-using DrakiaXYZ.Waypoints.BrainLogic;
 using EFT;
 using EFT.Communications;
 using EFT.UI;
 using Newtonsoft.Json;
+using SIT.Core.AI.PMCLogic.Roaming;
 using SIT.Core.AI.PMCLogic.RushSpawn;
 using SIT.Core.AkiSupport.Airdrops;
 using SIT.Core.AkiSupport.Custom;
@@ -233,7 +233,7 @@ namespace SIT.Core
             new DisableScavModePatch().Enable();
 
             //// --------- Airdrop -----------------------
-            new AirdropPatch().Enable();
+            //new AirdropPatch().Enable();
 
             //// --------- Screens ----------------
             EnableSPPatches_Screens(Config);
@@ -327,6 +327,7 @@ namespace SIT.Core
             new BotCreatorTeleportPMCPatch().Enable();
 
 
+            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "PMC" }, 2);
             BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 

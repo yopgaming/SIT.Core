@@ -6,6 +6,7 @@ using SIT.Core.AkiSupport.Airdrops.Models;
 using SIT.Core.AkiSupport.Airdrops.Utils;
 using SIT.Core.AkiSupport.Airdrops;
 using UnityEngine;
+using BepInEx.Logging;
 
 namespace Aki.Custom.Airdrops
 {
@@ -17,10 +18,12 @@ namespace Aki.Custom.Airdrops
 
         public bool isFlareDrop;
         private AirdropParametersModel airdropParameters;
+        private ManualLogSource Logger { get; set; }
 
         public async void Start()
         {
             var gameWorld = Singleton<GameWorld>.Instance;
+            Logger = BepInEx.Logging.Logger.CreateLogSource("AirdropsManager");
 
             if (gameWorld == null)
             {
@@ -47,7 +50,7 @@ namespace Aki.Custom.Airdrops
             }
             catch
             {
-                Debug.LogError("[AKI-AIRDROPS]: Unable to create plane or crate, airdrop won't occur");
+                Logger.LogError("[AKI-AIRDROPS]: Unable to create plane or crate, airdrop won't occur");
                 Destroy(this);
                 throw;
             }

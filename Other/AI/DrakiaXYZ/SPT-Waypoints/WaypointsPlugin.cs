@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using DrakiaXYZ.BigBrain.Brains;
-using DrakiaXYZ.Waypoints.BrainLogic;
 using DrakiaXYZ.Waypoints.Helpers;
 using DrakiaXYZ.Waypoints.Patches;
 using System;
