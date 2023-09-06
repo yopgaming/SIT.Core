@@ -20,27 +20,31 @@ namespace SIT.Core.Coop
         {
         }
 
+        public override void SubtractFromDiscardLimits(Item rootItem, IEnumerable<ItemsCount> destroyedItems)
+        {
+        }
+
         protected override void Execute(SearchContentOperation operation, Callback callback)
         {
-            BepInLogger.LogInfo($"CoopInventoryController: {operation}");
+            //BepInLogger.LogInfo($"CoopInventoryController: {operation}");
             base.Execute(operation, callback);
         }
 
         public override Task<IResult> LoadMagazine(BulletClass sourceAmmo, MagazineClass magazine, int loadCount, bool ignoreRestrictions)
         {
-            BepInLogger.LogInfo("LoadMagazine");
+            //BepInLogger.LogInfo("LoadMagazine");
             return base.LoadMagazine(sourceAmmo, magazine, loadCount, ignoreRestrictions);
         }
 
         public override Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            BepInLogger.LogInfo("UnloadMagazine");
+            //BepInLogger.LogInfo("UnloadMagazine");
             return base.UnloadMagazine(magazine);
         }
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
         {
-            BepInLogger.LogInfo("ThrowItem");
+            //BepInLogger.LogInfo("ThrowItem");
             destroyedItems = new List<ItemsCount>();
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
