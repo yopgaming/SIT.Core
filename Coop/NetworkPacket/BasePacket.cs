@@ -68,6 +68,16 @@ namespace SIT.Core.Coop.NetworkPacket
 
         public virtual string Serialize()
         {
+            if (string.IsNullOrEmpty(ServerId))
+            {
+                throw new ArgumentNullException(nameof(ServerId));
+            }
+
+            if (string.IsNullOrEmpty(Method))
+            {
+                throw new ArgumentNullException(nameof(Method));
+            }
+
             using BinaryWriter binaryWriter = new(new MemoryStream());
             binaryWriter.WriteNonPrefixedString("SIT"); // 3
             binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
@@ -84,6 +94,12 @@ namespace SIT.Core.Coop.NetworkPacket
                     binaryWriter.WriteNonPrefixedString(",");
             }
             return Encoding.UTF8.GetString(((MemoryStream)binaryWriter.BaseStream).ToArray());
+        }
+
+        public virtual byte[] SerializeCompressed()
+        {
+            var str = $"SITC{Serialize()}";
+            return Zlib.Compress(Encoding.UTF8.GetBytes(str), ZlibCompression.Normal);
         }
 
         public virtual ISITPacket Deserialize(byte[] bytes)
