@@ -124,6 +124,7 @@ start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -con
 - SPT-Aki Modding Community
 - DrakiaXYZ ([BigBrain](https://github.com/DrakiaXYZ/SPT-BigBrain))
 - Dvize ([NoBushESP](https://github.com/dvize/NoBushESP))
+- SIT Contributors
 
 ## License
 
