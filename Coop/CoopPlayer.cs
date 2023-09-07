@@ -2,6 +2,7 @@
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
+using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop.Player;
@@ -40,9 +41,13 @@ namespace SIT.Core.Coop
             CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(ResourceBundleConstants.PLAYER_BUNDLE_NAME, playerId, position, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, prefix, aiControl);
             localPlayer.IsYourPlayer = isYourPlayer;
             //SinglePlayerInventoryController inventoryController = new SinglePlayerInventoryController(localPlayer, profile);
-            InventoryController inventoryController = isYourPlayer
-                ? new SinglePlayerInventoryController(localPlayer, profile)
-                : new CoopInventoryController(localPlayer, profile, true);
+            //InventoryController inventoryController = isYourPlayer
+            //    ? new SinglePlayerInventoryController(localPlayer, profile)
+            //    : new CoopInventoryController(localPlayer, profile, true);
+
+            InventoryController inventoryController = isYourPlayer && !isClientDrone 
+                ? new CoopInventoryController(localPlayer, profile, true) 
+                : new CoopInventoryControllerForClientDrone(localPlayer, profile, true);
 
             if (questController == null && isYourPlayer)
             {
@@ -103,11 +108,18 @@ namespace SIT.Core.Coop
                 ))
                 return;
 
-
             PreviousDamageInfos.Add(damageInfo);
             //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
-            _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+
+            if(CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                // If we are not using the Client Side Damage, then only run this on the server
+                if(MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)               
+                    _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+                else
+                    _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+            }
         }
 
         private async Task SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
@@ -167,7 +179,6 @@ namespace SIT.Core.Coop
         }
 
 
-
         protected override void OnSkillLevelChanged(AbstractSkill skill)
         {
             base.OnSkillLevelChanged(skill);
@@ -205,7 +216,7 @@ namespace SIT.Core.Coop
 
         public override void OnItemAddedOrRemoved(Item item, ItemAddress location, bool added)
         {
-            BepInLogger.LogDebug("OnItemAddedOrRemoved");
+            //BepInLogger.LogDebug("OnItemAddedOrRemoved");
             base.OnItemAddedOrRemoved(item, location, added);
         }
     }
