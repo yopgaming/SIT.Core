@@ -129,7 +129,7 @@ namespace SIT.Core.Coop
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
             //GCHelpers.EnableGC();
-            coopGame.timeAndWeatherSettings = timeAndWeather;
+            //coopGame.timeAndWeatherSettings = timeAndWeather;
 
             return coopGame;
         }
@@ -296,12 +296,13 @@ namespace SIT.Core.Coop
             TopWindDirection = Vector2.up
         };
 
-        private TimeAndWeatherSettings timeAndWeatherSettings { get; set; }
+        //private TimeAndWeatherSettings timeAndWeatherSettings { get; set; }
 
 
         public IEnumerator ReplicatedWeather()
         {
             var waitSeconds = new WaitForSeconds(15f);
+            //Logger.LogDebug($"ReplicatedWeather:timeAndWeatherSettings:HourOfDay:{timeAndWeatherSettings.HourOfDay}");
 
             while (true)
             {
@@ -309,6 +310,12 @@ namespace SIT.Core.Coop
                 if (WeatherController.Instance != null)
                 {
                     WeatherController.Instance.SetWeatherForce(new WeatherClass() { });
+
+                    Logger.LogDebug($"ReplicatedWeather:EscapeDateTime:{GameTimer.EscapeDateTime}");
+                    Logger.LogDebug($"ReplicatedWeather:PastTime:{GameTimer.PastTime}");
+                    Logger.LogDebug($"ReplicatedWeather:SessionTime:{GameTimer.SessionTime}");
+                    Logger.LogDebug($"ReplicatedWeather:StartDateTime:{GameTimer.StartDateTime}");
+
 
                     WeatherController.Instance.WeatherDebug.Enabled = true;
                     WeatherController.Instance.WeatherDebug.CloudDensity = -0.35f;
@@ -320,7 +327,21 @@ namespace SIT.Core.Coop
                     WeatherController.Instance.WeatherDebug.Temperature = 24;
                     WeatherController.Instance.WeatherDebug.WindDirection = WeatherDebug.Direction.North;
                     WeatherController.Instance.WeatherDebug.TopWindDirection = Vector2.up;
-                    //WeatherController.Instance.WeatherDebug.SetHour(12);
+
+                    // ----------------------------------------------------------------------------------
+                    // Create synchronized time
+
+                    //var hourOfDay = WeatherController.Instance.
+
+                    //WeatherController.Instance.WeatherDebug.SetHour(
+                    //    timeAndWeatherSettings.HourOfDay >= 6 && timeAndWeatherSettings.HourOfDay <= 8
+                    //    ? 7
+                    //    : timeAndWeatherSettings.HourOfDay >= 9 && timeAndWeatherSettings.HourOfDay <= 18
+                    //    ? 12
+                    //    : timeAndWeatherSettings.HourOfDay >= 19 && timeAndWeatherSettings.HourOfDay <= 21
+                    //    ? 20
+                    //    : 3
+                    //    );
                 }
             }
         }

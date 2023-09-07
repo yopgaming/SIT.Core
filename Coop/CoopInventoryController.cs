@@ -2,15 +2,21 @@
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using SIT.Core.Coop.ItemControllerPatches;
+using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SIT.Core.Coop
 {
     internal class CoopInventoryController
-        : EFT.Player.PlayerInventoryController
+        : EFT.Player.PlayerInventoryController, ICoopInventoryController
     {
         ManualLogSource BepInLogger { get; set; }
+
+        public HashSet<string> AlreadySent = new();
+
 
         public CoopInventoryController(EFT.Player player, Profile profile, bool examined) : base(player, profile, examined)
         {
@@ -39,8 +45,25 @@ namespace SIT.Core.Coop
 
         public override Task<IResult> UnloadMagazine(MagazineClass magazine)
         {
-            //BepInLogger.LogInfo("UnloadMagazine");
-            return base.UnloadMagazine(magazine);
+            Task<IResult> result;
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Add(Profile.ProfileId);
+
+            BepInLogger.LogInfo("UnloadMagazine");
+            UnloadMagazinePacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId);
+            var serialized = unloadMagazinePacket.Serialize();
+
+            if (AlreadySent.Contains(serialized))
+            {
+                result = base.UnloadMagazine(magazine);
+                ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
+            }
+
+            AlreadySent.Add(serialized);
+
+            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            result = base.UnloadMagazine(magazine);
+            ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
+            return result;
         }
 
         public override void ThrowItem(Item item, IEnumerable<ItemsCount> destroyedItems, Callback callback = null, bool downDirection = false)
@@ -49,5 +72,23 @@ namespace SIT.Core.Coop
             destroyedItems = new List<ItemsCount>();
             base.ThrowItem(item, destroyedItems, callback, downDirection);
         }
+
+        public void ReceiveUnloadMagazineFromServer(UnloadMagazinePacket unloadMagazinePacket)
+        {
+            BepInLogger.LogInfo("ReceiveUnloadMagazineFromServer");
+            if (ItemFinder.TryFindItem(unloadMagazinePacket.MagazineId, out Item magazine))
+            {
+                ItemControllerHandler_Move_Patch.DisableForPlayer.Add(unloadMagazinePacket.ProfileId);
+                base.UnloadMagazine((MagazineClass)magazine);
+                ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(unloadMagazinePacket.ProfileId);
+
+            }
+        }
+    }
+
+
+    public interface ICoopInventoryController
+    {
+        public void ReceiveUnloadMagazineFromServer(UnloadMagazinePacket unloadMagazinePacket);
     }
 }

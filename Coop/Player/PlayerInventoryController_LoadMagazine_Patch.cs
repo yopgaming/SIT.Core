@@ -21,6 +21,8 @@ namespace SIT.Core.Coop.Player
 
         public static HashSet<string> CallLocally = new();
 
+        public static HashSet<string> AlreadySent = new();
+
         public ManualLogSource GetLogger()
         {
             return GetLogger(typeof(PlayerInventoryController_LoadMagazine_Patch));
@@ -30,6 +32,13 @@ namespace SIT.Core.Coop.Player
         {
             var method = ReflectionHelpers.GetMethodForType(InstanceType, "LoadMagazine", false, true);
             return method;
+        }
+
+        public override void Enable()
+        {
+            base.Enable();
+
+            AlreadySent.Clear();
         }
 
         [PatchPrefix]
@@ -46,7 +55,7 @@ namespace SIT.Core.Coop.Player
             if (CallLocally.Contains(___profile_0.ProfileId))
                 result = true;
 
-            __result = new Task<IResult>(() => { return null; });
+            //__result = new Task<IResult>(() => { return null; });
             return result;
         }
 
@@ -72,14 +81,19 @@ namespace SIT.Core.Coop.Player
 
             var serialized = itemPacket.Serialize();
             //Logger.LogInfo(serialized);
+
+            if(AlreadySent.Contains(serialized))
+                return;
+
+            AlreadySent.Add(serialized);
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            taskScheduler.Do((s) =>
-            {
+            //var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            //taskScheduler.Do((s) =>
+            //{
                 //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated");
 
                 LoadMagazinePacket itemPacket = new(null, null, null, null, null, 0, false);
@@ -125,7 +139,7 @@ namespace SIT.Core.Coop.Player
                     GetLogger().LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.SourceAmmoId}");
                 }
 
-            });
+            //});
 
         }
 

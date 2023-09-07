@@ -22,6 +22,8 @@ namespace SIT.Core.Coop.Player
 
         public static List<string> CallLocally = new();
 
+        public static HashSet<string> AlreadySent = new();
+
         private ManualLogSource GetLogger()
         {
             return GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch));
@@ -34,40 +36,9 @@ namespace SIT.Core.Coop.Player
         }
 
         [PatchPrefix]
-        public static bool PrePatch(
-            object __instance
-            , ref Task<IResult> __result
-            , MagazineClass magazine
-            , Profile ___profile_0
-            )
+        public static bool PrePatch()
         {
-            //Logger.LogInfo("PlayerInventoryController_UnloadMagazine:PrePatch");
-            var result = false;
-
-            if (CallLocally.Contains(___profile_0.Id))
-                result = true;
-
-            __result = new Task<IResult>(() => { return null; });
-            return result;
-        }
-
-        [PatchPostfix]
-        public static void PostPatch(
-            ItemController __instance
-            , MagazineClass magazine
-            , Profile ___profile_0)
-        {
-            //Logger.LogInfo("PlayerInventoryController_UnloadMagazine:PostPatch");
-
-            if (CallLocally.Contains(___profile_0.Id))
-            {
-                CallLocally.Remove(___profile_0.Id);
-                return;
-            }
-
-            UnloadMagazinePacket unloadMagazinePacket = new(___profile_0.ProfileId, magazine.Id, magazine.TemplateId);
-            var serialized = unloadMagazinePacket.Serialize();
-            AkiBackendCommunication.Instance.SendDataToPool(serialized);
+            return true;
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
@@ -89,53 +60,45 @@ namespace SIT.Core.Coop.Player
             //if (HasProcessed(GetType(), player, itemPacket))
             //    return;
 
-            var fieldInfoInvController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController));
-            if (fieldInfoInvController != null)
+            if (!ItemFinder.TryFindItemController(player.ProfileId, out var itemController))
             {
-                var invController = (InventoryController)fieldInfoInvController.GetValue(player);
-                if (invController != null)
-                {
-                    if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
-                    {
-                        CallLocally.Add(player.ProfileId);
-                        //GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogDebug($"Replicated. Calling UnloadMagazine ({magazine.Id})");
-                        invController.UnloadMagazine((MagazineClass)magazine);
-                    }
-                    else
-                    {
-                        GetLogger().LogError($"PlayerInventoryController_UnloadMagazine.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
-                    }
+                GetLogger().LogError("Unable to find itemController");
+                return;
+            }
 
-                }
-                else
-                {
-                    GetLogger().LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller object");
-                }
+            var inventoryController = itemController as ICoopInventoryController;
+            if (inventoryController != null)
+            {
+
+                inventoryController.ReceiveUnloadMagazineFromServer(itemPacket);
+                //    if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
+                //    {
+                //        ItemControllerHandler_Move_Patch.DisableForPlayer.Add(player.ProfileId);
+
+                //        CallLocally.Add(player.ProfileId);
+                //        //GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogDebug($"Replicated. Calling UnloadMagazine ({magazine.Id})");
+                //        inventoryController.ReceiveUnloadMagazineFromServer((MagazineClass)magazine);
+
+                //        ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(player.ProfileId);
+
+                //    }
+                //    else
+                //    {
+                //        GetLogger().LogError($"PlayerInventoryController_UnloadMagazine.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
+                //    }
+
+                //}
+                //else
+                //{
+                //    GetLogger().LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller object");
+                //}
             }
             else
             {
-                GetLogger().LogError("Replicated. Unable to find Inventory Controller");
+                GetLogger().LogError("Replicated. Unable to find Inventory Controller object");
             }
 
         }
-
-        public class UnloadMagazinePacket : BasePlayerPacket
-        {
-            public string MagazineId { get; set; }
-            public string MagazineTemplateId { get; set; }
-
-            public UnloadMagazinePacket(
-                string profileId
-                , string magazineId
-                , string magazineTemplateId
-                )
-                : base(profileId, "PlayerInventoryController_UnloadMagazine")
-            {
-                this.MagazineId = magazineId;
-                this.MagazineTemplateId = magazineTemplateId;
-            }
-        }
-
 
     }
 }
