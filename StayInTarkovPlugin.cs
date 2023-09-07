@@ -98,38 +98,33 @@ namespace SIT.Core
                     {
                         case "zh_TW":
                             stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("TraditionalChinese.json")));
-                            sr = new StreamReader(stream);
-                            str = sr.ReadToEnd();
-
-                            resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
                             break;
                         case "zh_CN":
                         default:
                             stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("SimplifiedChinese.json")));
-                            sr = new StreamReader(stream);
-                            str = sr.ReadToEnd();
-
-                            resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
                             break;
                     }
                     break;
                 case "ja":
                     stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("Japanese.json")));
-                    sr = new StreamReader(stream);
-                    str = sr.ReadToEnd();
-
-                    resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                    break;
+                case "de":
+                    stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("German.json")));
                     break;
                 case "en":
                 default:
                     stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
-                    sr = new StreamReader(stream);
-                    str = sr.ReadToEnd();
-
-                    resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
                     break;
 
             }
+
+            if (stream == null)
+                return;
+
+            sr = new StreamReader(stream);
+            str = sr.ReadToEnd();
+
+            resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
 
             if (resultLocaleDictionary == null)
                 return;
