@@ -12,17 +12,42 @@ namespace SIT.Core.Configuration
 
         public CoopConfigSettings CoopSettings { get; }
 
+        public SITAdvancedSettings AdvancedSettings { get; }
+
         public PluginConfigSettings(ManualLogSource logger, ConfigFile config)
         {
             Logger = logger;
             Config = config;
             CoopSettings = new CoopConfigSettings(logger, config);
+            AdvancedSettings = new SITAdvancedSettings(logger, config);
             Instance = this;
         }
 
         public void GetSettings()
         {
 
+        }
+
+        public class SITAdvancedSettings
+        {
+            public ConfigFile Config { get; }
+            public ManualLogSource Logger { get; }
+
+            public SITAdvancedSettings(ManualLogSource logger, ConfigFile config)
+            {
+                Logger = logger;
+                Config = config;
+                GetSettings();
+            }
+
+            public bool UseSITGarbageCollector { get; set; }
+
+            public void GetSettings()
+            {
+                UseSITGarbageCollector = Plugin.Instance.Config.Bind
+                ("Advanced", "UseSITGarbageCollector", true, new ConfigDescription("Whether to use the Garbage Collector developed in to SIT OR leave it to BSG/Unity")).Value;
+
+            }
         }
 
         public class CoopConfigSettings
@@ -50,7 +75,7 @@ namespace SIT.Core.Configuration
 
             public bool ForceHighPingMode { get; set; } = false;
             public bool RunThroughOnServerStop { get; set; } = true;
-            
+
             public bool BotWavesDisableStopper { get; set; } = false;
 
             public void GetSettings()
