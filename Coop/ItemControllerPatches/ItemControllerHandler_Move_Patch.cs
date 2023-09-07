@@ -1,12 +1,14 @@
 ﻿using BepInEx.Logging;
 using Comfort.Common;
 using EFT;
+using EFT.Hideout;
 using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,9 +22,9 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
         public override string MethodName => "IC_Move";
 
-        public static List<string> CallLocally = new();
+        public static HashSet<string> CallLocally = new();
 
-        public static List<string> DisableForPlayer = new();
+        public static HashSet<string> DisableForPlayer = new();
 
         private ManualLogSource GetLogger()
         {
@@ -131,6 +133,15 @@ namespace SIT.Core.Coop.ItemControllerPatches
                 dictionary.Add("sitad", slotItemAddressDescriptor);
             }
 
+            if (to is StackSlotItemAddress stackSlotItemAddress)
+            {
+                StackSlotItemAddressDescriptor stackSlotItemAddressDescriptor = new();
+                stackSlotItemAddressDescriptor.Container = new();
+                stackSlotItemAddressDescriptor.Container.ContainerId = to.Container.ID;
+                stackSlotItemAddressDescriptor.Container.ParentId = to.Container.ParentItem != null ? to.Container.ParentItem.Id : null;
+                dictionary.Add("ssad", stackSlotItemAddressDescriptor);
+            }
+
             dictionary.Add("id", item.Id);
             dictionary.Add("tpl", item.TemplateId);
             dictionary.Add("icId", itemController.ID);
@@ -150,14 +161,6 @@ namespace SIT.Core.Coop.ItemControllerPatches
             GetLogger().LogDebug($"Item Controller Id: {itemControllerId}");
             GetLogger().LogDebug($"Item Controller Current Id: {packet["icCId"]}");
 
-
-
-            //if (HasProcessed(GetType(), player, dict))
-            //    return;
-
-            //var inventoryController = ItemFinder.GetPlayerInventoryController(player);
-            //GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("ItemControllerHandler_Move_Patch.Replicated." + inventoryController.GetType());
-
             var itemId = packet["id"].ToString();
             if (!ItemFinder.TryFindItem(itemId, out Item item))
             {
@@ -175,51 +178,75 @@ namespace SIT.Core.Coop.ItemControllerPatches
             }
 
             //GetGetLogger(typeof(ItemControllerHandler_Move_Patch))(typeof(ItemControllerHandler_Move_Patch)).LogInfo(item);
-            if (CallLocally.Contains(itemControllerId))
-            {
-                GetLogger().LogError($"CallLocally already contains {itemControllerId}");
-                return;
-            }
-
-            CallLocally.Add(itemControllerId);
+           
 
             try
             {
+                ItemController itemController = null;
+                ItemAddress address = null;
+                AbstractDescriptor descriptor = null;
                 if (packet.ContainsKey("grad"))
                 {
                     GetLogger().LogDebug(packet["grad"].ToString());
-
-                    GridItemAddressDescriptor gridItemAddressDescriptor = packet["grad"].ToString().SITParseJson<GridItemAddressDescriptor>();
-                    if (!ItemFinder.TryFindItemController(gridItemAddressDescriptor.Container.ParentId, out var itemController))
-                    {
-                        if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
-                        {
-                            GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError("Unable to find ItemController");
-                            return;
-                        }
-                    }
-
-                    ItemMovementHandler.Move(item, itemController.ToItemAddress(gridItemAddressDescriptor), itemController, false, true);
+                    descriptor = packet["grad"].ToString().SITParseJson<GridItemAddressDescriptor>();
                 }
 
                 if (packet.ContainsKey("sitad"))
                 {
-                    //GetLogger().LogError("sitad has not been handled!");
                     GetLogger().LogInfo(packet["sitad"].ToString());
+                    descriptor = packet["sitad"].ToString().SITParseJson<SlotItemAddressDescriptor>();
 
-                    SlotItemAddressDescriptor slotItemAddressDescriptor = packet["sitad"].ToString().SITParseJson<SlotItemAddressDescriptor>();
+                }
 
-                    if (!ItemFinder.TryFindItemController(slotItemAddressDescriptor.Container.ParentId, out var itemController))
+                if (packet.ContainsKey("ssad"))
+                {
+                    GetLogger().LogError("ssad has not been handled!");
+                    GetLogger().LogInfo(packet["ssad"].ToString());
+
+                    descriptor = packet["ssad"].ToString().SITParseJson<StackSlotItemAddressDescriptor>();
+                }
+
+                if (descriptor == null)
+                {
+                    GetLogger().LogError($"Unable to find Descriptor for {item.Id}");
+                    return;
+                }
+
+                if (!ItemFinder.TryFindItemController(descriptor.Container.ParentId, out itemController))
+                {
+                    if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
                     {
-                        if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
+                        if (!ItemFinder.TryFindItemController(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, out itemController))
                         {
-                            GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError("Unable to find ItemController");
+                            GetLogger().LogError("Unable to find ItemController");
                             return;
                         }
                     }
-
-                    ItemMovementHandler.Move(item, itemController.ToItemAddress(slotItemAddressDescriptor), itemController, false, true);
                 }
+
+                if (itemController == null)
+                {
+                    GetLogger().LogError($"Unable to find Item Controller for {item.Id}");
+                    return;
+                }
+
+                address = itemController.ToItemAddress(descriptor);
+
+                if (address == null)
+                {
+                    GetLogger().LogError($"Unable to find Address for {item.Id}");
+                    return;
+                }
+
+                if (CallLocally.Contains(itemControllerId))
+                {
+                    GetLogger().LogError($"CallLocally already contains {itemControllerId}");
+                    return;
+                }
+
+                CallLocally.Add(itemController.ID);
+
+                ItemMovementHandler.Move(item, address, itemController, false, true);
 
             }
             catch (Exception)
@@ -228,7 +255,7 @@ namespace SIT.Core.Coop.ItemControllerPatches
             }
             finally
             {
-                CallLocally = CallLocally.Where(x => x != itemControllerId).ToList();
+                CallLocally.RemoveWhere(x => x != itemControllerId);
             }
 
         }
