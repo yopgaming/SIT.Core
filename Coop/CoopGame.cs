@@ -518,8 +518,8 @@ namespace SIT.Core.Coop
 
             // ---------------------------------------------
             // Here we can wait for other players, if desired
-            if (MatchmakerAcceptPatches.IsServer)
-            {
+            //if (MatchmakerAcceptPatches.IsServer)
+            //{
                 await Task.Run(async () =>
                 {
                     while(CoopGameComponent.GetCoopGameComponent() == null)
@@ -541,7 +541,7 @@ namespace SIT.Core.Coop
 
                     } while (numbersOfPlayersToWaitFor > 0);
                 });
-            }
+            //}
 
             // ---------------------------------------------
 
@@ -838,42 +838,7 @@ namespace SIT.Core.Coop
                 }
             }
 
-            foreach (var p in CoopGameComponent.GetCoopGameComponent().Players)
-            {
-                if (p.Value == null)
-                    continue;
-
-                if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                {
-                    GameObject.Destroy(prc);
-                }
-            }
-
-            var component = CoopGameComponent.GetCoopGameComponent();
-            if (component != null)
-            {
-                foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
-                {
-                    GameObject.DestroyImmediate(prc);
-                }
-
-                //foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
-                //{
-                //    GameObject.DestroyImmediate(pl);
-                //}
-
-                component.RunAsyncTasks = false;
-                GameObject.DestroyImmediate(component);
-            }
-
-            CoopPatches.EnableDisablePatches();
-
-            GCHelpers.DisableGC(true);
-
-            if (MatchmakerAcceptPatches.IsServer)
-            {
-                AkiBackendCommunication.Instance.WebSocketClose();
-            }
+            CoopPatches.LeftGameDestroyEverything();
 
             if (this.BossWaveManager != null)
                 this.BossWaveManager.Stop();

@@ -4,11 +4,14 @@
 
 ## New features
 
+* Synchronized Weather (Work in Progress)
+* Server & Clients will wait for all players to spawn before starting Raid
 * Bots Count on Coop UI
 * Add DrakiaXYZ Waypoints solution back in (with Roaming AI enabled)
 * Add PMC AI Archetype (PMCRushSpawn) 
 * Add Chinese Localization for Match Hosting / Browsing system, thanks @w123456w30w
 * Add Japanese Localization for Match Hosting / Browsing system, thanks @debisuchan
+
 
 ## Fixes
 

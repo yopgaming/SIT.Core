@@ -6,6 +6,8 @@ using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Coop.LocalGame;
 using SIT.Core.Coop.Sounds;
 using SIT.Core.Coop.World;
+using SIT.Core.Core;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -43,7 +45,7 @@ namespace SIT.Core.Coop
             //new LocalGameSpawnAICoroutinePatch().Enable(); // No longer needed. Handled by CoopGame
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
-            new LocalGame_Weather_Patch().Enable();
+            //new LocalGame_Weather_Patch().Enable();
 
 
             // ------ MATCHMAKER -------------------------
@@ -131,6 +133,46 @@ namespace SIT.Core.Coop
                 else
                     mrp.Disable();
             }
+        }
+
+        public static void LeftGameDestroyEverything()
+        {
+            EnableDisablePatches();
+
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            {
+                foreach (var p in coopGameComponent.Players)
+                {
+                    if (p.Value == null)
+                        continue;
+
+                    if (p.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                    {
+                        GameObject.Destroy(prc);
+                    }
+                }
+
+                //foreach (var pl in GameObject.FindObjectsOfType<CoopPlayer>())
+                //{
+                //    GameObject.DestroyImmediate(pl);
+                //}
+
+                coopGameComponent.RunAsyncTasks = false;
+                GameObject.DestroyImmediate(coopGameComponent);
+            }
+
+            foreach (var prc in GameObject.FindObjectsOfType<PlayerReplicatedComponent>())
+            {
+                GameObject.DestroyImmediate(prc);
+            }
+
+
+            GCHelpers.DisableGC(true);
+            GCHelpers.ClearGarbage(true, true);
+
+            AkiBackendCommunication.Instance.WebSocketClose();
+
+            EnableDisablePatches();
         }
     }
 }
