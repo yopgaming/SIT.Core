@@ -26,6 +26,8 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
         public static HashSet<string> DisableForPlayer = new();
 
+        public static HashSet<string> AlreadySent = new();
+
         private ManualLogSource GetLogger()
         {
             return GetLogger(typeof(ItemControllerHandler_Move_Patch));
@@ -35,7 +37,7 @@ namespace SIT.Core.Coop.ItemControllerPatches
         {
             if (DisableForPlayer.Contains(player.ProfileId))
             {
-                GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogDebug("Not receiving item move for replication. Currently Disabled.");
+                GetLogger().LogDebug("Not receiving item move for replication. Currently Disabled.");
                 return;
             }
 
@@ -46,6 +48,17 @@ namespace SIT.Core.Coop.ItemControllerPatches
         protected override MethodBase GetTargetMethod()
         {
             return ReflectionHelpers.GetMethodForType(InstanceType, "Move");
+        }
+
+        public override void Enable()
+        {
+            base.Enable();
+
+            GetLogger().LogDebug("Clearing cached data");
+            AlreadySent.Clear();
+            CallLocally.Clear();
+            DisableForPlayer.Clear();
+
         }
 
         [PatchPrefix]
@@ -148,10 +161,16 @@ namespace SIT.Core.Coop.ItemControllerPatches
             dictionary.Add("icCId", itemController.CurrentId);
             dictionary.Add("m", "IC_Move");
 
-            Logger.LogInfo(dictionary.ToJson());
-            AkiBackendCommunication.Instance.SendDataToPool(dictionary.ToJson());
+            var json = dictionary.ToJson();
+            if (AlreadySent.Contains(json))
+                return;
 
+            Logger.LogDebug(json);
+            AkiBackendCommunication.Instance.SendDataToPool(json);
+            AlreadySent.Add(json);
         }
+
+
 
         public void Replicated(ref Dictionary<string, object> packet)
         {
@@ -168,6 +187,9 @@ namespace SIT.Core.Coop.ItemControllerPatches
                 return;
             }
 
+            // -----------------------------------------------------------------------------------
+            // Destroy the Loose Item if it exists
+            //
             var lootItems = Singleton<GameWorld>.Instance.LootItems.Where(x => x.ItemId == itemId);
             if (lootItems.Any())
             {
@@ -176,9 +198,11 @@ namespace SIT.Core.Coop.ItemControllerPatches
                     i.Kill();
                 }
             }
+            //
+            // -----------------------------------------------------------------------------------
 
             //GetGetLogger(typeof(ItemControllerHandler_Move_Patch))(typeof(ItemControllerHandler_Move_Patch)).LogInfo(item);
-           
+
 
             try
             {

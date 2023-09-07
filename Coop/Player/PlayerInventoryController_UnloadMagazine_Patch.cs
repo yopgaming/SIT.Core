@@ -1,6 +1,8 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
+using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -19,6 +21,11 @@ namespace SIT.Core.Coop.Player
         public override string MethodName => "PlayerInventoryController_UnloadMagazine";
 
         public static List<string> CallLocally = new();
+
+        private ManualLogSource GetLogger()
+        {
+            return GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch));
+        }
 
         protected override MethodBase GetTargetMethod()
         {
@@ -75,12 +82,12 @@ namespace SIT.Core.Coop.Player
             }
             else
             {
-                GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogError("Packet did not have data in the dictionary");
+                GetLogger().LogError("Packet did not have data in the dictionary");
                 return;
             }
 
-            if (HasProcessed(GetType(), player, itemPacket))
-                return;
+            //if (HasProcessed(GetType(), player, itemPacket))
+            //    return;
 
             var fieldInfoInvController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController));
             if (fieldInfoInvController != null)
@@ -96,18 +103,18 @@ namespace SIT.Core.Coop.Player
                     }
                     else
                     {
-                        Logger.LogError($"PlayerInventoryController_UnloadMagazine.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
+                        GetLogger().LogError($"PlayerInventoryController_UnloadMagazine.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
                     }
 
                 }
                 else
                 {
-                    Logger.LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller object");
+                    GetLogger().LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller object");
                 }
             }
             else
             {
-                GetLogger(typeof(PlayerInventoryController_UnloadMagazine_Patch)).LogError("Replicated. Unable to find Inventory Controller");
+                GetLogger().LogError("Replicated. Unable to find Inventory Controller");
             }
 
         }

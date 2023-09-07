@@ -1,4 +1,5 @@
-﻿using Comfort.Common;
+﻿using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
 using SIT.Core.Coop.NetworkPacket;
@@ -18,7 +19,12 @@ namespace SIT.Core.Coop.Player
 
         public override string MethodName => "PlayerInventoryController_LoadMagazine";
 
-        public static List<string> CallLocally = new();
+        public static HashSet<string> CallLocally = new();
+
+        public ManualLogSource GetLogger()
+        {
+            return GetLogger(typeof(PlayerInventoryController_LoadMagazine_Patch));
+        }
 
         protected override MethodBase GetTargetMethod()
         {
@@ -95,40 +101,30 @@ namespace SIT.Core.Coop.Player
 
                 ////Logger.LogInfo($"ItemUiContext_ThrowItem_Patch.Replicated Profile Id {itemPacket.ProfileId}");
 
-                var fieldInfoInvController = ReflectionHelpers.GetFieldFromTypeByFieldType(player.GetType(), typeof(InventoryController));
-                if (fieldInfoInvController != null)
+                if(!ItemFinder.TryFindItemController(player.ProfileId, out var invController))
                 {
-                    var invController = (InventoryController)fieldInfoInvController.GetValue(player);
-                    if (invController != null)
-                    {
-                        if (ItemFinder.TryFindItem(itemPacket.SourceAmmoId, out Item bullet))
-                        {
-                            if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
-                            {
-                                CallLocally.Add(player.ProfileId);
-                                //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Calling LoadMagazine ({bullet.Id}:{magazine.Id}:{itemPacket.LoadCount})");
-                                invController.LoadMagazine((BulletClass)bullet, (MagazineClass)magazine, itemPacket.LoadCount);
-                            }
-                            else
-                            {
-                                Logger.LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
-                            }
-                        }
-                        else
-                        {
-                            Logger.LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.SourceAmmoId}");
-                        }
+                    GetLogger().LogError($"Replicated. Unable to find Player Item Controller");
+                    return;
+                }
 
+                if (ItemFinder.TryFindItem(itemPacket.SourceAmmoId, out Item bullet))
+                {
+                    if (ItemFinder.TryFindItem(itemPacket.MagazineId, out Item magazine))
+                    {
+                        CallLocally.Add(player.ProfileId);
+                        //Logger.LogInfo($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Calling LoadMagazine ({bullet.Id}:{magazine.Id}:{itemPacket.LoadCount})");
+                        invController.LoadMagazine((BulletClass)bullet, (MagazineClass)magazine, itemPacket.LoadCount);
                     }
                     else
                     {
-                        Logger.LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller object");
+                        GetLogger().LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.MagazineId}");
                     }
                 }
                 else
                 {
-                    Logger.LogError("PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller");
+                    GetLogger().LogError($"PlayerInventoryController_LoadMagazine_Patch.Replicated. Unable to find Inventory Controller item {itemPacket.SourceAmmoId}");
                 }
+
             });
 
         }

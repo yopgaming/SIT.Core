@@ -94,11 +94,8 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
             TriggerPressedPacket triggerPressedPacket = new(player.ProfileId);
             triggerPressedPacket.pr = pressed;
-            if (pressed)
-            {
-                triggerPressedPacket.rX = player.Rotation.x;
-                triggerPressedPacket.rY = player.Rotation.y;
-            }
+            triggerPressedPacket.rX = player.Rotation.x;
+            triggerPressedPacket.rY = player.Rotation.y;
             var serialized = triggerPressedPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
@@ -150,7 +147,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
                     try
                     {
                         //if (pressed && dict.ContainsKey("rX"))
-                        if (prc.IsClientDrone && pressed && tpp.rX != 0)
+                        if (prc.IsClientDrone && tpp.rX != 0)
                         {
                             var rotat = new Vector2(tpp.rX, tpp.rY);
                             player.Rotation = rotat;

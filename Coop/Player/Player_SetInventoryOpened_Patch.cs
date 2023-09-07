@@ -19,14 +19,14 @@ namespace SIT.Core.Coop.Player
             return method;
         }
 
-        public static Dictionary<string, bool> CallLocally
+        public static HashSet<string> CallLocally
             = new();
 
         [PatchPrefix]
         public static bool PrePatch(ref EFT.Player __instance)
         {
             var result = false;
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(__instance.ProfileId))
                 result = true;
 
             return result;
@@ -40,9 +40,9 @@ namespace SIT.Core.Coop.Player
         {
             var player = __instance;
 
-            if (CallLocally.TryGetValue(player.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(__instance.ProfileId))
             {
-                CallLocally.Remove(player.Profile.AccountId);
+                CallLocally.Remove(player.ProfileId);
                 return;
             }
 
@@ -61,12 +61,12 @@ namespace SIT.Core.Coop.Player
             if (HasProcessed(GetType(), player, dict))
                 return;
 
-            if (CallLocally.ContainsKey(player.Profile.AccountId))
+            if (CallLocally.Contains(player.ProfileId))
                 return;
 
             try
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
                 var opened = Convert.ToBoolean(dict["o"].ToString());
                 player.SetInventoryOpened(opened);
             }
