@@ -344,10 +344,14 @@ namespace SIT.Core.Core
                 //Logger.LogInfo($"Step.2. Packet process. {packet.ToJson()}");
                 // -------------------------------------------------------
                 // Add to the Coop Game Component Action Packets
-                if (coopGameComponent == null || coopGameComponent.ActionPackets == null)
+                if (coopGameComponent == null || coopGameComponent.ActionPackets == null || coopGameComponent.ActionPacketHandler == null)
                     return;
 
-                coopGameComponent.ActionPackets.TryAdd(packet);
+                if(packet.ContainsKey("m") 
+                    && packet["m"].ToString() == "Move")
+                    coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
+                else
+                    coopGameComponent.ActionPackets.TryAdd(packet);
 
             }
             catch (Exception ex)

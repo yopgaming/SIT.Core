@@ -20,6 +20,7 @@ namespace SIT.Core.Coop.Components
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
         public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; } = new();
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
@@ -47,42 +48,8 @@ namespace SIT.Core.Coop.Components
 
         void Update()
         {
-            //StartCoroutine(ProcessActionPacketsCR());
             ProcessActionPackets();
         }
-
-        //private IEnumerator ProcessActionPacketsCR()
-        //{
-        //    if (CoopGameComponent == null)
-        //    {
-        //        if (CoopPatches.CoopGameComponentParent != null)
-        //        {
-        //            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
-        //            if (CoopGameComponent == null)
-        //                yield return null;
-        //        }
-        //    }
-
-        //    if (Singleton<GameWorld>.Instance == null)
-        //        yield return null;
-
-        //    if (ActionPackets == null)
-        //        yield return null;
-
-        //    if (Players == null)
-        //        yield return null;
-
-        //    if (ActionPackets.Count > 0)
-        //    {
-        //        while (ActionPackets.TryTake(out var result))
-        //        {
-        //            ProcessLastActionDataPacket(result);
-        //            yield return null;
-        //        }
-        //    }
-
-        //    yield return null;
-        //}
 
         private void ProcessActionPackets()
         {
@@ -110,7 +77,14 @@ namespace SIT.Core.Coop.Components
                 while (ActionPackets.TryTake(out var result))
                 {
                     ProcessLastActionDataPacket(result);
-                    //GC.Collect();
+                }
+            }
+
+            if (ActionPacketsMovement.Count > 0)
+            {
+                while (ActionPacketsMovement.TryTake(out var result))
+                {
+                    ProcessLastActionDataPacket(result);
                 }
             }
 
