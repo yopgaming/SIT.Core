@@ -168,7 +168,7 @@ namespace SIT.Core.Coop
 
 
             GCHelpers.DisableGC(true);
-            GCHelpers.ClearGarbage(true, true);
+            //GCHelpers.ClearGarbage(true, true);
 
             AkiBackendCommunication.Instance.WebSocketClose();
 
