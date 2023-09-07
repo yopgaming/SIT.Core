@@ -60,6 +60,9 @@ namespace SIT.Core.Coop.Components
             // Setup Logger
             Logger = BepInEx.Logging.Logger.CreateLogSource("SIT Matchmaker GUI");
             Logger.LogInfo("Start");
+
+            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
+
             // Get Canvas
             Canvas = GameObject.FindObjectOfType<Canvas>();
             if (Canvas != null)
@@ -307,6 +310,10 @@ namespace SIT.Core.Coop.Components
                             var groupId = result["ServerId"].ToString();
                             MatchmakerAcceptPatches.SetGroupId(groupId);
                             MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers =
+                                result.ContainsKey("expectedNumberOfPlayers")
+                                ? int.Parse(result["expectedNumberOfPlayers"].ToString()) 
+                                : 0;
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
                             GC.Collect();
