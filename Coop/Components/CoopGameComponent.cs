@@ -224,9 +224,7 @@ namespace SIT.Core.Coop
             if (coopGame == null)
                 return;
 
-
             int counter = 0;
-            //int runClearCount = 0;
             await Task.Run(async () =>
             {
                 do
@@ -234,31 +232,18 @@ namespace SIT.Core.Coop
                     await Task.Delay(1000);
 
                     counter++;
-                    //Logger.LogInfo(counter);
-
-                    //GCHelpers.Collect(counter % 3 == 0);
-
-
-                    if (counter == (60 * 3))
+                    if (counter == (60 * 5))
                     {
-                        //if (runClearCount < 1)
-                        //{
-                        //    runClearCount++;
-                        //    // Complete clear after 30 seconds
-                        //    GCHelpers.ClearGarbage(emptyTheSet: false, unloadAssets: false);
-                        //}
-                        counter = 0;
-
                         GCHelpers.EnableGC();
-                        GCHelpers.Collect(true);
-                        GCHelpers.DisableGC();
-                        //GC.Collect(4, GCCollectionMode.Forced, false, false);
-
                     }
 
-                    //await Task.Delay(1000);
+                    if (counter == (61 * 5))
+                    {
+                        GCHelpers.DisableGC(true);
+                        counter = 0;
+                    }
 
-                } while (RunAsyncTasks);
+                } while (RunAsyncTasks && PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector);
             });
         }
 
@@ -1664,13 +1649,17 @@ namespace SIT.Core.Coop
 
     public class SITConfig
     {
-        //[JsonProperty(PropertyName = "showPlayerNameTags")]
         public bool showPlayerNameTags { get; set; }
 
-        //[JsonProperty(PropertyName = "showPlayerNameTagsOnlyWhenVisible")]
+        /// <summary>
+        /// Doesn't do anything
+        /// </summary>
+
         public bool showPlayerNameTagsOnlyWhenVisible { get; set; }
 
         public bool showPlayerNameTagsForEnemies { get; set; } = false;
+
+        public bool useClientSideDamageModel { get; set; } = true;
     }
 
 
