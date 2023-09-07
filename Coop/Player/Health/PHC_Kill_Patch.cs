@@ -1,5 +1,7 @@
-﻿using EFT;
+﻿using BepInEx.Logging;
+using EFT;
 using EFT.HealthSystem;
+using SIT.Core.Coop.ItemControllerPatches;
 using SIT.Core.Coop.NetworkPacket;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -17,6 +19,11 @@ namespace SIT.Core.Coop.Player.Health
         public override string MethodName => "Kill";
 
         public static Dictionary<string, bool> CallLocally = new();
+
+        private ManualLogSource GetLogger()
+        {
+            return GetLogger(typeof(PHC_Kill_Patch));
+        }
 
         protected override MethodBase GetTargetMethod()
         {
@@ -71,7 +78,7 @@ namespace SIT.Core.Coop.Player.Health
             if (CallLocally.ContainsKey(player.ProfileId))
                 return;
 
-            Logger.LogDebug($"Replicated KILL {player.ProfileId}");
+            GetLogger().LogDebug($"Replicated Kill {player.ProfileId}");
 
             CallLocally.Add(player.ProfileId, true);
             player.ActiveHealthController.Kill(killPacket.DamageType);
