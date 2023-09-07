@@ -6,12 +6,13 @@
 
 * Synchronized Weather (Work in Progress)
 * Server & Clients will wait for all players to spawn before starting Raid
+* Added option to only use Server Side damage (Experimental, requires Aki-Server SITConfig.json change)
 * Bots Count on Coop UI
 * Add DrakiaXYZ Waypoints solution back in (with Roaming AI enabled)
 * Add PMC AI Archetype (PMCRushSpawn) 
 * Add Chinese Localization for Match Hosting / Browsing system, thanks @w123456w30w
 * Add Japanese Localization for Match Hosting / Browsing system, thanks @debisuchan
-
+* Add German Localization for Match Hosting / Browsing system, thanks @TehFl0w
 
 ## Fixes
 
