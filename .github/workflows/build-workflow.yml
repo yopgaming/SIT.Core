@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [windows-latest]
-        configuration: [Release]
+        configuration: [Release,Debug]
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
@@ -36,6 +36,6 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: SIT-Build
+        name: SIT-Build-${{ matrix.configuration }}
         path: bin\${{ matrix.configuration }}\net472\
         if-no-files-found: error
