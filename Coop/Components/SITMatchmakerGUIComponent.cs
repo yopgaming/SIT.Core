@@ -9,9 +9,12 @@ using SIT.Core.Misc;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using Color = UnityEngine.Color;
+using FontStyle = UnityEngine.FontStyle;
 
 namespace SIT.Core.Coop.Components
 {
@@ -46,6 +49,15 @@ namespace SIT.Core.Coop.Components
 
         private CancellationTokenSource m_cancellationTokenSource;
         private bool StopAllTasks = false;
+        
+        private bool showPasswordField = false;
+ 
+        private string passwordInput = "";
+
+        private const float verticalSpacing = 10f;
+
+
+
         private ManualLogSource Logger { get; set; }
         public MatchMakerPlayerPreview MatchMakerPlayerPreview { get; internal set; }
 
@@ -60,9 +72,6 @@ namespace SIT.Core.Coop.Components
             // Setup Logger
             Logger = BepInEx.Logging.Logger.CreateLogSource("SIT Matchmaker GUI");
             Logger.LogInfo("Start");
-
-            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = 1;
-
             // Get Canvas
             Canvas = GameObject.FindObjectOfType<Canvas>();
             if (Canvas != null)
@@ -229,171 +238,327 @@ namespace SIT.Core.Coop.Components
 
         void OnGUI()
         {
+            // Define the proportions for the main window and the host game window (same size)
+            var windowWidthFraction = 0.33f;
+            var windowHeightFraction = 0.33f;
 
-            //var w = 0.33f; // proportional width (0..1)
-            var h = 0.9f; // proportional height (0..1)
-            //windowRect.x = (float)(Screen.width * (1 - w)) / 2;
-            //windowRect.y = (float)(Screen.height * (1 - h)) / 2;
-            //windowRect.width = Screen.width * w;
-            //windowRect.height = Screen.height * h;
+            // Calculate the position and size of the main window
+            var windowWidth = Screen.width * windowWidthFraction;
+            var windowHeight = Screen.height * windowHeightFraction;
+            var windowX = (Screen.width - windowWidth) / 2;
+            var windowY = (Screen.height - windowHeight) / 2;
 
-            windowRect.x = Screen.width * 0.01f;// (float)(Screen.width * (1 - w)) / 2;
-            windowRect.y = (float)(Screen.height * (1 - h)) / 2;
-            windowRect.width = Screen.width * 0.3f;
-            windowRect.height = Screen.height * h;
+            // Create the main window rectangle
+            windowRect = new Rect(windowX, windowY, windowWidth, windowHeight);
 
             if (showServerBrowserWindow)
             {
-                windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "");
+                windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "Server Browser");
+
+                // Calculate the position for the "Host Game" and "Play Single Player" buttons
+                var buttonWidth = 250;
+                var buttonHeight = 50;
+                var buttonX = (Screen.width - buttonWidth * 2 - 10) / 2;
+                var buttonY = Screen.height * 0.75f - buttonHeight;
+
+                // Define a GUIStyle for Host Game and Play single player
+                GUIStyle gamemodeButtonStyle = new GUIStyle(GUI.skin.button);
+                gamemodeButtonStyle.fontSize = 24;
+                gamemodeButtonStyle.fontStyle = FontStyle.Bold;
+
+                // Create "Host Game" button
+                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Host Game", gamemodeButtonStyle))
+                {
+                    showServerBrowserWindow = false;
+                    showHostGameWindow = true;
+                }
+
+                // Create "Play Single Player" button next to the "Host Game" button
+                buttonX += buttonWidth + 10;
+                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Play Single Player", gamemodeButtonStyle))
+                {
+                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
+                    OriginalAcceptButton.OnClick.Invoke();
+                    DestroyThis();
+                }
             }
-            if(showHostGameWindow)
+            else if (showHostGameWindow)
             {
-                var hostGameWindowRect = new Rect();
-                hostGameWindowRect.x = (float)(Screen.width * 0.33f);
-                hostGameWindowRect.y = Screen.height * 0.2f;
-                hostGameWindowRect.width = Screen.width * 0.33f;
-                hostGameWindowRect.height = Screen.height * 0.33f;
-                hostGameWindowInnerRect = GUI.Window(1, hostGameWindowRect, DrawHostGameWindow, "");
+                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, "Host Game");
+            }
+
+            // Handle the "Back" Button
+            if (showServerBrowserWindow || showHostGameWindow)
+            {
+                // Calculate the vertical position
+                var backButtonX = (Screen.width - 200) / 2;
+                var backButtonY = Screen.height * 0.95f - 40;
+
+                // Define a GUIStyle for the "Back" button with larger and bold text
+                GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+                buttonStyle.fontSize = 24;
+                buttonStyle.fontStyle = FontStyle.Bold;
+
+                if (GUI.Button(new Rect(backButtonX, backButtonY, 200, 40), "Back", buttonStyle))
+                {
+                    // Handle the "Back" button click
+                    if (showServerBrowserWindow)
+                    {
+                        OriginalBackButton.OnClick.Invoke();
+                        DestroyThis();
+                        AkiBackendCommunication.Instance.WebSocketClose();
+
+                    }
+                    else if (showHostGameWindow)
+                    {
+                        // Add logic to go back to the main menu or previous screen
+                        showServerBrowserWindow = true;
+                        showHostGameWindow = false;
+                    }
+                }
             }
         }
 
-        void DrawWindow(int windowID)
-        {
-            if (GUI.Button(new Rect(10, 20, (windowInnerRect.width / 2) - 20, 20), Plugin.LanguageDictionary["HOST_RAID"], styleBrowserBigButtons))
+
+
+            void DrawWindow(int windowID)
             {
-                //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
-                //OriginalAcceptButton.OnClick.Invoke();
-                //DestroyThis();
-                showServerBrowserWindow = false;
-                showHostGameWindow = true;
-            }
+                // Define column labels
+                string[] columnLabels = { "Server", "Players", "Location" };
 
-            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, 20, (windowInnerRect.width / 2) - 20, 20), Plugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], styleBrowserBigButtons))
-            {
-                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
-                OriginalAcceptButton.OnClick.Invoke();
-                DestroyThis();
+                // Define the button style
+                GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+                buttonStyle.fontSize = 14;
+                buttonStyle.padding = new RectOffset(6, 6, 6, 6);
 
-            }
+                // Define the label style
+                GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+                labelStyle.alignment = TextAnchor.MiddleCenter;
+                labelStyle.fontSize = 14;
+                labelStyle.normal.textColor = Color.white;
 
-            GUI.Label(new Rect(10, 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["SERVER"]);
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.5f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["PLAYERS"]);
-            GUI.Label(new Rect(10 + (windowInnerRect.width * 0.65f), 45, (windowInnerRect.width / 4), 25), Plugin.LanguageDictionary["LOCATION"]);
-            //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), 45, (windowInnerRect.width / 4), 25), "PING");
+                // Calculate the number of rows and columns
+                int numRows = 7;
+                int numColumns = 3;
 
-            if (m_Matches != null)
-            {
-                var index = 0;
-                foreach (var match in m_Matches)
+                // Calculate cell width and height
+                float cellWidth = windowInnerRect.width / (numColumns + 1);
+                float cellHeight = (windowInnerRect.height - 40) / numRows;
+
+                // Calculate the vertical positions for lines and labels
+                float topSeparatorY = 20;
+                float middleSeparatorY = topSeparatorY + cellHeight - 7;
+                float bottomSeparatorY = topSeparatorY + numRows * cellHeight;
+
+                // Calculate the width of the separator
+                float separatorWidth = 2;
+
+                // Draw the first horizontal line at the top
+                GUI.DrawTexture(new Rect(10, topSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+
+                // Draw the second horizontal line under Server, Players, and Location
+                GUI.DrawTexture(new Rect(10, middleSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+
+                // Draw the third horizontal line at the bottom
+                GUI.DrawTexture(new Rect(10, bottomSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+
+                // Draw vertical separator lines
+                for (int col = 1; col < numColumns + 1; col++)
                 {
-                    var yPos = 60 + (index + 25);
-                    GUI.Label(new Rect(10, yPos, (windowInnerRect.width / 4), 25), $"{match["HostName"].ToString()} {Plugin.LanguageDictionary["RAID"]}");
-                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.5f), yPos, (windowInnerRect.width / 4), 25), match["PlayerCount"].ToString());
-                    GUI.Label(new Rect(10 + (windowInnerRect.width * 0.65f), yPos, (windowInnerRect.width / 4), 25), match["Location"].ToString());
-                    //GUI.Label(new Rect(10 + (windowInnerRect.width * 0.9f), yPos, (windowInnerRect.width / 4), 25), "-");
-                    //Logger.LogInfo(match.ToJson());
-                    if (GUI.Button(new Rect(10 + (windowInnerRect.width * 0.85f), yPos, (windowInnerRect.width * 0.15f) - 20, 20)
-                        , $"Join"
-                        , styleBrowserBigButtons
-                        ))
-                    {
-                        if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                    float separatorX = col * cellWidth - separatorWidth / 2;
+                    GUI.DrawTexture(new Rect(separatorX - 2, topSeparatorY, separatorWidth, bottomSeparatorY - topSeparatorY), Texture2D.grayTexture);
+                }
+
+                // Draw column labels at the top
+                for (int col = 0; col < 3; col++)
+                {
+                    float cellX = col * cellWidth + separatorWidth / 2;
+                    GUI.Label(new Rect(cellX, topSeparatorY + 5, cellWidth - separatorWidth, 25), columnLabels[col], labelStyle);
+                }
+
+                // Reset the GUI.backgroundColor to its original state
+                GUI.backgroundColor = Color.white;
+
+                       if (m_Matches != null)
                         {
-                            Logger.LogDebug(returnedJson);
-                            JObject result = JObject.Parse(returnedJson);
+                            var index = 0;
+                            var yPosOffset = 60;
 
-                            if (!result.ContainsKey("ServerId"))
+                            foreach (var match in m_Matches)
                             {
-                                throw new ArgumentNullException("ServerId");
-                            }
+                                var yPos = yPosOffset + index * (cellHeight + 5);
 
-                            var groupId = result["ServerId"].ToString();
-                            MatchmakerAcceptPatches.SetGroupId(groupId);
-                            MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers =
-                                result.ContainsKey("expectedNumberOfPlayers")
-                                ? int.Parse(result["expectedNumberOfPlayers"].ToString()) 
-                                : 0;
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            GC.Collect();
-                            DestroyThis();
-                            OriginalAcceptButton.OnClick.Invoke();
+                                // Display Host Name with "Raid" label
+                                GUI.Label(new Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
+
+                                // Display Player Count
+                                GUI.Label(new Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
+
+                                // Display Location
+                                GUI.Label(new Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
+
+                                // Calculate the width of the combined server information (Host Name, Player Count, Location)
+                                var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
+
+                            // Create "Join" button for each match on the next colum
+                            if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2, yPos, cellWidth * 0.8f, cellHeight * 0.8f), "Join", buttonStyle))
+                            {
+                                // Perform actions when the "Join" button is clicked
+                                if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                                    {
+                                        Logger.LogDebug(returnedJson);
+                                        JObject result = JObject.Parse(returnedJson);
+                                        var groupId = result["ServerId"].ToString();
+                                        MatchmakerAcceptPatches.SetGroupId(groupId);
+                                        MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                                        GC.Collect();
+                                        GC.WaitForPendingFinalizers();
+                                        GC.Collect();
+                                        DestroyThis();
+                                        OriginalAcceptButton.OnClick.Invoke();
+                                    }
+                                }
+
+                                index++;
+                            }
                         }
-                    }
-                    index++;
+        }
+
+        void HandleJoinButtonClick()
+            {
+                // Perform actions when the "Join" button is clicked
+                if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                {
+                    Logger.LogDebug(returnedJson);
+                    JObject result = JObject.Parse(returnedJson);
+                    var groupId = result["ServerId"].ToString();
+                    MatchmakerAcceptPatches.SetGroupId(groupId);
+                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                    DestroyThis();
+                    OriginalAcceptButton.OnClick.Invoke();
                 }
             }
 
-            // Back button
-            if (GUI.Button(new Rect((windowInnerRect.width / 2) + 10, windowInnerRect.height - 40, (windowInnerRect.width / 2) - 20, 20), Plugin.LanguageDictionary["BACK"], styleBrowserBigButtons))
-            {
-                OriginalBackButton.OnClick.Invoke();
-                DestroyThis();
-                AkiBackendCommunication.Instance.WebSocketClose();
-            }
-        }
-
         void DrawHostGameWindow(int windowID)
         {
-            var rows = 2;
-            var halfWindowWidth = hostGameWindowInnerRect.width / 2;
+            var rows = 3;
+            var halfWindowWidth = windowInnerRect.width / 2;
+
+            // Define a style for the title label
+            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            labelStyle.alignment = TextAnchor.MiddleCenter;
+            labelStyle.fontSize = 18;
+            labelStyle.normal.textColor = Color.white;
+            labelStyle.fontStyle = FontStyle.Bold;
+
+            // Define a style for buttons
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 30;
+            buttonStyle.fontStyle = FontStyle.Bold;
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
-                var y = 20 + (iRow * 25);
+                var y = 40 + (iRow * 50);
+
                 switch (iRow)
                 {
                     case 0:
-                        GUI.Label(new Rect(10, y, halfWindowWidth, 20), "Number of players to wait for (including you)", new GUIStyle() {  fontSize = 14, normal = new GUIStyleState() { textColor = Color.white } });
+                        // Title label for the number of players
+                        GUI.Label(new Rect(10, y, windowInnerRect.width - 20, 30), "Number of Players to Wait For (Including You)", labelStyle);
                         break;
+
                     case 1:
-                        if (GUI.Button(new Rect(10, y, 100, 20), "-", styleBrowserBigButtons))
+                        // Decrease button
+                        if (GUI.Button(new Rect(halfWindowWidth - 50, y, 30, 30), "-", buttonStyle))
                         {
-                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - 1 > 0)
+                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers > 1)
                             {
                                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers -= 1;
                             }
-
-                            //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
-                            //OriginalAcceptButton.OnClick.Invoke();
-                            //DestroyThis();
                         }
 
-                        GUI.Label(new Rect(halfWindowWidth, y, 100, 20), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString());
+                        // Player count label
+                        GUI.Label(new Rect(halfWindowWidth - 15, y, 30, 30), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString(), labelStyle);
 
-                        if (GUI.Button(new Rect((hostGameWindowInnerRect.width - 100) - 20, y, 100, 20), "+", styleBrowserBigButtons))
+                        // Increase button
+                        if (GUI.Button(new Rect(halfWindowWidth + 20, y, 30, 30), "+", buttonStyle))
                         {
-                            //MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
-                            //OriginalAcceptButton.OnClick.Invoke();
-                            //DestroyThis();
-                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers + 1 < 11)
+                            if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers < 10)
                             {
                                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers += 1;
                             }
                         }
                         break;
-                }
 
+                    case 2:
+                        // Calculate the width of the "Require Password" text
+                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Require Password")).x;
+
+                        // Calculate the position for the checkbox and text to center-align them
+                        var horizontalSpacing = 10;
+                        var checkboxX = halfWindowWidth - requirePasswordTextWidth / 2 - horizontalSpacing;
+                        var textX = checkboxX + 20;
+
+                        // Disable the checkbox to prevent interaction
+                        GUI.enabled = false;
+
+                        // Checkbox to toggle the password field visibility
+                        showPasswordField = GUI.Toggle(new Rect(checkboxX, y, 200, 30), showPasswordField, "");
+
+                        // "Require Password" text
+                        GUI.Label(new Rect(textX, y, requirePasswordTextWidth, 30), "Require Password");
+
+                        // Feature is currently unavailable
+                        var featureUnavailableLabelStyle = new GUIStyle(GUI.skin.label)
+                        {
+                            fontStyle = FontStyle.Italic,
+                            normal = { textColor = Color.gray },
+                            fontSize = 10
+                        };
+                        GUI.Label(new Rect(textX, y + 20, requirePasswordTextWidth, 30), "soonTM", featureUnavailableLabelStyle);
+
+                        // Reset GUI.enabled to enable other elements
+                        GUI.enabled = true;
+
+                        // Password field (visible only when the checkbox is checked)
+                        var passwordFieldWidth = 200;
+                        var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
+
+                        if (showPasswordField)
+                        {
+                            passwordInput = GUI.PasswordField(new Rect(220, y, 200, 30), passwordInput, '*', 25);
+                            y += 30;
+                        }
+
+                        break;
+
+
+                }
             }
 
+            // Style for back and start button
+            GUIStyle smallButtonStyle = new GUIStyle(GUI.skin.button);
+            smallButtonStyle.fontSize = 18;
+            smallButtonStyle.alignment = TextAnchor.MiddleCenter;
+
+            // Back button
+            if (GUI.Button(new Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), "Back", smallButtonStyle))
+            {
+                showHostGameWindow = false;
+                showServerBrowserWindow = true;
+            }
 
             // Start button
-            if (GUI.Button(new Rect(10, hostGameWindowInnerRect.height - 40, (hostGameWindowInnerRect.width / 2) - 20, 20), "Start", styleBrowserBigButtons))
+            if (GUI.Button(new Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), "Start", smallButtonStyle))
             {
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
             }
-
-            // Close button
-            if (GUI.Button(new Rect((hostGameWindowInnerRect.width / 2) + 10, hostGameWindowInnerRect.height - 40, (hostGameWindowInnerRect.width / 2) - 20, 20), "Close", styleBrowserBigButtons))
-            {
-                showHostGameWindow = false;
-                showServerBrowserWindow = true;
-            }
         }
-
 
         void OnDestroy()
         {
