@@ -365,7 +365,7 @@ namespace SIT.Tarkov.Core
 
             StartWithTokenType = EftTypes.Single(x => ReflectionHelpers.GetAllMethodsForType(x).Count(y => y.Name == "StartWithToken") == 1);
 
-            BotSystemHelpers.Setup();
+            //BotSystemHelpers.Setup();
 
             if (JobPriorityType == null)
             {
