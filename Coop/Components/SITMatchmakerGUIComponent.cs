@@ -401,7 +401,7 @@ namespace SIT.Core.Coop.Components
                                 var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
                             // Create "Join" button for each match on the next colum
-                            if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2, yPos, cellWidth * 0.8f, cellHeight * 0.8f), "Join", buttonStyle))
+                            if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 10, yPos + 5, cellWidth * 0.8f, cellHeight * 0.8f), "Join", buttonStyle))
                             {
                                 // Perform actions when the "Join" button is clicked
                                 if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
