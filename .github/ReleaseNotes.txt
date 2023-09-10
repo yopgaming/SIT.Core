@@ -6,10 +6,10 @@
 
 * Synchronized Weather (Work in Progress)
 * Server & Clients will wait for all players to spawn before starting Raid
-* Added option to only use Server Side damage (Experimental, requires Aki-Server SITConfig.json change)
+* Added option to only use Server Side damage (Experimental, requires Aki-Server SITConfig.json value useClientSideDamageModel: true)
 * Bots Count on Coop UI
 * Add DrakiaXYZ Waypoints solution back in (with Roaming AI enabled)
-* Add PMC AI Archetype (PMCRushSpawn) 
+* Add PMC AI Archetype (PMCRushSpawn - Work in Progress) 
 * Add Chinese Localization for Match Hosting / Browsing system, thanks @w123456w30w
 * Add Japanese Localization for Match Hosting / Browsing system, thanks @debisuchan
 * Add German Localization for Match Hosting / Browsing system, thanks @TehFl0w
@@ -23,7 +23,7 @@
 * Fix memory leak whilst "Waiting for Players" as a Host
 * Fix memory leak during long matches on large maps
 * Performance Improvements
-* Fix dual/double packet issue
+* Fix dual/double packet issue (Work in Progress)
 * Fix multiple Player Sync packets being sent
 * Divided ActionPacketHandlerComponent from CoopGameComponent improving frame performance
 
