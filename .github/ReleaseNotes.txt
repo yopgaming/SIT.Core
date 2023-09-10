@@ -13,11 +13,12 @@
 * Add Chinese Localization for Match Hosting / Browsing system, thanks @w123456w30w
 * Add Japanese Localization for Match Hosting / Browsing system, thanks @debisuchan
 * Add German Localization for Match Hosting / Browsing system, thanks @TehFl0w
+* Reformat Matchmaker GUI, thanks @mihaicm93
 
 ## Fixes
 
 * Fix Item Movement Replication into Containers & Dead Bodies
-* Fix Issue where Loose Loot items where not disappearing when being picked up
+* Fix Issue where Loose Loot items were not disappearing when being picked up
 * Fix Ping Display & High Ping mode
 * Fix Coop Session was not ending after host leaves (therefore showing as still running on Browser)
 * Fix memory leak whilst "Waiting for Players" as a Host
