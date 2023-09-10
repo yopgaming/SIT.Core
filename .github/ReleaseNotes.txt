@@ -36,6 +36,11 @@
 	* There is a known issue of noticeable lag every few minutes or so
 * Disabled Airdrop Logic from Aki as it doesn't replicate
 
+## Techy mumbo jumbo
+* Git Repo no longer keeps a copy of the latest built /bin/debug directory
+* GitHub Continuous Integration (CI) has been added by @SlejmUr
+* Azure DevOps Pipelines CI/CD now use References and Compiles, rather than copies from the Git Repo
+
 ---
 
 **Update your Official Escape From Tarkov**
