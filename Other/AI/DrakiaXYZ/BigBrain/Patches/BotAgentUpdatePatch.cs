@@ -34,10 +34,8 @@ namespace DrakiaXYZ.BigBrain.Patches
         [PatchPrefix]
         public static bool PatchPrefix(object __instance)
         {
-#if DEBUG
             try
             {
-#endif
 
                 // Get values we'll use later
                 BaseBrain strategy = _strategyField.GetValue(__instance) as BaseBrain;
@@ -81,14 +79,12 @@ namespace DrakiaXYZ.BigBrain.Patches
 
                 return false;
 
-#if DEBUG
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex);
                 throw ex;
             }
-#endif
         }
     }
 }

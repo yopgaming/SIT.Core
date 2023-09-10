@@ -12,25 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Language\English.json" />
-    <None Remove="Resources\Language\Japanese.json" />
-    <None Remove="Resources\Language\SimplifiedChinese.json" />
-    <None Remove="Resources\Language\TraditionalChinese.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Language\English.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\Japanese.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\SimplifiedChinese.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Language\TraditionalChinese.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+	  <EmbeddedResource Include="Resources\Language\German.json">
+	  </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -95,7 +86,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Net.Http">
-      <HintPath>References\\System.Net.Http.dll</HintPath>
+      <HintPath>References\System.Net.Http.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Postprocessing.Runtime">
@@ -127,10 +118,5 @@
 		  <Private>False</Private>
     </Reference>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Coop\Player\InventoryControllerPatches\" />
-  </ItemGroup>
- 
   
 </Project>
