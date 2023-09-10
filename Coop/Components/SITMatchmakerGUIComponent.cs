@@ -48,6 +48,7 @@ namespace SIT.Core.Coop.Components
         private Dictionary<string, object>[] m_Matches { get; set; }
 
         private CancellationTokenSource m_cancellationTokenSource;
+
         private bool StopAllTasks = false;
         
         private bool showPasswordField = false;
@@ -65,7 +66,10 @@ namespace SIT.Core.Coop.Components
         public Profile Profile { get; internal set; }
         public bool showHostGameWindow { get; private set; }
         public Rect hostGameWindowInnerRect { get; private set; }
+
         public bool showServerBrowserWindow { get; private set; } = true;
+
+        private bool showErrorMessageWindow { get; set; } = false;
 
         void Start()
         {
@@ -317,9 +321,25 @@ namespace SIT.Core.Coop.Components
                     }
                 }
             }
+
+            if (showErrorMessageWindow)
+            {
+                windowInnerRect = GUI.Window(0, windowRect, DrawWindowErrorMessage, "Error Message");
+            }
         }
 
+        /// <summary>
+        /// TODO: Finish this on Error Window
+        /// </summary>
+        /// <param name="windowID"></param>
+        void DrawWindowErrorMessage(int windowID)
+        {
+            if (!showErrorMessageWindow)
+                return;
 
+
+
+        }
 
             void DrawWindow(int windowID)
             {
@@ -400,8 +420,8 @@ namespace SIT.Core.Coop.Components
                                 // Calculate the width of the combined server information (Host Name, Player Count, Location)
                                 var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
-                            // Create "Join" button for each match on the next colum
-                            if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 10, yPos + 5, cellWidth * 0.8f, cellHeight * 0.8f), "Join", buttonStyle))
+                            // Create "Join" button for each match on the next column
+                            if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), "Join", buttonStyle))
                             {
                                 // Perform actions when the "Join" button is clicked
                                 if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
@@ -411,6 +431,7 @@ namespace SIT.Core.Coop.Components
                                         var groupId = result["ServerId"].ToString();
                                         MatchmakerAcceptPatches.SetGroupId(groupId);
                                         MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
                                         GC.Collect();
                                         GC.WaitForPendingFinalizers();
                                         GC.Collect();
