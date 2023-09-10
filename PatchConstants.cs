@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using UnityEngine.Assertions;
 using static SIT.Core.Misc.PaulovJsonConverters;
 
 namespace SIT.Tarkov.Core
@@ -182,6 +183,7 @@ namespace SIT.Tarkov.Core
                 FloatParseHandling = FloatParseHandling.Double,
                 Error = (serializer, err) =>
                 {
+                    Logger.LogError("SERIALIZATION ERROR");
                     Logger.LogError(err.ErrorContext.Error.ToString());
                 }
             };
@@ -237,18 +239,22 @@ namespace SIT.Tarkov.Core
         {
             try
             {
-                result = JsonConvert.DeserializeObject<T>(str
-                        , new JsonSerializerSettings()
-                        {
-                            Converters = JsonConverterDefault
-                            ,
-                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                        }
-                        );
+                //result = JsonConvert.DeserializeObject<T>(str
+                //        , new JsonSerializerSettings()
+                //        {
+                //            Converters = JsonConverterDefault
+                //            ,
+                //            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                //        }
+                //        );
+                result = SITParseJson<T>(str);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Logger?.LogError(nameof(TrySITParseJson) + ": has filed to Parse Json");
+                Logger?.LogError(nameof(TrySITParseJson) + ": " + str);
+                Logger?.LogError(nameof(TrySITParseJson) + ": " + ex);
                 result = default(T);
                 return false;
             }
@@ -361,7 +367,7 @@ namespace SIT.Tarkov.Core
             JsonConverterType = typeof(AbstractGame).Assembly.GetTypes()
                .First(t => t.GetField("Converters", BindingFlags.Static | BindingFlags.Public) != null);
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];
-            //Logger.LogInfo($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
+            Logger.LogDebug($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
 
             StartWithTokenType = EftTypes.Single(x => ReflectionHelpers.GetAllMethodsForType(x).Count(y => y.Name == "StartWithToken") == 1);
 
@@ -395,51 +401,21 @@ namespace SIT.Tarkov.Core
                         && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "DestroySpawnPoint")
                         && x.IsInterface
                     );
-            //Logger.LogInfo($"Loading SpawnPointArrayInterfaceType:{SpawnPointArrayInterfaceType.FullName}");
+            //Logger.LogDebug($"Loading SpawnPointArrayInterfaceType:{SpawnPointArrayInterfaceType.FullName}");
 
             BackendStaticConfigurationType = EftTypes.Single(x =>
                     ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "LoadApplicationConfig")
-            //&& ReflectionHelpers.GetFieldFromType(x, "BackendUrl") != null
-            //&& ReflectionHelpers.GetFieldFromType(x, "Config") != null
             );
 
-            //Logger.LogInfo($"Loading BackendStaticConfigurationType:{BackendStaticConfigurationType.FullName}");
 
-            //if (!TypeDictionary.ContainsKey("StatisticsSession"))
-            //{
-            //    TypeDictionary.Add("StatisticsSession", EftTypes.OrderBy(x => x.Name).First(x =>
-            //        x.IsClass
-            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "BeginStatisticsSession")
-            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "EndStatisticsSession")
-            //    ));
-            //    //Logger.LogInfo($"StatisticsSession:{TypeDictionary["StatisticsSession"].FullName}");
-            //}
-
-            //if (!TypeDictionary.ContainsKey("FilterCustomization"))
-            //{
-            //    // Gather FilterCustomization
-            //    TypeDictionary.Add("FilterCustomization", EftTypes.OrderBy(x => x.Name).Last(x =>
-            //        x.IsClass
-            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "FilterCustomization")
-            //    ));
-            //    Logger.LogInfo($"FilterCustomization:{TypeDictionary["FilterCustomization"].FullName}");
-            //}
-
-            // TypeDictionary.Add("Profile", EftTypes.First(x =>
-            //    x.IsClass && x.FullName == "EFT.Profile"
-            //));
-
-            //TypeDictionary.Add("Profile.Customization", EftTypes.First(x =>
-            //    x.IsClass
-            //    && x.BaseType == typeof(Dictionary<EBodyModelPart, string>)
-            //));
-
-            //TypeDictionary.Add("Profile.Inventory", EftTypes.First(x =>
-            //    x.IsClass
-            //    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "UpdateTotalWeight")
-            //    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "GetAllItemByTemplate")
-            //    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "GetItemsInSlots")
-            //));
+            // ==================== TEST ==========================
+            // TODO: Replace with Unit Tests
+            //Profile profile = new Profile();
+            //profile.Info = new ProfileInfo() { Experience = 1 };
+            //var pJson = profile.SITToJson();
+            //Logger.LogDebug( pJson );
+            //var pProfile = pJson.SITParseJson<Profile>();
+            //Assert.AreEqual<Profile>(profile, pProfile);
         }
     }
 }
