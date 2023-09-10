@@ -321,8 +321,9 @@ namespace SIT.Core
             new CheckAndAddEnemyPatch().Enable();
             new BotCreatorTeleportPMCPatch().Enable();
 
-
+#if DEBUG
             BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "PMC" }, 2);
+#endif
             BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 
