@@ -1,12 +1,15 @@
 ﻿using EFT;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SIT.Core;
 using SIT.Core.Coop.Matchmaker;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace SIT.Coop.Core.Matchmaker
@@ -88,7 +91,7 @@ namespace SIT.Coop.Core.Matchmaker
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
                 outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settings));
-                //PatchConstants.Logger.LogInfo(outJson);
+                PatchConstants.Logger.LogInfo(outJson);
 
                 if (!string.IsNullOrEmpty(outJson))
                 {
@@ -99,6 +102,23 @@ namespace SIT.Coop.Core.Matchmaker
                     }
                     else
                     {
+                        var outJObject = JObject.Parse(outJson);
+                        if (outJObject.ContainsKey("gameVersion"))
+                        {
+                            if (JObject.Parse(outJson)["gameVersion"].ToString() != Plugin.EFTVersionMajor)
+                            {
+                                throw new Exception($"You are attempting to use a different version of EFT {Plugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}");
+                            }
+                        }
+
+                        if (outJObject.ContainsKey("sitVersion"))
+                        {
+                            if (JObject.Parse(outJson)["sitVersion"].ToString() != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+                            {
+                                throw new Exception($"You are attempting to use a different version of SIT {Assembly.GetExecutingAssembly().GetName().Version.ToString()} than what the server is running {JObject.Parse(outJson)["sitVersion"]}");
+                            }
+                        }
+
                         serverExists = true;
                     }
                     PatchConstants.Logger.LogInfo($"CheckForMatch:Server Exists?:{serverExists}");
@@ -110,16 +130,23 @@ namespace SIT.Coop.Core.Matchmaker
         }
 
         //public static void CreateMatch(string accountId, RaidSettings rs)
-        public static void CreateMatch(string profileId, RaidSettings rs)
+        public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
         {
 
-            string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
-                new Dictionary<string, object>
+            var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId }
                 , { "settings", rs }
                 , { "expectedNumberOfPlayers", MatchmakerAcceptPatches.HostExpectedNumberOfPlayers }
-            }));
+                , { "gameVersion", Plugin.EFTVersionMajor }
+                , { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version }
+            };
+
+            if( password != null )
+                objectToSend.Add( "password", password );   
+
+            string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
+                objectToSend));
             if (!string.IsNullOrEmpty(text))
             {
                 PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");

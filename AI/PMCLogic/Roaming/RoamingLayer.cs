@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace SIT.Core.AI.PMCLogic.Roaming
 {
-// Note: We only include this in debug builds for now, because we're not shipping BigBrain
-#if DEBUG
     internal class RoamingLayer : CustomLayer
     {
         protected ManualLogSource Logger;
@@ -70,5 +68,4 @@ namespace SIT.Core.AI.PMCLogic.Roaming
             return false;
         }
     }
-#endif
 }

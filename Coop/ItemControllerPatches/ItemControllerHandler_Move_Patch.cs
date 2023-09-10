@@ -270,7 +270,7 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
                 CallLocally.Add(itemController.ID);
 
-                ItemMovementHandler.Move(item, address, itemController, false, true);
+                ItemMovementHandler.Move(item, address, itemController, false);
 
             }
             catch (Exception)

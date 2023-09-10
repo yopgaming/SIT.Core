@@ -10,6 +10,7 @@ using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine.Assertions;
 
 namespace SIT.Coop.Core.Player
 {
@@ -128,6 +129,17 @@ namespace SIT.Coop.Core.Player
             var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
             prc.player = player;
             AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+
+
+
+            // ==================== TEST ==========================
+            // TODO: Replace with Unit Tests
+            var pJson = player.Profile.SITToJson();
+            //Logger.LogDebug(pJson);
+            var pProfile = pJson.SITParseJson<Profile>();
+            Assert.AreEqual<Profile>(player.Profile, pProfile);
+
+
         }
     }
 }

@@ -1659,7 +1659,7 @@ namespace SIT.Core.Coop
 
         public bool showPlayerNameTagsForEnemies { get; set; } = false;
 
-        public bool useClientSideDamageModel { get; set; } = true;
+        public bool useClientSideDamageModel { get; set; } = false;
     }
 
 
