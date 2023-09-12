@@ -59,7 +59,7 @@ namespace SIT.Coop.Core.Matchmaker
             sitMatchMaker.MatchMakerPlayerPreview = ____playerModelView;
 
 
-            var rs = raidSettings;
+            //var rs = raidSettings;
             //____acceptButton.OnClick.AddListener(() =>
             //{
             //    if (LastClickedTime < DateTime.Now.AddSeconds(-10))

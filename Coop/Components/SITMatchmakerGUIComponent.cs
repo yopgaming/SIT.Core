@@ -62,7 +62,7 @@ namespace SIT.Core.Coop.Components
         private ManualLogSource Logger { get; set; }
         public MatchMakerPlayerPreview MatchMakerPlayerPreview { get; internal set; }
 
-        public Canvas Canvas { get; set; }
+        //public Canvas Canvas { get; set; }
         public Profile Profile { get; internal set; }
         public bool showHostGameWindow { get; private set; }
         public Rect hostGameWindowInnerRect { get; private set; }
@@ -76,17 +76,17 @@ namespace SIT.Core.Coop.Components
             // Setup Logger
             Logger = BepInEx.Logging.Logger.CreateLogSource("SIT Matchmaker GUI");
             Logger.LogInfo("Start");
-            // Get Canvas
-            Canvas = GameObject.FindObjectOfType<Canvas>();
-            if (Canvas != null)
-            {
-                Logger.LogInfo("Canvas found");
-                foreach (Transform b in Canvas.GetComponents<Transform>())
-                {
-                    Logger.LogInfo(b);
-                }
-                //Canvas.GetComponent<UnityEngine.GUIText>();
-            }
+            //// Get Canvas
+            //Canvas = GameObject.FindObjectOfType<Canvas>();
+            //if (Canvas != null)
+            //{
+            //    Logger.LogInfo("Canvas found");
+            //    foreach (Transform b in Canvas.GetComponents<Transform>())
+            //    {
+            //        Logger.LogInfo(b);
+            //    }
+            //    //Canvas.GetComponent<UnityEngine.GUIText>();
+            //}
 
             // Create background Texture
             Texture2D texture2D = new(128, 128);
@@ -123,36 +123,75 @@ namespace SIT.Core.Coop.Components
             GetMatches();
             StartCoroutine(ResolveMatches());
             DisableBSGButtons();
-            RemovePlayerCharacter();
-            RemoveOldPanels();
-        }
+            //RemoveOldPanels();
 
-        private void RemoveOldPanels()
-        {
-            var playerNamePanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerNamePanel)).GetValue(MatchMakerPlayerPreview) as PlayerNamePanel;
-            if (playerNamePanel == null)
+            var previewsPanel = GameObject.Find("PreviewsPanel");
+            if (previewsPanel != null)
             {
-                Logger.LogError("Unable to retrieve PlayerNamePanel");
-                return;
+                var previewsPanelRect = previewsPanel.GetComponent<RectTransform>();
+                previewsPanelRect.position = new Vector3(400, 300, 0);
+                //previewsPanelRect.localScale = new Vector3(1.4f, 1.4f, 0);
             }
 
-            //var playerLevelPanel = MatchMakerPlayerPreview.GetComponent<PlayerLevelPanel>();
-            var playerLevelPanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerLevelPanel)).GetValue(MatchMakerPlayerPreview) as PlayerLevelPanel;
-            if (playerLevelPanel == null)
+
+            var playerImage = GameObject.Find("PlayerImage");
+            if (playerImage != null)
             {
-                Logger.LogError("Unable to retrieve PlayerLevelPanel");
-                return;
+                var playerImageRect = playerImage.GetComponent<RectTransform>();
+                //playerImageRect.position = new Vector3(300, 670, 0);
+                playerImageRect.localScale = new Vector3(1.4f, 1.4f, 0);
             }
 
-            playerNamePanel.gameObject.SetActive(false);
-            playerLevelPanel.gameObject.SetActive(false);
+            //var SITParentGO = new GameObject("SIT MM Parent Object");
 
-            //RectTransform tempRectTransform = playerLevelPanel.GetComponent<RectTransform>();
-            //tempRectTransform.anchoredPosition = new Vector2(-1000, 0);
-            //tempRectTransform.offsetMax = new Vector2(-1000, 0);
-            //tempRectTransform.offsetMin = new Vector2(-1000, 0);
-            //tempRectTransform.anchoredPosition3D = new Vector3(-1000, 0, 0);
+            //var nameObject = GameObject.Find("Name");
+            //if (nameObject != null)
+            //{
+            //    var nameObjectRect = playerImage.GetComponent<RectTransform>();
+            //    nameObjectRect.position = new Vector3(350, 200, 0);
+            //}
+
+            //var levelObject = GameObject.Find("Level");
+            //if (levelObject != null)
+            //{
+            //    var levelObjectRect = playerImage.GetComponent<RectTransform>();
+            //    levelObjectRect.position = new Vector3(350, 1180, 0);
+            //}
+
+            //var levelIconObject = GameObject.Find("Level Icon");
+            //if (levelIconObject != null)
+            //{
+            //    var levelIconObjectRect = playerImage.GetComponent<RectTransform>();
+            //    levelIconObjectRect.position = new Vector3(150, 1180, 0);
+            //}
         }
+
+        //private void RemoveOldPanels()
+        //{
+        //    var playerNamePanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerNamePanel)).GetValue(MatchMakerPlayerPreview) as PlayerNamePanel;
+        //    if (playerNamePanel == null)
+        //    {
+        //        Logger.LogError("Unable to retrieve PlayerNamePanel");
+        //        return;
+        //    }
+
+        //    //var playerLevelPanel = MatchMakerPlayerPreview.GetComponent<PlayerLevelPanel>();
+        //    var playerLevelPanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerLevelPanel)).GetValue(MatchMakerPlayerPreview) as PlayerLevelPanel;
+        //    if (playerLevelPanel == null)
+        //    {
+        //        Logger.LogError("Unable to retrieve PlayerLevelPanel");
+        //        return;
+        //    }
+
+        //    playerNamePanel.gameObject.SetActive(false);
+        //    playerLevelPanel.gameObject.SetActive(false);
+
+        //    //RectTransform tempRectTransform = playerLevelPanel.GetComponent<RectTransform>();
+        //    //tempRectTransform.anchoredPosition = new Vector2(-1000, 0);
+        //    //tempRectTransform.offsetMax = new Vector2(-1000, 0);
+        //    //tempRectTransform.offsetMin = new Vector2(-1000, 0);
+        //    //tempRectTransform.anchoredPosition3D = new Vector3(-1000, 0, 0);
+        //}
 
         private void DisableBSGButtons()
         {
@@ -162,31 +201,8 @@ namespace SIT.Core.Coop.Components
             OriginalBackButton.gameObject.SetActive(false);
             OriginalBackButton.enabled = false;
             OriginalBackButton.Interactable = false;
-        }
 
-        private void RemovePlayerCharacter()
-        {
-            var pmv = ReflectionHelpers.GetFieldFromTypeByFieldType(MatchMakerPlayerPreview.GetType(), typeof(PlayerModelView)).GetValue(MatchMakerPlayerPreview) as PlayerModelView;
-            if (pmv == null)
-            {
-                Logger.LogError("Unable to retrieve PlayerModelView");
-                return;
-            }
-
-            var position = (Vector3)ReflectionHelpers.GetFieldFromType(typeof(PlayerModelView), "_position").GetValue(pmv);
-            if (position == null)
-            {
-                Logger.LogError("Unable to retrieve _position");
-                return;
-            }
-
-            position.x = 7000f;
-            pmv.enabled = false;
-
-            if (pmv.PlayerBody == null)
-                return;
-
-            pmv.PlayerBody.enabled = false;
+            //var randombuttontest = GameObject.Instantiate<DefaultUIButton>(OriginalBackButton);
 
         }
 
@@ -236,8 +252,12 @@ namespace SIT.Core.Coop.Components
                 DestroyThis();
             }
 
-            RemovePlayerCharacter();
-            RemoveOldPanels();
+            //if(GameObject.Find("RaidSettingsSummary") != null)
+            //{
+            //    //DestroyThis();
+            //    //showServerBrowserWindow = false;
+            //}
+            //RemoveOldPanels();
         }
 
         void OnGUI()
@@ -254,10 +274,11 @@ namespace SIT.Core.Coop.Components
 
             // Create the main window rectangle
             windowRect = new Rect(windowX, windowY, windowWidth, windowHeight);
+            var serverBrowserRect = new Rect(windowX, Screen.height * 0.3f, windowWidth, windowHeight);
 
             if (showServerBrowserWindow)
             {
-                windowInnerRect = GUI.Window(0, windowRect, DrawWindow, "Server Browser");
+                windowInnerRect = GUI.Window(0, serverBrowserRect, DrawWindow, "");
 
                 // Calculate the position for the "Host Game" and "Play Single Player" buttons
                 var buttonWidth = 250;
@@ -271,7 +292,7 @@ namespace SIT.Core.Coop.Components
                 gamemodeButtonStyle.fontStyle = FontStyle.Bold;
 
                 // Create "Host Game" button
-                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Host Game", gamemodeButtonStyle))
+                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), Plugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
                 {
 
                     showServerBrowserWindow = false;
@@ -280,7 +301,7 @@ namespace SIT.Core.Coop.Components
 
                 // Create "Play Single Player" button next to the "Host Game" button
                 buttonX += buttonWidth + 10;
-                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Play Single Player", gamemodeButtonStyle))
+                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), Plugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
                 {
                     MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
                     OriginalAcceptButton.OnClick.Invoke();
@@ -289,7 +310,7 @@ namespace SIT.Core.Coop.Components
             }
             else if (showHostGameWindow)
             {
-                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, "Host Game");
+                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, Plugin.LanguageDictionary["HOST_RAID"]);
             }
 
             // Handle the "Back" Button
@@ -304,7 +325,7 @@ namespace SIT.Core.Coop.Components
                 buttonStyle.fontSize = 24;
                 buttonStyle.fontStyle = FontStyle.Bold;
 
-                if (GUI.Button(new Rect(backButtonX, backButtonY, 200, 40), "Back", buttonStyle))
+                if (GUI.Button(new Rect(backButtonX, backButtonY, 200, 40), Plugin.LanguageDictionary["BACK"], buttonStyle))
                 {
                     // Handle the "Back" button click
                     if (showServerBrowserWindow)
@@ -325,9 +346,13 @@ namespace SIT.Core.Coop.Components
 
             if (showErrorMessageWindow)
             {
+                showHostGameWindow = false;
+                showServerBrowserWindow = false;
                 windowInnerRect = GUI.Window(0, windowRect, DrawWindowErrorMessage, "Error Message");
             }
         }
+
+        string ErrorMessage { get; set; }
 
         /// <summary>
         /// TODO: Finish this on Error Window
@@ -338,67 +363,71 @@ namespace SIT.Core.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-
-
+            GUI.Label(windowInnerRect, ErrorMessage);
         }
 
-            void DrawWindow(int windowID)
+        void DrawWindow(int windowID)
+        {
+            // Define column labels
+            string[] columnLabels = { "Server", "Players", "Location" };
+            // Use the Language Dictionary
+            columnLabels[0] = Plugin.LanguageDictionary["SERVER"];
+            columnLabels[1] = Plugin.LanguageDictionary["PLAYERS"];
+            columnLabels[2] = Plugin.LanguageDictionary["LOCATION"];
+
+
+            // Define the button style
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 14;
+            buttonStyle.padding = new RectOffset(6, 6, 6, 6);
+
+            // Define the label style
+            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            labelStyle.alignment = TextAnchor.MiddleCenter;
+            labelStyle.fontSize = 14;
+            labelStyle.normal.textColor = Color.white;
+
+            // Calculate the number of rows and columns
+            int numRows = 7;
+            int numColumns = 3;
+
+            // Calculate cell width and height
+            float cellWidth = windowInnerRect.width / (numColumns + 1);
+            float cellHeight = (windowInnerRect.height - 40) / numRows;
+
+            // Calculate the vertical positions for lines and labels
+            float topSeparatorY = 20;
+            float middleSeparatorY = topSeparatorY + cellHeight - 7;
+            float bottomSeparatorY = topSeparatorY + numRows * cellHeight;
+
+            // Calculate the width of the separator
+            float separatorWidth = 2;
+
+            // Draw the first horizontal line at the top
+            GUI.DrawTexture(new Rect(10, topSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+
+            // Draw the second horizontal line under Server, Players, and Location
+            GUI.DrawTexture(new Rect(10, middleSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+
+            // Draw the third horizontal line at the bottom
+            GUI.DrawTexture(new Rect(10, bottomSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+
+            // Draw vertical separator lines
+            for (int col = 1; col < numColumns + 1; col++)
             {
-                // Define column labels
-                string[] columnLabels = { "Server", "Players", "Location" };
+                float separatorX = col * cellWidth - separatorWidth / 2;
+                GUI.DrawTexture(new Rect(separatorX - 2, topSeparatorY, separatorWidth, bottomSeparatorY - topSeparatorY), Texture2D.grayTexture);
+            }
 
-                // Define the button style
-                GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
-                buttonStyle.fontSize = 14;
-                buttonStyle.padding = new RectOffset(6, 6, 6, 6);
+            // Draw column labels at the top
+            for (int col = 0; col < 3; col++)
+            {
+                float cellX = col * cellWidth + separatorWidth / 2;
+                GUI.Label(new Rect(cellX, topSeparatorY + 5, cellWidth - separatorWidth, 25), columnLabels[col], labelStyle);
+            }
 
-                // Define the label style
-                GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
-                labelStyle.alignment = TextAnchor.MiddleCenter;
-                labelStyle.fontSize = 14;
-                labelStyle.normal.textColor = Color.white;
-
-                // Calculate the number of rows and columns
-                int numRows = 7;
-                int numColumns = 3;
-
-                // Calculate cell width and height
-                float cellWidth = windowInnerRect.width / (numColumns + 1);
-                float cellHeight = (windowInnerRect.height - 40) / numRows;
-
-                // Calculate the vertical positions for lines and labels
-                float topSeparatorY = 20;
-                float middleSeparatorY = topSeparatorY + cellHeight - 7;
-                float bottomSeparatorY = topSeparatorY + numRows * cellHeight;
-
-                // Calculate the width of the separator
-                float separatorWidth = 2;
-
-                // Draw the first horizontal line at the top
-                GUI.DrawTexture(new Rect(10, topSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
-
-                // Draw the second horizontal line under Server, Players, and Location
-                GUI.DrawTexture(new Rect(10, middleSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
-
-                // Draw the third horizontal line at the bottom
-                GUI.DrawTexture(new Rect(10, bottomSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
-
-                // Draw vertical separator lines
-                for (int col = 1; col < numColumns + 1; col++)
-                {
-                    float separatorX = col * cellWidth - separatorWidth / 2;
-                    GUI.DrawTexture(new Rect(separatorX - 2, topSeparatorY, separatorWidth, bottomSeparatorY - topSeparatorY), Texture2D.grayTexture);
-                }
-
-                // Draw column labels at the top
-                for (int col = 0; col < 3; col++)
-                {
-                    float cellX = col * cellWidth + separatorWidth / 2;
-                    GUI.Label(new Rect(cellX, topSeparatorY + 5, cellWidth - separatorWidth, 25), columnLabels[col], labelStyle);
-                }
-
-                // Reset the GUI.backgroundColor to its original state
-                GUI.backgroundColor = Color.white;
+            // Reset the GUI.backgroundColor to its original state
+            GUI.backgroundColor = Color.white;
 
             if (m_Matches != null)
             {
@@ -422,10 +451,10 @@ namespace SIT.Core.Coop.Components
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
                     // Create "Join" button for each match on the next column
-                    if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), "Join", buttonStyle))
+                    if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), Plugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
-                        if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                        if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson, out string errorMessage))
                         {
                             Logger.LogDebug(returnedJson);
                             JObject result = JObject.Parse(returnedJson);
@@ -438,6 +467,11 @@ namespace SIT.Core.Coop.Components
 
                             DestroyThis();
                             OriginalAcceptButton.OnClick.Invoke();
+                        }
+                        else
+                        {
+                            this.ErrorMessage = errorMessage;
+                            this.showErrorMessageWindow = true;
                         }
                     }
 
@@ -471,7 +505,7 @@ namespace SIT.Core.Coop.Components
                 {
                     case 0:
                         // Title label for the number of players
-                        GUI.Label(new Rect(10, y, windowInnerRect.width - 20, 30), "Number of Players to Wait For (Including You)", labelStyle);
+                        GUI.Label(new Rect(10, y, windowInnerRect.width - 20, 30), Plugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"], labelStyle);
                         break;
 
                     case 1:
@@ -499,7 +533,7 @@ namespace SIT.Core.Coop.Components
 
                     case 2:
                         // Calculate the width of the "Require Password" text
-                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Require Password")).x;
+                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent(Plugin.LanguageDictionary["REQUIRE_PASSWORD"])).x;
 
                         // Calculate the position for the checkbox and text to center-align them
                         var horizontalSpacing = 10;
@@ -513,7 +547,7 @@ namespace SIT.Core.Coop.Components
                         showPasswordField = GUI.Toggle(new Rect(checkboxX, y, 200, 30), showPasswordField, "");
 
                         // "Require Password" text
-                        GUI.Label(new Rect(textX, y, requirePasswordTextWidth, 30), "Require Password");
+                        GUI.Label(new Rect(textX, y, requirePasswordTextWidth, 30), Plugin.LanguageDictionary["REQUIRE_PASSWORD"]);
 
                         // Feature is currently unavailable
                         var featureUnavailableLabelStyle = new GUIStyle(GUI.skin.label)
@@ -549,14 +583,14 @@ namespace SIT.Core.Coop.Components
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 
             // Back button
-            if (GUI.Button(new Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), "Back", smallButtonStyle))
+            if (GUI.Button(new Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), Plugin.LanguageDictionary["BACK"], smallButtonStyle))
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = true;
             }
 
             // Start button
-            if (GUI.Button(new Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), "Start", smallButtonStyle))
+            if (GUI.Button(new Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), Plugin.LanguageDictionary["START"], smallButtonStyle))
             {
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 

@@ -40,7 +40,7 @@ using UnityEngine.SceneManagement;
 
 namespace SIT.Core
 {
-    [BepInPlugin("SIT.Core", "SIT.Core", "1.8.0")]
+    [BepInPlugin("SIT.Core", "SIT.Core", "1.9.0")]
     [BepInProcess("EscapeFromTarkov.exe")]
     public class Plugin : BaseUnityPlugin
     {
@@ -78,7 +78,7 @@ namespace SIT.Core
             Logger.LogDebug(Thread.CurrentThread.CurrentCulture);
 
             var languageFiles = new List<string>();
-            foreach(var mrs in typeof(Plugin).Assembly.GetManifestResourceNames().Where(x=>x.StartsWith("SIT.Core.Resources.Language")))
+            foreach (var mrs in typeof(Plugin).Assembly.GetManifestResourceNames().Where(x => x.StartsWith("SIT.Core.Resources.Language")))
             {
                 languageFiles.Add(mrs);
                 Logger.LogInfo(mrs);
@@ -94,7 +94,7 @@ namespace SIT.Core
             switch (firstPartOfLang)
             {
                 case "zh":
-                    switch(Thread.CurrentThread.CurrentCulture.Name.ToLower())
+                    switch (Thread.CurrentThread.CurrentCulture.Name.ToLower())
                     {
                         case "zh_TW":
                             stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("TraditionalChinese.json")));
@@ -121,17 +121,32 @@ namespace SIT.Core
             if (stream == null)
                 return;
 
-            sr = new StreamReader(stream);
-            str = sr.ReadToEnd();
-
-            resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
-
-            if (resultLocaleDictionary == null)
-                return;
-
-            foreach (var kvp in resultLocaleDictionary)
+            // Load Language Stream in
+            using (sr = new StreamReader(stream))
             {
-                LanguageDictionary.Add(kvp.Key, kvp.Value);
+                str = sr.ReadToEnd();
+
+                resultLocaleDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+
+                if (resultLocaleDictionary == null)
+                    return;
+
+                foreach (var kvp in resultLocaleDictionary)
+                {
+                    LanguageDictionary.Add(kvp.Key, kvp.Value);
+                }
+
+               
+            }
+
+            // Load English Language Stream to Fill any missing expected statements in the Dictionary
+            using (sr = new StreamReader(typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")))))
+            {
+                foreach (var kvp in JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd()))
+                {
+                    if(!LanguageDictionary.ContainsKey(kvp.Key))
+                        LanguageDictionary.Add(kvp.Key, kvp.Value);
+                }
             }
 
             Logger.LogDebug("Loaded in the following Language Dictionary");

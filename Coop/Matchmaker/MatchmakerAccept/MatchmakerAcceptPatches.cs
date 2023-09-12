@@ -83,8 +83,9 @@ namespace SIT.Coop.Core.Matchmaker
             groupId = newId;
         }
 
-        public static bool CheckForMatch(RaidSettings settings, out string outJson)
+        public static bool CheckForMatch(RaidSettings settings, out string outJson, out string errorMessage)
         {
+            errorMessage = $"No server matches the data provided or the server no longer exists";
             PatchConstants.Logger.LogInfo("CheckForMatch");
             outJson = string.Empty;
 
@@ -107,7 +108,8 @@ namespace SIT.Coop.Core.Matchmaker
                         {
                             if (JObject.Parse(outJson)["gameVersion"].ToString() != Plugin.EFTVersionMajor)
                             {
-                                throw new Exception($"You are attempting to use a different version of EFT {Plugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}");
+                                errorMessage = $"You are attempting to use a different version of EFT {Plugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}";
+                                return false;
                             }
                         }
 
@@ -115,7 +117,8 @@ namespace SIT.Coop.Core.Matchmaker
                         {
                             if (JObject.Parse(outJson)["sitVersion"].ToString() != Assembly.GetExecutingAssembly().GetName().Version.ToString())
                             {
-                                throw new Exception($"You are attempting to use a different version of SIT {Assembly.GetExecutingAssembly().GetName().Version.ToString()} than what the server is running {JObject.Parse(outJson)["sitVersion"]}");
+                                errorMessage = $"You are attempting to use a different version of SIT {Assembly.GetExecutingAssembly().GetName().Version.ToString()} than what the server is running {JObject.Parse(outJson)["sitVersion"]}";
+                                return false;
                             }
                         }
 
