@@ -4,15 +4,19 @@
 
 ## New features
 
-TBC
+**TBC**
+
+* Add a scrollable view to the Traders top bar so you can easily scroll to any additional Aki mod Traders
 
 ## Fixes
+
+**TBC**
 
 * Ensure the Matchmaker UI uses the language dictionaries provided by the contributors
 
 ## Misc
 
-TBC
+**TBC**
 
 ---
 
