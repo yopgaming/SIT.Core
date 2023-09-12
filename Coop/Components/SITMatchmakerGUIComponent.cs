@@ -273,6 +273,7 @@ namespace SIT.Core.Coop.Components
                 // Create "Host Game" button
                 if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Host Game", gamemodeButtonStyle))
                 {
+
                     showServerBrowserWindow = false;
                     showHostGameWindow = true;
                 }
@@ -399,69 +400,51 @@ namespace SIT.Core.Coop.Components
                 // Reset the GUI.backgroundColor to its original state
                 GUI.backgroundColor = Color.white;
 
-                       if (m_Matches != null)
-                        {
-                            var index = 0;
-                            var yPosOffset = 60;
-
-                            foreach (var match in m_Matches)
-                            {
-                                var yPos = yPosOffset + index * (cellHeight + 5);
-
-                                // Display Host Name with "Raid" label
-                                GUI.Label(new Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
-
-                                // Display Player Count
-                                GUI.Label(new Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
-
-                                // Display Location
-                                GUI.Label(new Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
-
-                                // Calculate the width of the combined server information (Host Name, Player Count, Location)
-                                var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
-
-                            // Create "Join" button for each match on the next column
-                            if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), "Join", buttonStyle))
-                            {
-                                // Perform actions when the "Join" button is clicked
-                                if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
-                                    {
-                                        Logger.LogDebug(returnedJson);
-                                        JObject result = JObject.Parse(returnedJson);
-                                        var groupId = result["ServerId"].ToString();
-                                        MatchmakerAcceptPatches.SetGroupId(groupId);
-                                        MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
-                                        GC.Collect();
-                                        GC.WaitForPendingFinalizers();
-                                        GC.Collect();
-                                        DestroyThis();
-                                        OriginalAcceptButton.OnClick.Invoke();
-                                    }
-                                }
-
-                                index++;
-                            }
-                        }
-        }
-
-        void HandleJoinButtonClick()
+            if (m_Matches != null)
             {
-                // Perform actions when the "Join" button is clicked
-                if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                var index = 0;
+                var yPosOffset = 60;
+
+                foreach (var match in m_Matches)
                 {
-                    Logger.LogDebug(returnedJson);
-                    JObject result = JObject.Parse(returnedJson);
-                    var groupId = result["ServerId"].ToString();
-                    MatchmakerAcceptPatches.SetGroupId(groupId);
-                    MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    GC.Collect();
-                    DestroyThis();
-                    OriginalAcceptButton.OnClick.Invoke();
+                    var yPos = yPosOffset + index * (cellHeight + 5);
+
+                    // Display Host Name with "Raid" label
+                    GUI.Label(new Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
+
+                    // Display Player Count
+                    GUI.Label(new Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
+
+                    // Display Location
+                    GUI.Label(new Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
+
+                    // Calculate the width of the combined server information (Host Name, Player Count, Location)
+                    var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
+
+                    // Create "Join" button for each match on the next column
+                    if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), "Join", buttonStyle))
+                    {
+                        // Perform actions when the "Join" button is clicked
+                        if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson))
+                        {
+                            Logger.LogDebug(returnedJson);
+                            JObject result = JObject.Parse(returnedJson);
+                            var groupId = result["ServerId"].ToString();
+                            MatchmakerAcceptPatches.SetGroupId(groupId);
+                            MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
+
+                            AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+
+                            DestroyThis();
+                            OriginalAcceptButton.OnClick.Invoke();
+                        }
+                    }
+
+                    index++;
                 }
             }
+        }
 
         void DrawHostGameWindow(int windowID)
         {
@@ -575,6 +558,8 @@ namespace SIT.Core.Coop.Components
             // Start button
             if (GUI.Button(new Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), "Start", smallButtonStyle))
             {
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();

@@ -133,10 +133,14 @@ namespace SIT.Core.Core
             Logger.LogDebug(wsUrl);
 
             WebSocket = new WebSocketSharp.WebSocket(wsUrl);
-            WebSocket.OnError += WebSocket_OnError;
-            WebSocket.OnMessage += WebSocket_OnMessage;
             WebSocket.Connect();
             WebSocket.Send("CONNECTED FROM SIT COOP");
+            // ---
+            // Start up after initial Send
+            WebSocket.OnError += WebSocket_OnError;
+            WebSocket.OnMessage += WebSocket_OnMessage;
+            // ---
+
             // Continously Ping from SIT.Core (Keep Alive)
             _ = Task.Run(async () =>
             {
@@ -208,7 +212,6 @@ namespace SIT.Core.Core
             try
             {
                 //Logger.LogInfo($"Step.0. WebSocket_OnMessage");
-
 
                 if (sender == null)
                     return;
@@ -310,7 +313,6 @@ namespace SIT.Core.Core
                         return;
 
                     coopGameComponent.ServerHasStopped = true;
-                    //coopGameComponent.LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Runner, "", 0);
                     return;
                 }
 
@@ -351,7 +353,7 @@ namespace SIT.Core.Core
                     && packet["m"].ToString() == "Move")
                     coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
                 else
-                    coopGameComponent.ActionPackets.TryAdd(packet);
+                    coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
 
             }
             catch (Exception ex)

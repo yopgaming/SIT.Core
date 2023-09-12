@@ -11,6 +11,7 @@ using JsonType;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Core.Configuration;
+using SIT.Core.Coop.Components;
 using SIT.Core.Coop.FreeCamera;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -20,6 +21,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -144,10 +146,19 @@ namespace SIT.Core.Coop
                 GameObject.Destroy(coopGameComponent);
             }
 
-            if (CoopPatches.CoopGameComponentParent == null)
-                CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
+            if (CoopPatches.CoopGameComponentParent != null)
+            {
+                GameObject.Destroy(CoopPatches.CoopGameComponentParent);
+                CoopPatches.CoopGameComponentParent = null;
+            }
 
-            coopGameComponent = CoopPatches.CoopGameComponentParent.GetOrAddComponent<CoopGameComponent>();
+            if (CoopPatches.CoopGameComponentParent == null)
+            {
+                CoopPatches.CoopGameComponentParent = new GameObject("CoopGameComponentParent");
+                DontDestroyOnLoad(CoopPatches.CoopGameComponentParent);
+            }
+            CoopPatches.CoopGameComponentParent.AddComponent<ActionPacketHandlerComponent>();
+            coopGameComponent = CoopPatches.CoopGameComponentParent.AddComponent<CoopGameComponent>();
             coopGameComponent.LocalGameInstance = this;
 
             //coopGameComponent = gameWorld.GetOrAddComponent<CoopGameComponent>();

@@ -167,7 +167,10 @@ namespace SIT.Core.Coop
             }
 
 
-            GCHelpers.DisableGC(true);
+            if(CoopGameComponentParent != null) 
+                GameObject.DestroyImmediate(CoopGameComponentParent);
+
+            //GCHelpers.DisableGC(true);
             //GCHelpers.ClearGarbage(true, true);
 
             AkiBackendCommunication.Instance.WebSocketClose();

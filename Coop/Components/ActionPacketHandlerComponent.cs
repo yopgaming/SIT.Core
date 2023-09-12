@@ -20,7 +20,7 @@ namespace SIT.Core.Coop.Components
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
         public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new();
-        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new();
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
@@ -37,18 +37,31 @@ namespace SIT.Core.Coop.Components
             Logger = BepInEx.Logging.Logger.CreateLogSource("ActionPacketHandlerComponent");
             Logger.LogDebug("Awake");
 
-            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
-
+            CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>(); 
+            ActionPacketsMovement = new();
         }
 
         void Start()
         {
             CoopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            ActionPacketsMovement = new();
         }
 
         void Update()
         {
             ProcessActionPackets();
+        }
+
+
+        public static ActionPacketHandlerComponent GetThisComponent()
+        {
+            if (CoopPatches.CoopGameComponentParent == null)
+                return null;
+
+            if (CoopPatches.CoopGameComponentParent.TryGetComponent<ActionPacketHandlerComponent>(out var component))
+                return component;
+
+            return null;
         }
 
         private void ProcessActionPackets()
@@ -79,6 +92,9 @@ namespace SIT.Core.Coop.Components
                     ProcessLastActionDataPacket(result);
                 }
             }
+
+            if (ActionPacketsMovement == null)
+                return;
 
             if (ActionPacketsMovement.Count > 0)
             {

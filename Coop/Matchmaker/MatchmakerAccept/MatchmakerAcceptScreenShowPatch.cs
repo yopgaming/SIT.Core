@@ -103,7 +103,6 @@ namespace SIT.Coop.Core.Matchmaker
             MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance = __instance;
             // ------------------------------------------
             MatchmakerAcceptPatches.Profile = ___profile_0;
-            AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
         }
     }
 

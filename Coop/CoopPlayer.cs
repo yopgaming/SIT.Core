@@ -109,10 +109,10 @@ namespace SIT.Core.Coop
                 return;
 
             PreviousDamageInfos.Add(damageInfo);
-            //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
+            BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
 
-            if(CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+            if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
             {
                 // If we are not using the Client Side Damage, then only run this on the server
                 if(MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)               
@@ -178,35 +178,43 @@ namespace SIT.Core.Coop
 
         }
 
-
         protected override void OnSkillLevelChanged(AbstractSkill skill)
         {
-            base.OnSkillLevelChanged(skill);
-            //if (!base.IsAI && IsYourPlayer)
-            //{
-            //    NotificationManagerClass.DisplayNotification(new GClass1990(skill));
-            //}
+            //base.OnSkillLevelChanged(skill);
         }
 
         protected override void OnWeaponMastered(MasterSkill masterSkill)
         {
-            base.OnWeaponMastered(masterSkill);
-            //if (!base.IsAI && IsYourPlayer)
-            //{
-            //    NotificationManagerClass.DisplayMessageNotification(string.Format("MasteringLevelUpMessage".Localized(), masterSkill.MasteringGroup.Id.Localized(), masterSkill.Level.ToString()));
-            //}
+            //base.OnWeaponMastered(masterSkill);
         }
 
         public override void Heal(EBodyPart bodyPart, float value)
         {
-            //PatchConstants.Logger.LogDebug("Heal");
             base.Heal(bodyPart, value);
         }
 
         public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)
         {
-            //PatchConstants.Logger.LogDebug("ApplyShot");
             return base.ApplyShot(damageInfo, bodyPartType, shotId);
+        }
+
+        public void ReceiveApplyShotFromServer(Dictionary<string, object> dict)
+        {
+            Logger.LogDebug("ReceiveApplyShotFromServer");
+            Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+            Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
+            var absorbed = float.Parse(dict["ab"].ToString());
+
+            var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
+            damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
+
+            var shotId = new ShotId();
+            if (dict.ContainsKey("ammoid") && dict["ammoid"] != null)
+            {
+                shotId = new ShotId(dict["ammoid"].ToString(), 1);
+            }
+
+            base.ApplyShot(damageInfo, bodyPartType, shotId);
         }
 
         public override Corpse CreateCorpse()
@@ -216,7 +224,6 @@ namespace SIT.Core.Coop
 
         public override void OnItemAddedOrRemoved(Item item, ItemAddress location, bool added)
         {
-            //BepInLogger.LogDebug("OnItemAddedOrRemoved");
             base.OnItemAddedOrRemoved(item, location, added);
         }
     }

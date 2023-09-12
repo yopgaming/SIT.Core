@@ -98,7 +98,7 @@ namespace SIT.Core.Coop
 
         Camera GameCamera { get; set; }
 
-        public ActionPacketHandlerComponent ActionPacketHandler { get; set; }
+        public ActionPacketHandlerComponent ActionPacketHandler { get; } = CoopPatches.CoopGameComponentParent.GetOrAddComponent<ActionPacketHandlerComponent>();
 
         #endregion
 
@@ -157,7 +157,8 @@ namespace SIT.Core.Coop
             Logger.LogDebug("CoopGameComponent:Start");
             //GameCamera = Camera.current;
             //GCHelpers.ClearGarbage(unloadAssets: false);
-            ActionPacketHandler = this.GetOrAddComponent<ActionPacketHandlerComponent>();
+            //ActionPacketHandler = this.GetOrAddComponent<ActionPacketHandlerComponent>();
+            //ActionPacketHandler = CoopPatches.CoopGameComponentParent.AddComponent<ActionPacketHandlerComponent>();
 
 
             // ----------------------------------------------------
