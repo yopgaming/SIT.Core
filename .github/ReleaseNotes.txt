@@ -4,42 +4,15 @@
 
 ## New features
 
-* Synchronized Weather (Work in Progress)
-* Server & Clients will wait for all players to spawn before starting Raid
-* Added option to only use Server Side damage (Experimental, requires Aki-Server SITConfig.json value useClientSideDamageModel: true)
-* Bots Count on Coop UI
-* Add DrakiaXYZ Waypoints solution back in (with Roaming AI enabled)
-* Add PMC AI Archetype (PMCRushSpawn - Work in Progress) 
-* Add Chinese Localization for Match Hosting / Browsing system, thanks @w123456w30w
-* Add Japanese Localization for Match Hosting / Browsing system, thanks @debisuchan
-* Add German Localization for Match Hosting / Browsing system, thanks @TehFl0w
-* Reformat Matchmaker GUI, thanks @mihaicm93
+TBC
 
 ## Fixes
 
-* Fix Item Movement Replication into Containers & Dead Bodies
-* Fix Issue where Loose Loot items were not disappearing when being picked up
-* Fix Ping Display & High Ping mode
-* Fix Coop Session was not ending after host leaves (therefore showing as still running on Browser)
-* Fix memory leak whilst "Waiting for Players" as a Host
-* Fix memory leak during long matches on large maps
-* Performance Improvements
-* Fix dual/double packet issue (Work in Progress)
-* Fix multiple Player Sync packets being sent
-* Divided ActionPacketHandlerComponent from CoopGameComponent improving frame performance
+* Ensure the Matchmaker UI uses the language dictionaries provided by the contributors
 
 ## Misc
 
-* Continue looking into performance improvements that can be made
-	* RAM gets eaten up if I leave Garbage Collection (GC) as normal (thanks to BSG and Unity)
-	* My own GC keeps RAM usage fairly stable
-	* There is a known issue of noticeable lag every few minutes or so
-* Disabled Airdrop Logic from Aki as it doesn't replicate
-
-## Techy mumbo jumbo
-* Git Repo no longer keeps a copy of the latest built /bin/debug directory
-* GitHub Continuous Integration (CI) has been added by @SlejmUr
-* Azure DevOps Pipelines CI/CD now use References and Compiles, rather than copies from the Git Repo
+TBC
 
 ---
 

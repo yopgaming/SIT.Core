@@ -48,6 +48,7 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 * Please do not hand over money expecting help or a solution. 
 * This is a hobby, for fun, project. Please don't treat it seriously. 
 * I know this is a semi-broken attempt but will try to fix as best I can. 
+* An [Unofficial SIT Discord](https://discord.gg/VengzHxNmZ) is available. The community have teamed to help each other out and create community servers. **I am not part of this Discord**.
 
 ## SPT-AKI Requirement
 * Stay in Tarkov works requires the [latest AKI Server](https://dev.sp-tarkov.com/SPT-AKI/Server) to run. You can learn about SPT-Aki [here](https://www.sp-tarkov.com/).
