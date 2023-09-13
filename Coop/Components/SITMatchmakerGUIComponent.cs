@@ -363,7 +363,13 @@ namespace SIT.Core.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(windowInnerRect, ErrorMessage);
+            GUI.Label(new Rect(20,20,1000,1000), ErrorMessage);
+
+            if(GUI.Button(new Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            {
+                showErrorMessageWindow = false;
+                showServerBrowserWindow = true;
+            }
         }
 
         void DrawWindow(int windowID)
