@@ -10,10 +10,12 @@
 ## Updates
 
 * Update Simplified/Traditional Chinese translate (#370)
+* Add protections for Receiving a Duplicate of the same data
 
 ## Fixes
 
 * Ensure the Matchmaker UI uses the language dictionaries provided by the contributors
+* Fix duplicate damage issue
 
 ---
 
