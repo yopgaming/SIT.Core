@@ -95,7 +95,9 @@ namespace SIT.Core.Coop
         /// A way to block the same Damage Info being run multiple times on this Character
         /// TODO: Fix this at source. Something is replicating the same Damage multiple times!
         /// </summary>
-        private List<DamageInfo> PreviousDamageInfos { get; } = new();
+        private HashSet<DamageInfo> PreviousDamageInfos { get; } = new();
+        private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
+        private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
@@ -109,6 +111,7 @@ namespace SIT.Core.Coop
                 return;
 
             PreviousDamageInfos.Add(damageInfo);
+
             BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
 
@@ -116,16 +119,16 @@ namespace SIT.Core.Coop
             {
                 // If we are not using the Client Side Damage, then only run this on the server
                 if(MatchmakerAcceptPatches.IsServer && !coopGameComponent.SITConfig.useClientSideDamageModel)               
-                    _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+                    SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
                 else
-                    _ = SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
+                    SendDamageToAllClients(damageInfo, bodyPartType, absorbed, headSegment);
             }
         }
 
-        private async Task SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
+        private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
-            await Task.Run(async () =>
-            {
+            //await Task.Run(async () =>
+            //{
                 Dictionary<string, object> packet = new();
                 var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
                 damageInfo.HitCollider = null;
@@ -147,7 +150,7 @@ namespace SIT.Core.Coop
                 }
                 damageInfo.Weapon = null;
 
-                packet.Add("d", await damageInfo.SITToJsonAsync());
+                packet.Add("d", damageInfo.SITToJson());
                 //PatchConstants.Logger.LogDebug(packet["d"]);
 
                 packet.Add("d.p", playerDict);
@@ -157,14 +160,29 @@ namespace SIT.Core.Coop
                 packet.Add("ab", absorbed.ToString());
                 packet.Add("hs", headSegment.ToString());
                 packet.Add("m", "ApplyDamageInfo");
+
+                // -----------------------------------------------------------
+                // An attempt to stop the same packet being sent multiple times
+                if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
+                    return;
+
+                PreviousSentDamageInfoPackets.Add(packet.ToJson());
+                // -----------------------------------------------------------
+
                 AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
-            });
+            //});
         }
 
         public void ReceiveDamageFromServer(Dictionary<string, object> dict)
         {
-            //Logger.LogDebug("ReceiveDamageFromServer");
-            //PatchConstants.Logger.LogDebug("ReceiveDamageFromServer");
+            if(PreviousReceivedDamageInfoPackets.Contains(dict.ToJson())) 
+                return;
+
+            PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
+
+            BepInLogger.LogDebug("ReceiveDamageFromServer");
+            BepInLogger.LogDebug(dict.ToJson());
+
             Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
             Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
             var absorbed = float.Parse(dict["ab"].ToString());
@@ -174,7 +192,6 @@ namespace SIT.Core.Coop
 
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
             //base.ShotReactions(damageInfo, bodyPartType);
-            //PatchConstants.Logger.LogDebug("ReceiveDamageFromServer.Complete");
 
         }
 

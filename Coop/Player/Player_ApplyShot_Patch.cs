@@ -28,11 +28,13 @@ namespace SIT.Core.Coop.Player
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            var result = false;
-            if (CallLocally.Contains(__instance.ProfileId))
-                result = true;
+            //var result = false;
+            //if (CallLocally.Contains(__instance.ProfileId))
+            //    result = true;
 
-            return result;
+            //return result;
+
+            return true;
         }
 
         [PatchPostfix]
@@ -41,60 +43,60 @@ namespace SIT.Core.Coop.Player
             DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId
             )
         {
-            var player = __instance;
+            //var player = __instance;
 
-            //Logger.LogDebug("Player_ApplyShot_Patch:PostPatch");
+            ////Logger.LogDebug("Player_ApplyShot_Patch:PostPatch");
 
 
-            if (CallLocally.Contains(player.ProfileId))
-            {
-                CallLocally.Remove(player.ProfileId);
-                return;
-            }
+            //if (CallLocally.Contains(player.ProfileId))
+            //{
+            //    CallLocally.Remove(player.ProfileId);
+            //    return;
+            //}
 
-            Dictionary<string, object> packet = new();
-            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
-            damageInfo.HitCollider = null;
-            damageInfo.HittedBallisticCollider = null;
-            Dictionary<string, string> playerDict = new();
-            try
-            {
-                if (damageInfo.Player != null)
-                {
-                    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
-                    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e);
-            }
-            damageInfo.Player = null;
-            Dictionary<string, string> weaponDict = new();
+            //Dictionary<string, object> packet = new();
+            //var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
+            //damageInfo.HitCollider = null;
+            //damageInfo.HittedBallisticCollider = null;
+            //Dictionary<string, string> playerDict = new();
+            //try
+            //{
+            //    if (damageInfo.Player != null)
+            //    {
+            //        playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+            //        playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Logger.LogError(e);
+            //}
+            //damageInfo.Player = null;
+            //Dictionary<string, string> weaponDict = new();
 
-            if (damageInfo.Weapon != null)
-            {
-                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
-                packet.Add("d.w.id", damageInfo.Weapon.Id);
-            }
-            damageInfo.Weapon = null;
+            //if (damageInfo.Weapon != null)
+            //{
+            //    packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+            //    packet.Add("d.w.id", damageInfo.Weapon.Id);
+            //}
+            //damageInfo.Weapon = null;
 
-            var shotammoid_field = ReflectionHelpers.GetFieldFromType(typeof(ShotId), "string_0");
-            string shotammoid = null;
-            if (shotammoid_field != null)
-            {
-                shotammoid = shotammoid_field.GetValue(shotId).ToString();
-                //Logger.LogDebug(shotammoid);
-            }
+            //var shotammoid_field = ReflectionHelpers.GetFieldFromType(typeof(ShotId), "string_0");
+            //string shotammoid = null;
+            //if (shotammoid_field != null)
+            //{
+            //    shotammoid = shotammoid_field.GetValue(shotId).ToString();
+            //    //Logger.LogDebug(shotammoid);
+            //}
 
-            packet.Add("d", SerializeObject(damageInfo));
-            packet.Add("d.p", playerDict);
-            packet.Add("d.w", weaponDict);
-            packet.Add("bpt", bodyPartType.ToString());
-            packet.Add("bpct", bodyPartColliderType.ToString());
-            packet.Add("ammoid", shotammoid);
-            packet.Add("m", "ApplyShot");
-            AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
+            //packet.Add("d", SerializeObject(damageInfo));
+            //packet.Add("d.p", playerDict);
+            //packet.Add("d.w", weaponDict);
+            //packet.Add("bpt", bodyPartType.ToString());
+            //packet.Add("bpct", bodyPartColliderType.ToString());
+            //packet.Add("ammoid", shotammoid);
+            //packet.Add("m", "ApplyShot");
+            //AkiBackendCommunicationCoop.PostLocalPlayerData(player, packet);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
