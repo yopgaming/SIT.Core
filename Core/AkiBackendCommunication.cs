@@ -113,6 +113,8 @@ namespace SIT.Core.Core
 
         private Profile MyProfile { get; set; }
 
+        private HashSet<string> WebSocketPreviousReceived { get; set; }
+
         public void WebSocketCreate(Profile profile)
         {
             MyProfile = profile;
@@ -132,6 +134,7 @@ namespace SIT.Core.Core
             Logger.LogDebug(PatchConstants.GetREALWSURL());
             Logger.LogDebug(wsUrl);
 
+            WebSocketPreviousReceived = new HashSet<string>();
             WebSocket = new WebSocketSharp.WebSocket(wsUrl);
             WebSocket.Connect();
             WebSocket.Send("CONNECTED FROM SIT COOP");
@@ -234,6 +237,12 @@ namespace SIT.Core.Core
 
                 if (!e.Data.EndsWith("}"))
                     return;
+
+
+                if (WebSocketPreviousReceived.Contains(e.Data))
+                    return;
+
+                WebSocketPreviousReceived.Add(e.Data);
 
                 if (DEBUGPACKETS)
                 {
