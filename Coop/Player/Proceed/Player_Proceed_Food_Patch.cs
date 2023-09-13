@@ -16,7 +16,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
         public override string MethodName => "ProceedFood";
 
-        public static Dictionary<string, bool> CallLocally = new();
+        public static HashSet<string> CallLocally = new();
 
         public static MethodInfo method1 = null;
 
@@ -38,10 +38,8 @@ namespace SIT.Core.Coop.Player.Proceed
            EFT.Player __instance
             )
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
-            {
+            if (CallLocally.Contains(__instance.ProfileId) || __instance.IsAI)
                 return true;
-            }
 
             return false;
         }
@@ -53,9 +51,9 @@ namespace SIT.Core.Coop.Player.Proceed
             , int animationVariant
             , bool scheduled)
         {
-            if (CallLocally.TryGetValue(__instance.Profile.AccountId, out var expecting) && expecting)
+            if (CallLocally.Contains(__instance.ProfileId) || __instance.IsAI)
             {
-                CallLocally.Remove(__instance.Profile.AccountId);
+                CallLocally.Remove(__instance.ProfileId);
                 return;
             }
 
@@ -93,7 +91,7 @@ namespace SIT.Core.Coop.Player.Proceed
 
             if (item != null)
             {
-                CallLocally.Add(player.Profile.AccountId, true);
+                CallLocally.Add(player.ProfileId);
                 player.Proceed((FoodDrink)item, float.Parse(dict["amt"].ToString()), (IResult) => { }, 1, true);
             }
         }
