@@ -7,6 +7,9 @@
   "SERVER_NAME": "服务器名称",
   "PLAYERS": "玩家列表",
   "LOCATION": "地图",
-  "RAID": "对局"
+  "RAID": "对局",
+  "START": "开始",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "需要等待的玩家数量（包括你自己！）",
+  "REQUIRE_PASSWORD": "需要密码加入"
 
 }
