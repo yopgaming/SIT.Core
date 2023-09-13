@@ -7,6 +7,9 @@
   "SERVER_NAME": "伺服器名稱",
   "PLAYERS": "玩家列表",
   "LOCATION": "位置",
-  "RAID": "對局"
+  "RAID": "對局",
+  "START": "开始",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "需要等待玩家的數量（包括你自己！）",
+  "REQUIRE_PASSWORD": "需要密碼認證"
 
 }
