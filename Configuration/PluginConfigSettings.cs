@@ -65,7 +65,7 @@ namespace SIT.Core.Configuration
             public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
             public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
             public int SETTING_PlayerStateTickRateInMS { get; set; } = 333;
-            public bool SETTING_HeadshotsAlwaysKill { get; set; } = true;
+            public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
 
@@ -87,15 +87,11 @@ namespace SIT.Core.Configuration
                    ("Coop", "ShowPlayerList", false, new ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
                 SETTING_PlayerStateTickRateInMS = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "PlayerStateTickRateInMS", 333, new ConfigDescription("The rate at which Player States will be synchronized")).Value;
-                //if (SETTING_PlayerStateTickRateInMS > 0)
-                //    SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
-                //else if (SETTING_PlayerStateTickRateInMS == 0)
-                //    SETTING_PlayerStateTickRateInMS = -333;
-                SETTING_PlayerStateTickRateInMS = 333;
+                  ("Coop", "PlayerStateTickRateInMS", 666, new ConfigDescription("The rate at which Player States will be synchronized")).Value;
+                SETTING_PlayerStateTickRateInMS = 666;
 
                 SETTING_HeadshotsAlwaysKill = StayInTarkovPlugin.Instance.Config.Bind
-                  ("Coop", "HeadshotsAlwaysKill", true, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
+                  ("Coop", "HeadshotsAlwaysKill", false, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
 
                 SETTING_ShowFeed = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "ShowFeed", true, new ConfigDescription("Enable the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
