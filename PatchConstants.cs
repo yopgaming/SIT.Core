@@ -46,23 +46,23 @@ namespace SIT.Tarkov.Core
 
         public static Type JobPriorityType { get; set; }
 
-        public static Type PlayerInfoType { get; set; }
-        public static Type PlayerCustomizationType { get; set; }
+        //public static Type PlayerInfoType { get; set; }
+        //public static Type PlayerCustomizationType { get; set; }
 
-        public static Type SpawnPointSystemInterfaceType { get; set; }
-        public static Type SpawnPointArrayInterfaceType { get; set; }
-        public static Type SpawnPointSystemClassType { get; set; }
+        //public static Type SpawnPointSystemInterfaceType { get; set; }
+        //public static Type SpawnPointArrayInterfaceType { get; set; }
+        //public static Type SpawnPointSystemClassType { get; set; }
 
-        public static Type BackendStaticConfigurationType { get; set; }
+        //public static Type BackendStaticConfigurationType { get; set; }
         public static object BackendStaticConfigurationConfigInstance { get; set; }
 
-        public static class CharacterControllerSettings
-        {
-            public static object CharacterControllerInstance { get; set; }
-            public static CharacterControllerSpawner.Mode ObservedPlayerMode { get; set; }
-            public static CharacterControllerSpawner.Mode ClientPlayerMode { get; set; }
-            public static CharacterControllerSpawner.Mode BotPlayerMode { get; set; }
-        }
+        //public static class CharacterControllerSettings
+        //{
+        //    public static object CharacterControllerInstance { get; set; }
+        //    public static CharacterControllerSpawner.Mode ObservedPlayerMode { get; set; }
+        //    public static CharacterControllerSpawner.Mode ClientPlayerMode { get; set; }
+        //    public static CharacterControllerSpawner.Mode BotPlayerMode { get; set; }
+        //}
 
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace SIT.Tarkov.Core
 
         public static Type GroupingType { get; }
         public static Type JsonConverterType { get; }
-        public static JsonConverter[] JsonConverterDefault { get; }
+        public static Newtonsoft.Json.JsonConverter[] JsonConverterDefault { get; }
 
         private static ISession _backEndSession;
         public static ISession BackEndSession
@@ -147,14 +147,14 @@ namespace SIT.Tarkov.Core
 
 
 
-        public static JsonConverter[] GetJsonConvertersBSG()
+        public static Newtonsoft.Json.JsonConverter[] GetJsonConvertersBSG()
         {
             return JsonConverterDefault;
         }
 
-        public static List<JsonConverter> GetJsonConvertersPaulov()
+        public static List<Newtonsoft.Json.JsonConverter> GetJsonConvertersPaulov()
         {
-            var converters = new List<JsonConverter>();
+            var converters = new List<Newtonsoft.Json.JsonConverter>();
             converters.Add(new DateTimeOffsetJsonConverter());
             converters.Add(new SimpleCharacterControllerJsonConverter());
             converters.Add(new CollisionFlagsJsonConverter());
@@ -162,19 +162,24 @@ namespace SIT.Tarkov.Core
             return converters;
         }
 
+        private static List<Newtonsoft.Json.JsonConverter> SITSerializerConverters;
+
         public static JsonSerializerSettings GetJsonSerializerSettings()
         {
-            var converters = JsonConverterDefault;
-            converters.AddItem(new DateTimeOffsetJsonConverter());
-            converters.AddItem(new SimpleCharacterControllerJsonConverter());
-            converters.AddItem(new CollisionFlagsJsonConverter());
-            converters.AddItem(new NotesJsonConverter());
-            var paulovconverters = GetJsonConvertersPaulov();
-            converters.AddRangeToArray(paulovconverters.ToArray());
+            if (SITSerializerConverters == null)
+            {
+                SITSerializerConverters = JsonConverterDefault.ToList();
+                SITSerializerConverters.Add(new DateTimeOffsetJsonConverter());
+                SITSerializerConverters.Add(new SimpleCharacterControllerJsonConverter());
+                SITSerializerConverters.Add(new CollisionFlagsJsonConverter());
+                SITSerializerConverters.Add(new NotesJsonConverter());
+                var paulovconverters = GetJsonConvertersPaulov();
+                SITSerializerConverters.AddRange(paulovconverters.ToArray());
+            }
 
             return new JsonSerializerSettings()
             {
-                Converters = converters,
+                Converters = SITSerializerConverters,
                 NullValueHandling = NullValueHandling.Ignore,
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
@@ -381,31 +386,31 @@ namespace SIT.Tarkov.Core
                 //Logger.LogInfo($"Loading JobPriorityType:{JobPriorityType.FullName}");
             }
 
-            if (PlayerInfoType == null)
-            {
-                PlayerInfoType = EftTypes.Single(x =>
-                    ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "AddBan")
-                    && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "RemoveBan")
-                    );
-                //Logger.LogInfo($"Loading PlayerInfoType:{PlayerInfoType.FullName}");
-            }
+            //if (PlayerInfoType == null)
+            //{
+            //    PlayerInfoType = EftTypes.Single(x =>
+            //        ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "AddBan")
+            //        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "RemoveBan")
+            //        );
+            //    //Logger.LogInfo($"Loading PlayerInfoType:{PlayerInfoType.FullName}");
+            //}
 
-            if (PlayerCustomizationType == null)
-            {
-                PlayerCustomizationType = ReflectionHelpers.GetFieldFromType(typeof(Profile), "Customization").FieldType;
-                //Logger.LogInfo($"Loading PlayerCustomizationType:{PlayerCustomizationType.FullName}");
-            }
+            //if (PlayerCustomizationType == null)
+            //{
+            //    PlayerCustomizationType = ReflectionHelpers.GetFieldFromType(typeof(Profile), "Customization").FieldType;
+            //    //Logger.LogInfo($"Loading PlayerCustomizationType:{PlayerCustomizationType.FullName}");
+            //}
 
-            SpawnPointArrayInterfaceType = EftTypes.Single(x =>
-                        ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "CreateSpawnPoint")
-                        && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "DestroySpawnPoint")
-                        && x.IsInterface
-                    );
+            //SpawnPointArrayInterfaceType = EftTypes.Single(x =>
+            //            ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "CreateSpawnPoint")
+            //            && ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "DestroySpawnPoint")
+            //            && x.IsInterface
+            //        );
             //Logger.LogDebug($"Loading SpawnPointArrayInterfaceType:{SpawnPointArrayInterfaceType.FullName}");
 
-            BackendStaticConfigurationType = EftTypes.Single(x =>
-                    ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "LoadApplicationConfig")
-            );
+            //BackendStaticConfigurationType = EftTypes.Single(x =>
+            //        ReflectionHelpers.GetAllMethodsForType(x).Any(x => x.Name == "LoadApplicationConfig")
+            //);
 
 
             // ==================== TEST ==========================

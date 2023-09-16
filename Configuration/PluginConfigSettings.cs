@@ -44,7 +44,7 @@ namespace SIT.Core.Configuration
 
             public void GetSettings()
             {
-                UseSITGarbageCollector = Plugin.Instance.Config.Bind
+                UseSITGarbageCollector = StayInTarkovPlugin.Instance.Config.Bind
                 ("Advanced", "UseSITGarbageCollector", true, new ConfigDescription("Whether to use the Garbage Collector developed in to SIT OR leave it to BSG/Unity")).Value;
 
             }
@@ -80,13 +80,13 @@ namespace SIT.Core.Configuration
 
             public void GetSettings()
             {
-                SETTING_DEBUGSpawnDronesOnServer = Plugin.Instance.Config.Bind
+                SETTING_DEBUGSpawnDronesOnServer = StayInTarkovPlugin.Instance.Config.Bind
                 ("Coop", "ShowDronesOnServer", false, new ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
 
-                SETTING_DEBUGShowPlayerList = Plugin.Instance.Config.Bind
+                SETTING_DEBUGShowPlayerList = StayInTarkovPlugin.Instance.Config.Bind
                    ("Coop", "ShowPlayerList", false, new ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
 
-                SETTING_PlayerStateTickRateInMS = Plugin.Instance.Config.Bind
+                SETTING_PlayerStateTickRateInMS = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "PlayerStateTickRateInMS", 333, new ConfigDescription("The rate at which Player States will be synchronized")).Value;
                 //if (SETTING_PlayerStateTickRateInMS > 0)
                 //    SETTING_PlayerStateTickRateInMS = SETTING_PlayerStateTickRateInMS * -1;
@@ -94,30 +94,30 @@ namespace SIT.Core.Configuration
                 //    SETTING_PlayerStateTickRateInMS = -333;
                 SETTING_PlayerStateTickRateInMS = 333;
 
-                SETTING_HeadshotsAlwaysKill = Plugin.Instance.Config.Bind
+                SETTING_HeadshotsAlwaysKill = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "HeadshotsAlwaysKill", true, new ConfigDescription("Enable to make headshots actually work, no more tanking definite kills!")).Value;
 
-                SETTING_ShowFeed = Plugin.Instance.Config.Bind
+                SETTING_ShowFeed = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "ShowFeed", true, new ConfigDescription("Enable the feed on the bottom right of the screen which shows player/bot spawns, kills, etc.")).Value;
 
-                SITWebSocketPort = Plugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT.Core Websocket Port DEFAULT = 6970")).Value;
+                SITWebSocketPort = StayInTarkovPlugin.Instance.Config.Bind("Coop", "SITPort", 6970, new ConfigDescription("SIT.Core Websocket Port DEFAULT = 6970")).Value;
 
-                AllPlayersSpawnTogether = Plugin.Instance.Config.Bind
+                AllPlayersSpawnTogether = StayInTarkovPlugin.Instance.Config.Bind
                ("Coop", "AllPlayersSpawnTogether", true, new ConfigDescription("Whether to spawn all players in the same place")).Value;
 
-                ArenaMode = Plugin.Instance.Config.Bind
+                ArenaMode = StayInTarkovPlugin.Instance.Config.Bind
                 ("Coop", "ArenaMode", false, new ConfigDescription("Arena Mode - For the meme's (DEBUG). Can SIT be less laggy than Live Tarkov in PvP?")).Value;
 
-                EnableAISpawnWaveSystem = Plugin.Instance.Config.Bind("Coop", "EnableAISpawnWaveSystem", true
+                EnableAISpawnWaveSystem = StayInTarkovPlugin.Instance.Config.Bind("Coop", "EnableAISpawnWaveSystem", true
                         , new ConfigDescription("Whether to run the Wave Spawner System. If this is False. No AI will spawn. Useful for testing in a PvP only environment.")).Value;
 
-                ForceHighPingMode = Plugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
+                ForceHighPingMode = StayInTarkovPlugin.Instance.Config.Bind("Coop", "ForceHighPingMode", false
                         , new ConfigDescription("Forces the High Ping Mode which allows some actions to not round-trip. This may be useful if you have large input lag")).Value;
 
-                RunThroughOnServerStop = Plugin.Instance.Config.Bind("Coop", "RunThroughOnServerStop", true
+                RunThroughOnServerStop = StayInTarkovPlugin.Instance.Config.Bind("Coop", "RunThroughOnServerStop", true
                         , new ConfigDescription("Controls whether clients still in-raid when server dies will receive a Run Through (true) or Survived (false).")).Value;
 
-                BotWavesDisableStopper = Plugin.Instance.Config.Bind("Coop", "BotWavesDisableStopper", false
+                BotWavesDisableStopper = StayInTarkovPlugin.Instance.Config.Bind("Coop", "BotWavesDisableStopper", false
                         , new ConfigDescription("Disable the function StopBotSpawningAfterTimer, so not gonna disable bot spawning after 180 sec")).Value;
 
 

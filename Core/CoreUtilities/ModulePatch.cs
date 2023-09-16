@@ -121,10 +121,15 @@ namespace SIT.Tarkov.Core
                 return;
             }
 
+            Logger.LogDebug($"Enabling patch {GetType().Name}");
+
+
             try
             {
                 if (_harmony.GetPatchedMethods().Any(x => x == target))
+                {
                     return;
+                }
 
                 foreach (var prefix in _prefixList)
                 {
@@ -151,7 +156,8 @@ namespace SIT.Tarkov.Core
                     _harmony.Patch(target, ilmanipulator: ilmanipulator);
                 }
 
-                Logger.LogDebug($"Enabled patch {GetType().Name}");
+                //Logger.LogDebug($"Enabled patch {GetType().Name}");
+                Logger.LogInfo($"Enabled patch {GetType().Name}");
             }
             catch (Exception ex)
             {

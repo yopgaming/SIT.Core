@@ -60,7 +60,7 @@ namespace SIT.Core.Misc
             }
         }
 
-        public class PlayerJsonConverter : JsonConverter
+        public class PlayerJsonConverter : Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(Type objectType)
             {

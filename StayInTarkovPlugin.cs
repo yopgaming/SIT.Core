@@ -40,11 +40,11 @@ using UnityEngine.SceneManagement;
 
 namespace SIT.Core
 {
-    [BepInPlugin("SIT.Core", "SIT.Core", "1.9.0")]
+    [BepInPlugin("com.sit.core", "SIT.Core", "1.9.0")]
     [BepInProcess("EscapeFromTarkov.exe")]
-    public class Plugin : BaseUnityPlugin
+    public class StayInTarkovPlugin : BaseUnityPlugin
     {
-        public static Plugin Instance;
+        public static StayInTarkovPlugin Instance;
         public static PluginConfigSettings Settings { get; private set; }
 
         private bool ShownDependancyError { get; set; }
@@ -57,6 +57,8 @@ namespace SIT.Core
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
             LogDependancyErrors();
+
+
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
             StartCoroutine(VersionChecks());
@@ -78,7 +80,7 @@ namespace SIT.Core
             Logger.LogDebug(Thread.CurrentThread.CurrentCulture);
 
             var languageFiles = new List<string>();
-            foreach (var mrs in typeof(Plugin).Assembly.GetManifestResourceNames().Where(x => x.StartsWith("SIT.Core.Resources.Language")))
+            foreach (var mrs in typeof(StayInTarkovPlugin).Assembly.GetManifestResourceNames().Where(x => x.StartsWith("SIT.Core.Resources.Language")))
             {
                 languageFiles.Add(mrs);
                 Logger.LogInfo(mrs);
@@ -97,23 +99,23 @@ namespace SIT.Core
                     switch (Thread.CurrentThread.CurrentCulture.Name.ToLower())
                     {
                         case "zh_TW":
-                            stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("TraditionalChinese.json")));
+                            stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("TraditionalChinese.json")));
                             break;
                         case "zh_CN":
                         default:
-                            stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("SimplifiedChinese.json")));
+                            stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("SimplifiedChinese.json")));
                             break;
                     }
                     break;
                 case "ja":
-                    stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("Japanese.json")));
+                    stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("Japanese.json")));
                     break;
                 case "de":
-                    stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("German.json")));
+                    stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("German.json")));
                     break;
                 case "en":
                 default:
-                    stream = typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
+                    stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
                     break;
 
             }
@@ -140,7 +142,7 @@ namespace SIT.Core
             }
 
             // Load English Language Stream to Fill any missing expected statements in the Dictionary
-            using (sr = new StreamReader(typeof(Plugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")))))
+            using (sr = new StreamReader(typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")))))
             {
                 foreach (var kvp in JsonConvert.DeserializeObject<Dictionary<string, string>>(sr.ReadToEnd()))
                 {
@@ -189,39 +191,38 @@ namespace SIT.Core
 
         private void EnableCorePatches()
         {
-            // SIT Legal Game Checker
-            var lcRemover = Config.Bind<bool>("Debug Settings", "LC Remover", false).Value;
-            if (!lcRemover)
+            Logger.LogInfo($"{nameof(EnableCorePatches)}");
+            try
             {
-                LegalGameCheck.LegalityCheck();
-            }
+                // SIT Legal Game Checker
+                var lcRemover = Config.Bind<bool>("Debug Settings", "LC Remover", false).Value;
+                if (!lcRemover)
+                {
+                    LegalGameCheck.LegalityCheck();
+                }
 
-            var enabled = Config.Bind<bool>("SIT Core Patches", "Enable", true);
-            if (!enabled.Value) // if it is disabled. stop all SIT Core Patches.
+                // File Checker
+                new ConsistencySinglePatch().Enable();
+                new ConsistencyMultiPatch().Enable();
+                new RunFilesCheckingPatch().Enable();
+                // BattlEye
+                new BattlEyePatch().Enable();
+                new BattlEyePatchFirstPassRun().Enable();
+                new BattlEyePatchFirstPassUpdate().Enable();
+                // Web Requests
+                new SslCertificatePatch().Enable();
+                new UnityWebRequestPatch().Enable();
+                new TransportPrefixPatch().Enable();
+                new WebSocketPatch().Enable();
+                new SendCommandsPatch().Enable();
+
+                //new TarkovTransportHttpMethodDebugPatch2().Enable();
+            }
+            catch (Exception e)
             {
-                Logger.LogInfo("SIT Core Patches has been disabled! Ignoring Patches.");
-                return;
+                Logger.LogError(e);
             }
-
-            // File Checker
-            new ConsistencySinglePatch().Enable();
-            new ConsistencyMultiPatch().Enable();
-            new RunFilesCheckingPatch().Enable();
-            // BattlEye
-            new BattlEyePatch().Enable();
-            new BattlEyePatchFirstPassRun().Enable();
-            new BattlEyePatchFirstPassUpdate().Enable();
-            // Web Requests
-            new SslCertificatePatch().Enable();
-            new UnityWebRequestPatch().Enable();
-            new TransportPrefixPatch().Enable();
-            new WebSocketPatch().Enable();
-            //new TarkovTransportWSInstanceHookPatch().Enable();
-            //new TarkovTransportHttpInstanceHookPatch().Enable();
-            new SendCommandsPatch().Enable();
-
-            //new TarkovTransportHttpMethodDebugPatch().Enable();
-            new TarkovTransportHttpMethodDebugPatch2().Enable();
+            Logger.LogDebug($"{nameof(EnableCorePatches)} Complete");
         }
 
         private void EnableSPPatches()
@@ -354,46 +355,46 @@ namespace SIT.Core
         private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             //GetPoolManager();
-            GetBackendConfigurationInstance();
+            //GetBackendConfigurationInstance();
 
             if (Singleton<GameWorld>.Instantiated)
                 gameWorld = Singleton<GameWorld>.Instance;
         }
 
-        private void GetBackendConfigurationInstance()
-        {
-            if (
-                PatchConstants.BackendStaticConfigurationType != null &&
-                PatchConstants.BackendStaticConfigurationConfigInstance == null)
-            {
-                PatchConstants.BackendStaticConfigurationConfigInstance = ReflectionHelpers.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
-                //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
-            }
+        //private void GetBackendConfigurationInstance()
+        //{
+        //    //if (
+        //    //    PatchConstants.BackendStaticConfigurationType != null &&
+        //    //    PatchConstants.BackendStaticConfigurationConfigInstance == null)
+        //    //{
+        //    //    PatchConstants.BackendStaticConfigurationConfigInstance = ReflectionHelpers.GetPropertyFromType(PatchConstants.BackendStaticConfigurationType, "Config").GetValue(null);
+        //    //    //Logger.LogInfo($"BackendStaticConfigurationConfigInstance Type:{ PatchConstants.BackendStaticConfigurationConfigInstance.GetType().Name }");
+        //    //}
 
-            if (PatchConstants.BackendStaticConfigurationConfigInstance != null
-                && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
-                )
-            {
-                PatchConstants.CharacterControllerSettings.CharacterControllerInstance
-                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
-                //Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
-            }
+        //    if (PatchConstants.BackendStaticConfigurationConfigInstance != null
+        //        && PatchConstants.CharacterControllerSettings.CharacterControllerInstance == null
+        //        )
+        //    {
+        //        PatchConstants.CharacterControllerSettings.CharacterControllerInstance
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<object>(PatchConstants.BackendStaticConfigurationConfigInstance, "CharacterController", false);
+        //        //Logger.LogInfo($"PatchConstants.CharacterControllerInstance Type:{PatchConstants.CharacterControllerSettings.CharacterControllerInstance.GetType().Name}");
+        //    }
 
-            if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
-                && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
-                )
-            {
-                PatchConstants.CharacterControllerSettings.ClientPlayerMode
-                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
+        //    if (PatchConstants.CharacterControllerSettings.CharacterControllerInstance != null
+        //        && PatchConstants.CharacterControllerSettings.ClientPlayerMode == null
+        //        )
+        //    {
+        //        PatchConstants.CharacterControllerSettings.ClientPlayerMode
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ClientPlayerMode", false);
 
-                PatchConstants.CharacterControllerSettings.ObservedPlayerMode
-                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
+        //        PatchConstants.CharacterControllerSettings.ObservedPlayerMode
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "ObservedPlayerMode", false);
 
-                PatchConstants.CharacterControllerSettings.BotPlayerMode
-                    = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
-            }
+        //        PatchConstants.CharacterControllerSettings.BotPlayerMode
+        //            = ReflectionHelpers.GetFieldOrPropertyFromInstance<CharacterControllerSpawner.Mode>(PatchConstants.CharacterControllerSettings.CharacterControllerInstance, "BotPlayerMode", false);
+        //    }
 
-        }
+        //}
 
 
         private void LogDependancyErrors()

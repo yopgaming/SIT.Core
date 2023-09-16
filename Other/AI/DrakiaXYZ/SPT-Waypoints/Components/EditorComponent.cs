@@ -105,7 +105,7 @@ namespace DrakiaXYZ.Waypoints.Components
             // Draw the GUI
             guiContent.text = guiText;
             Vector2 guiSize = guiStyle.CalcSize(guiContent);
-            Rect guiRect = new Rect(
+            UnityEngine.Rect guiRect = new (
                 Screen.width - guiSize.x - 5f,
                 Screen.height - guiSize.y - 30f,
                 guiSize.x,

@@ -2,6 +2,9 @@
 using EFT.UI;
 using HarmonyLib;
 using SIT.Tarkov.Core;
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -39,7 +42,7 @@ namespace SIT.Core.Misc
             , object __result)
         {
             DisplaySITVersionLabel(major, __result);
-            Plugin.EFTVersionMajor = major;
+            StayInTarkovPlugin.EFTVersionMajor = major;
             //GetLogger(typeof(VersionLabelPatch)).LogInfo("Postfix");
         }
 
@@ -51,7 +54,34 @@ namespace SIT.Core.Misc
             if (string.IsNullOrEmpty(_versionLabel))
             {
                 _versionLabel = string.Empty;
-                _versionLabel = $"SIT | {Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version} | {major}";
+                var eftPath = string.Empty;
+                var eftProcesses = Process.GetProcessesByName("EscapeFromTarkov");
+                foreach (var process in eftProcesses)
+                {
+                    Logger.LogDebug("Process path found");
+                    Logger.LogDebug(process.MainModule.FileName);
+                    eftPath = process.MainModule.FileName;
+                }
+                string exeFileVersion = string.Empty;
+                if(!string.IsNullOrEmpty(eftPath)) 
+                { 
+                    FileInfo fileInfoEft = new FileInfo(eftPath);
+                    if (fileInfoEft.Exists)
+                    {
+                        FileVersionInfo myFileVersionInfo =
+                            FileVersionInfo.GetVersionInfo(fileInfoEft.FullName);
+                        exeFileVersion = myFileVersionInfo.ProductVersion.Split('-')[0] + "." + myFileVersionInfo.ProductVersion.Split('-')[1];
+                    }
+                }
+                string sitversion = Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString();
+                string assemblyVersion = major;
+                if (!string.IsNullOrEmpty(exeFileVersion) && assemblyVersion != exeFileVersion)
+                {
+                    _versionLabel = $"SIT | ERROR | EXE & Assembly mismatch!";
+                    Logger.LogInfo($"Assembly {assemblyVersion} does not match {exeFileVersion}");
+                }
+                else
+                    _versionLabel = $"SIT {sitversion} | ASM {assemblyVersion} | EXE {exeFileVersion}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");

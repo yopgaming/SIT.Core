@@ -15,8 +15,8 @@ using UnityEngine.UI;
 
 namespace SIT.Core.UI.PaulovTraderScreenScrollbar
 {
-    [BepInPlugin("paulov.ui.PaulovTraderScreenScrollbar", "PaulovTraderScreenScrollbar", "1.0.0.0")]
-    [BepInDependency("SIT.Core")]
+    [BepInPlugin("com.paulov.ui.PaulovTraderScreenScrollbar", "PaulovTraderScreenScrollbar", "1.0.0.0")]
+    [BepInDependency("com.sit.core")]
     internal class PaulovTraderScreenScrollbarPlugin : BaseUnityPlugin
     {
         private void Awake()

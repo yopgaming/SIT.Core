@@ -5,7 +5,7 @@ namespace SIT.Tarkov.Core
 {
     public class UnityWebRequestPatch : ModulePatch
     {
-        private static CertificateHandler _certificateHandler = new FakeCertificateHandler();
+        private static UnityEngine.Networking.CertificateHandler _certificateHandler = new FakeCertificateHandler();
 
         protected override MethodBase GetTargetMethod()
         {
@@ -20,7 +20,7 @@ namespace SIT.Tarkov.Core
             __result.timeout = 1000;
         }
 
-        internal class FakeCertificateHandler : CertificateHandler
+        internal class FakeCertificateHandler : UnityEngine.Networking.CertificateHandler
         {
             public override bool ValidateCertificate(byte[] certificateData)
             {

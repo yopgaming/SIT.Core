@@ -39,12 +39,12 @@ namespace SIT.Core.Coop.NetworkPacket
         [JsonProperty(PropertyName = "hs")]
         public float HeadSegment { get; set; }
 
-        public DamageInfoPacket(string playerProfileId, string weaponTemplateId, string weaponItemId, string damageInfoJson, string playerDictJson, string weaponDictJson, string bodyPartType, string bodyPartColliderType, float absorbed, float headSegment)
+        public DamageInfoPacket(string playerProfileId, string weaponTemplateId, string weaponItemId, DamageInfo damageInfo, string playerDictJson, string weaponDictJson, string bodyPartType, string bodyPartColliderType, float absorbed, float headSegment)
         {
             PlayerProfileId = playerProfileId;
             WeaponTemplateId = weaponTemplateId;
             WeaponItemId = weaponItemId;
-            DamageInfoJson = damageInfoJson;
+            DamageInfoJson = damageInfo.ToJson();
             PlayerDictJson = playerDictJson;
             WeaponDictJson = weaponDictJson;
             BodyPartType = bodyPartType;

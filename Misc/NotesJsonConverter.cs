@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace SIT.Core.Misc
 {
-    public class NotesJsonConverter : JsonConverter
+    public class NotesJsonConverter : Newtonsoft.Json.JsonConverter
     {
         private static Type _targetType;
 
