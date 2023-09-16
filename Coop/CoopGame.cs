@@ -386,7 +386,8 @@ namespace SIT.Core.Coop
                 profile.SetSpawnedInSession(profile.Info.Side == EPlayerSide.Savage);
              
                 localPlayer
-                   = (CoopPlayer)(await CoopPlayer.Create(
+                   = (await CoopPlayer.Create(
+                       //= (await LocalPlayer.Create(
                        num
                        , position
                        , Quaternion.identity
@@ -401,7 +402,9 @@ namespace SIT.Core.Coop
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
                    , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
-                    , FilterCustomizationClass1.Default));
+, FilterCustomizationClass1.Default
+)
+                  );
                 localPlayer.Location = base.Location_0.Id;
                 if (this.Bots.ContainsKey(localPlayer.ProfileId))
                 {
@@ -424,11 +427,11 @@ namespace SIT.Core.Coop
         }
 
 
-        public async Task<LocalPlayer> CreatePhysicalPlayer(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
-        {
-            profile.SetSpawnedInSession(value: false);
-            return await LocalPlayer.Create(playerId, position, rotation, "Player", "", EPointOfView.FirstPerson, profile, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new StatisticsManagerForPlayer1(), new FilterCustomizationClass(), questController, isYourPlayer: true);
-        }
+        //public async Task<LocalPlayer> CreatePhysicalPlayer(int playerId, Vector3 position, Quaternion rotation, string layerName, string prefix, EPointOfView pointOfView, Profile profile, bool aiControl, EUpdateQueue updateQueue, EFT.Player.EUpdateMode armsUpdateMode, EFT.Player.EUpdateMode bodyUpdateMode, CharacterControllerSpawner.Mode characterControllerMode, Func<float> getSensitivity, Func<float> getAimingSensitivity, IStatisticsManager statisticsManager, QuestControllerClass questController)
+        //{
+        //    profile.SetSpawnedInSession(value: false);
+        //    return await LocalPlayer.Create(playerId, position, rotation, "Player", "", EPointOfView.FirstPerson, profile, aiControl: false, base.UpdateQueue, armsUpdateMode, EFT.Player.EUpdateMode.Auto, BackendConfigManager.Config.CharacterController.ClientPlayerMode, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity, () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity, new StatisticsManagerForPlayer1(), new FilterCustomizationClass(), questController, isYourPlayer: true);
+        //}
 
         public string InfiltrationPoint;
 
@@ -710,15 +713,26 @@ namespace SIT.Core.Coop
             yield break;
         }
 
+        private DateTime? StopBotSpawningAfterTimerStarted;
+
         private IEnumerator StopBotSpawningAfterTimer()
         {
+            if (!StopBotSpawningAfterTimerStarted.HasValue)
+                StopBotSpawningAfterTimerStarted = DateTime.Now;
+
+            // We wait
+            while (DateTime.Now - StopBotSpawningAfterTimerStarted.Value < TimeSpan.FromMinutes(3))
+            {
+                yield return new WaitForSeconds(1);
+            }
+
             //  If this true we skip the stopping!
             if (PluginConfigSettings.Instance.CoopSettings.BotWavesDisableStopper)
             {
+                Logger.LogInfo("BotWavesDisableStopper is enabled. Skipping the Stop of Bot Spawns");
                 yield break;
             }
 
-            yield return new WaitForSeconds(180);
             if (this.wavesSpawnScenario_0 != null)
             {
                 this.wavesSpawnScenario_0.Stop();

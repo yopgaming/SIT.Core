@@ -120,7 +120,7 @@ namespace SIT.Tarkov.Core
 
         public static ManualLogSource Logger { get; private set; }
 
-        public static Type GroupingType { get; }
+        //public static Type GroupingType { get; }
         public static Type JsonConverterType { get; }
         public static Newtonsoft.Json.JsonConverter[] JsonConverterDefault { get; }
 
@@ -159,6 +159,7 @@ namespace SIT.Tarkov.Core
             converters.Add(new SimpleCharacterControllerJsonConverter());
             converters.Add(new CollisionFlagsJsonConverter());
             converters.Add(new PlayerJsonConverter());
+            converters.Add(new NotesJsonConverter());
             return converters;
         }
 
@@ -166,13 +167,9 @@ namespace SIT.Tarkov.Core
 
         public static JsonSerializerSettings GetJsonSerializerSettings()
         {
-            if (SITSerializerConverters == null)
+            if (SITSerializerConverters == null || SITSerializerConverters.Count == 0)
             {
-                SITSerializerConverters = JsonConverterDefault.ToList();
-                SITSerializerConverters.Add(new DateTimeOffsetJsonConverter());
-                SITSerializerConverters.Add(new SimpleCharacterControllerJsonConverter());
-                SITSerializerConverters.Add(new CollisionFlagsJsonConverter());
-                SITSerializerConverters.Add(new NotesJsonConverter());
+                SITSerializerConverters = GetJsonConvertersBSG().ToList();
                 var paulovconverters = GetJsonConvertersPaulov();
                 SITSerializerConverters.AddRange(paulovconverters.ToArray());
             }
@@ -231,12 +228,7 @@ namespace SIT.Tarkov.Core
         public static T SITParseJson<T>(this string str)
         {
             return JsonConvert.DeserializeObject<T>(str
-                    , new JsonSerializerSettings()
-                    {
-                        Converters = JsonConverterDefault
-                        ,
-                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                    }
+                    , GetJsonSerializerSettings()
                     );
         }
 
@@ -352,6 +344,7 @@ namespace SIT.Tarkov.Core
                 Logger = BepInEx.Logging.Logger.CreateLogSource("SIT.Tarkov.Core.PatchConstants");
 
             TypesDictionary.Add("EftTypes", EftTypes);
+            Logger.LogInfo($"PatchConstants: {EftTypes.Length} EftTypes found");
 
             FilesCheckerTypes = typeof(ICheckResult).Assembly.GetTypes();
             LocalGameType = EftTypes.Single(x => x.Name == "LocalGame");
@@ -359,11 +352,11 @@ namespace SIT.Tarkov.Core
             BackendInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("CreateClientSession") && x.IsInterface);
             SessionInterfaceType = EftTypes.Single(x => x.GetMethods().Select(y => y.Name).Contains("GetPhpSessionId") && x.IsInterface);
             DisplayMessageNotifications.MessageNotificationType = EftTypes.Single(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public).Select(y => y.Name).Contains("DisplayMessageNotification"));
-            if (DisplayMessageNotifications.MessageNotificationType == null)
-            {
-                Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():MessageNotificationType:Not Found");
-            }
-            GroupingType = EftTypes.Single(x => x.GetMethods(BindingFlags.Public | BindingFlags.Static).Select(y => y.Name).Contains("CreateRaidPlayer"));
+            //if (DisplayMessageNotifications.MessageNotificationType == null)
+            //{
+            //    Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():MessageNotificationType:Not Found");
+            //}
+            //GroupingType = EftTypes.Single(x => x.GetMethods(BindingFlags.Public | BindingFlags.Static).Select(y => y.Name).Contains("CreateRaidPlayer"));
             //if (GroupingType != null)
             //{
             //  Logger.LogInfo("SIT.Tarkov.Core:PatchConstants():Found GroupingType:" + GroupingType.FullName);
@@ -372,7 +365,7 @@ namespace SIT.Tarkov.Core
             JsonConverterType = typeof(AbstractGame).Assembly.GetTypes()
                .First(t => t.GetField("Converters", BindingFlags.Static | BindingFlags.Public) != null);
             JsonConverterDefault = JsonConverterType.GetField("Converters", BindingFlags.Static | BindingFlags.Public).GetValue(null) as JsonConverter[];
-            Logger.LogDebug($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
+            Logger.LogInfo($"PatchConstants: {JsonConverterDefault.Length} JsonConverters found");
 
             StartWithTokenType = EftTypes.Single(x => ReflectionHelpers.GetAllMethodsForType(x).Count(y => y.Name == "StartWithToken") == 1);
 
