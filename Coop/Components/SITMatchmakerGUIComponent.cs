@@ -20,8 +20,8 @@ namespace SIT.Core.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
-        private Rect windowRect = new(20, 20, 120, 50);
-        private Rect windowInnerRect { get; set; } = new Rect(20, 20, 120, 50);
+        private UnityEngine.Rect windowRect = new (20, 20, 120, 50);
+        private UnityEngine.Rect windowInnerRect { get; set; } = new (20, 20, 120, 50);
         private GUIStyle styleBrowserRaidLabel { get; } = new GUIStyle();
         private GUIStyle styleBrowserRaidRow { get; } = new GUIStyle() { };
         private GUIStyle styleBrowserRaidLink { get; } = new GUIStyle();
@@ -273,8 +273,8 @@ namespace SIT.Core.Coop.Components
             var windowY = (Screen.height - windowHeight) / 2;
 
             // Create the main window rectangle
-            windowRect = new Rect(windowX, windowY, windowWidth, windowHeight);
-            var serverBrowserRect = new Rect(windowX, Screen.height * 0.3f, windowWidth, windowHeight);
+            windowRect = new UnityEngine.Rect(windowX, windowY, windowWidth, windowHeight);
+            var serverBrowserRect = new UnityEngine.Rect(windowX, Screen.height * 0.3f, windowWidth, windowHeight);
 
             if (showServerBrowserWindow)
             {
@@ -292,7 +292,7 @@ namespace SIT.Core.Coop.Components
                 gamemodeButtonStyle.fontStyle = FontStyle.Bold;
 
                 // Create "Host Game" button
-                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), Plugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
+                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
                 {
 
                     showServerBrowserWindow = false;
@@ -301,7 +301,7 @@ namespace SIT.Core.Coop.Components
 
                 // Create "Play Single Player" button next to the "Host Game" button
                 buttonX += buttonWidth + 10;
-                if (GUI.Button(new Rect(buttonX, buttonY, buttonWidth, buttonHeight), Plugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
+                if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
                 {
                     MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
                     OriginalAcceptButton.OnClick.Invoke();
@@ -310,7 +310,7 @@ namespace SIT.Core.Coop.Components
             }
             else if (showHostGameWindow)
             {
-                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, Plugin.LanguageDictionary["HOST_RAID"]);
+                windowInnerRect = GUI.Window(0, windowRect, DrawHostGameWindow, StayInTarkovPlugin.LanguageDictionary["HOST_RAID"]);
             }
 
             // Handle the "Back" Button
@@ -325,7 +325,7 @@ namespace SIT.Core.Coop.Components
                 buttonStyle.fontSize = 24;
                 buttonStyle.fontStyle = FontStyle.Bold;
 
-                if (GUI.Button(new Rect(backButtonX, backButtonY, 200, 40), Plugin.LanguageDictionary["BACK"], buttonStyle))
+                if (GUI.Button(new UnityEngine.Rect(backButtonX, backButtonY, 200, 40), StayInTarkovPlugin.LanguageDictionary["BACK"], buttonStyle))
                 {
                     // Handle the "Back" button click
                     if (showServerBrowserWindow)
@@ -363,9 +363,9 @@ namespace SIT.Core.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(new Rect(20,20,1000,1000), ErrorMessage);
+            GUI.Label(new UnityEngine.Rect(20,20,1000,1000), ErrorMessage);
 
-            if(GUI.Button(new Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            if(GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {
                 showErrorMessageWindow = false;
                 showServerBrowserWindow = true;
@@ -377,9 +377,9 @@ namespace SIT.Core.Coop.Components
             // Define column labels
             string[] columnLabels = { "Server", "Players", "Location" };
             // Use the Language Dictionary
-            columnLabels[0] = Plugin.LanguageDictionary["SERVER"];
-            columnLabels[1] = Plugin.LanguageDictionary["PLAYERS"];
-            columnLabels[2] = Plugin.LanguageDictionary["LOCATION"];
+            columnLabels[0] = StayInTarkovPlugin.LanguageDictionary["SERVER"];
+            columnLabels[1] = StayInTarkovPlugin.LanguageDictionary["PLAYERS"];
+            columnLabels[2] = StayInTarkovPlugin.LanguageDictionary["LOCATION"];
 
 
             // Define the button style
@@ -410,26 +410,26 @@ namespace SIT.Core.Coop.Components
             float separatorWidth = 2;
 
             // Draw the first horizontal line at the top
-            GUI.DrawTexture(new Rect(10, topSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+            GUI.DrawTexture(new UnityEngine.Rect(10, topSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
 
             // Draw the second horizontal line under Server, Players, and Location
-            GUI.DrawTexture(new Rect(10, middleSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+            GUI.DrawTexture(new UnityEngine.Rect(10, middleSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
 
             // Draw the third horizontal line at the bottom
-            GUI.DrawTexture(new Rect(10, bottomSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
+            GUI.DrawTexture(new UnityEngine.Rect(10, bottomSeparatorY, windowInnerRect.width - 20, separatorWidth), Texture2D.grayTexture);
 
             // Draw vertical separator lines
             for (int col = 1; col < numColumns + 1; col++)
             {
                 float separatorX = col * cellWidth - separatorWidth / 2;
-                GUI.DrawTexture(new Rect(separatorX - 2, topSeparatorY, separatorWidth, bottomSeparatorY - topSeparatorY), Texture2D.grayTexture);
+                GUI.DrawTexture(new UnityEngine.Rect(separatorX - 2, topSeparatorY, separatorWidth, bottomSeparatorY - topSeparatorY), Texture2D.grayTexture);
             }
 
             // Draw column labels at the top
             for (int col = 0; col < 3; col++)
             {
                 float cellX = col * cellWidth + separatorWidth / 2;
-                GUI.Label(new Rect(cellX, topSeparatorY + 5, cellWidth - separatorWidth, 25), columnLabels[col], labelStyle);
+                GUI.Label(new UnityEngine.Rect(cellX, topSeparatorY + 5, cellWidth - separatorWidth, 25), columnLabels[col], labelStyle);
             }
 
             // Reset the GUI.backgroundColor to its original state
@@ -445,19 +445,19 @@ namespace SIT.Core.Coop.Components
                     var yPos = yPosOffset + index * (cellHeight + 5);
 
                     // Display Host Name with "Raid" label
-                    GUI.Label(new Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
+                    GUI.Label(new UnityEngine.Rect(10, yPos, cellWidth - separatorWidth, cellHeight), $"{match["HostName"].ToString()} Raid", labelStyle);
 
                     // Display Player Count
-                    GUI.Label(new Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
+                    GUI.Label(new UnityEngine.Rect(cellWidth, yPos, cellWidth - separatorWidth, cellHeight), match["PlayerCount"].ToString(), labelStyle);
 
                     // Display Location
-                    GUI.Label(new Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
+                    GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
 
                     // Calculate the width of the combined server information (Host Name, Player Count, Location)
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
                     // Create "Join" button for each match on the next column
-                    if (GUI.Button(new Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), Plugin.LanguageDictionary["JOIN"], buttonStyle))
+                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
                         if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson, out string errorMessage))
@@ -511,12 +511,12 @@ namespace SIT.Core.Coop.Components
                 {
                     case 0:
                         // Title label for the number of players
-                        GUI.Label(new Rect(10, y, windowInnerRect.width - 20, 30), Plugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"], labelStyle);
+                        GUI.Label(new UnityEngine.Rect(10, y, windowInnerRect.width - 20, 30), StayInTarkovPlugin.LanguageDictionary["NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE"], labelStyle);
                         break;
 
                     case 1:
                         // Decrease button
-                        if (GUI.Button(new Rect(halfWindowWidth - 50, y, 30, 30), "-", buttonStyle))
+                        if (GUI.Button(new UnityEngine.Rect(halfWindowWidth - 50, y, 30, 30), "-", buttonStyle))
                         {
                             if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers > 1)
                             {
@@ -525,10 +525,10 @@ namespace SIT.Core.Coop.Components
                         }
 
                         // Player count label
-                        GUI.Label(new Rect(halfWindowWidth - 15, y, 30, 30), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString(), labelStyle);
+                        GUI.Label(new UnityEngine.Rect(halfWindowWidth - 15, y, 30, 30), MatchmakerAcceptPatches.HostExpectedNumberOfPlayers.ToString(), labelStyle);
 
                         // Increase button
-                        if (GUI.Button(new Rect(halfWindowWidth + 20, y, 30, 30), "+", buttonStyle))
+                        if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 20, y, 30, 30), "+", buttonStyle))
                         {
                             if (MatchmakerAcceptPatches.HostExpectedNumberOfPlayers < 10)
                             {
@@ -539,7 +539,7 @@ namespace SIT.Core.Coop.Components
 
                     case 2:
                         // Calculate the width of the "Require Password" text
-                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent(Plugin.LanguageDictionary["REQUIRE_PASSWORD"])).x;
+                        var requirePasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"])).x;
 
                         // Calculate the position for the checkbox and text to center-align them
                         var horizontalSpacing = 10;
@@ -550,10 +550,10 @@ namespace SIT.Core.Coop.Components
                         GUI.enabled = false;
 
                         // Checkbox to toggle the password field visibility
-                        showPasswordField = GUI.Toggle(new Rect(checkboxX, y, 200, 30), showPasswordField, "");
+                        showPasswordField = GUI.Toggle(new UnityEngine.Rect(checkboxX, y, 200, 30), showPasswordField, "");
 
                         // "Require Password" text
-                        GUI.Label(new Rect(textX, y, requirePasswordTextWidth, 30), Plugin.LanguageDictionary["REQUIRE_PASSWORD"]);
+                        GUI.Label(new UnityEngine.Rect(textX, y, requirePasswordTextWidth, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
 
                         // Feature is currently unavailable
                         var featureUnavailableLabelStyle = new GUIStyle(GUI.skin.label)
@@ -562,7 +562,7 @@ namespace SIT.Core.Coop.Components
                             normal = { textColor = Color.gray },
                             fontSize = 10
                         };
-                        GUI.Label(new Rect(textX, y + 20, requirePasswordTextWidth, 30), "soonTM", featureUnavailableLabelStyle);
+                        GUI.Label(new UnityEngine.Rect(textX, y + 20, requirePasswordTextWidth, 30), "soonTM", featureUnavailableLabelStyle);
 
                         // Reset GUI.enabled to enable other elements
                         GUI.enabled = true;
@@ -573,7 +573,7 @@ namespace SIT.Core.Coop.Components
 
                         if (showPasswordField)
                         {
-                            passwordInput = GUI.PasswordField(new Rect(220, y, 200, 30), passwordInput, '*', 25);
+                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(220, y, 200, 30), passwordInput, '*', 25);
                             y += 30;
                         }
 
@@ -589,14 +589,14 @@ namespace SIT.Core.Coop.Components
             smallButtonStyle.alignment = TextAnchor.MiddleCenter;
 
             // Back button
-            if (GUI.Button(new Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), Plugin.LanguageDictionary["BACK"], smallButtonStyle))
+            if (GUI.Button(new UnityEngine.Rect(10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["BACK"], smallButtonStyle))
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = true;
             }
 
             // Start button
-            if (GUI.Button(new Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), Plugin.LanguageDictionary["START"], smallButtonStyle))
+            if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 

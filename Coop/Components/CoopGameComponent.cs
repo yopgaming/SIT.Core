@@ -24,6 +24,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Scripting;
 
+using Rect = UnityEngine.Rect;
+
 namespace SIT.Core.Coop
 {
     /// <summary>
@@ -1370,7 +1372,7 @@ namespace SIT.Core.Coop
                 middleLargeLabelStyle.fontSize = 24;
             }
 
-            var rect = new Rect(GuiX, 5, GuiWidth, 100);
+            var rect = new UnityEngine.Rect(GuiX, 5, GuiWidth, 100);
 
             rect.y = 5;
             GUI.Label(rect, $"SIT Coop: " + (MatchmakerAcceptPatches.IsClient ? "CLIENT" : "SERVER"));
@@ -1408,7 +1410,7 @@ namespace SIT.Core.Coop
 
             var w = 0.5f; // proportional width (0..1)
             var h = 0.2f; // proportional height (0..1)
-            Rect rectEndOfGameMessage = new();
+            var rectEndOfGameMessage = UnityEngine.Rect.zero;
             rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
             rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2;
             rectEndOfGameMessage.width = Screen.width * w;
@@ -1477,7 +1479,7 @@ namespace SIT.Core.Coop
 
         }
 
-        private void OnGUI_DrawPlayerFriendlyTags(Rect rect)
+        private void OnGUI_DrawPlayerFriendlyTags(UnityEngine.Rect rect)
         {
             if (SITConfig == null)
             {
@@ -1537,7 +1539,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private void OnGUI_DrawPlayerEnemyTags(Rect rect)
+        private void OnGUI_DrawPlayerEnemyTags(UnityEngine.Rect rect)
         {
             if (SITConfig == null)
             {
@@ -1599,7 +1601,7 @@ namespace SIT.Core.Coop
             }
         }
 
-        private void OnGUI_DrawPlayerList(Rect rect)
+        private void OnGUI_DrawPlayerList(UnityEngine.Rect rect)
         {
             if (!PluginConfigSettings.Instance.CoopSettings.SETTING_DEBUGShowPlayerList)
                 return;

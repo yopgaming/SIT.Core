@@ -11,6 +11,16 @@ namespace SIT.Core.Coop
         {
         }
 
+        public override void SetEncumbered(bool encumbered)
+        {
+            base.SetEncumbered(encumbered);
+        }
+
+        public override void SetOverEncumbered(bool encumbered)
+        {
+            base.SetOverEncumbered(encumbered);
+        }
+
         public override bool ApplyItem(Item item, EBodyPart bodyPart, float? amount = null)
         {
             return base.ApplyItem(item, bodyPart, amount);

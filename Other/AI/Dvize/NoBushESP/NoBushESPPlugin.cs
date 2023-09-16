@@ -6,6 +6,7 @@
     {
 
         [BepInPlugin("com.dvize.BushNoESP", "dvize.BushNoESP", "1.6.0")]
+        [BepInDependency("com.sit.core")]
         public class NoBushESPPlugin : BaseUnityPlugin
         {
             private void Awake()

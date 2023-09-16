@@ -106,9 +106,9 @@ namespace SIT.Coop.Core.Matchmaker
                         var outJObject = JObject.Parse(outJson);
                         if (outJObject.ContainsKey("gameVersion"))
                         {
-                            if (JObject.Parse(outJson)["gameVersion"].ToString() != Plugin.EFTVersionMajor)
+                            if (JObject.Parse(outJson)["gameVersion"].ToString() != StayInTarkovPlugin.EFTVersionMajor)
                             {
-                                errorMessage = $"You are attempting to use a different version of EFT {Plugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}";
+                                errorMessage = $"You are attempting to use a different version of EFT {StayInTarkovPlugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}";
                                 return false;
                             }
                         }
@@ -141,7 +141,7 @@ namespace SIT.Coop.Core.Matchmaker
                 { "serverId", profileId }
                 , { "settings", rs }
                 , { "expectedNumberOfPlayers", MatchmakerAcceptPatches.HostExpectedNumberOfPlayers }
-                , { "gameVersion", Plugin.EFTVersionMajor }
+                , { "gameVersion", StayInTarkovPlugin.EFTVersionMajor }
                 , { "sitVersion", Assembly.GetExecutingAssembly().GetName().Version }
             };
 

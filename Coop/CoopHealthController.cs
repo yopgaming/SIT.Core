@@ -20,5 +20,15 @@ namespace SIT.Core.Coop
         {
             base.AddEffectToList(effect);
         }
+
+        public override void SetEncumbered(bool encumbered)
+        {
+            base.SetEncumbered(encumbered);
+        }
+
+        public override void SetOverEncumbered(bool encumbered)
+        {
+            base.SetOverEncumbered(encumbered);
+        }
     }
 }
