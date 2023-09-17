@@ -5,7 +5,6 @@ using FilesChecker;
 using HarmonyLib;
 using Newtonsoft.Json;
 using SIT.Core.Misc;
-using SIT.Tarkov.Core.AI;
 using SIT.Tarkov.Core.Web;
 using System;
 using System.Collections.Generic;

@@ -8,8 +8,10 @@ using EFT.Interactive;
 using EFT.UI;
 using EFT.Weather;
 using JsonType;
+using Newtonsoft.Json;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
+using SIT.Core.AI.PMCLogic.Friendly.Companion;
 using SIT.Core.Configuration;
 using SIT.Core.Coop.Components;
 using SIT.Core.Coop.FreeCamera;
@@ -27,11 +29,27 @@ using UnityEngine;
 
 namespace SIT.Core.Coop
 {
+    public class FriendlyAIPMCSystem
+    {
+        /// <summary>
+        /// This spawns bots but does nothing. DO NOT USE!
+        /// </summary>
+        [JsonProperty("shouldSpawnFriendlyAI")]
+        public bool? ShouldSpawnFriendlyAI { get; set; } = false;
+
+        public int? CurrentNumberOfFriendlies { get; set; } = 0;
+
+        [JsonProperty("maxNumberOfFriendlies")]
+        public int? MaxNumberOfFriendlies { get; set; } = 1;
+    }
+
     /// <summary>
     /// A custom Game Type
     /// </summary>
     public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame
     {
+       
+        public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
 
         public ISession BackEndSession { get { return PatchConstants.BackEndSession; } }
 
@@ -106,6 +124,10 @@ namespace SIT.Core.Coop
             CoopGame coopGame = BaseLocalGame<GamePlayerOwner>
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
+
+            var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{CoopGameComponent.GetServerId()}");
+            Logger.LogDebug(friendlyAIJson);
+            //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
 
             // Non Waves Scenario setup
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
@@ -343,6 +365,7 @@ namespace SIT.Core.Coop
                     // Create synchronized time
 
                     //var hourOfDay = WeatherController.Instance.
+                    WeatherController.Instance.WeatherDebug.SetHour(12);
 
                     //WeatherController.Instance.WeatherDebug.SetHour(
                     //    timeAndWeatherSettings.HourOfDay >= 6 && timeAndWeatherSettings.HourOfDay <= 8
@@ -503,6 +526,8 @@ namespace SIT.Core.Coop
             //}
         }
 
+        private List<CoopPlayer> friendlyPlayers = new List<CoopPlayer>();
+
         /// <summary>
         /// Creating the EFT.LocalPlayer
         /// </summary>
@@ -549,44 +574,78 @@ namespace SIT.Core.Coop
                , new FilterCustomizationClass()
                , questController
                , isYourPlayer: true);
+            profile.SetSpawnedInSession(value: false);
             SendOrReceiveSpawnPoint(myPlayer);
-
+            
             // ---------------------------------------------
             // Here we can wait for other players, if desired
-            //if (MatchmakerAcceptPatches.IsServer)
-            //{
-                await Task.Run(async () =>
+            await Task.Run(async () =>
+            {
+                while(CoopGameComponent.GetCoopGameComponent() == null)
                 {
-                    while(CoopGameComponent.GetCoopGameComponent() == null)
-                    {
 
+                }
+
+                //var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
+                var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
+                do
+                {
+                    numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
+                    if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                    {
+                        MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)");
                     }
 
-                    //var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                    do
-                    {
-                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                        if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
-                        {
-                            MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)");
-                        }
+                    await Task.Delay(1000);
 
-                        await Task.Delay(1000);
-
-                    } while (numbersOfPlayersToWaitFor > 0);
-                });
-            //}
+                } while (numbersOfPlayersToWaitFor > 0);
+            });
 
             // ---------------------------------------------
-
 
             CoopPatches.EnableDisablePatches();
 
+            // ---------------------------------------------
+            // Create friendly bots
+            if (FriendlyAIPMCSystem != null
+                && FriendlyAIPMCSystem.ShouldSpawnFriendlyAI.HasValue
+                && FriendlyAIPMCSystem.ShouldSpawnFriendlyAI.Value
+                && FriendlyAIPMCSystem.MaxNumberOfFriendlies.HasValue
+                && FriendlyAIPMCSystem.MaxNumberOfFriendlies.Value > 0)
+            {
+                for (var indexOfFriendly = 0; indexOfFriendly < FriendlyAIPMCSystem.MaxNumberOfFriendlies.Value; indexOfFriendly++)
+                {
+                    var profileClone = profile.Clone();
+                    profileClone.AccountId = new System.Random().Next(1000000000, int.MaxValue).ToString();
+                    profileClone.Id = "ai" + new MongoID(true);
 
-           
+                    CoopPlayer friendlyBot = (CoopPlayer)(await CoopPlayer
+                       .Create(
+                       playerId + 90 + indexOfFriendly
+                       , position
+                       , rotation
+                       , "Player"
+                       , ""
+                       , EPointOfView.ThirdPerson
+                       , profileClone
+                       , aiControl: true
+                       , base.UpdateQueue
+                       , armsUpdateMode
+                       , EFT.Player.EUpdateMode.Auto
+                       , BackendConfigManager.Config.CharacterController.BotPlayerMode
+                       , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
+                       , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                       , new FilterCustomizationClass()
+                       , null
+                       , isYourPlayer: false));
+                    friendlyBot.IsFriendlyBot = true;
+                    //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
+                    //companionComponent.CoopPlayer = friendlyBot;
+                    friendlyPlayers.Add(friendlyBot);
 
-            profile.SetSpawnedInSession(value: false);
+                    
+                }
+            }
 
             return myPlayer;
             //return base.vmethod_2(playerId, position, rotation, layerName, prefix, pointOfView, profile, aiControl, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, statisticsManager, questController);
@@ -669,6 +728,13 @@ namespace SIT.Core.Coop
 
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
+
+            foreach(var friendlyB in friendlyPlayers)
+            {
+                BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
+                botOwner.GetComponentsInChildren<Collider>();
+                botOwner.GetPlayer.CharacterController.isEnabled = false;
+            }
 
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)

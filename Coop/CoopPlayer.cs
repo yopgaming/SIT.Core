@@ -96,6 +96,7 @@ namespace SIT.Core.Coop
         private HashSet<DamageInfo> PreviousDamageInfos { get; } = new();
         private HashSet<string> PreviousSentDamageInfoPackets { get; } = new();
         private HashSet<string> PreviousReceivedDamageInfoPackets { get; } = new();
+        public bool IsFriendlyBot { get; internal set; }
 
         public override void ApplyDamageInfo(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
