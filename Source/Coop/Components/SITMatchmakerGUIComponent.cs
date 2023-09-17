@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Core;
 using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking.Match;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
@@ -49,6 +51,7 @@ namespace SIT.Core.Coop.Components
         private bool showPasswordField = false;
  
         private string passwordInput = "";
+        private string passwordClientInput = "";
 
         private const float verticalSpacing = 10f;
 
@@ -67,6 +70,10 @@ namespace SIT.Core.Coop.Components
         private bool showServerBrowserWindow { get; set; } = true;
         private bool showErrorMessageWindow { get; set; } = false;
         private bool showPasswordRequiredWindow { get; set; } = false;
+
+        private bool showPasswordWindow { get; set; } = false;
+
+        private string ErrorMessage { get; set; }
 
         #endregion
 
@@ -245,6 +252,8 @@ namespace SIT.Core.Coop.Components
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = false;
+                showPasswordWindow = false;
+
                 windowInnerRect = GUI.Window(0, windowRect, DrawWindowErrorMessage, "Error Message");
             }
 
@@ -308,6 +317,14 @@ namespace SIT.Core.Coop.Components
        
 
         string ErrorMessage { get; set; }
+            if(showPasswordWindow)
+            {
+                showHostGameWindow = false;
+                showServerBrowserWindow = false;
+
+                windowInnerRect = GUI.Window(0, windowRect, DrawPasswordWindow, "Password required");
+            }
+        }
 
         /// <summary>
         /// TODO: Finish this on Error Window
@@ -452,9 +469,41 @@ namespace SIT.Core.Coop.Components
                 MatchmakerAcceptPatches.SetGroupId(groupId);
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
+                        JoinMatch();
+                    }
+
+                    index++;
+                }
+            }
+        }
+
+        void DrawPasswordWindow(int windowID)
+        {
+            if (!showPasswordWindow)
+                return;
 
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+            var halfWindowWidth = windowInnerRect.width / 2;
+            var halfWindowHeight = windowInnerRect.height / 2;
 
+            var PasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Enter password")).x;
+
+            var textX = halfWindowWidth - PasswordTextWidth / 2;
+
+            GUI.Label(new UnityEngine.Rect(textX, halfWindowHeight - 100, PasswordTextWidth, 30), "Enter password");
+
+            var passwordFieldWidth = 200;
+            var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
+
+            passwordClientInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, halfWindowHeight - 50 , 200, 30), passwordClientInput, '*', 25);
+
+            var buttonX = halfWindowWidth - PasswordTextWidth / 2;
+
+            if (GUI.Button(new UnityEngine.Rect(buttonX - 60, halfWindowHeight, 100, 40), "Back"))
+            {
+                showPasswordWindow = false;
+                showServerBrowserWindow = true;
+            }
                 FixesHideoutMusclePain();
                 DestroyThis();
                 OriginalAcceptButton.OnClick.Invoke();
@@ -463,6 +512,12 @@ namespace SIT.Core.Coop.Components
             {
                 this.ErrorMessage = errorMessage;
                 this.showErrorMessageWindow = true;
+            }
+        }
+
+            if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
+            {
+                JoinMatch(passwordClientInput);
             }
         }
 
@@ -527,7 +582,7 @@ namespace SIT.Core.Coop.Components
                         var textX = checkboxX + 20;
 
                         // Disable the checkbox to prevent interaction
-                        GUI.enabled = false;
+                        //GUI.enabled = false;
 
                         // Checkbox to toggle the password field visibility
                         showPasswordField = GUI.Toggle(new UnityEngine.Rect(checkboxX, y, 200, 30), showPasswordField, "");
@@ -535,31 +590,16 @@ namespace SIT.Core.Coop.Components
                         // "Require Password" text
                         GUI.Label(new UnityEngine.Rect(textX, y, requirePasswordTextWidth, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
 
-                        // Feature is currently unavailable
-                        var featureUnavailableLabelStyle = new GUIStyle(GUI.skin.label)
-                        {
-                            fontStyle = FontStyle.Italic,
-                            normal = { textColor = Color.gray },
-                            fontSize = 10
-                        };
-                        GUI.Label(new UnityEngine.Rect(textX, y + 20, requirePasswordTextWidth, 30), "soonTM", featureUnavailableLabelStyle);
-
-                        // Reset GUI.enabled to enable other elements
-                        GUI.enabled = true;
-
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
                         var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
 
                         if (showPasswordField)
                         {
-                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(220, y, 200, 30), passwordInput, '*', 25);
-                            y += 30;
+                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y + 30, 200, 30), passwordInput, '*', 25);
                         }
 
                         break;
-
-
                 }
             }
 
@@ -584,6 +624,37 @@ namespace SIT.Core.Coop.Components
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
+            }
+        }
+
+        void JoinMatch(string password = "")
+        {
+            // Find a corresponding match based on raid settings and password
+            if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, password, out string returnedJson, out string errorMessage))
+            {
+                Logger.LogDebug(returnedJson);
+                JObject result = JObject.Parse(returnedJson);
+                var groupId = result["ServerId"].ToString();
+                MatchmakerAcceptPatches.SetGroupId(groupId);
+                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
+
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+
+                DestroyThis();
+                OriginalAcceptButton.OnClick.Invoke();
+            }
+            else
+            {
+                if (errorMessage == "passwordRequired")
+                {
+                    showPasswordWindow = true;
+                }
+                else
+                {
+                    this.ErrorMessage = errorMessage;
+                    this.showErrorMessageWindow = true;
+                }
             }
         }
 
