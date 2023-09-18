@@ -29,13 +29,24 @@ namespace SIT.Core.Coop
                 );
         }
 
+        static ISession CurrentSession { get; set; }
+
         [PatchPrefix]
-        public static bool Prefix()
+        public static bool Prefix(TarkovApplication __instance)
         {
             Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Prefix");
-
+            
             if (MatchmakerAcceptPatches.IsSinglePlayer)
                 return true;
+
+            ISession session = __instance.GetClientBackEndSession();
+            if (session == null)
+            {
+                Logger.LogError("Session is NULL. Continuing as Singleplayer.");
+                return true;
+            }
+
+            CurrentSession = session;
 
             return false;
         }
@@ -56,6 +67,25 @@ namespace SIT.Core.Coop
             if (MatchmakerAcceptPatches.IsSinglePlayer)
                 return;
 
+            if (CurrentSession == null)
+                return;
+
+            if (____raidSettings == null)
+            {
+                Logger.LogError("RaidSettings is Null");
+                throw new ArgumentNullException("RaidSettings");
+            }
+
+            if (timeHasComeScreenController == null)
+            {
+                Logger.LogError("timeHasComeScreenController is Null");
+                throw new ArgumentNullException("timeHasComeScreenController");
+            }
+
+            Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
+
+            LocationSettings.Location location = ____raidSettings.SelectedLocation;
+
             MatchmakerAcceptPatches.TimeHasComeScreenController = timeHasComeScreenController;
 
             //Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix");
@@ -64,13 +94,21 @@ namespace SIT.Core.Coop
                 Singleton<NotificationManagerClass>.Instance.Deactivate();
             }
 
-            ISession session = ReflectionHelpers.GetFieldOrPropertyFromInstance<ISession>(__instance, "Session", false);// Profile profile = base.Session.Profile;
+            Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix: Attempt to get Session");
+
+            ISession session = CurrentSession;
+            //ISession session = ReflectionHelpers.GetFieldOrPropertyFromInstance<ISession>(__instance, "Session", false);// Profile profile = base.Session.Profile;
+            
             Profile profile = session.Profile;
-            //var session = __instance.GetClientBackEndSession();
+            Profile profileScav = session.ProfileOfPet;
+            
             profile.Inventory.Stash = null;
             profile.Inventory.QuestStashItems = null;
             profile.Inventory.DiscardLimits = new System.Collections.Generic.Dictionary<string, int>();  // Singleton<ItemFactory>.Instance.GetDiscardLimits();
             ____raidSettings.RaidMode = ERaidMode.Online;
+
+            Logger.LogDebug("TarkovApplication_LocalGameCreator_Patch:Postfix: Attempt to set Raid Settings");
+
             await session.SendRaidSettings(____raidSettings);
 
             if (MatchmakerAcceptPatches.IsClient)
