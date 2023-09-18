@@ -210,13 +210,13 @@ namespace SIT.Core.Misc
 
         private static Dictionary<string, IEnumerable<FieldInfo>> m_CachedFieldInfos = new();
 
-        public static IEnumerable<FieldInfo> GetAllFieldsForType(Type t)
+        public static List<FieldInfo> GetAllFieldsForType(Type t)
         {
             if (t == typeof(object))
                 return null;
 
-            if (m_CachedFieldInfos.ContainsKey(t.FullName))
-                return m_CachedFieldInfos[t.FullName];
+            //if (m_CachedFieldInfos.ContainsKey(t.FullName))
+            //    return m_CachedFieldInfos[t.FullName];
 
             var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public).ToList();
             fields.AddRange(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic));
@@ -232,7 +232,8 @@ namespace SIT.Core.Misc
                 fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 fields.AddRange(t.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
             }
-            var result = fields.Distinct(x => x.Name).AsEnumerable();
+            var result = fields;
+            //var result = fields.Distinct(x => x.Name).AsEnumerable();
             //m_CachedFieldInfos.Add(t.FullName, result);
             return result;
         }
