@@ -43,6 +43,8 @@ namespace SIT.Core.SP.PlayerPatches
         [PatchPrefix]
         public static bool PatchPrefix(string profileId, RaidSettings ____raidSettings, TarkovApplication __instance, Result<ExitStatus, TimeSpan, object> result)
         {
+            Logger.LogInfo("Saving Profile...");
+
             // Get scav or pmc profile based on IsScav value
             var profile = ____raidSettings.IsScav
                 ? __instance.GetClientBackEndSession().ProfileOfPet
@@ -69,7 +71,7 @@ namespace SIT.Core.SP.PlayerPatches
                 exitStatus = ExitStatus.Runner;
 
             // TODO: Remove uneccessary data
-            var clonedProfile = profileData.Clone();
+            //var clonedProfile = profileData.Clone();
             //clonedProfile.Encyclopedia = null;
             //clonedProfile.Hideout = null;
             //clonedProfile.Notes = null;
@@ -83,7 +85,7 @@ namespace SIT.Core.SP.PlayerPatches
             SaveProfileRequest request = new()
             {
                 exit = exitStatus.ToString().ToLower(),
-                profile = clonedProfile,
+                profile = profileData,
                 health = currentHealth,
                 isPlayerScav = isPlayerScav
             };
@@ -91,7 +93,7 @@ namespace SIT.Core.SP.PlayerPatches
             var convertedJson = request.SITToJson();
             //Logger.LogDebug("SaveProfileProgress =====================================================");
             //Logger.LogDebug(convertedJson);
-            _ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson);
+            AkiBackendCommunication.Instance.PostJson("/raid/profile/save", convertedJson);
             //_ = AkiBackendCommunication.Instance.PostJsonAsync("/raid/profile/save", convertedJson, timeout: 10 * 1000, debug: false);
 
 

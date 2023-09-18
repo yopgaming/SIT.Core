@@ -1,4 +1,5 @@
 using ComponentAce.Compression.Libs.zlib;
+using SIT.Tarkov.Core;
 using System;
 using System.IO;
 using System.Text;
@@ -82,6 +83,24 @@ namespace SIT.Core.Misc
             Array.Copy(zs.next_out, 0, data, 0, zs.next_out_index);
 
             return data;
+        }
+
+        public static byte[] Compress(string data)
+        {
+            // Paulov: Will 15mb be enough? that seems extreme
+            byte[] bytes = new byte[1024 * 15];
+            var result = 0;
+            do
+            {
+                result = Pooled9LevelZLib.CompressToBytesNonAlloc(data, bytes);
+                //PatchConstants.Logger.LogDebug(result);
+                if (result != 0 && result != 1)
+                    break;
+
+            } while (result != 0 && result != 1);
+            
+            return bytes;
+
         }
 
         public static async Task<byte[]> CompressAsync(byte[] data, ZlibCompression level)

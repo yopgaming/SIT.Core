@@ -64,10 +64,13 @@ namespace SIT.Core.Coop
                 Singleton<NotificationManagerClass>.Instance.Deactivate();
             }
 
-            var session = __instance.GetClientBackEndSession();
-            session.Profile.Inventory.Stash = null;
-            session.Profile.Inventory.QuestStashItems = null;
-            session.Profile.Inventory.DiscardLimits = Singleton<ItemFactory>.Instance.GetDiscardLimits();
+            ISession session = ReflectionHelpers.GetFieldOrPropertyFromInstance<ISession>(__instance, "Session", false);// Profile profile = base.Session.Profile;
+            Profile profile = session.Profile;
+            //var session = __instance.GetClientBackEndSession();
+            profile.Inventory.Stash = null;
+            profile.Inventory.QuestStashItems = null;
+            profile.Inventory.DiscardLimits = new System.Collections.Generic.Dictionary<string, int>();  // Singleton<ItemFactory>.Instance.GetDiscardLimits();
+            ____raidSettings.RaidMode = ERaidMode.Online;
             await session.SendRaidSettings(____raidSettings);
 
             if (MatchmakerAcceptPatches.IsClient)
@@ -76,8 +79,14 @@ namespace SIT.Core.Coop
                 timeHasComeScreenController.ChangeStatus("Creating Coop Game");
 
             await Task.Delay(1000);
-            CoopGame localGame = CoopGame.Create(____inputTree
-                , session.Profile
+            CoopGame localGame = CoopGame.Create(
+
+            // this is used for testing differences between CoopGame and EFT.LocalGame
+            //EFT.LocalGame localGame = (EFT.LocalGame)ReflectionHelpers.GetMethodForType(typeof(EFT.LocalGame), "smethod_6").Invoke(null, 
+            //    new object[] {
+
+                ____inputTree
+                , profile
                 , ____localGameDateTime
                 , session.InsuranceCompany
                 , MonoBehaviourSingleton<MenuUI>.Instance
@@ -111,7 +120,9 @@ namespace SIT.Core.Coop
                 , ____fixedDeltaTime
                 , EUpdateQueue.Update
                 , session
-                , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit));
+                , TimeSpan.FromSeconds(60 * ____raidSettings.SelectedLocation.EscapeTimeLimit)
+                //}
+            );
             Singleton<AbstractGame>.Create(localGame);
             await localGame.method_4(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>
             //await localGame.CreatePlayerToStartMatch(____raidSettings.BotSettings, ____backendUrl, null, new Callback((r) =>

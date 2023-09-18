@@ -49,6 +49,8 @@ namespace SIT.Core.Coop
     public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame
     {
        
+        public new bool InRaid { get { return true; } }
+
         public FriendlyAIPMCSystem FriendlyAIPMCSystem { get; set; } = new FriendlyAIPMCSystem();
 
         public ISession BackEndSession { get { return PatchConstants.BackEndSession; } }
