@@ -35,7 +35,7 @@ namespace SIT.Core.SP.Raid
         private static void PatchPrefix(ref Profile profile, ref bool isOnline)
         {
             Logger.LogInfo("PatchPrefix");
-            //profile = CoopPlayerStatisticsManager.Profile;
+            profile = CoopPlayerStatisticsManager.Profile;
             isOnline = true;
         }
 
