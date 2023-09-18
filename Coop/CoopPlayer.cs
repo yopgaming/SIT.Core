@@ -39,7 +39,18 @@ namespace SIT.Core.Coop
             , bool isYourPlayer = false
             , bool isClientDrone = false)
         {
-            CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(ResourceBundleConstants.PLAYER_BUNDLE_NAME, playerId, position, updateQueue, armsUpdateMode, bodyUpdateMode, characterControllerMode, getSensitivity, getAimingSensitivity, prefix, aiControl);
+            CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(
+                ResourceBundleConstants.PLAYER_BUNDLE_NAME
+                , playerId
+                , position
+                , updateQueue
+                , armsUpdateMode
+                , bodyUpdateMode
+                , characterControllerMode
+                , getSensitivity
+                , getAimingSensitivity
+                , prefix
+                , aiControl);
             localPlayer.IsYourPlayer = isYourPlayer;
 
             InventoryController inventoryController = isYourPlayer && !isClientDrone 
@@ -51,25 +62,16 @@ namespace SIT.Core.Coop
                 questController = new QuestController(profile, inventoryController, PatchConstants.BackEndSession, fromServer: true);
                 questController.Run();
             }
-            //await localPlayer.Init(
-            //    rotation
-            //    , layerName
-            //    , pointOfView
-            //    , profile
-            //    , inventoryController
-            //    , new CoopHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, aiControl)
-            //    , isYourPlayer ? new StatisticsManagerForPlayer1() : new NullStatisticsManager()
-            //    , questController
-            //    , filter
-            //    , profile.ProfileId.StartsWith("pmc") ? EVoipState.Available : EVoipState.NotAvailable
-            //    , aiControl
-            //    , async: false);
-            await localPlayer.Init(rotation, layerName, pointOfView, profile, inventoryController, new PlayerHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, aiControl), new NullStatisticsManager(), questController, filter, EVoipState.NotAvailable, aiControl, async: false);
-            //foreach (MagazineClass item in localPlayer.Inventory.NonQuestItems.OfType<MagazineClass>())
-            //{
-            //    localPlayer.GClass2656_0.StrictCheckMagazine(item, status: true, localPlayer.Profile.MagDrillsMastering, notify: false, useOperation: false);
-            //}
-            //localPlayer._handsController = (EFT.Player.EmptyHandsController)EFT.Player.EmptyHandsController.smethod_5<EFT.Player.EmptyHandsController>(localPlayer);
+            
+            await localPlayer
+                .Init(rotation, layerName, pointOfView, profile, inventoryController, new PlayerHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, aiControl)
+                , isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
+                , questController
+                , filter
+                , EVoipState.NotAvailable
+                , aiControl
+                , async: false);
+         
             localPlayer._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(localPlayer);
             localPlayer._handsController.Spawn(1f, delegate
             {

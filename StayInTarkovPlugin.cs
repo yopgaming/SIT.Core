@@ -227,55 +227,62 @@ namespace SIT.Core
 
         private void EnableSPPatches()
         {
-            var enabled = Config.Bind<bool>("SIT.SP", "Enable", true);
-            if (!enabled.Value) // if it is disabled. stop all SIT SP Patches.
+            try
             {
-                Logger.LogInfo("SIT SP Patches has been disabled! Ignoring Patches.");
-                return;
+                var enabled = Config.Bind<bool>("SIT.SP", "Enable", true);
+                if (!enabled.Value) // if it is disabled. stop all SIT SP Patches.
+                {
+                    Logger.LogInfo("SIT SP Patches has been disabled! Ignoring Patches.");
+                    return;
+                }
+
+                //// --------- PMC Dogtags -------------------
+                new UpdateDogtagPatch().Enable();
+
+                //// --------- Player Init & Health -------------------
+                EnableSPPatches_PlayerHealth(Config);
+
+                //// --------- SCAV MODE ---------------------
+                new DisableScavModePatch().Enable();
+
+                //// --------- Airdrop -----------------------
+                //new AirdropPatch().Enable();
+
+                //// --------- Screens ----------------
+                EnableSPPatches_Screens(Config);
+
+                //// --------- Progression -----------------------
+                EnableSPPatches_PlayerProgression();
+
+                //// --------------------------------------
+                // Bots
+                EnableSPPatches_Bots(Config);
+
+                new QTEPatch().Enable();
+                new TinnitusFixPatch().Enable();
+
+                //try
+                //{
+                //    BundleManager.GetBundles();
+                //    new EasyAssetsPatch().Enable();
+                //    new EasyBundlePatch().Enable();
+                //}
+                //catch (Exception ex)
+                //{
+                //    Logger.LogError("// --- ERROR -----------------------------------------------");
+                //    Logger.LogError("Bundle System Failed!!");
+                //    Logger.LogError(ex.ToString());
+                //    Logger.LogError("// --- ERROR -----------------------------------------------");
+                //}
+
+                new WavesSpawnScenarioInitPatch(Config).Enable();
+                new WavesSpawnScenarioMethodPatch().Enable();
             }
-
-            //// --------- PMC Dogtags -------------------
-            new UpdateDogtagPatch().Enable();
-
-            //// --------- Player Init & Health -------------------
-            EnableSPPatches_PlayerHealth(Config);
-
-            //// --------- SCAV MODE ---------------------
-            new DisableScavModePatch().Enable();
-
-            //// --------- Airdrop -----------------------
-            //new AirdropPatch().Enable();
-
-            //// --------- Screens ----------------
-            EnableSPPatches_Screens(Config);
-
-            //// --------- Progression -----------------------
-            EnableSPPatches_PlayerProgression();
-
-            //// --------------------------------------
-            // Bots
-            EnableSPPatches_Bots(Config);
-
-            new QTEPatch().Enable();
-            new TinnitusFixPatch().Enable();
-
-            //try
-            //{
-            //    BundleManager.GetBundles();
-            //    new EasyAssetsPatch().Enable();
-            //    new EasyBundlePatch().Enable();
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.LogError("// --- ERROR -----------------------------------------------");
-            //    Logger.LogError("Bundle System Failed!!");
-            //    Logger.LogError(ex.ToString());
-            //    Logger.LogError("// --- ERROR -----------------------------------------------");
-
-            //}
-
-            new WavesSpawnScenarioInitPatch(Config).Enable();
-            new WavesSpawnScenarioMethodPatch().Enable();
+            catch(Exception ex)
+            {
+                Logger.LogError($"{nameof(EnableSPPatches)} failed.");
+                Logger.LogError(ex);
+            }
         }
 
         private static void EnableSPPatches_Screens(BepInEx.Configuration.ConfigFile config)
@@ -299,7 +306,7 @@ namespace SIT.Core
         private static void EnableSPPatches_PlayerProgression()
         {
             new OfflineSaveProfile().Enable();
-            new ExperienceGainFix().Enable();
+            new ExperienceGainPatch().Enable();
         }
 
         private void EnableSPPatches_PlayerHealth(BepInEx.Configuration.ConfigFile config)
@@ -337,9 +344,7 @@ namespace SIT.Core
             new CheckAndAddEnemyPatch().Enable();
             new BotCreatorTeleportPMCPatch().Enable();
 
-#if DEBUG
             BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "PMC" }, 2);
-#endif
             BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 
