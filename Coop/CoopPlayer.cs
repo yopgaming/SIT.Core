@@ -7,6 +7,7 @@ using SIT.Coop.Core.Matchmaker;
 using SIT.Coop.Core.Player;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop.Player;
+using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
@@ -181,8 +182,8 @@ namespace SIT.Core.Coop
 
             PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
 
-            BepInLogger.LogDebug("ReceiveDamageFromServer");
-            BepInLogger.LogDebug(dict.ToJson());
+            //BepInLogger.LogDebug("ReceiveDamageFromServer");
+            //BepInLogger.LogDebug(dict.ToJson());
 
             Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
             Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
@@ -211,29 +212,29 @@ namespace SIT.Core.Coop
             base.Heal(bodyPart, value);
         }
 
-        public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)
-        {
-            return base.ApplyShot(damageInfo, bodyPartType, shotId);
-        }
+        //public override PlayerHitInfo ApplyShot(DamageInfo damageInfo, EBodyPart bodyPartType, ShotId shotId)
+        //{
+        //    return base.ApplyShot(damageInfo, bodyPartType, shotId);
+        //}
 
-        public void ReceiveApplyShotFromServer(Dictionary<string, object> dict)
-        {
-            Logger.LogDebug("ReceiveApplyShotFromServer");
-            Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
-            Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
-            var absorbed = float.Parse(dict["ab"].ToString());
+        //public void ReceiveApplyShotFromServer(Dictionary<string, object> dict)
+        //{
+        //    Logger.LogDebug("ReceiveApplyShotFromServer");
+        //    Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
+        //    Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
+        //    var absorbed = float.Parse(dict["ab"].ToString());
 
-            var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
-            damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
+        //    var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
+        //    damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
 
-            var shotId = new ShotId();
-            if (dict.ContainsKey("ammoid") && dict["ammoid"] != null)
-            {
-                shotId = new ShotId(dict["ammoid"].ToString(), 1);
-            }
+        //    var shotId = new ShotId();
+        //    if (dict.ContainsKey("ammoid") && dict["ammoid"] != null)
+        //    {
+        //        shotId = new ShotId(dict["ammoid"].ToString(), 1);
+        //    }
 
-            base.ApplyShot(damageInfo, bodyPartType, shotId);
-        }
+        //    base.ApplyShot(damageInfo, bodyPartType, shotId);
+        //}
 
         public override Corpse CreateCorpse()
         {
@@ -244,5 +245,26 @@ namespace SIT.Core.Coop
         {
             base.OnItemAddedOrRemoved(item, location, added);
         }
+
+        public override void Rotate(Vector2 deltaRotation, bool ignoreClamp = false)
+        {
+            if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGC))
+            {
+                base.Rotate(deltaRotation, ignoreClamp);
+                return;
+            }
+
+            // If using Client Side Damage Model and Pressing the Trigger, send rotation to Server
+            if(coopGC.SITConfig.useClientSideDamageModel
+                && FirearmController_SetTriggerPressed_Patch.LastPress.ContainsKey(this.ProfileId) 
+                && FirearmController_SetTriggerPressed_Patch.LastPress[this.ProfileId] == true)
+            {
+                // Send to Server
+
+            }
+
+            base.Rotate(deltaRotation, ignoreClamp);
+        }
+
     }
 }

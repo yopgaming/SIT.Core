@@ -24,8 +24,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Policy;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace SIT.Core.Coop
 {
@@ -127,9 +130,7 @@ namespace SIT.Core.Coop
                 .smethod_0<CoopGame>(inputTree, profile, backendDateTime, insurance, menuUI, commonUI, preloaderUI, gameUI, location, timeAndWeather, wavesSettings, dateTime
                 , callback, fixedDeltaTime, updateQueue, backEndSession, new TimeSpan?(sessionTime));
 
-            var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{CoopGameComponent.GetServerId()}");
-            Logger.LogDebug(friendlyAIJson);
-            //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
+           
 
             // Non Waves Scenario setup
             coopGame.nonWavesSpawnScenario_0 = (NonWavesSpawnScenario)ReflectionHelpers.GetMethodForType(typeof(NonWavesSpawnScenario), "smethod_0").Invoke
@@ -207,6 +208,10 @@ namespace SIT.Core.Coop
 
             StartCoroutine(ClientLoadingPinger());
 
+            var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{CoopGameComponent.GetServerId()}");
+            Logger.LogDebug(friendlyAIJson);
+            //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
+
         }
 
         private IEnumerator ClientLoadingPinger()
@@ -254,7 +259,14 @@ namespace SIT.Core.Coop
             while (true)
             {
                 yield return waitSeconds;
-                AkiBackendCommunication.Instance.SendDataToPool("{ \"HostPing\": " + DateTime.Now.Ticks + " }");
+
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    yield break;
+
+                Dictionary<string, string> hostPingerPacket = new Dictionary<string, string>();
+                hostPingerPacket.Add("HostPing", DateTime.UtcNow.Ticks.ToString());
+                hostPingerPacket.Add("serverId", coopGameComponent.ServerId);
+                AkiBackendCommunication.Instance.SendDataToPool(hostPingerPacket.ToJson());
             }
         }
 
@@ -266,8 +278,16 @@ namespace SIT.Core.Coop
             {
                 yield return waitSeconds;
 
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    yield break;
+
                 if (GameTimer.SessionTime.HasValue)
-                    AkiBackendCommunication.Instance.SendDataToPool("{ \"RaidTimer\": " + GameTimer.SessionTime.Value.Ticks + " }");
+                {
+                    Dictionary<string, string> raidTimerDict = new Dictionary<string, string>();
+                    raidTimerDict.Add("RaidTimer", GameTimer.SessionTime.Value.Ticks.ToString());
+                    raidTimerDict.Add("serverId", coopGameComponent.ServerId);
+                    AkiBackendCommunication.Instance.SendDataToPool(raidTimerDict.ToJson());
+                }
             }
         }
 
@@ -528,7 +548,7 @@ namespace SIT.Core.Coop
             //}
         }
 
-        private List<CoopPlayer> friendlyPlayers = new List<CoopPlayer>();
+        internal Dictionary<string, CoopPlayer> FriendlyPlayers { get; } = new Dictionary<string, CoopPlayer>();
 
         /// <summary>
         /// Creating the EFT.LocalPlayer
@@ -620,6 +640,7 @@ namespace SIT.Core.Coop
                     var profileClone = profile.Clone();
                     profileClone.AccountId = new System.Random().Next(1000000000, int.MaxValue).ToString();
                     profileClone.Id = "ai" + new MongoID(true);
+                    profileClone.Skills.StartClientMode();
 
                     CoopPlayer friendlyBot = (CoopPlayer)(await CoopPlayer
                        .Create(
@@ -643,7 +664,8 @@ namespace SIT.Core.Coop
                     friendlyBot.IsFriendlyBot = true;
                     //var companionComponent = friendlyBot.GetOrAddComponent<SITCompanionComponent>();
                     //companionComponent.CoopPlayer = friendlyBot;
-                    friendlyPlayers.Add(friendlyBot);
+                    if(!FriendlyPlayers.ContainsKey(profileClone.Id))
+                        FriendlyPlayers.Add(profileClone.Id, friendlyBot);
 
                     
                 }
@@ -731,11 +753,23 @@ namespace SIT.Core.Coop
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
 
-            foreach(var friendlyB in friendlyPlayers)
+            foreach(var friendlyB in FriendlyPlayers.Values)
             {
-                BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
-                botOwner.GetComponentsInChildren<Collider>();
-                botOwner.GetPlayer.CharacterController.isEnabled = false;
+                //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
+                //botOwner.GetComponentsInChildren<Collider>();
+                //botOwner.GetPlayer.CharacterController.isEnabled = false;
+                Logger.LogDebug("Attempting to Activate friendly bot");
+                botCreator.ActivateBot(friendlyB.Profile, friendlyB.Position, botZones[0], false, (bot, zone) => {
+                    Logger.LogDebug("group action");
+                    return new BotGroupClass(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
+                }, (owner) => {
+
+                    Logger.LogDebug("Bot Owner created");
+
+                    owner.GetComponentsInChildren<Collider>();
+                    owner.GetPlayer.CharacterController.isEnabled = false;
+
+                }, cancellationToken: CancellationToken.None);
             }
 
             yield return new WaitForSeconds(startDelay);
@@ -795,9 +829,9 @@ namespace SIT.Core.Coop
             }
 
             //  If this true we skip the stopping!
-            if (PluginConfigSettings.Instance.CoopSettings.BotWavesDisableStopper)
+            if (PluginConfigSettings.Instance.CoopSettings.BotWavesDisableStopper || Location_0.Name.ToLower().Contains("factory"))
             {
-                Logger.LogInfo("BotWavesDisableStopper is enabled. Skipping the Stop of Bot Spawns");
+                Logger.LogInfo("BotWavesDisableStopper is enabled or its factory. Skipping the Stop of Bot Spawns");
                 yield break;
             }
 

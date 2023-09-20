@@ -298,8 +298,9 @@ namespace SIT.Core.Core
                 if (packet.ContainsKey("HostPing"))
                 {
                     var dtHP = new DateTime(long.Parse(packet["HostPing"].ToString()));
-                    var timeSpanOfHostToMe = DateTime.Now - dtHP;
+                    var timeSpanOfHostToMe = DateTime.UtcNow - dtHP;
                     HostPing = (int)Math.Round(timeSpanOfHostToMe.TotalMilliseconds);
+                    return;
                 }
 
                 // Syncronize RaidTimer
