@@ -171,61 +171,11 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            //Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.GetType().Name}");
-            var coopPlayer = player as CoopPlayer;
-            if (coopPlayer != null)
+            if (player is CoopPlayer coopPlayer)
             {
+                Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.ProfileId}");
                 coopPlayer.ReceiveDamageFromServer(dict);
             }
-            //if (player == null)
-            //    return;
-
-            //if (dict == null)
-            //    return;
-
-            //if (HasProcessed(GetType(), player, dict))
-            //    return;
-
-            //if (CallLocally.Contains(player.ProfileId))
-            //    return;
-
-            //if (player is CoopPlayer coopPlayer)
-            //{
-            //    Enum.TryParse<EBodyPart>(dict["bpt"].ToString(), out var bodyPartType);
-            //    Enum.TryParse<EBodyPartColliderType>(dict["bpct"].ToString(), out var bodyPartColliderType);
-            //    Enum.TryParse<EHeadSegment>(dict["hs"].ToString(), out var headSegment);
-            //    var absorbed = float.Parse(dict["ab"].ToString());
-
-            //    var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
-            //    damageInfo.HittedBallisticCollider = Player_ApplyShot_Patch.GetBodyPartCollider(player, bodyPartColliderType);
-            //    damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(player, bodyPartColliderType);
-
-            //    CallLocally.Add(player.ProfileId);
-            //    player.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
-            //    player.ShotReactions(damageInfo, bodyPartType);
-            //}
-
-            //if (player.HealthController == null)
-            //    return;
-
-            //if (player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-            //{
-            //    if (!player.HealthController.IsAlive && prc.IsClientDrone)
-            //    {
-            //        if (player.HandsController is EFT.Player.FirearmController firearmCont)
-            //        {
-            //            if (firearmCont == null)
-            //                return;
-
-            //            if (firearmCont.WeaponSoundPlayer == null)
-            //                return;
-
-            //            var methodStopFiringLoop = ReflectionHelpers.GetMethodForType(firearmCont.GetType(), "StopFiringLoop");
-            //            if (methodStopFiringLoop != null)
-            //                methodStopFiringLoop.Invoke(firearmCont, new object[] { });
-            //        }
-            //    }
-            //}
         }
     }
 }

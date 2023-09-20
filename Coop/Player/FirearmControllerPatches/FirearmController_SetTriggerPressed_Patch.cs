@@ -18,8 +18,6 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
         public override Type InstanceType => typeof(EFT.Player.FirearmController);
         public override string MethodName => "SetTriggerPressed";
 
-        //public override bool DisablePatch => true;
-
         protected override MethodBase GetTargetMethod()
         {
             var method = ReflectionHelpers.GetMethodForType(InstanceType, MethodName);

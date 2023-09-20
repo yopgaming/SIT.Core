@@ -57,11 +57,6 @@ namespace SIT.Coop.Core.Web
             {
                 data.Add("tkn", Randomizer.NextDouble());
             }
-            //if (!data.ContainsKey("accountId"))
-            //{
-            //    var profile = player.Profile; //  PatchConstants.GetPlayerProfile(player);
-            //    data.Add("accountId", profile.AccountId); // PatchConstants.GetPlayerProfileAccountId(profile));
-            //}
             if (!data.ContainsKey("serverId"))
             {
                 data.Add("serverId", CoopGameComponent.GetServerId());
@@ -70,22 +65,7 @@ namespace SIT.Coop.Core.Web
             {
                 data.Add("profileId", player.ProfileId); // PatchConstants.GetPlayerProfileAccountId(profile));
             }
-            if (!data.ContainsKey("pId"))
-            {
-                data.Add("pId", player.ProfileId); // PatchConstants.GetPlayerProfileAccountId(profile));
-            }
-
-
-            //_ = Request.Instance.PostJsonAsync("/coop/server/update", JsonConvert.SerializeObject(data));
-
-            //if (useWebSocket)
-            //{
-            //    AkiBackendCommunication.Instance.PostDownWebSocketImmediately(data);
-            //}
-            //else
-            //    //AkiBackendCommunication.Instance.SendDataToPool("/coop/server/update", data);
             AkiBackendCommunication.Instance.SendDataToPool("", data);
-
             generatedData = data;
         }
     }
