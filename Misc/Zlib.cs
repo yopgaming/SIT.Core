@@ -88,7 +88,7 @@ namespace SIT.Core.Misc
         public static byte[] Compress(string data)
         {
             // Paulov: Will 15mb be enough? that seems extreme
-            byte[] bytes = new byte[1024 * 15];
+            byte[] bytes = new byte[1024 * 1024 * 15];
             var result = 0;
             do
             {
