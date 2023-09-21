@@ -10,6 +10,6 @@
   "RAID": "对局",
   "START": "开始",
   "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "需要等待的玩家数量（包括你自己！）",
-  "REQUIRE_PASSWORD": "需要密码加入"
-
+  "REQUIRE_PASSWORD": "需要密码加入",
+  "PASSWORD": "Password"
 }

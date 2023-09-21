@@ -132,6 +132,65 @@ namespace SIT.Coop.Core.Matchmaker
             return false;
         }
 
+        public static bool JoinMatch(RaidSettings settings, string serverId, out string outJson, out string errorMessage)
+        {
+            errorMessage = $"No server matches the data provided or the server no longer exists";
+            PatchConstants.Logger.LogDebug("JoinMatch");
+            outJson = string.Empty;
+
+            if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
+            {
+                JObject objectToSend = JObject.FromObject(settings);
+                objectToSend.Add("serverId", serverId);
+
+                outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/join", objectToSend.ToJson());
+                PatchConstants.Logger.LogInfo(outJson);
+
+                if (!string.IsNullOrEmpty(outJson))
+                {
+                    if (outJson.Equals("null", StringComparison.OrdinalIgnoreCase))
+                    {
+                        errorMessage = $"An unknown SPT-Aki Server error has occurred";
+                        return false;
+                    }
+
+                    var outJObject = JObject.Parse(outJson);
+                    if (outJObject.ContainsKey("passwordRequired"))
+                    {
+                        errorMessage = "passwordRequired";
+                        return false;
+                    }
+
+                    if (outJObject.ContainsKey("invalidPassword"))
+                    {
+                        errorMessage = "Invalid password";
+                        return false;
+                    }
+
+                    if (outJObject.ContainsKey("gameVersion"))
+                    {
+                        if (JObject.Parse(outJson)["gameVersion"].ToString() != StayInTarkovPlugin.EFTVersionMajor)
+                        {
+                            errorMessage = $"You are attempting to use a different version of EFT {StayInTarkovPlugin.EFTVersionMajor} than what the server is running {JObject.Parse(outJson)["gameVersion"]}";
+                            return false;
+                        }
+                    }
+
+                    if (outJObject.ContainsKey("sitVersion"))
+                    {
+                        if (JObject.Parse(outJson)["sitVersion"].ToString() != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+                        {
+                            errorMessage = $"You are attempting to use a different version of SIT {Assembly.GetExecutingAssembly().GetName().Version.ToString()} than what the server is running {JObject.Parse(outJson)["sitVersion"]}";
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
         //public static void CreateMatch(string accountId, RaidSettings rs)
         public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
         {

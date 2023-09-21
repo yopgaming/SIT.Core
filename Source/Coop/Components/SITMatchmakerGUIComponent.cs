@@ -26,15 +26,10 @@ namespace SIT.Core.Coop.Components
         private GUIStyle styleBrowserRaidRow { get; } = new GUIStyle() { };
         private GUIStyle styleBrowserRaidLink { get; } = new GUIStyle();
 
-        //private GUIStyleState styleStateBrowserWindowNormal { get; } = new GUIStyleState()
-        //{
-        //    textColor = Color.white
-        //};
         private GUIStyle styleBrowserWindow { get; set; }
 
         private GUIStyleState styleStateBrowserBigButtonsNormal { get; } = new GUIStyleState()
         {
-            //background = 
             textColor = Color.white
         };
         private GUIStyle styleBrowserBigButtons { get; set; }
@@ -64,12 +59,18 @@ namespace SIT.Core.Coop.Components
 
         //public Canvas Canvas { get; set; }
         public Profile Profile { get; internal set; }
-        public bool showHostGameWindow { get; private set; }
         public Rect hostGameWindowInnerRect { get; private set; }
 
-        public bool showServerBrowserWindow { get; private set; } = true;
+        #region Window Determination
 
+        private bool showHostGameWindow { get; set; }
+        private bool showServerBrowserWindow { get; set; } = true;
         private bool showErrorMessageWindow { get; set; } = false;
+        private bool showPasswordRequiredWindow { get; set; } = false;
+
+        #endregion
+
+        #region Unity
 
         void Start()
         {
@@ -114,23 +115,18 @@ namespace SIT.Core.Coop.Components
             };
 
             styleBrowserWindow = new GUIStyle();
-            //styleBrowserWindow.normal = styleStateBrowserWindowNormal;
-            //styleBrowserWindow.onNormal = styleStateBrowserWindowNormal;
             styleBrowserWindow.active = styleBrowserWindow.normal;
             styleBrowserWindow.onActive = styleBrowserWindow.onNormal;
-            //styleBrowserWindow.hover = styleStateBrowserWindowNormal;
 
             GetMatches();
             StartCoroutine(ResolveMatches());
             DisableBSGButtons();
-            //RemoveOldPanels();
 
             var previewsPanel = GameObject.Find("PreviewsPanel");
             if (previewsPanel != null)
             {
                 var previewsPanelRect = previewsPanel.GetComponent<RectTransform>();
                 previewsPanelRect.position = new Vector3(400, 300, 0);
-                //previewsPanelRect.localScale = new Vector3(1.4f, 1.4f, 0);
             }
 
 
@@ -138,111 +134,17 @@ namespace SIT.Core.Coop.Components
             if (playerImage != null)
             {
                 var playerImageRect = playerImage.GetComponent<RectTransform>();
-                //playerImageRect.position = new Vector3(300, 670, 0);
                 playerImageRect.localScale = new Vector3(1.4f, 1.4f, 0);
             }
-
-            //var SITParentGO = new GameObject("SIT MM Parent Object");
-
-            //var nameObject = GameObject.Find("Name");
-            //if (nameObject != null)
-            //{
-            //    var nameObjectRect = playerImage.GetComponent<RectTransform>();
-            //    nameObjectRect.position = new Vector3(350, 200, 0);
-            //}
-
-            //var levelObject = GameObject.Find("Level");
-            //if (levelObject != null)
-            //{
-            //    var levelObjectRect = playerImage.GetComponent<RectTransform>();
-            //    levelObjectRect.position = new Vector3(350, 1180, 0);
-            //}
-
-            //var levelIconObject = GameObject.Find("Level Icon");
-            //if (levelIconObject != null)
-            //{
-            //    var levelIconObjectRect = playerImage.GetComponent<RectTransform>();
-            //    levelIconObjectRect.position = new Vector3(150, 1180, 0);
-            //}
         }
 
-        //private void RemoveOldPanels()
-        //{
-        //    var playerNamePanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerNamePanel)).GetValue(MatchMakerPlayerPreview) as PlayerNamePanel;
-        //    if (playerNamePanel == null)
-        //    {
-        //        Logger.LogError("Unable to retrieve PlayerNamePanel");
-        //        return;
-        //    }
-
-        //    //var playerLevelPanel = MatchMakerPlayerPreview.GetComponent<PlayerLevelPanel>();
-        //    var playerLevelPanel = ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(MatchMakerPlayerPreview), typeof(PlayerLevelPanel)).GetValue(MatchMakerPlayerPreview) as PlayerLevelPanel;
-        //    if (playerLevelPanel == null)
-        //    {
-        //        Logger.LogError("Unable to retrieve PlayerLevelPanel");
-        //        return;
-        //    }
-
-        //    playerNamePanel.gameObject.SetActive(false);
-        //    playerLevelPanel.gameObject.SetActive(false);
-
-        //    //RectTransform tempRectTransform = playerLevelPanel.GetComponent<RectTransform>();
-        //    //tempRectTransform.anchoredPosition = new Vector2(-1000, 0);
-        //    //tempRectTransform.offsetMax = new Vector2(-1000, 0);
-        //    //tempRectTransform.offsetMin = new Vector2(-1000, 0);
-        //    //tempRectTransform.anchoredPosition3D = new Vector3(-1000, 0, 0);
-        //}
-
-        private void DisableBSGButtons()
+        void OnDestroy()
         {
-            OriginalAcceptButton.gameObject.SetActive(false);
-            OriginalAcceptButton.enabled = false;
-            OriginalAcceptButton.Interactable = false;
-            OriginalBackButton.gameObject.SetActive(false);
-            OriginalBackButton.enabled = false;
-            OriginalBackButton.Interactable = false;
+            if (m_cancellationTokenSource != null)
+                m_cancellationTokenSource.Cancel();
 
-            //var randombuttontest = GameObject.Instantiate<DefaultUIButton>(OriginalBackButton);
 
-        }
-
-        void GetMatches()
-        {
-            CancellationToken ct = m_cancellationTokenSource.Token;
-            GetMatchesTask = Task.Run(async () =>
-            {
-                while (!StopAllTasks)
-                {
-                    //AkiBackendCommunication.Instance.CreateWebSocket(Profile);
-
-                    //var result = AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson()).Result;
-                    var result = await AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000, debug: false);
-                    if (result != null)
-                    {
-                        m_Matches = result;
-                    }
-
-                    if (ct.IsCancellationRequested)
-                    {
-                        ct.ThrowIfCancellationRequested();
-                    }
-
-                    await Task.Delay(7000);
-
-                    if (ct.IsCancellationRequested)
-                    {
-                        ct.ThrowIfCancellationRequested();
-                    }
-                }
-            }, ct);
-        }
-
-        IEnumerator ResolveMatches()
-        {
-            while (true)
-            {
-                yield return new WaitForSeconds(1);
-            }
+            StopAllTasks = true;
         }
 
         void Update()
@@ -252,12 +154,6 @@ namespace SIT.Core.Coop.Components
                 DestroyThis();
             }
 
-            //if(GameObject.Find("RaidSettingsSummary") != null)
-            //{
-            //    //DestroyThis();
-            //    //showServerBrowserWindow = false;
-            //}
-            //RemoveOldPanels();
         }
 
         void OnGUI()
@@ -278,7 +174,7 @@ namespace SIT.Core.Coop.Components
 
             if (showServerBrowserWindow)
             {
-                windowInnerRect = GUI.Window(0, serverBrowserRect, DrawWindow, "");
+                windowInnerRect = GUI.Window(0, serverBrowserRect, DrawBrowserWindow, "");
 
                 // Calculate the position for the "Host Game" and "Play Single Player" buttons
                 var buttonWidth = 250;
@@ -350,7 +246,65 @@ namespace SIT.Core.Coop.Components
                 showServerBrowserWindow = false;
                 windowInnerRect = GUI.Window(0, windowRect, DrawWindowErrorMessage, "Error Message");
             }
+
+            if (showPasswordRequiredWindow)
+            {
+                showHostGameWindow = false;
+                showServerBrowserWindow = false;
+                windowInnerRect = GUI.Window(0, windowRect, DrawWindowPasswordRequired, "Password Required");
+            }
         }
+
+        #endregion
+
+        private void DisableBSGButtons()
+        {
+            OriginalAcceptButton.gameObject.SetActive(false);
+            OriginalAcceptButton.enabled = false;
+            OriginalAcceptButton.Interactable = false;
+            OriginalBackButton.gameObject.SetActive(false);
+            OriginalBackButton.enabled = false;
+            OriginalBackButton.Interactable = false;
+
+        }
+
+        void GetMatches()
+        {
+            CancellationToken ct = m_cancellationTokenSource.Token;
+            GetMatchesTask = Task.Run(async () =>
+            {
+                while (!StopAllTasks)
+                {
+                    var result = await AkiBackendCommunication.Instance.PostJsonAsync<Dictionary<string, object>[]>("/coop/server/getAllForLocation", RaidSettings.ToJson(), timeout: 4000, debug: false);
+                    if (result != null)
+                    {
+                        m_Matches = result;
+                    }
+
+                    if (ct.IsCancellationRequested)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                    }
+
+                    await Task.Delay(7000);
+
+                    if (ct.IsCancellationRequested)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                    }
+                }
+            }, ct);
+        }
+
+        IEnumerator ResolveMatches()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(1);
+            }
+        }
+
+       
 
         string ErrorMessage { get; set; }
 
@@ -372,14 +326,30 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-        void DrawWindow(int windowID)
+        void DrawWindowPasswordRequired(int windowID)
+        {
+            if (!showPasswordRequiredWindow)
+                return;
+
+            GUI.Label(new UnityEngine.Rect(20, 20, 1000, 1000), ErrorMessage);
+
+            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            {
+                showErrorMessageWindow = false;
+                showServerBrowserWindow = true;
+            }
+        }
+
+        void DrawBrowserWindow(int windowID)
         {
             // Define column labels
-            string[] columnLabels = { "Server", "Players", "Location" };
             // Use the Language Dictionary
-            columnLabels[0] = StayInTarkovPlugin.LanguageDictionary["SERVER"];
-            columnLabels[1] = StayInTarkovPlugin.LanguageDictionary["PLAYERS"];
-            columnLabels[2] = StayInTarkovPlugin.LanguageDictionary["LOCATION"];
+            string[] columnLabels = {
+                StayInTarkovPlugin.LanguageDictionary["SERVER"]
+                , StayInTarkovPlugin.LanguageDictionary["PLAYERS"]
+                , StayInTarkovPlugin.LanguageDictionary["LOCATION"] 
+                , StayInTarkovPlugin.LanguageDictionary["PASSWORD"]
+            };
 
 
             // Define the button style
@@ -395,7 +365,7 @@ namespace SIT.Core.Coop.Components
 
             // Calculate the number of rows and columns
             int numRows = 7;
-            int numColumns = 3;
+            int numColumns = columnLabels.Length;
 
             // Calculate cell width and height
             float cellWidth = windowInnerRect.width / (numColumns + 1);
@@ -426,7 +396,7 @@ namespace SIT.Core.Coop.Components
             }
 
             // Draw column labels at the top
-            for (int col = 0; col < 3; col++)
+            for (int col = 0; col < numColumns; col++)
             {
                 float cellX = col * cellWidth + separatorWidth / 2;
                 GUI.Label(new UnityEngine.Rect(cellX, topSeparatorY + 5, cellWidth - separatorWidth, 25), columnLabels[col], labelStyle);
@@ -453,36 +423,44 @@ namespace SIT.Core.Coop.Components
                     // Display Location
                     GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
 
+                    // Display Password Locked
+                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? "*" : "", labelStyle);
+
                     // Calculate the width of the combined server information (Host Name, Player Count, Location)
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
 
                     // Create "Join" button for each match on the next column
-                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 3 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
+                    if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
-                        if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, out string returnedJson, out string errorMessage))
-                        {
-                            Logger.LogDebug(returnedJson);
-                            JObject result = JObject.Parse(returnedJson);
-                            var groupId = result["ServerId"].ToString();
-                            MatchmakerAcceptPatches.SetGroupId(groupId);
-                            MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                            MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
-
-                            AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
-
-                            DestroyThis();
-                            OriginalAcceptButton.OnClick.Invoke();
-                        }
-                        else
-                        {
-                            this.ErrorMessage = errorMessage;
-                            this.showErrorMessageWindow = true;
-                        }
+                        JoinMatch(match["ServerId"].ToString());
                     }
 
                     index++;
                 }
+            }
+        }
+
+        void JoinMatch(string serverId)
+        {
+            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, serverId, out string returnedJson, out string errorMessage))
+            {
+                Logger.LogDebug(returnedJson);
+                JObject result = JObject.Parse(returnedJson);
+                var groupId = result["serverId"].ToString();
+                MatchmakerAcceptPatches.SetGroupId(groupId);
+                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
+                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
+
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+
+                DestroyThis();
+                OriginalAcceptButton.OnClick.Invoke();
+            }
+            else
+            {
+                this.ErrorMessage = errorMessage;
+                this.showErrorMessageWindow = true;
             }
         }
 
@@ -606,14 +584,7 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-        void OnDestroy()
-        {
-            if (m_cancellationTokenSource != null)
-                m_cancellationTokenSource.Cancel();
-
-
-            StopAllTasks = true;
-        }
+        
 
         void DestroyThis()
         {

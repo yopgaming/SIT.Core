@@ -10,6 +10,7 @@
   "RAID": "對局",
   "START": "开始",
   "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "需要等待玩家的數量（包括你自己！）",
-  "REQUIRE_PASSWORD": "需要密碼認證"
+  "REQUIRE_PASSWORD": "需要密碼認證",
+  "PASSWORD": "Password"
 
 }

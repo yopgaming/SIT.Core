@@ -49,6 +49,8 @@ namespace SIT.Core
 
         private bool ShownDependancyError { get; set; }
         public static string EFTVersionMajor { get; internal set; }
+        public static string EFTAssemblyVersion { get; internal set; }
+        public static string EFTEXEFileVersion { get; internal set; }
 
         public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();    
 
@@ -83,7 +85,7 @@ namespace SIT.Core
             foreach (var mrs in typeof(StayInTarkovPlugin).Assembly.GetManifestResourceNames().Where(x => x.StartsWith("SIT.Core.Resources.Language")))
             {
                 languageFiles.Add(mrs);
-                Logger.LogInfo(mrs);
+                Logger.LogDebug(mrs);
             }
 
             Logger.LogDebug(Thread.CurrentThread.CurrentCulture.Name);

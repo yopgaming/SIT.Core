@@ -61,8 +61,8 @@ namespace SIT.Core.Misc
                     Logger.LogDebug("Process path found");
                     Logger.LogDebug(process.MainModule.FileName);
                     eftPath = process.MainModule.FileName;
+                    break;
                 }
-                string exeFileVersion = string.Empty;
                 if(!string.IsNullOrEmpty(eftPath)) 
                 { 
                     FileInfo fileInfoEft = new FileInfo(eftPath);
@@ -70,18 +70,19 @@ namespace SIT.Core.Misc
                     {
                         FileVersionInfo myFileVersionInfo =
                             FileVersionInfo.GetVersionInfo(fileInfoEft.FullName);
-                        exeFileVersion = myFileVersionInfo.ProductVersion.Split('-')[0] + "." + myFileVersionInfo.ProductVersion.Split('-')[1];
+                        StayInTarkovPlugin.EFTEXEFileVersion = myFileVersionInfo.ProductVersion.Split('-')[0] + "." + myFileVersionInfo.ProductVersion.Split('-')[1];
                     }
                 }
                 string sitversion = Assembly.GetAssembly(typeof(VersionLabelPatch)).GetName().Version.ToString();
-                string assemblyVersion = major;
-                if (!string.IsNullOrEmpty(exeFileVersion) && assemblyVersion != exeFileVersion)
+                StayInTarkovPlugin.EFTVersionMajor = major;
+                StayInTarkovPlugin.EFTAssemblyVersion = major;
+                if (!string.IsNullOrEmpty(StayInTarkovPlugin.EFTEXEFileVersion) && StayInTarkovPlugin.EFTAssemblyVersion != StayInTarkovPlugin.EFTEXEFileVersion)
                 {
                     _versionLabel = $"SIT | ERROR | EXE & Assembly mismatch!";
-                    Logger.LogInfo($"Assembly {assemblyVersion} does not match {exeFileVersion}");
+                    Logger.LogInfo($"Assembly {StayInTarkovPlugin.EFTAssemblyVersion} does not match {StayInTarkovPlugin.EFTEXEFileVersion}");
                 }
                 else
-                    _versionLabel = $"SIT {sitversion} | ASM {assemblyVersion} | EXE {exeFileVersion}";
+                    _versionLabel = $"SIT {sitversion} | ASM {StayInTarkovPlugin.EFTAssemblyVersion} | EXE {StayInTarkovPlugin.EFTEXEFileVersion}";
             }
 
             Traverse.Create(MonoBehaviourSingleton<PreloaderUI>.Instance).Field("_alphaVersionLabel").Property("LocalizationKey").SetValue("{0}");
