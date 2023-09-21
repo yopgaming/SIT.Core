@@ -3,7 +3,7 @@
 2. Clone this {SIT_CORE} to a {SIT_CORE} directory inside {EFT_WORK}
 3. Copy your Live Tarkov Directory somewhere else {EFT_OFFLINE}
 4. Deobfuscate latest Assembly-CSharp in {EFT_OFFLINE} via [SIT.Launcher](https://github.com/paulov-t/SIT.Tarkov.Launcher). Ensure to close and restart Launcher after Deobfuscation.
-5. Copy all of {EFT_OFFLINE}\EscapeFromTarkov_Data\Managed assemblies to Tarkov.References {TARKOV.REF} in the parent folder of this project {EFT_WORK}
+5. Copy all of {EFT_OFFLINE}\EscapeFromTarkov_Data\Managed assemblies to References {TARKOV.REF} in the folder of this project {EFT_WORK}
 6. You will need BepInEx Nuget Feed installed on your PC by running the following command in a terminal. 
 ```
 dotnet new -i BepInEx.Templates --nuget-source https://nuget.bepinex.dev/v3/index.json
