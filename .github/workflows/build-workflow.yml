@@ -37,5 +37,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: SIT-Build-${{ matrix.configuration }}
-        path: bin\${{ matrix.configuration }}\net472\
+        path: Source\bin\${{ matrix.configuration }}\net472\
         if-no-files-found: error
