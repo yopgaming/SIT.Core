@@ -136,6 +136,8 @@ namespace SIT.Core.Core
 
             WebSocketPreviousReceived = new HashSet<string>();
             WebSocket = new WebSocketSharp.WebSocket(wsUrl);
+            WebSocket.WaitTime = TimeSpan.FromMinutes(1);
+            WebSocket.EmitOnPing = true;    
             WebSocket.Connect();
             WebSocket.Send("CONNECTED FROM SIT COOP");
             // ---
@@ -145,16 +147,16 @@ namespace SIT.Core.Core
             // ---
 
             // Continously Ping from SIT.Core (Keep Alive)
-            _ = Task.Run(async () =>
-            {
+            //_ = Task.Run(async () =>
+            //{
 
-                while (WebSocket != null)
-                {
-                    WebSocket.Send((new { RandomPing = 0 }).ToJson());
-                    await Task.Delay(1000);
-                }
+            //    while (WebSocket != null)
+            //    {
+            //        //WebSocket.Send((new { RandomPing = 0 }).ToJson());
+            //        await Task.Delay(1000);
+            //    }
 
-            });
+            //});
         }
 
         public void WebSocketClose()
