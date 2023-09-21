@@ -17,7 +17,7 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 ## State of Stay In Tarkov
 
-** As of EFT 0.13.5.0.25800 and SPT-Aki 3.7.0. **
+** As of EFT 0.13.5.* and SPT-Aki 3.7.0. **
 * SPT-Aki is in a partially working state. Keep up to date with it on their Discord. They post updates daily.
 * SIT is making slow progress.
 
@@ -65,10 +65,9 @@ If BSG decide to create the ability to do this on live OR I receive a DCMA reque
 **BE AWARE**
 * Coop is in early stages of development. 
 * Most features work (ish) and it is "playable (ish) with likely bugs". "Playable" and perfect are two very different things. Expect lag (desync), issues and bugs.
-* My tests have included all maps. The maps that work best are Factory and Labs. Performance is very dependant on the CPU / Internet on the Server and Clients and AI count on the Server
-* More Information on HOSTING & COOP is in the [HOSTING.md Document](https://github.com/paulov-t/SIT.Core/wiki/en/Guides/HOSTING-English.md)
 * The Host & Server must have a good stable connection with an upload speed of at least 5-10mbps. The AI take a lot of CPU & Network bandwidth to run.
 * Despite many people saying otherwise. You can play with people across the world (not just LAN). I have played with people with over 200 ping. They get lag similar to live, just shown in a different way.
+* Despite claims that "VPN"s like HAMACHI/RADMIN work. I highly recommend you do not use them. They have very slow connections. Always try to find a way to host directly OR pay for a cheap server to host the Aki Server.
 
 ### PREREQUISITE
 You must have the [SPT-Aki mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) installed in your Server for this module to work. If you do not wish to use the Coop module, you must disable it in the BepInEx config file.
@@ -85,7 +84,7 @@ No. BSG server code is hidden from the client for obvious reasons. So BSG's impl
 
 ## SPT-Aki
 
-### Are Aki Modules supported?
+### Are Aki BepInEx (Client mods) Modules supported?
 The following Aki Modules are supported.
 - aki-core
 - Aki.Common
@@ -98,26 +97,6 @@ So I ported many of SPT-Aki features into this module. My end-goal would be to r
 
 ## How to compile? 
 [Compiling Document](COMPILE.md)
-
-# How to install BepInEx
-[https://docs.bepinex.dev/articles/user_guide/installation/index.html](https://docs.bepinex.dev/articles/user_guide/installation/index.html)
-
-## Install to Tarkov
-BepInEx 5 must be installed and configured first (see How to install BepInEx)
-Place the built .dll in the BepInEx plugins folder
-
-## Test in Tarkov
-- Browse to where BepInEx is installed within your Tarkov folder
-- Open config
-- Open BepInEx.cfg
-- Change the following setting [Logging.Console] Enabled to True
-- Save the config file
-- Run Tarkov through a launcher or bat file like this one (replacing the token with your ID)
-```
-start ./Clients/EmuTarkov/EscapeFromTarkov.exe -token=pmc062158106353313252 -config={"BackendUrl":"http://127.0.0.1:6969","Version":"live"}
-```
-- If BepInEx is working a console should open and display the module "plugin" as started
-
 
 ## Thanks List
 - SPT-Aki team
