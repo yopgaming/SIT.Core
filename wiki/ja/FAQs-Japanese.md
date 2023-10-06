@@ -56,4 +56,4 @@ __以上です。あとは楽しめることですね！__
 
 ### LinuxでSPT-Akiをご利用する方へ
 
-Linuxを利用中にこのMODを使用する時、問題が発生すると[この問題](https://github.com/paulov-t/SIT.Core/issues/132)を参考してください。
+[The English Version](../en/Guides/Run-Server-on-Linux-English.md)

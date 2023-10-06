@@ -56,5 +56,4 @@ __Agora você está pronto para começar. Divirta-se!__
 ---
 
 ### Usando o Servidor SPT-Aki no Linux
-
-Se você estiver usando o servidor SPT-Aki com o mod anexado no Linux, consulte [este problema](https://github.com/paulov-t/SIT.Core/issues/132) para obter mais informações sobre como corrigir problemas, caso ocorram.
+[The English Version](../en/Guides/Run-Server-on-Linux-English.md)
