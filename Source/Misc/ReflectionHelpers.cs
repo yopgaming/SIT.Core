@@ -199,7 +199,8 @@ namespace SIT.Core.Misc
                 props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 props.AddRange(t.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy));
             }
-            return props.Distinct(x => x.Name).AsEnumerable();
+            //return props.Distinct(x => x.Name).AsEnumerable();
+            return props.AsEnumerable();
         }
 
         public static IEnumerable<FieldInfo> GetAllFieldsForObject(object o)
