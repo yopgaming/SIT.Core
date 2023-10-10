@@ -114,7 +114,7 @@ namespace SIT.Core.Coop
 
             PreviousDamageInfos.Add(damageInfo);
 
-            BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
+            //BepInLogger.LogInfo($"{nameof(ApplyDamageInfo)}:{this.ProfileId}:{DateTime.Now.ToString("T")}");
             //base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
 
             if (CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))

@@ -19,7 +19,7 @@ namespace SIT.Core.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
-        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>();
         public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new();
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
@@ -118,8 +118,10 @@ namespace SIT.Core.Coop.Components
                 return;
             }
 
-            ProcessPlayerPacket(packet);
-            ProcessWorldPacket(ref packet);
+            if (!ProcessPlayerPacket(packet))
+            {
+                ProcessWorldPacket(ref packet);
+            }
 
         }
 
@@ -161,51 +163,38 @@ namespace SIT.Core.Coop.Components
         }
 
 
-        void ProcessPlayerPacket(Dictionary<string, object> packet)
+        bool ProcessPlayerPacket(Dictionary<string, object> packet)
         {
 
             if (packet == null)
-                return;
+                return false;
 
             if (!packet.ContainsKey("profileId"))
-                return;
+                return false;
 
             var profileId = packet["profileId"].ToString();
 
             if (Players == null)
             {
                 Logger.LogDebug("Players is Null");
-                return;
+                return false;
             }
 
             if (Players.Count == 0)
             {
                 Logger.LogDebug("Players is Empty");
-                return;
+                return false;
             }
 
-            //var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
+            var profilePlayers = Players.Where(x => x.Key == profileId && x.Value != null).ToArray();
+            bool processed = false;
 
-            //if (!Players.Any(x => x.Key == profileId) && !registeredPlayers.Any(x => x.ProfileId == profileId))
-            //{
-            //    // Start a new thread that waits for the localplayer to exist to send death events about them
-            //    if (packet["m"].ToString() == "Kill")
-            //    {
-            //        Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {profileId}, enqueuing death");
-            //        Task.Run(async () => await WaitForPlayerAndProcessPacket(profileId, packet));
-            //    }
-            //    return;
-            //}
-
-            foreach (var plyr in
-                Players
-                .Where(x => x.Key == profileId)
-                .Where(x => x.Value != null)
-                )
+            foreach (var plyr in profilePlayers)
             {
                 if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
                 {
                     prc.ProcessPacket(packet);
+                    processed = true;
                 }
                 else
                 {
@@ -235,9 +224,12 @@ namespace SIT.Core.Coop.Components
                             }
                         }
                     }
+
+                    processed = true;
                 }
             }
 
+            return processed;
         }
 
         async Task WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)
