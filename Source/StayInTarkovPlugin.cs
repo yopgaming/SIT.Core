@@ -176,7 +176,7 @@ namespace SIT.Core
 
                         //0.13.5.2.26282
 
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "5" || majorN4 != "2")
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "5" || majorN4 != "3")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
