@@ -27,6 +27,7 @@ using SIT.Core.SP.PlayerPatches.Health;
 using SIT.Core.SP.Raid;
 using SIT.Core.SP.ScavMode;
 using SIT.Tarkov.Core;
+using SIT.Tarkov.Core.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -214,9 +215,15 @@ namespace SIT.Core
                 // Web Requests
                 new SslCertificatePatch().Enable();
                 new UnityWebRequestPatch().Enable();
-                new TransportPrefixPatch().Enable();
-                new WebSocketPatch().Enable();
                 new SendCommandsPatch().Enable();
+
+                //https to http | wss to ws
+                var url = BackendConnection.GetBackendConnection().BackendUrl;
+                if (!url.Contains("https"))
+                {
+                    new TransportPrefixPatch().Enable();
+                    new WebSocketPatch().Enable();
+                }
 
                 //new TarkovTransportHttpMethodDebugPatch2().Enable();
             }
