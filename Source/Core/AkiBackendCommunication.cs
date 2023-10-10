@@ -364,6 +364,18 @@ namespace SIT.Core.Core
                 if(packet.ContainsKey("m") 
                     && packet["m"].ToString() == "Move")
                     coopGameComponent.ActionPacketHandler.ActionPacketsMovement.TryAdd(packet);
+                else if (packet.ContainsKey("m")
+                    && packet["m"].ToString() == "ApplyDamageInfo")
+                {
+                    //coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
+                    var profileId = packet["profileId"].ToString();
+                    var playerKVP = coopGameComponent.Players.First(x => x.Key == profileId);
+                    if (playerKVP.Value == null)
+                        return;
+
+                    var coopPlayer = (CoopPlayer)playerKVP.Value;
+                    coopPlayer.ReceiveDamageFromServer(packet);
+                }
                 else
                     coopGameComponent.ActionPacketHandler.ActionPackets.TryAdd(packet);
 
