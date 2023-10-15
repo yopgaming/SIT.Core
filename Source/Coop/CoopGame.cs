@@ -923,19 +923,17 @@ namespace SIT.Core.Coop
 
         }
 
-        private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus status)
+        private void ExfiltrationPoint_OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus prevStatus)
         {
             UpdateExfiltrationUi(point, point.Entered.Any((EFT.Player x) => x.ProfileId == Profile_0.Id));
             Logger.LogDebug("ExfiltrationPoint_OnStatusChanged");
-            Logger.LogDebug(status);
-            if (status == EExfiltrationStatus.Countdown)
-            {
+            Logger.LogDebug(prevStatus);
 
-            }
-            if (status == EExfiltrationStatus.NotPresent)
-            {
+            EExfiltrationStatus curStatus = point.Status;
 
-            }
+            // Fixes player cannot extract with The Lab elevator and Armored Train
+            if (prevStatus == EExfiltrationStatus.AwaitsManualActivation && curStatus == EExfiltrationStatus.Countdown)
+                point.ExternalSetStatus(EExfiltrationStatus.RegularMode);
         }
 
         public ExitStatus MyExitStatus { get; set; } = ExitStatus.Survived;
