@@ -17,9 +17,11 @@ An Escape From Tarkov BepInEx module designed to be used with SPT-Aki Server wit
 
 ## State of Stay In Tarkov
 
-** As of EFT 0.13.5.* and SPT-Aki 3.7.0. **
-* SPT-Aki is in a partially working state. Keep up to date with it on their Discord. They post updates daily.
-* SIT is making slow progress.
+* SPT-Aki 3.7.1 is available on their website
+* Stay In Tarkov has entered a state of limbo development
+* There are some bugs I cannot resolve or require signifcant rewrites to BSG code and BSG change their code with almost every patch
+* I don't play offline anymore as this project was made for my Tarkov group but then they decided to not want to play it or Live (got bored of Tarkov in general)
+* I will likely keep updating this project with each BSG update and who knows, we might get support for Arena, which would be cool
 
 --- 
 
