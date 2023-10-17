@@ -1353,6 +1353,8 @@ namespace SIT.Core.Coop
 
         void OnGUI()
         {
+
+
             if (normalLabelStyle == null)
             {
                 normalLabelStyle = new GUIStyle(GUI.skin.label);
@@ -1426,17 +1428,7 @@ namespace SIT.Core.Coop
             if (coopGame == null)
                 return;
 
-            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
-            // gathering extracted
-            var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
-            GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
-            rect.y += 15;
-            GUI.Label(rect, $"Players (Dead): {numberOfPlayersDead}");
-            rect.y += 15;
-            GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
-            rect.y += 15;
-            GUI.Label(rect, $"Bots: {PlayerBots.Length}");
-            rect.y += 15;
+            rect = DrawSITStats(rect, numberOfPlayersDead, coopGame);
 
             var quitState = GetQuitState();
             switch (quitState)
@@ -1477,6 +1469,25 @@ namespace SIT.Core.Coop
             OnGUI_DrawPlayerFriendlyTags(rect);
             //OnGUI_DrawPlayerEnemyTags(rect);
 
+        }
+
+        private Rect DrawSITStats(Rect rect, int numberOfPlayersDead, CoopGame coopGame)
+        {
+            if (!PluginConfigSettings.Instance.CoopSettings.SETTING_ShowSITStatistics)
+                return rect;
+
+            var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
+            // gathering extracted
+            var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
+            GUI.Label(rect, $"Players (Alive): {numberOfPlayersAlive}");
+            rect.y += 15;
+            GUI.Label(rect, $"Players (Dead): {numberOfPlayersDead}");
+            rect.y += 15;
+            GUI.Label(rect, $"Players (Extracted): {numberOfPlayersExtracted}");
+            rect.y += 15;
+            GUI.Label(rect, $"Bots: {PlayerBots.Length}");
+            rect.y += 15;
+            return rect;
         }
 
         private void OnGUI_DrawPlayerFriendlyTags(UnityEngine.Rect rect)

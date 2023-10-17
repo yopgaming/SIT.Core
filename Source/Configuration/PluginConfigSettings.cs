@@ -67,6 +67,7 @@ namespace SIT.Core.Configuration
             public int SETTING_PlayerStateTickRateInMS { get; set; } = 333;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
+            public bool SETTING_ShowSITStatistics { get; set; } = true;
             public int SITWebSocketPort { get; set; } = 6970;
 
             public bool AllPlayersSpawnTogether { get; set; } = true;
@@ -116,12 +117,15 @@ namespace SIT.Core.Configuration
                 BotWavesDisableStopper = StayInTarkovPlugin.Instance.Config.Bind("Coop", "BotWavesDisableStopper", false
                         , new ConfigDescription("Disable the function StopBotSpawningAfterTimer, so not gonna disable bot spawning after 180 sec")).Value;
 
+                SETTING_ShowSITStatistics = StayInTarkovPlugin.Instance.Config.Bind
+                 ("Coop", "ShowSITStatistics", true, new ConfigDescription("Enable the SIT statistics on the top left of the screen which shows ping, player count, etc.")).Value;
 
                 Logger.LogDebug($"SETTING_DEBUGSpawnDronesOnServer: {SETTING_DEBUGSpawnDronesOnServer}");
                 Logger.LogDebug($"SETTING_DEBUGShowPlayerList: {SETTING_DEBUGShowPlayerList}");
                 Logger.LogDebug($"SETTING_PlayerStateTickRateInMS: {SETTING_PlayerStateTickRateInMS}");
                 Logger.LogDebug($"SETTING_HeadshotsAlwaysKill: {SETTING_HeadshotsAlwaysKill}");
                 Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowFeed}");
+                Logger.LogDebug($"SETTING_ShowFeed: {SETTING_ShowSITStatistics}");
                 Logger.LogDebug($"SITWebSocketPort: {SITWebSocketPort}");
                 Logger.LogDebug($"AllPlayersSpawnTogether: {AllPlayersSpawnTogether}");
                 Logger.LogDebug($"ArenaMode: {ArenaMode}");
