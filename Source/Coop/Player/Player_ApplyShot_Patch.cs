@@ -164,21 +164,22 @@ namespace SIT.Core.Coop.Player
                 }
             }
 
-            if (dict.ContainsKey("d.w.id"))
+            if (dict.ContainsKey("d.w.id") && dict.ContainsKey("d.w.tpl"))
             {
-                if (ItemFinder.TryFindItem(dict["d.w.id"].ToString(), out Item item))
+                string itemId = dict["d.w.id"].ToString();
+                string templateId = dict["d.w.tpl"].ToString();
+
+                if (ItemFinder.TryFindItem(itemId, out Item item))
                 {
-                    if (item is Weapon w)
-                    {
-                        damageInfo.Weapon = w;
-                    }
+                    damageInfo.Weapon = item;
                 }
                 else
                 {
-                    var createdItem = Tarkov.Core.Spawners.ItemFactory.CreateItem(dict["d.w.id"].ToString(), dict["d.w.tpl"].ToString());
-                    if (createdItem is Weapon wep)
+                    // Grenade is disposed after explode, so we need to create a template item for DamageInfo, to fixes "Unknown weapon" killing
+                    var createdItem = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, templateId);
+                    if (createdItem != null)
                     {
-                        damageInfo.Weapon = wep;
+                        damageInfo.Weapon = createdItem;
                     }
                 }
             }
