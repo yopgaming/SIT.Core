@@ -1,7 +1,5 @@
 ﻿## WARNING
 
-**SPT-Aki 3.7.0 & 0.13.5.2 support is still under development. Both SIT and SPT-Aki may contain game breaking bugs.**
-
 ## New features
 
 * TBC
@@ -20,15 +18,6 @@
 
 Remember, you must update your Online and Offline installs to use this.
 
-**Update your SPT-Aki server**
-
-* The SPT-Aki team will release an updated server for each new version of Tarkov.
-* You can usually find the most up-to-date server on their [Website](https://www.sp-tarkov.com/).
-* If the latest server is not on their website, it will be under development on their [Discord](https://discord.com/invite/Xn9msqQZan).
-* The Server usually goes through several updates found in the dev-core section of their [Discord](https://discord.com/invite/Xn9msqQZan).
-* If you get errors in SPT-Aki and mention you are using SIT to them, you will likely be ignored. You're best bet is to replicate the issue using a full SPT-Aki install first.
-* The development / test servers usually have mods disabled. You will need to re-enable them.
-
 **Update the SIT Aki Server Mod**
 
 * The most up-to-date mod is available [here](https://github.com/paulov-t/SIT.Aki-Server-Mod)
@@ -36,7 +25,7 @@ Remember, you must update your Online and Offline installs to use this.
 
 ---
 
-This version works with version 0.13.5.2.26282. It will still require a deobfuscated Assembly-CSharp dll which is included in each release.
+This version works with version 0.13.5.3.26535. It will still require a deobfuscated Assembly-CSharp dll which is included in each release.
 
 **How to install**
 - It is preferred that you install these releases automatically, using the [Stay in Tarkov Launcher](https://github.com/paulov-t/SIT.Launcher/releases)

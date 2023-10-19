@@ -21,6 +21,7 @@ namespace SIT.Core.Coop.Components
     {
         public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>();
         public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new();
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
@@ -93,16 +94,29 @@ namespace SIT.Core.Coop.Components
                 }
             }
 
-            if (ActionPacketsMovement == null)
-                return;
-
-            if (ActionPacketsMovement.Count > 0)
+            if (ActionPacketsMovement != null && ActionPacketsMovement.Count > 0)
             {
                 while (ActionPacketsMovement.TryTake(out var result))
                 {
                     ProcessLastActionDataPacket(result);
                 }
             }
+
+
+            if (ActionPacketsDamage != null && ActionPacketsDamage.Count > 0)
+            {
+                while (ActionPacketsDamage.TryTake(out var packet))
+                {
+                    var profileId = packet["profileId"].ToString();
+                    var playerKVP = CoopGameComponent.Players.First(x => x.Key == profileId);
+                    if (playerKVP.Value == null)
+                        return;
+
+                    var coopPlayer = (CoopPlayer)playerKVP.Value;
+                    coopPlayer.ReceiveDamageFromServer(packet);
+                }
+            }
+
 
             return;
         }
