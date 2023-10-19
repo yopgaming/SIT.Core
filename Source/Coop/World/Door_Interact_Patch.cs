@@ -41,8 +41,9 @@ namespace SIT.Core.Coop.World
 
             if (Enum.TryParse(packet["type"].ToString(), out EInteractionType interactionType))
             {
-                WorldInteractiveObject door;
-                door = CoopGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString());
+                CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+
+                WorldInteractiveObject door = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString());
                 if (door != null)
                 {
                     string methodName = string.Empty;
@@ -64,6 +65,26 @@ namespace SIT.Core.Coop.World
                             methodName = "Lock";
                             break;
                     }
+
+                    string profileId = packet["player"].ToString();
+
+                    if (!profileId.IsNullOrEmpty())
+                    {
+                        EFT.Player player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(profileId).AIData.Player;
+                        if (player != null)
+                        {
+                            if (!coopGameComponent.HighPingMode && !player.IsYourPlayer)
+                            {
+                                if (SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient || coopGameComponent.PlayerUsers.Contains(player))
+                                {
+                                    WorldInteractiveObject.InteractionParameters interactionParameters = door.GetInteractionParameters(player.Transform.position);
+                                    player.SendHandsInteractionStateChanged(true, interactionParameters.AnimationId);
+                                    player.HandsController.Interact(true, interactionParameters.AnimationId);
+                                }
+                            }
+                        }
+                    }
+
                     ReflectionHelpers.InvokeMethodForObject(door, methodName);
                 }
                 else
