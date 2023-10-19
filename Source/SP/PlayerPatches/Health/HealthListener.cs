@@ -66,6 +66,12 @@ namespace SIT.Core.SP.PlayerPatches.Health
 
         public void Update(object healthController, bool inRaid)
         {
+            if (healthController == null)
+            {
+                PatchConstants.Logger.LogInfo("HealthListener.Update: HealthController is NULL");
+                return;
+            }
+
             PatchConstants.Logger.LogDebug("HealthListener.Update and Sync.");
 
             MyHealthController = healthController;

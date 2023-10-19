@@ -199,6 +199,7 @@ namespace SIT.Core.Coop.Components
                 buttonX += buttonWidth + 10;
                 if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["PLAY_SINGLE_PLAYER"], gamemodeButtonStyle))
                 {
+                    FixesHideoutMusclePain();
                     MatchmakerAcceptPatches.MatchingType = EMatchmakerType.Single;
                     OriginalAcceptButton.OnClick.Invoke();
                     DestroyThis();
@@ -454,6 +455,7 @@ namespace SIT.Core.Coop.Components
 
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
+                FixesHideoutMusclePain();
                 DestroyThis();
                 OriginalAcceptButton.OnClick.Invoke();
             }
@@ -578,13 +580,39 @@ namespace SIT.Core.Coop.Components
             {
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
+                FixesHideoutMusclePain();
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
             }
         }
 
-        
+        void FixesHideoutMusclePain()
+        {
+            // Check if hideout world exists
+            var world = Comfort.Common.Singleton<GameWorld>.Instance;
+            if (world == null)
+                return;
+
+            foreach (EFT.Player player in world.RegisteredPlayers)
+            {
+                // There should be 1 player only, but well, who knows if some bugs remain...
+                if (player.IsYourPlayer)
+                {
+                    HealthController.MusclePain musclePain = player.HealthController.FindActiveEffect<HealthController.MusclePain>(EBodyPart.Common);
+                    if (musclePain != null)
+                    {
+                        musclePain.Remove();
+                    }
+                    HealthController.SevereMusclePain severeMusclePain = player.HealthController.FindActiveEffect<HealthController.SevereMusclePain>(EBodyPart.Common);
+                    if (severeMusclePain != null)
+                    {
+                        severeMusclePain.Remove();
+                    }
+                    break;
+                }
+            }
+        }
 
         void DestroyThis()
         {
