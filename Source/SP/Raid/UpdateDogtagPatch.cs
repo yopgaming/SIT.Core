@@ -54,6 +54,8 @@ namespace SIT.Core.SP.Raid
             if (dogTagComponent == null)
                 return;
 
+            dogtagItem.SpawnedInSession = true;
+
             var victimProfileInfo = __instance.Profile.Info;
 
             dogTagComponent.AccountId = __instance.Profile.AccountId;
@@ -62,7 +64,7 @@ namespace SIT.Core.SP.Raid
             dogTagComponent.Side = victimProfileInfo.Side;
             dogTagComponent.KillerName = aggressor.Profile.Info.Nickname;
             dogTagComponent.Time = DateTime.Now;
-            dogTagComponent.Status = "Killed by ";
+            dogTagComponent.Status = "Killed by";
             dogTagComponent.KillerAccountId = aggressor.Profile.AccountId;
             dogTagComponent.KillerProfileId = aggressor.Profile.Id;
 
