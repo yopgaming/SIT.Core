@@ -84,23 +84,22 @@ namespace SIT.Core.Coop.Player.Health
                 //Logger.LogInfo(dict.ToJson());
 
                 var bodyPart = (EBodyPart)Enum.Parse(typeof(EBodyPart), restoreBodyPartPacket.BodyPart, true);
-                var bodyPartDict = GetBodyPartDictionary(player);
+                var bodyPartState = GetBodyPartDictionary(player)[bodyPart];
 
-
-                var state = bodyPartDict[bodyPart];
-                if (state == null)
+                if (bodyPartState == null)
                 {
                     Logger.LogError($"Could not retreive {player.ProfileId}'s Health State for Body Part {restoreBodyPartPacket.BodyPart}");
                     return;
                 }
-                bodyPartDict[bodyPart].IsDestroyed = false;
-                var healthPenalty = restoreBodyPartPacket.HealthPenalty + (1f - restoreBodyPartPacket.HealthPenalty) * (float)player.Skills.SurgeryReducePenalty;
-                Logger.LogDebug("RestoreBodyPart::HealthPenalty::" + healthPenalty);
-                bodyPartDict[bodyPart].Health
-                    = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartDict[bodyPart].Health.Maximum * healthPenalty)), 0f);
+
+                if (bodyPartState.IsDestroyed)
+                {
+                    bodyPartState.IsDestroyed = false;
+                    var healthPenalty = restoreBodyPartPacket.HealthPenalty + (1f - restoreBodyPartPacket.HealthPenalty) * player.Skills.SurgeryReducePenalty;
+                    Logger.LogDebug("RestoreBodyPart::HealthPenalty::" + healthPenalty);
+                    bodyPartState.Health = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartState.Health.Maximum * healthPenalty)), 0f);
+                }
             }
-
-
         }
 
         private Dictionary<EBodyPart, BodyPartState> GetBodyPartDictionary(EFT.Player player)

@@ -65,11 +65,11 @@ namespace SIT.Core.SP.Menus
             )
         {
             var warningPanel = GameObject.Find("WarningPanelHorLayout");
-            warningPanel.active = false;
+            warningPanel?.SetActive(false);
             var settingslayoutcon = GameObject.Find("NonLayoutContainer");
-            settingslayoutcon.active = false;
+            settingslayoutcon?.SetActive(false);
             var settingslist = GameObject.Find("RaidSettingsSummary");
-            settingslist.active = false;
+            settingslist?.SetActive(false);
             RemoveBlockers(__instance
              , profileInfo
              , raidSettings
@@ -80,7 +80,7 @@ namespace SIT.Core.SP.Menus
              , ____nextButtonSpawner
              );
 
-            ____changeSettingsButton.OnPointerClick(new UnityEngine.EventSystems.PointerEventData(null) { });
+            ____changeSettingsButton?.OnPointerClick(new UnityEngine.EventSystems.PointerEventData(null) { });
 
             //Logger.LogInfo("AutoSetOfflineMatch2.Postfix");
 
