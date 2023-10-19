@@ -461,6 +461,28 @@ namespace SIT.Core.Coop
                     this.Bots.Add(localPlayer.ProfileId, localPlayer);
                 }
 
+                // Start with SPT-AKI 3.7.0 AI PMC carrying 'FiR' items, this is just a simple "concept" of it.
+                // Every AI PMC who have backpack, their items in the backpack are 'FiR'.
+                if (profile.Info.Side == EPlayerSide.Bear || profile.Info.Side == EPlayerSide.Usec)
+                {
+                    var backpackSlot = profile.Inventory.Equipment.GetSlot(EFT.InventoryLogic.EquipmentSlot.Backpack);
+                    var backpack = backpackSlot.ContainedItem;
+                    if (backpack != null)
+                    {
+                        EFT.InventoryLogic.Item[] items = backpack.GetAllItems()?.ToArray();
+                        if (items != null)
+                        {
+                            for (int i = 0; i < items.Count(); i++)
+                            {
+                                EFT.InventoryLogic.Item item = items[i];
+                                if (item == backpack)
+                                    continue;
+
+                                item.SpawnedInSession = true;
+                            }
+                        }
+                    }
+                }
 
                 //GCHelpers.EnableGC();
                 ////GCHelpers.Collect(true);
