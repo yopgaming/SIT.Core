@@ -135,11 +135,12 @@ namespace SIT.Core.Coop.World
                 { "t", DateTime.Now.Ticks.ToString("G") },
                 { "serverId", CoopGameComponent.GetServerId() },
                 { "doorId", __instance.Id },
+                { "player", __instance.InteractingPlayer.ProfileId },
                 { "type", interactionResult.InteractionType.ToString() },
                 { "m", MethodName }
             };
 
-            var packetJson = packet.SITToJson();
+            //var packetJson = packet.SITToJson();
             //Logger.LogDebug(packetJson);
 
             //Request.Instance.PostJsonAndForgetAsync("/coop/server/update", packetJson);
