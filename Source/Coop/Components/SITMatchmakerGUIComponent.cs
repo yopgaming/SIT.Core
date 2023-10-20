@@ -55,8 +55,6 @@ namespace SIT.Core.Coop.Components
 
         private const float verticalSpacing = 10f;
 
-
-
         private ManualLogSource Logger { get; set; }
         public MatchMakerPlayerPreview MatchMakerPlayerPreview { get; internal set; }
 
@@ -71,9 +69,7 @@ namespace SIT.Core.Coop.Components
         private bool showErrorMessageWindow { get; set; } = false;
         private bool showPasswordRequiredWindow { get; set; } = false;
 
-        private bool showPasswordWindow { get; set; } = false;
-
-        private string ErrorMessage { get; set; }
+        private string pendingServerId = "";
 
         #endregion
 
@@ -197,7 +193,6 @@ namespace SIT.Core.Coop.Components
                 // Create "Host Game" button
                 if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
                 {
-
                     showServerBrowserWindow = false;
                     showHostGameWindow = true;
                 }
@@ -252,7 +247,7 @@ namespace SIT.Core.Coop.Components
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = false;
-                showPasswordWindow = false;
+                showPasswordRequiredWindow = false;
 
                 windowInnerRect = GUI.Window(0, windowRect, DrawWindowErrorMessage, "Error Message");
             }
@@ -261,7 +256,8 @@ namespace SIT.Core.Coop.Components
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = false;
-                windowInnerRect = GUI.Window(0, windowRect, DrawWindowPasswordRequired, "Password Required");
+
+                windowInnerRect = GUI.Window(0, windowRect, DrawPasswordRequiredWindow, "Password required");
             }
         }
 
@@ -314,17 +310,7 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-       
-
         string ErrorMessage { get; set; }
-            if(showPasswordWindow)
-            {
-                showHostGameWindow = false;
-                showServerBrowserWindow = false;
-
-                windowInnerRect = GUI.Window(0, windowRect, DrawPasswordWindow, "Password required");
-            }
-        }
 
         /// <summary>
         /// TODO: Finish this on Error Window
@@ -344,17 +330,36 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-        void DrawWindowPasswordRequired(int windowID)
+        void DrawPasswordRequiredWindow(int windowID)
         {
             if (!showPasswordRequiredWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20, 20, 1000, 1000), ErrorMessage);
+            var halfWindowWidth = windowInnerRect.width / 2;
+            var halfWindowHeight = windowInnerRect.height / 2;
 
-            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            var PasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Enter password")).x;
+
+            var textX = halfWindowWidth - PasswordTextWidth / 2;
+
+            GUI.Label(new UnityEngine.Rect(textX, halfWindowHeight - 100, PasswordTextWidth, 30), "Enter password");
+
+            var passwordFieldWidth = 200;
+            var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
+
+            passwordClientInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, halfWindowHeight - 50, 200, 30), passwordClientInput, '*', 25);
+
+            var buttonX = halfWindowWidth - PasswordTextWidth / 2;
+
+            if (GUI.Button(new UnityEngine.Rect(buttonX - 60, halfWindowHeight, 100, 40), "Back"))
             {
-                showErrorMessageWindow = false;
+                showPasswordRequiredWindow = false;
                 showServerBrowserWindow = true;
+            }
+
+            if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
+            {
+                JoinMatch(pendingServerId, passwordClientInput);
             }
         }
 
@@ -442,7 +447,7 @@ namespace SIT.Core.Coop.Components
                     GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
 
                     // Display Password Locked
-                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? "*" : "", labelStyle);
+                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? "Yes" : "", labelStyle);
 
                     // Calculate the width of the combined server information (Host Name, Player Count, Location)
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
@@ -459,9 +464,9 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-        void JoinMatch(string serverId)
+        void JoinMatch(string serverId, string password = "")
         {
-            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, serverId, out string returnedJson, out string errorMessage))
+            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, serverId, password, out string returnedJson, out string errorMessage))
             {
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
@@ -469,55 +474,27 @@ namespace SIT.Core.Coop.Components
                 MatchmakerAcceptPatches.SetGroupId(groupId);
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
-                        JoinMatch();
-                    }
-
-                    index++;
-                }
-            }
-        }
-
-        void DrawPasswordWindow(int windowID)
-        {
-            if (!showPasswordWindow)
-                return;
 
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
-            var halfWindowWidth = windowInnerRect.width / 2;
-            var halfWindowHeight = windowInnerRect.height / 2;
 
-            var PasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Enter password")).x;
-
-            var textX = halfWindowWidth - PasswordTextWidth / 2;
-
-            GUI.Label(new UnityEngine.Rect(textX, halfWindowHeight - 100, PasswordTextWidth, 30), "Enter password");
-
-            var passwordFieldWidth = 200;
-            var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
-
-            passwordClientInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, halfWindowHeight - 50 , 200, 30), passwordClientInput, '*', 25);
-
-            var buttonX = halfWindowWidth - PasswordTextWidth / 2;
-
-            if (GUI.Button(new UnityEngine.Rect(buttonX - 60, halfWindowHeight, 100, 40), "Back"))
-            {
-                showPasswordWindow = false;
-                showServerBrowserWindow = true;
-            }
                 FixesHideoutMusclePain();
                 DestroyThis();
                 OriginalAcceptButton.OnClick.Invoke();
             }
             else
             {
-                this.ErrorMessage = errorMessage;
-                this.showErrorMessageWindow = true;
-            }
-        }
+                if (errorMessage == "passwordRequired")
+                {
+                    showPasswordRequiredWindow = true;
+                    pendingServerId = serverId;
+                }
+                else
+                {
+                    this.ErrorMessage = errorMessage;
+                    this.showErrorMessageWindow = true;
+                    pendingServerId = "";
+                }
 
-            if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
-            {
-                JoinMatch(passwordClientInput);
             }
         }
 
@@ -621,40 +598,9 @@ namespace SIT.Core.Coop.Components
                 AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
                 FixesHideoutMusclePain();
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
-            }
-        }
-
-        void JoinMatch(string password = "")
-        {
-            // Find a corresponding match based on raid settings and password
-            if (MatchmakerAcceptPatches.CheckForMatch(RaidSettings, password, out string returnedJson, out string errorMessage))
-            {
-                Logger.LogDebug(returnedJson);
-                JObject result = JObject.Parse(returnedJson);
-                var groupId = result["ServerId"].ToString();
-                MatchmakerAcceptPatches.SetGroupId(groupId);
-                MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
-                MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
-
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
-
-                DestroyThis();
-                OriginalAcceptButton.OnClick.Invoke();
-            }
-            else
-            {
-                if (errorMessage == "passwordRequired")
-                {
-                    showPasswordWindow = true;
-                }
-                else
-                {
-                    this.ErrorMessage = errorMessage;
-                    this.showErrorMessageWindow = true;
-                }
             }
         }
 
@@ -692,7 +638,5 @@ namespace SIT.Core.Coop.Components
             GameObject.DestroyImmediate(this.gameObject);
             GameObject.DestroyImmediate(this);
         }
-
-
     }
 }
