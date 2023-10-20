@@ -312,10 +312,6 @@ namespace SIT.Core.Coop.Components
 
         string ErrorMessage { get; set; }
 
-                windowInnerRect = GUI.Window(0, windowRect, DrawPasswordWindow, "Password required");
-            }
-        }
-
         /// <summary>
         /// TODO: Finish this on Error Window
         /// </summary>
