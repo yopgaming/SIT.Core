@@ -70,7 +70,7 @@ namespace SIT.Core.Coop.World
 
                     if (!profileId.IsNullOrEmpty())
                     {
-                        EFT.Player player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerBridgeByProfileID(profileId).AIData.Player;
+                        EFT.Player player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(profileId);
                         if (player != null)
                         {
                             if (!coopGameComponent.HighPingMode && !player.IsYourPlayer)
