@@ -312,6 +312,10 @@ namespace SIT.Core.Coop.Components
 
         string ErrorMessage { get; set; }
 
+                windowInnerRect = GUI.Window(0, windowRect, DrawPasswordWindow, "Password required");
+            }
+        }
+
         /// <summary>
         /// TODO: Finish this on Error Window
         /// </summary>
@@ -321,7 +325,7 @@ namespace SIT.Core.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20,20,1000,1000), ErrorMessage);
+            GUI.Label(new UnityEngine.Rect(20,20,200,200), ErrorMessage);
 
             if(GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {
