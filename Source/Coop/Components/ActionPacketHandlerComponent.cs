@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -88,23 +89,35 @@ namespace SIT.Core.Coop.Components
 
             if (ActionPackets.Count > 0)
             {
+                Stopwatch stopwatchActionPackets = Stopwatch.StartNew();
                 while (ActionPackets.TryTake(out var result))
                 {
+                    Stopwatch stopwatchActionPacket = Stopwatch.StartNew();
                     ProcessLastActionDataPacket(result);
+                    if (stopwatchActionPacket.ElapsedMilliseconds > 1)
+                        Logger.LogDebug($"ActionPacket {result["m"]} took {stopwatchActionPacket.ElapsedMilliseconds}ms to process!");
                 }
+                if (stopwatchActionPackets.ElapsedMilliseconds > 1)
+                    Logger.LogDebug($"ActionPackets took {stopwatchActionPackets.ElapsedMilliseconds}ms to process!");
             }
 
             if (ActionPacketsMovement != null && ActionPacketsMovement.Count > 0)
             {
+                Stopwatch stopwatchActionPacketsMovement = Stopwatch.StartNew();
                 while (ActionPacketsMovement.TryTake(out var result))
                 {
                     ProcessLastActionDataPacket(result);
+                }
+                if(stopwatchActionPacketsMovement.ElapsedMilliseconds > 1)
+                {
+                    Logger.LogDebug($"ActionPacketsMovement took {stopwatchActionPacketsMovement.ElapsedMilliseconds}ms to process!");
                 }
             }
 
 
             if (ActionPacketsDamage != null && ActionPacketsDamage.Count > 0)
             {
+                Stopwatch stopwatchActionPacketsDamage = Stopwatch.StartNew();
                 while (ActionPacketsDamage.TryTake(out var packet))
                 {
                     var profileId = packet["profileId"].ToString();
@@ -114,6 +127,10 @@ namespace SIT.Core.Coop.Components
 
                     var coopPlayer = (CoopPlayer)playerKVP.Value;
                     coopPlayer.ReceiveDamageFromServer(packet);
+                }
+                if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
+                {
+                    Logger.LogDebug($"ActionPacketsDamage took {stopwatchActionPacketsDamage.ElapsedMilliseconds}ms to process!");
                 }
             }
 
