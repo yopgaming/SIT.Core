@@ -442,11 +442,11 @@ namespace SIT.Core.Coop
                        , profile
                        , true
                        , base.UpdateQueue
-                       , EFT.Player.EUpdateMode.Auto
+                       , EFT.Player.EUpdateMode.Manual
                        , EFT.Player.EUpdateMode.Auto
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
-                   , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                   , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                   , () => 1f
+                   , () => 1f
 , FilterCustomizationClass1.Default
 )
                   );
@@ -484,10 +484,6 @@ namespace SIT.Core.Coop
                     }
                 }
 
-                //GCHelpers.EnableGC();
-                ////GCHelpers.Collect(true);
-                //GCHelpers.DisableGC();
-                //GC.Collect(4, GCCollectionMode.Forced, false, false);
 
             }
             return localPlayer;
@@ -625,24 +621,45 @@ namespace SIT.Core.Coop
             // Here we can wait for other players, if desired
             await Task.Run(async () =>
             {
-                while(CoopGameComponent.GetCoopGameComponent() == null)
+                CoopGameComponent coopGameComponent = null;
+                while (!CoopGameComponent.TryGetCoopGameComponent(out coopGameComponent))
                 {
-
+                    await Task.Delay(5000);
                 }
 
-                //var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                do
+                if (coopGameComponent != null)
                 {
-                    numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                    if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                    while (coopGameComponent.PlayerUsers == null)
                     {
-                        MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)");
+                        await Task.Delay(1000);
                     }
 
-                    await Task.Delay(1000);
+                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Length;
+                    do
+                    {
+                        if (coopGameComponent.PlayerUsers == null)
+                        {
+                            await Task.Delay(1000);
+                            continue;
+                        }
 
-                } while (numbersOfPlayersToWaitFor > 0);
+                        if (coopGameComponent.PlayerUsers.Length == 0)
+                        {
+                            await Task.Delay(1000);
+                            continue;
+                        }
+
+                        var progress = (coopGameComponent.PlayerUsers.Length / MatchmakerAcceptPatches.HostExpectedNumberOfPlayers);
+                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Length;
+                        if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                        {
+                            MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
+                        }
+
+                        await Task.Delay(1000);
+
+                    } while (numbersOfPlayersToWaitFor > 0);
+                }
             });
 
             // ---------------------------------------------
@@ -775,24 +792,24 @@ namespace SIT.Core.Coop
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
 
-            foreach(var friendlyB in FriendlyPlayers.Values)
-            {
-                //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
-                //botOwner.GetComponentsInChildren<Collider>();
-                //botOwner.GetPlayer.CharacterController.isEnabled = false;
-                Logger.LogDebug("Attempting to Activate friendly bot");
-                botCreator.ActivateBot(friendlyB.Profile, friendlyB.Position, botZones[0], false, (bot, zone) => {
-                    Logger.LogDebug("group action");
-                    return new BotGroupClass(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
-                }, (owner) => {
+            //foreach(var friendlyB in FriendlyPlayers.Values)
+            //{
+            //    //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
+            //    //botOwner.GetComponentsInChildren<Collider>();
+            //    //botOwner.GetPlayer.CharacterController.isEnabled = false;
+            //    Logger.LogDebug("Attempting to Activate friendly bot");
+            //    botCreator.ActivateBot(friendlyB.Profile, friendlyB.Position, botZones[0], false, (bot, zone) => {
+            //        Logger.LogDebug("group action");
+            //        return new BotGroupClass(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
+            //    }, (owner) => {
 
-                    Logger.LogDebug("Bot Owner created");
+            //        Logger.LogDebug("Bot Owner created");
 
-                    owner.GetComponentsInChildren<Collider>();
-                    owner.GetPlayer.CharacterController.isEnabled = false;
+            //        owner.GetComponentsInChildren<Collider>();
+            //        owner.GetPlayer.CharacterController.isEnabled = false;
 
-                }, cancellationToken: CancellationToken.None);
-            }
+            //    }, cancellationToken: CancellationToken.None);
+            //}
 
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
@@ -1027,6 +1044,21 @@ namespace SIT.Core.Coop
         {
             base.CleanUp();
             BaseLocalGame<GamePlayerOwner>.smethod_4(this.Bots);
+        }
+
+        public override void Dispose()
+        {
+            Logger.LogDebug("CoopGame:Dispose()");
+            StartCoroutine(DisposingCo());
+            base.Dispose();
+        }
+
+        private IEnumerator DisposingCo()
+        {
+            Logger.LogDebug("CoopGame:DisposingCo()");
+            CoopPatches.LeftGameDestroyEverything();
+
+            yield break;
         }
 
         private BossWaveManager BossWaveManager;
