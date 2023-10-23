@@ -40,23 +40,43 @@ namespace SIT.Core.Coop
             , bool isYourPlayer = false
             , bool isClientDrone = false)
         {
-            CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(
-                ResourceBundleConstants.PLAYER_BUNDLE_NAME
-                , playerId
-                , position
-                , updateQueue
-                , armsUpdateMode
-                , bodyUpdateMode
-                , characterControllerMode
-                , getSensitivity
-                , getAimingSensitivity
-                , prefix
-                , aiControl);
-            localPlayer.IsYourPlayer = isYourPlayer;
+            CoopPlayer player = null;
+
+            if (isClientDrone)
+            {
+                player = EFT.Player.Create<CoopPlayerClient>(
+                    ResourceBundleConstants.PLAYER_BUNDLE_NAME
+                    , playerId
+                    , position
+                    , updateQueue
+                    , EFT.Player.EUpdateMode.Manual
+                    , EFT.Player.EUpdateMode.Manual
+                    , characterControllerMode
+                    , getSensitivity
+                    , getAimingSensitivity
+                    , prefix
+                    , aiControl);
+            }
+            else
+            {
+                player = EFT.Player.Create<CoopPlayer>(
+                    ResourceBundleConstants.PLAYER_BUNDLE_NAME
+                    , playerId
+                    , position
+                    , updateQueue
+                    , armsUpdateMode
+                    , bodyUpdateMode
+                    , characterControllerMode
+                    , getSensitivity
+                    , getAimingSensitivity
+                    , prefix
+                    , aiControl);
+            }
+            player.IsYourPlayer = isYourPlayer;
 
             InventoryController inventoryController = isYourPlayer && !isClientDrone 
-                ? new CoopInventoryController(localPlayer, profile, true) 
-                : new CoopInventoryControllerForClientDrone(localPlayer, profile, true);
+                ? new CoopInventoryController(player, profile, true) 
+                : new CoopInventoryControllerForClientDrone(player, profile, true);
 
             if (questController == null && isYourPlayer)
             {
@@ -64,32 +84,33 @@ namespace SIT.Core.Coop
                 questController.Run();
             }
             
-            await localPlayer
-                .Init(rotation, layerName, pointOfView, profile, inventoryController, new PlayerHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, aiControl)
+            await player
+                .Init(rotation, layerName, pointOfView, profile, inventoryController
+                , new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
                 , isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
                 , questController
                 , filter
-                , EVoipState.NotAvailable
+                , aiControl || isClientDrone ? EVoipState.NotAvailable : EVoipState.Available
                 , aiControl
                 , async: false);
          
-            localPlayer._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(localPlayer);
-            localPlayer._handsController.Spawn(1f, delegate
+            player._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(player);
+            player._handsController.Spawn(1f, delegate
             {
             });
-            localPlayer.AIData = new AiDataClass(null, localPlayer);
-            localPlayer.AggressorFound = false;
-            localPlayer._animators[0].enabled = true;
-            localPlayer.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
+            player.AIData = new AiDataClass(null, player);
+            player.AggressorFound = false;
+            player._animators[0].enabled = true;
+            player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
             {
-                var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
                 prc.IsClientDrone = true;
             }
 
-            return localPlayer;
+            return player;
         }
 
         /// <summary>
@@ -264,6 +285,23 @@ namespace SIT.Core.Coop
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
+        }
+
+        //public override void LateUpdate()
+        //{
+        //    //base.LateUpdate();
+        //}
+
+        //public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
+        //{
+        //    //base.ComplexLateUpdate(queue, deltaTime);
+        //}
+
+
+        public override void OnDestroy()
+        {
+            BepInLogger.LogDebug("OnDestroy()");
+            base.OnDestroy();
         }
 
     }
