@@ -23,6 +23,15 @@ namespace SIT.Core.Coop.FreeCamera
 
         private GamePlayerOwner _gamePlayerOwner;
 
+        public GameObject CameraParent { get; set; }
+        public Camera FCamera { get; private set; }
+
+        void Awake()
+        {
+            CameraParent = new GameObject("CameraParent");
+            var FCamera = CameraParent.GetOrAddComponent<Camera>();
+            FCamera.enabled = false;
+        }
 
         public void Start()
         {
@@ -52,6 +61,8 @@ namespace SIT.Core.Coop.FreeCamera
 
         private DateTime _lastTime = DateTime.MinValue;
 
+        int DeadTime = 0;
+
         public void Update()
         {
             if (_gamePlayerOwner == null)
@@ -76,14 +87,28 @@ namespace SIT.Core.Coop.FreeCamera
                 (
                 Input.GetKey(KeyCode.F9)
                 ||
-                (quitState != CoopGameComponent.EQuitState.NONE && !_freeCamScript.IsActive)
+                ((quitState != CoopGameComponent.EQuitState.NONE) && !_freeCamScript.IsActive)
                 )
                 && _lastTime < DateTime.Now.AddSeconds(-3)
             )
             {
                 _lastTime = DateTime.Now;
-                ToggleCamera();
-                ToggleUi();
+
+                if (quitState != CoopGameComponent.EQuitState.YouAreDead)
+                {
+                    ToggleCamera();
+                    ToggleUi();
+                }
+                else if (DeadTime > 666 && quitState == CoopGameComponent.EQuitState.YouAreDead)
+                {
+                    ToggleCamera();
+                    ToggleUi();
+                }
+            }
+
+            if (!_gamePlayerOwner.Player.PlayerHealthController.IsAlive)
+            {
+                DeadTime++;
             }
 
             // Player is dead. Remove all effects!
@@ -93,47 +118,39 @@ namespace SIT.Core.Coop.FreeCamera
                 if (fpsCamInstance == null)
                     return;
 
-
                 if (fpsCamInstance.EffectsController == null)
                     return;
 
-
                 // Death Fade (the blink to death). Don't show this as we want to continue playing after death!
                 var deathFade = fpsCamInstance.EffectsController.GetComponent<DeathFade>();
-                if (deathFade != null)
+                if (DeadTime > 666)
                 {
-                    deathFade.enabled = false;
-                    GameObject.Destroy(deathFade);
-                }
+                    if (deathFade != null)
+                    {
+                        // Delete DeathFade
+                        deathFade.enabled = false;
+                        GameObject.Destroy(deathFade);
 
-                // Fast Blur. Don't show this as we want to continue playing after death!
-                var fastBlur = fpsCamInstance.EffectsController.GetComponent<FastBlur>();
-                if (fastBlur != null)
-                {
-                    fastBlur.enabled = false;
-                }
+                        // Toggle the Camera
+                        ToggleCamera();
+                        ToggleUi();
+                    }
 
+                    // Fast Blur. Don't show this as we want to continue playing after death!
+                    var fastBlur = fpsCamInstance.EffectsController.GetComponent<FastBlur>();
+                    if (fastBlur != null)
+                    {
+                        fastBlur.enabled = false;
+                    }
+
+                    var eyeBurn = fpsCamInstance.EffectsController.GetComponent<EyeBurn>();
+                    if (eyeBurn != null)
+                    {
+                        eyeBurn.enabled = false;
+                    }
+                }
             }
 
-            //if (_freeCamScript.IsActive && (!_lastOcclusionCullCheck.HasValue))
-            //{
-            //    _lastOcclusionCullCheck = DateTime.Now;
-            //    if (!_playerDeathOrExitPosition.HasValue)
-            //        _playerDeathOrExitPosition = _gamePlayerOwner.Player.Position;
-
-            //    if (showAtDeathOrExitPosition)
-            //        _gamePlayerOwner.Player.Position = _playerDeathOrExitPosition.Value;
-            //    else
-            //        _gamePlayerOwner.Player.Position = (Camera.current.transform.position);
-
-
-            //    showAtDeathOrExitPosition = !showAtDeathOrExitPosition;
-
-            //}
-            //else if (!_freeCamScript.IsActive)
-            //{
-            //    _lastOcclusionCullCheck = null;
-            //}
         }
 
         //DateTime? _lastOcclusionCullCheck = null;
@@ -253,6 +270,8 @@ namespace SIT.Core.Coop.FreeCamera
 
         public void OnDestroy()
         {
+            GameObject.Destroy(CameraParent);
+
             // Destroy FreeCamScript before FreeCamController if exists
             Destroy(_freeCamScript);
             Destroy(this);
