@@ -100,7 +100,9 @@ namespace SIT.Coop.Core.Player
                 return;
 
 
-            if (IsClientDrone)
+            if (!IsClientDrone)
+                return;
+
             {
                 // Pose
                 float poseLevel = float.Parse(packet["pose"].ToString());
@@ -115,8 +117,6 @@ namespace SIT.Coop.Core.Player
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
-
-
 
                 // Rotation
                 if (packet.ContainsKey("rX") && packet.ContainsKey("rY"))

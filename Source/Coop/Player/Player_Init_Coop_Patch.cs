@@ -55,6 +55,8 @@ namespace SIT.Coop.Core.Player
 
                 if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                     Singleton<GameWorld>.Instance.RegisterPlayer(player);
+
+                CullingManager.Instance.ForceEnable(false);
             }
             else
             {
