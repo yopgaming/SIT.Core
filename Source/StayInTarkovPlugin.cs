@@ -338,8 +338,7 @@ namespace SIT.Core
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
-            new IsPlayerEnemyPatch().Enable();
-            new IsPlayerEnemyByRolePatch().Enable();
+            new BotSelfEnemyPatch().Enable();
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             //new CustomAiPatch().Enable();
@@ -349,12 +348,8 @@ namespace SIT.Core
             if (!enabled.Value)
                 return;
 
-            new AddEnemyToAllGroupsInBotZonePatch().Enable();
-            new CheckAndAddEnemyPatch().Enable();
-            new BotCreatorTeleportPMCPatch().Enable();
-
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "PMC" }, 2);
-            BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
+            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 2);
+            //BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 
         }
