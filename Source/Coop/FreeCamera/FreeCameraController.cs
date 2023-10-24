@@ -3,6 +3,7 @@ using EFT;
 using EFT.CameraControl;
 using EFT.UI;
 using HarmonyLib;
+using SIT.Core.Configuration;
 using System;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace SIT.Core.Coop.FreeCamera
 
     public class FreeCameraController : MonoBehaviour
     {
-        private GameObject _mainCamera;
+        //private GameObject _mainCamera;
         private FreeCamera _freeCamScript;
 
         private BattleUIScreen _playerUi;
@@ -24,7 +25,8 @@ namespace SIT.Core.Coop.FreeCamera
         private GamePlayerOwner _gamePlayerOwner;
 
         public GameObject CameraParent { get; set; }
-        public Camera FCamera { get; private set; }
+        public Camera CameraFreeCamera { get; private set; }
+        public Camera CameraMain { get; private set; }
 
         void Awake()
         {
@@ -36,16 +38,14 @@ namespace SIT.Core.Coop.FreeCamera
         public void Start()
         {
             // Find Main Camera
-            //_mainCamera = GameObject.Find("FPS Camera");
-            _mainCamera = FPSCamera.Instance.Camera.gameObject;
-            //_mainCamera = Camera.current.gameObject;
-            if (_mainCamera == null)
+            CameraMain = FPSCamera.Instance.Camera;
+            if (CameraMain == null)
             {
                 return;
             }
 
             // Add Freecam script to main camera in scene
-            _freeCamScript = _mainCamera.AddComponent<FreeCamera>();
+            _freeCamScript = CameraMain.gameObject.AddComponent<FreeCamera>();
             if (_freeCamScript == null)
             {
                 return;
@@ -62,6 +62,7 @@ namespace SIT.Core.Coop.FreeCamera
         private DateTime _lastTime = DateTime.MinValue;
 
         int DeadTime = 0;
+        
 
         public void Update()
         {
@@ -99,7 +100,7 @@ namespace SIT.Core.Coop.FreeCamera
                     ToggleCamera();
                     ToggleUi();
                 }
-                else if (DeadTime > 666 && quitState == CoopGameComponent.EQuitState.YouAreDead)
+                else if (DeadTime > PluginConfigSettings.Instance.CoopSettings.BlackScreenOnDeathTime && quitState == CoopGameComponent.EQuitState.YouAreDead)
                 {
                     ToggleCamera();
                     ToggleUi();
@@ -123,7 +124,7 @@ namespace SIT.Core.Coop.FreeCamera
 
                 // Death Fade (the blink to death). Don't show this as we want to continue playing after death!
                 var deathFade = fpsCamInstance.EffectsController.GetComponent<DeathFade>();
-                if (DeadTime > 666)
+                if (DeadTime > PluginConfigSettings.Instance.CoopSettings.BlackScreenOnDeathTime)
                 {
                     if (deathFade != null)
                     {
