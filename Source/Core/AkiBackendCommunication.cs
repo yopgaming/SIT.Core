@@ -774,21 +774,23 @@ namespace SIT.Core.Core
             {
                 if (stream == null)
                     return "";
+
                 var bytes = stream.ToArray();
                 string resultString;
+
                 if (compress)
                 {
                     if (Zlib.IsCompressed(bytes))
                         resultString = Zlib.Decompress(bytes);
                     else
-                        resultString = stream.ToString();
+                        resultString = Encoding.UTF8.GetString(bytes);
                 }
                 else
                 {
-                    resultString = stream.ToString();
+                    resultString = Encoding.UTF8.GetString(bytes);
                 }
-                var result = resultString;
-                return result;
+
+                return resultString;
             }
         }
 
