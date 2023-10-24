@@ -289,18 +289,31 @@ namespace SIT.Core.Coop
                     //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
                 }
 
+                var world = Singleton<GameWorld>.Instance;
+
                 // Hide extracted Players
                 foreach (var playerId in coopGame.ExtractedPlayers)
                 {
-                    var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
+                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == playerId) as EFT.Player;
                     if (player == null)
                         continue;
 
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(((EFT.Player)player)
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(player
                         , new Dictionary<string, object>() { { "Extracted", true } }
                         , true);
 
-                    ((EFT.Player)player).SwitchRenderer(false);
+                    if (player.ActiveHealthController != null)
+                    {
+                        if (!player.ActiveHealthController.MetabolismDisabled)
+                        {
+                            player.ActiveHealthController.AddDamageMultiplier(0);
+                            player.ActiveHealthController.SetDamageCoeff(0);
+                            player.ActiveHealthController.DisableMetabolism();
+                            player.ActiveHealthController.PauseAllEffects();
+
+                            player.SwitchRenderer(false);
+                        }
+                    }
                     //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
                     //GameObject.Destroy(player);
                 }
