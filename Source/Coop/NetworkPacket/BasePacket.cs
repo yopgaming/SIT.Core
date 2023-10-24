@@ -109,7 +109,7 @@ namespace SIT.Core.Coop.NetworkPacket
         public virtual byte[] SerializeCompressed()
         {
             var str = $"SITC{Serialize()}";
-            return Zlib.Compress(Encoding.UTF8.GetBytes(str), ZlibCompression.Normal);
+            return Zlib.Compress(str);
         }
 
         public virtual ISITPacket Deserialize(byte[] bytes)
