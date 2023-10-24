@@ -124,8 +124,9 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
             Dictionary<string, object> dictionary = new()
             {
-                    { "t", DateTime.Now.Ticks.ToString("G") }
-                };
+                { "serverId", coopGameComponent.ServerId },
+                { "t", DateTime.Now.Ticks.ToString("G") }
+            };
 
             if (to is GridItemAddress gridItemAddress)
             {
