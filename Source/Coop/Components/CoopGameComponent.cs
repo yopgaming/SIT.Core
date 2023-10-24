@@ -46,15 +46,20 @@ namespace SIT.Core.Coop
         /// </summary>
         public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
 
-        public EFT.Player[] PlayerUsers
+        //public EFT.Player[] PlayerUsers
+        public IEnumerable<EFT.Player> PlayerUsers
         {
             get
             {
 
                 if (Players == null)
-                    return null;
+                    yield return null;
 
-                return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
+                var keys = Players.Keys.Where(x => x.StartsWith("pmc")).ToArray();
+                foreach (var key in keys)
+                    yield return Players[key];
+
+
             }
         }
 
@@ -111,9 +116,9 @@ namespace SIT.Core.Coop
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
 
-            if(CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
+            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            if (coopGameComponent != null)
                 return coopGameComponent;
-
 
             return null;
         }
@@ -356,10 +361,10 @@ namespace SIT.Core.Coop
         {
             var quitState = EQuitState.NONE;
 
-            if (LocalGameInstance == null)
+            if (!Singleton<ISITGame>.Instantiated)
                 return quitState;
 
-            var coopGame = LocalGameInstance as CoopGame;
+            var coopGame = Singleton<ISITGame>.Instance;
             if (coopGame == null)
                 return quitState;
 
@@ -372,20 +377,17 @@ namespace SIT.Core.Coop
             if (coopGame.ExtractedPlayers == null)
                 return quitState;
 
-            if (coopGame.PlayerOwner == null)
-                return quitState;
-
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
 
-            if (PlayerUsers.Length > 1)
+            if (PlayerUsers.Count() > 1)
             {
                 if (PlayerUsers.Count() == numberOfPlayersDead)
                 {
                     quitState = EQuitState.YourTeamIsDead;
                 }
-                else if (!coopGame.PlayerOwner.Player.HealthController.IsAlive)
+                else if (!Singleton<GameWorld>.Instance.MainPlayer.PlayerHealthController.IsAlive)
                 {
                     quitState = EQuitState.YouAreDead;
                 }
@@ -398,12 +400,12 @@ namespace SIT.Core.Coop
             if (
                 numberOfPlayersAlive > 0
                 &&
-                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Length == numberOfPlayersExtracted)
+                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
                 )
             {
                 quitState = EQuitState.YourTeamHasExtracted;
             }
-            else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
+            else if (coopGame.ExtractedPlayers.Contains(Singleton<GameWorld>.Instance.MainPlayer.ProfileId))
             {
                 if (MatchmakerAcceptPatches.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
@@ -413,12 +415,12 @@ namespace SIT.Core.Coop
             return quitState;
         }
 
-        CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
-
         void Update()
-        //void LateUpdate()
         {
             GameCamera = Camera.current;
+
+            if (!Singleton<ISITGame>.Instantiated)
+                return;
 
             var quitState = GetQuitState();
 
@@ -430,10 +432,10 @@ namespace SIT.Core.Coop
                 )
             {
                 RequestQuitGame = true;
-                CoopGame.Stop(
+                Singleton<ISITGame>.Instance.Stop(
                     Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                    , CoopGame.MyExitStatus
-                    , CoopGame.MyExitLocation
+                    , Singleton<ISITGame>.Instance.MyExitStatus
+                    , Singleton<ISITGame>.Instance.MyExitLocation
                     , 0);
                 return;
             }
@@ -469,28 +471,11 @@ namespace SIT.Core.Coop
             if (Players == null)
                 return;
 
-            if (ActionPackets == null)
-                return;
-
             if (Singleton<GameWorld>.Instance == null)
                 return;
 
             if (RequestingObj == null)
                 return;
-
-            //if (ActionPackets.Count > 0)
-            //{
-            //    Dictionary<string, object> result = null;
-            //    swActionPackets.Restart();
-            //    var actionPacketLimitationTime = 11;
-            //    while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
-            //    {
-            //        ProcessLastActionDataPacket(result);
-            //        //Thread.Sleep(1);
-            //    }
-            //    PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
-
-            //}
 
             List<Dictionary<string, object>> playerStates = new();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
@@ -517,31 +502,6 @@ namespace SIT.Core.Coop
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
-
-                //foreach (var regPlayer in Singleton<GameWorld>.Instance.RegisteredPlayers)
-                //{
-                //    var player = (EFT.Player)regPlayer;
-                //    if (player == null)
-                //        continue;
-
-                //    if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                //        continue;
-
-                //    if (prc.IsClientDrone)
-                //        continue;
-
-                //    if (!player.enabled)
-                //        continue;
-
-                //    if (!player.isActiveAndEnabled)
-                //        continue;
-
-                //    if (playerStates.Any(x => x.ContainsKey("profileId") && x["profileId"].ToString() == player.ProfileId))
-                //        continue;
-
-                //    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
-                //}
-
 
 
                 //Logger.LogDebug(playerStates.SITToJson());
