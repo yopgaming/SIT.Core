@@ -696,8 +696,8 @@ namespace SIT.Core.Core
 
                 // set request body
                 var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                //byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
-                byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
+                byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
+                //byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
                 data = null;
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;

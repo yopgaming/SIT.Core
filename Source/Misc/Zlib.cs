@@ -64,7 +64,8 @@ namespace SIT.Core.Misc
         /// </summary>
         public static byte[] Compress(byte[] data, ZlibCompression level)
         {
-            byte[] buffer = new byte[data.Length + 24];
+            // account for the deflate header
+            byte[] buffer = new byte[data.Length + 50];
 
             ZStream zs = new()
             {
@@ -88,7 +89,7 @@ namespace SIT.Core.Misc
         public static byte[] Compress(string data)
         {
             // result should hardly be bigger than source data
-            byte[] bytes = new byte[Encoding.UTF8.GetByteCount(data) + 24];
+            byte[] bytes = new byte[Encoding.UTF8.GetByteCount(data) + 50];
             var result = 0;
             do
             {
