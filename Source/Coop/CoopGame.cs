@@ -49,7 +49,7 @@ namespace SIT.Core.Coop
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame
+    public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
        
         public new bool InRaid { get { return true; } }
@@ -157,6 +157,8 @@ namespace SIT.Core.Coop
 
             //GCHelpers.EnableGC();
             //coopGame.timeAndWeatherSettings = timeAndWeather;
+
+            Singleton<ISITGame>.Create(coopGame);
 
             return coopGame;
         }
@@ -634,7 +636,7 @@ namespace SIT.Core.Coop
                         await Task.Delay(1000);
                     }
 
-                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Length;
+                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
                     do
                     {
                         if (coopGameComponent.PlayerUsers == null)
@@ -643,14 +645,14 @@ namespace SIT.Core.Coop
                             continue;
                         }
 
-                        if (coopGameComponent.PlayerUsers.Length == 0)
+                        if (coopGameComponent.PlayerUsers.Count() == 0)
                         {
                             await Task.Delay(1000);
                             continue;
                         }
 
-                        var progress = (coopGameComponent.PlayerUsers.Length / MatchmakerAcceptPatches.HostExpectedNumberOfPlayers);
-                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Length;
+                        var progress = (coopGameComponent.PlayerUsers.Count() / MatchmakerAcceptPatches.HostExpectedNumberOfPlayers);
+                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
                         if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
                         {
                             MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
@@ -930,8 +932,8 @@ namespace SIT.Core.Coop
             ConsoleScreen.ApplyStartCommands();
         }
 
-        public Dictionary<string, (float, long, string)> ExtractingPlayers = new();
-        public List<string> ExtractedPlayers = new();
+        public Dictionary<string, (float, long, string)> ExtractingPlayers { get; } = new();
+        public List<string> ExtractedPlayers { get; } = new();
 
         private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
         {

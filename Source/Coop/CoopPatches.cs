@@ -120,7 +120,7 @@ namespace SIT.Core.Coop
                     }
                 }
                 else
-                    mrp = ModuleReplicationPatch.Patches.SingleOrDefault(x => x.GetType() == module);
+                    mrp = ModuleReplicationPatch.Patches.Values.SingleOrDefault(x => x.GetType() == module);
 
                 if (mrp == null)
                     continue;

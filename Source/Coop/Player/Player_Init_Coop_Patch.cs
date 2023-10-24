@@ -10,6 +10,7 @@ using SIT.Tarkov.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace SIT.Coop.Core.Player
@@ -56,7 +57,13 @@ namespace SIT.Coop.Core.Player
                 if (!Singleton<GameWorld>.Instance.RegisteredPlayers.Any(x => x.ProfileId == profileId))
                     Singleton<GameWorld>.Instance.RegisterPlayer(player);
 
-                CullingManager.Instance.ForceEnable(false);
+                if(CullingManager.Instance != null)
+                {
+                    CullingManager.Instance.ForceEnable(false);
+                    GameObject.Destroy(CullingManager.Instance.gameObject);
+                    CullingManager.Destroy(CullingManager.Instance);
+                }
+            
             }
             else
             {

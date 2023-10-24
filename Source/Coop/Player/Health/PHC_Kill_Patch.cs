@@ -14,11 +14,20 @@ namespace SIT.Core.Coop.Player.Health
 {
     internal class PHC_Kill_Patch : ModuleReplicationPatch
     {
-        public override Type InstanceType => typeof(PlayerHealthController);
+        public override Type InstanceType => typeof(ActiveHealthController);
 
         public override string MethodName => "Kill";
 
         public static Dictionary<string, bool> CallLocally = new();
+
+        private MethodInfo WeaponSoundPlayerRelease;
+        private MethodInfo WeaponSoundPlayerStopSoundCoroutine;
+
+        public PHC_Kill_Patch()
+        {
+            WeaponSoundPlayerRelease = ReflectionHelpers.GetMethodForType(typeof(WeaponSoundPlayer), "Release");
+            WeaponSoundPlayerStopSoundCoroutine = ReflectionHelpers.GetMethodForType(typeof(WeaponSoundPlayer), "StopSoundCoroutine");
+        }
 
         private ManualLogSource GetLogger()
         {
@@ -28,11 +37,13 @@ namespace SIT.Core.Coop.Player.Health
         protected override MethodBase GetTargetMethod()
         {
             return ReflectionHelpers.GetMethodForType(InstanceType, MethodName);
+
+
         }
 
         [PatchPrefix]
         public static bool PrePatch(
-            PlayerHealthController __instance
+            ActiveHealthController __instance
             )
         {
             var player = __instance.Player;
@@ -45,7 +56,7 @@ namespace SIT.Core.Coop.Player.Health
 
         [PatchPostfix]
         public static void PatchPostfix(
-            PlayerHealthController __instance
+            ActiveHealthController __instance
             , EDamageType damageType
             )
         {
@@ -59,18 +70,16 @@ namespace SIT.Core.Coop.Player.Health
                 return;
             }
 
-
-
             KillPacket killPacket = new(player.ProfileId);
             killPacket.DamageType = damageType;
-            var json = killPacket.ToJson();
-            //Logger.LogInfo(json);
+            var json = killPacket.Serialize();
             AkiBackendCommunication.Instance.SendDataToPool(json);
         }
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            KillPacket killPacket = Json.Deserialize<KillPacket>(dict.ToJson());
+            KillPacket killPacket = new KillPacket(player.ProfileId);
+            killPacket.DeserializePacketSIT(dict["data"].ToString());
 
             if (HasProcessed(GetType(), player, killPacket))
                 return;
@@ -82,12 +91,11 @@ namespace SIT.Core.Coop.Player.Health
 
             CallLocally.Add(player.ProfileId, true);
             player.ActiveHealthController.Kill(killPacket.DamageType);
-            //player.PlayerHealthController.Kill(killPacket.DamageType);
             if (player.HandsController is EFT.Player.FirearmController firearmCont)
             {
                 firearmCont.SetTriggerPressed(false);
-                ReflectionHelpers.GetMethodForType(firearmCont.WeaponSoundPlayer.GetType(), "Release").Invoke(firearmCont.WeaponSoundPlayer, new object[1] { 0f });
-                ReflectionHelpers.GetMethodForType(firearmCont.WeaponSoundPlayer.GetType(), "StopSoundCoroutine").Invoke(firearmCont.WeaponSoundPlayer, new object[0]);
+                WeaponSoundPlayerRelease.Invoke(firearmCont.WeaponSoundPlayer, new object[1] { 0f });
+                WeaponSoundPlayerStopSoundCoroutine.Invoke(firearmCont.WeaponSoundPlayer, new object[0]);
             }
         }
 

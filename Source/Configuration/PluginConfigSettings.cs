@@ -87,6 +87,15 @@ namespace SIT.Core.Configuration
 
             public bool BotWavesDisableStopper { get; set; } = false;
 
+            public int BlackScreenOnDeathTime
+            {
+                get
+                {
+                    return StayInTarkovPlugin.Instance.Config.Bind
+                       ("Coop", "BlackScreenOnDeathTime", 333, new ConfigDescription("How long to wait until your death waits to become a Free Camera")).Value;
+                }
+            }
+
             public void GetSettings()
             {
                 SETTING_DEBUGSpawnDronesOnServer = StayInTarkovPlugin.Instance.Config.Bind

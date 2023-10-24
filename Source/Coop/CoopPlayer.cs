@@ -10,6 +10,7 @@ using SIT.Core.Coop.Player;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -150,56 +151,56 @@ namespace SIT.Core.Coop
 
         private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
-            //await Task.Run(async () =>
-            //{
-                Dictionary<string, object> packet = new();
-                var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
-                damageInfo.HitCollider = null;
-                damageInfo.HittedBallisticCollider = null;
-                Dictionary<string, string> playerDict = new();
-                if (damageInfo.Player != null)
-                {
-                    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
-                    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
-                }
+            Dictionary<string, object> packet = new();
+            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
+            damageInfo.HitCollider = null;
+            damageInfo.HittedBallisticCollider = null;
+            Dictionary<string, string> playerDict = new();
+            if (damageInfo.Player != null)
+            {
+                playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+                playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+            }
 
-                damageInfo.Player = null;
-                Dictionary<string, string> weaponDict = new();
+            damageInfo.Player = null;
+            Dictionary<string, string> weaponDict = new();
 
-                if (damageInfo.Weapon != null)
-                {
-                    packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
-                    packet.Add("d.w.id", damageInfo.Weapon.Id);
-                }
-                damageInfo.Weapon = null;
+            if (damageInfo.Weapon != null)
+            {
+                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+                packet.Add("d.w.id", damageInfo.Weapon.Id);
+            }
+            damageInfo.Weapon = null;
 
-                packet.Add("d", damageInfo.SITToJson());
-                //PatchConstants.Logger.LogDebug(packet["d"]);
+            packet.Add("d", damageInfo.SITToJson());
+            packet.Add("d.p", playerDict);
+            packet.Add("d.w", weaponDict);
+            packet.Add("bpt", bodyPartType.ToString());
+            packet.Add("bpct", bodyPartColliderType.ToString());
+            packet.Add("ab", absorbed.ToString());
+            packet.Add("hs", headSegment.ToString());
+            packet.Add("m", "ApplyDamageInfo");
 
-                packet.Add("d.p", playerDict);
-                packet.Add("d.w", weaponDict);
-                packet.Add("bpt", bodyPartType.ToString());
-                packet.Add("bpct", bodyPartColliderType.ToString());
-                packet.Add("ab", absorbed.ToString());
-                packet.Add("hs", headSegment.ToString());
-                packet.Add("m", "ApplyDamageInfo");
+            // -----------------------------------------------------------
+            // An attempt to stop the same packet being sent multiple times
+            if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
+                return;
 
-                // -----------------------------------------------------------
-                // An attempt to stop the same packet being sent multiple times
-                if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
-                    return;
+            PreviousSentDamageInfoPackets.Add(packet.ToJson());
+            // -----------------------------------------------------------
 
-                PreviousSentDamageInfoPackets.Add(packet.ToJson());
-                // -----------------------------------------------------------
-
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
-            //});
+            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
         }
 
         public void ReceiveDamageFromServer(Dictionary<string, object> dict)
         {
-            if(PreviousReceivedDamageInfoPackets.Contains(dict.ToJson())) 
-                return;
+            StartCoroutine(ReceiveDamageFromServerCR(dict));
+        }
+
+        public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
+        {
+            if (PreviousReceivedDamageInfoPackets.Contains(dict.ToJson()))
+                yield break;
 
             PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
 
@@ -215,6 +216,8 @@ namespace SIT.Core.Coop
 
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
             //base.ShotReactions(damageInfo, bodyPartType);
+
+            yield break;
 
         }
 

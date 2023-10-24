@@ -101,9 +101,17 @@ namespace SIT.Core.Misc
         /// <param name="objectType">The Object Type to search within</param>
         /// <param name="fieldType">The Field Type to find</param>
         /// <returns>Found FieldInfo or NULL</returns>
-        public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType)
+        public static FieldInfo GetFieldFromTypeByFieldType(Type objectType, Type fieldType, bool debug = false)
         {
             var fields = GetAllFieldsForType(objectType);// objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            if (debug)
+            {
+                foreach (var field in fields)
+                {
+                    Logger.LogDebug(field.Name);
+                }
+            }
+            
             return fields.FirstOrDefault(x => x.FieldType == fieldType);
 
         }
