@@ -20,9 +20,9 @@ namespace SIT.Core.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
-        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>();
-        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new();
-        public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new(9999);
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new(9999);
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new(9999);
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
@@ -121,11 +121,11 @@ namespace SIT.Core.Coop.Components
                 while (ActionPacketsDamage.TryTake(out var packet))
                 {
                     var profileId = packet["profileId"].ToString();
-                    var playerKVP = CoopGameComponent.Players.First(x => x.Key == profileId);
-                    if (playerKVP.Value == null)
+                    var playerKVP = CoopGameComponent.Players[profileId];
+                    if (playerKVP == null)
                         return;
 
-                    var coopPlayer = (CoopPlayer)playerKVP.Value;
+                    var coopPlayer = (CoopPlayer)playerKVP;
                     coopPlayer.ReceiveDamageFromServer(packet);
                 }
                 if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
@@ -217,20 +217,29 @@ namespace SIT.Core.Coop.Components
                 return false;
             }
 
-            var profilePlayers = Players.Where(x => x.Key == profileId && x.Value != null).ToArray();
+            //var profilePlayers = Players.Where(x => x.Key == profileId && x.Value != null).ToArray();
+
+            // ---------------------------------------------------
+            // Causes instance reference errors?
+            //var plyr = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(profileId);// Players[profileId];
+
+            // ---------------------------------------------------
+            //
+            var plyr = Players[profileId];
             bool processed = false;
 
-            foreach (var plyr in profilePlayers)
+            //foreach (var plyr in profilePlayers)
             {
-                if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                //if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                var prc = plyr.GetComponent<PlayerReplicatedComponent>();
                 {
                     prc.ProcessPacket(packet);
                     processed = true;
                 }
-                else
-                {
-                    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
-                }
+                //else
+                //{
+                //    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
+                //}
 
                 if (packet.ContainsKey("Extracted"))
                 {
@@ -245,12 +254,12 @@ namespace SIT.Core.Coop.Components
                             var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(Singleton<AbstractGame>.Instance);
                             if (botController != null)
                             {
-                                if (!RemovedFromAIPlayers.Contains(plyr.Key))
+                                if (!RemovedFromAIPlayers.Contains(profileId))
                                 {
-                                    RemovedFromAIPlayers.Add(plyr.Key);
+                                    RemovedFromAIPlayers.Add(profileId);
                                     Logger.LogDebug("Removing Client Player to Enemy list");
                                     var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(BotSpawner)).GetValue(botController);
-                                    botSpawner.DeletePlayer(plyr.Value);
+                                    botSpawner.DeletePlayer(plyr);
                                 }
                             }
                         }
