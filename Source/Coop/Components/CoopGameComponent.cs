@@ -1010,6 +1010,42 @@ namespace SIT.Core.Coop
                 }
             }
 
+            if (useAiControl)
+            {
+                if (profile.Info.Side == EPlayerSide.Bear || profile.Info.Side == EPlayerSide.Usec)
+                {
+                    var backpackSlot = profile.Inventory.Equipment.GetSlot(EquipmentSlot.Backpack);
+                    var backpack = backpackSlot.ContainedItem;
+                    if (backpack != null)
+                    {
+                        Item[] items = backpack.GetAllItems()?.ToArray();
+                        if (items != null)
+                        {
+                            for (int i = 0; i < items.Count(); i++)
+                            {
+                                Item item = items[i];
+                                if (item == backpack)
+                                    continue;
+
+                                item.SpawnedInSession = true;
+                            }
+                        }
+                    }
+                }
+            }
+            else // Make Player PMC items are all not 'FiR'
+            {
+                Item[] items = profile.Inventory.AllPlayerItems?.ToArray();
+                if (items != null)
+                {
+                    for (int i = 0; i < items.Count(); i++)
+                    {
+                        Item item = items[i];
+                        item.SpawnedInSession = false;
+                    }
+                }
+            }
+
             if (!SpawnedPlayersToFinalize.Any(x => otherPlayer))
                 SpawnedPlayersToFinalize.Add(otherPlayer);
 
