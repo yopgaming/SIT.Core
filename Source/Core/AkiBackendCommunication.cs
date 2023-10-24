@@ -696,8 +696,8 @@ namespace SIT.Core.Core
 
                 // set request body
                 var inputDataBytes = Encoding.UTF8.GetBytes(data);
-                byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
-                //byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
+                //byte[] bytes = compress ? Zlib.Compress(inputDataBytes, ZlibCompression.Fastest) : inputDataBytes;
+                byte[] bytes = compress ? Zlib.Compress(data) : inputDataBytes;
                 data = null;
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;
@@ -762,9 +762,7 @@ namespace SIT.Core.Core
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                var dec = Zlib.Decompress(bytes);
-                var result = Encoding.UTF8.GetString(dec);
-                dec = null;
+                var result = Zlib.Decompress(bytes);
                 bytes = null;
                 return result;
             }
@@ -777,20 +775,19 @@ namespace SIT.Core.Core
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                byte[] resultBytes;
+                string resultString;
                 if (compress)
                 {
                     if (Zlib.IsCompressed(bytes))
-                        resultBytes = Zlib.Decompress(bytes);
+                        resultString = Zlib.Decompress(bytes);
                     else
-                        resultBytes = bytes;
+                        resultString = stream.ToString();
                 }
                 else
                 {
-                    resultBytes = bytes;
+                    resultString = stream.ToString();
                 }
-                var result = Encoding.UTF8.GetString(resultBytes);
-                bytes = null;
+                var result = resultString;
                 return result;
             }
         }
