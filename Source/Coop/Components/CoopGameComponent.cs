@@ -294,18 +294,31 @@ namespace SIT.Core.Coop
                     //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
                 }
 
+                var world = Singleton<GameWorld>.Instance;
+
                 // Hide extracted Players
                 foreach (var playerId in coopGame.ExtractedPlayers)
                 {
-                    var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
+                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == playerId) as EFT.Player;
                     if (player == null)
                         continue;
 
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(((EFT.Player)player)
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(player
                         , new Dictionary<string, object>() { { "Extracted", true } }
                         , true);
 
-                    ((EFT.Player)player).SwitchRenderer(false);
+                    if (player.ActiveHealthController != null)
+                    {
+                        if (!player.ActiveHealthController.MetabolismDisabled)
+                        {
+                            player.ActiveHealthController.AddDamageMultiplier(0);
+                            player.ActiveHealthController.SetDamageCoeff(0);
+                            player.ActiveHealthController.DisableMetabolism();
+                            player.ActiveHealthController.PauseAllEffects();
+
+                            player.SwitchRenderer(false);
+                        }
+                    }
                     //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
                     //GameObject.Destroy(player);
                 }
@@ -966,6 +979,42 @@ namespace SIT.Core.Coop
                             Logger.LogDebug("Adding Client Player to Enemy list");
                             botController.AddActivePLayer(otherPlayer);
                         }
+                    }
+                }
+            }
+
+            if (useAiControl)
+            {
+                if (profile.Info.Side == EPlayerSide.Bear || profile.Info.Side == EPlayerSide.Usec)
+                {
+                    var backpackSlot = profile.Inventory.Equipment.GetSlot(EquipmentSlot.Backpack);
+                    var backpack = backpackSlot.ContainedItem;
+                    if (backpack != null)
+                    {
+                        Item[] items = backpack.GetAllItems()?.ToArray();
+                        if (items != null)
+                        {
+                            for (int i = 0; i < items.Count(); i++)
+                            {
+                                Item item = items[i];
+                                if (item == backpack)
+                                    continue;
+
+                                item.SpawnedInSession = true;
+                            }
+                        }
+                    }
+                }
+            }
+            else // Make Player PMC items are all not 'FiR'
+            {
+                Item[] items = profile.Inventory.AllPlayerItems?.ToArray();
+                if (items != null)
+                {
+                    for (int i = 0; i < items.Count(); i++)
+                    {
+                        Item item = items[i];
+                        item.SpawnedInSession = false;
                     }
                 }
             }
