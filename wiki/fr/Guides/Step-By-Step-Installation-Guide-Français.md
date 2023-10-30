@@ -114,7 +114,7 @@ Optionnellement, mettez `logRequests` à `false` dans `SIT_DIR/server/Aki_Data/S
 5. Mettez `useExternalIPFinder` à `false`.
 6. Ouvrez le fichier de configuration de la connexion au serveur de SPT-AKI dans `SIT_DIR/server/Aki_Data/Server/configs/http.json`.
 
-        *Note : Modifiez le fichier en utilisant le Bloc-notes ou un éditeur de texte qui n'introduit pas de formatage. N'utilisez pas Microsoft Word.*
+     *Note : Modifiez le fichier en utilisant le Bloc-notes ou un éditeur de texte qui n'introduit pas de formatage. N'utilisez pas Microsoft Word.*
 7. Définissez `ip` à `100.10.1.10`.
 8. Optionnellement, mettez `logRequests` à `false` pour éviter le spam des logs.
 
