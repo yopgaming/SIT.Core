@@ -151,7 +151,6 @@ namespace SIT.Core.Coop
             ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
             coopGame.BossWaveManager = bosswavemanagerValue as BossWaveManager;
 
-            coopGame.StartCoroutine(coopGame.ReplicatedWeather());
             //coopGame.StartCoroutine(coopGame.DebugObjects());
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
@@ -205,6 +204,7 @@ namespace SIT.Core.Coop
             {
                 StartCoroutine(HostPinger());
                 StartCoroutine(GameTimerSync());
+                StartCoroutine(TimeAndWeatherSync());
             }
 
             StartCoroutine(ClientLoadingPinger());
@@ -293,119 +293,48 @@ namespace SIT.Core.Coop
             }
         }
 
-        private WeatherDebug WeatherClear { get; set; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = -0.7f,
-            Fog = 0,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0,
-            ScatterGreyscale = 0,
-            Temperature = 24,
-            WindMagnitude = 0,
-            WindDirection = WeatherDebug.Direction.North,
-            TopWindDirection = Vector2.up
-        };
-
-        private WeatherDebug WeatherSlightCloud { get; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = -0.35f,
-            Fog = 0.004f,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0,
-            ScatterGreyscale = 0,
-            Temperature = 24,
-            WindDirection = WeatherDebug.Direction.North,
-            WindMagnitude = 0.02f,
-            TopWindDirection = Vector2.up
-        };
-
-        private WeatherDebug WeatherCloud { get; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = 0f,
-            Fog = 0.01f,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0,
-            ScatterGreyscale = 0,
-            Temperature = 20,
-            WindDirection = WeatherDebug.Direction.North,
-            WindMagnitude = 0.02f,
-            TopWindDirection = Vector2.up
-        };
-
-        private WeatherDebug WeatherRainDrizzle { get; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = 0f,
-            Fog = 0.01f,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0.01f,
-            ScatterGreyscale = 0,
-            Temperature = 19,
-            WindDirection = WeatherDebug.Direction.North,
-            WindMagnitude = 0.02f,
-            TopWindDirection = Vector2.up
-        };
-
-        //private TimeAndWeatherSettings timeAndWeatherSettings { get; set; }
-
-
-        public IEnumerator ReplicatedWeather()
+        public IEnumerator TimeAndWeatherSync()
         {
             var waitSeconds = new WaitForSeconds(15f);
-            //Logger.LogDebug($"ReplicatedWeather:timeAndWeatherSettings:HourOfDay:{timeAndWeatherSettings.HourOfDay}");
 
             while (true)
             {
                 yield return waitSeconds;
-                if (WeatherController.Instance != null)
+
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    yield break;
+
+                Dictionary<string, object> timeAndWeatherDict = new();
+                timeAndWeatherDict.Add("TimeAndWeather", true);
+                timeAndWeatherDict.Add("serverId", coopGameComponent.ServerId);
+
+                if (GameDateTime != null)
+                    timeAndWeatherDict.Add("GameDateTime", GameDateTime.Calculate().Ticks);
+
+                var weatherController = WeatherController.Instance;
+                if (weatherController != null)
                 {
-                    WeatherController.Instance.SetWeatherForce(new WeatherClass() { });
+                    if (weatherController.CloudsController != null)
+                        timeAndWeatherDict.Add("CloudDensity", weatherController.CloudsController.Density);
 
-                    Logger.LogDebug($"ReplicatedWeather:EscapeDateTime:{GameTimer.EscapeDateTime}");
-                    Logger.LogDebug($"ReplicatedWeather:PastTime:{GameTimer.PastTime}");
-                    Logger.LogDebug($"ReplicatedWeather:SessionTime:{GameTimer.SessionTime}");
-                    Logger.LogDebug($"ReplicatedWeather:StartDateTime:{GameTimer.StartDateTime}");
+                    var weatherCurve = weatherController.WeatherCurve;
+                    if (weatherCurve != null)
+                    {
+                        timeAndWeatherDict.Add("Fog", weatherCurve.Fog);
+                        timeAndWeatherDict.Add("LightningThunderProbability", weatherCurve.LightningThunderProbability);
+                        timeAndWeatherDict.Add("Rain", weatherCurve.Rain);
+                        timeAndWeatherDict.Add("Temperature", weatherCurve.Temperature);
+                        timeAndWeatherDict.Add("WindDirection.x", weatherCurve.Wind.x);
+                        timeAndWeatherDict.Add("WindDirection.y", weatherCurve.Wind.y);
+                        timeAndWeatherDict.Add("TopWindDirection.x", weatherCurve.TopWind.x);
+                        timeAndWeatherDict.Add("TopWindDirection.y", weatherCurve.TopWind.y);
+                    }
 
-
-                    WeatherController.Instance.WeatherDebug.Enabled = true;
-                    WeatherController.Instance.WeatherDebug.CloudDensity = -0.35f;
-                    WeatherController.Instance.WeatherDebug.Fog = 0;
-                    WeatherController.Instance.WeatherDebug.LightningThunderProbability = 0;
-                    WeatherController.Instance.WeatherDebug.MBOITFog = false;
-                    WeatherController.Instance.WeatherDebug.Rain = 0;
-                    WeatherController.Instance.WeatherDebug.ScatterGreyscale = 0;
-                    WeatherController.Instance.WeatherDebug.Temperature = 24;
-                    WeatherController.Instance.WeatherDebug.WindDirection = WeatherDebug.Direction.North;
-                    WeatherController.Instance.WeatherDebug.TopWindDirection = Vector2.up;
-
-                    // ----------------------------------------------------------------------------------
-                    // Create synchronized time
-
-                    //var hourOfDay = WeatherController.Instance.
-                    WeatherController.Instance.WeatherDebug.SetHour(12);
-
-                    //WeatherController.Instance.WeatherDebug.SetHour(
-                    //    timeAndWeatherSettings.HourOfDay >= 6 && timeAndWeatherSettings.HourOfDay <= 8
-                    //    ? 7
-                    //    : timeAndWeatherSettings.HourOfDay >= 9 && timeAndWeatherSettings.HourOfDay <= 18
-                    //    ? 12
-                    //    : timeAndWeatherSettings.HourOfDay >= 19 && timeAndWeatherSettings.HourOfDay <= 21
-                    //    ? 20
-                    //    : 3
-                    //    );
+                    Logger.LogDebug(timeAndWeatherDict.ToJson());
+                    AkiBackendCommunication.Instance.SendDataToPool(timeAndWeatherDict.ToJson());
                 }
             }
         }
-
-
-      
 
         public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 

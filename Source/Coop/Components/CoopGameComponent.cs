@@ -203,7 +203,6 @@ namespace SIT.Core.Coop
             StartCoroutine(ProcessServerCharacters());
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
-            StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
             Task.Run(() => PeriodicEnableDisableGC());
@@ -348,7 +347,6 @@ namespace SIT.Core.Coop
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
             StopCoroutine(ProcessServerCharacters());
-            StopCoroutine(SendWeatherToClients());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
@@ -1323,17 +1321,6 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
-        }
-
-        private IEnumerator SendWeatherToClients()
-        {
-            var waitSeconds = new WaitForSeconds(60f);
-
-            while (RunAsyncTasks)
-            {
-                yield return waitSeconds;
-
-            }
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;

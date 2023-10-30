@@ -45,7 +45,7 @@ namespace SIT.Core.Coop
             //new LocalGameSpawnAICoroutinePatch().Enable(); // No longer needed. Handled by CoopGame
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
-            //new LocalGame_Weather_Patch().Enable();
+            new LocalGame_Weather_Patch().Enable();
 
 
             // ------ MATCHMAKER -------------------------
