@@ -3,7 +3,7 @@
 
 ### Étape 1 Construire le serveur
 Suivez le readme sur le repo [Server](https://dev.sp-tarkov.com/SPT-AKI/Server) de SPT-Aki. Généralement :
-``bash
+```bash
 git clone https://dev.sp-tarkov.com/SPT-AKI/Server.git
 cd Serveur/projet
 git fetch
