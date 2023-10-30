@@ -126,7 +126,9 @@ namespace SIT.Core.Coop.Player
                             {
                                 Logger.LogDebug($"PlayerInventoryController_ThrowItem_Patch.Replicated. Found {destroyedItems.Count} item(s) has hit LimitedDiscard.");
 
-                                if (await ItemUiContext.Instance.ShowScrolledMessageWindow(out _, GClass3045.GetFullLocalizedDescription(destroyedItems), "InventoryWarning/ItemsToBeDestroyed".Localized(), true))
+                                ReflectionHelpers.GetTypeAndMethodWhereMethodExists("GetFullLocalizedDescription", out _, out var GetFullLocalizedDescriptionMI);
+                                //if (await ItemUiContext.Instance.ShowScrolledMessageWindow(out _, GClass3045.GetFullLocalizedDescription(destroyedItems), "InventoryWarning/ItemsToBeDestroyed".Localized(), true))
+                                if (await ItemUiContext.Instance.ShowScrolledMessageWindow(out _, (string)GetFullLocalizedDescriptionMI.Invoke(null, new object[] { destroyedItems }), "InventoryWarning/ItemsToBeDestroyed".Localized(), true))
                                 {
                                     if (destroyedItems[0].Item == item)
                                     {
