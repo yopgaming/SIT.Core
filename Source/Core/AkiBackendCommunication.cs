@@ -313,20 +313,24 @@ namespace SIT.Core.Core
                         var raidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
                         Logger.LogInfo($"RaidTimer: Remaining session time {raidTimer.TraderFormat()}");
 
-                        if (coopGameComponent.LocalGameInstance is CoopGame localGameInstance)
+                        if (coopGameComponent.LocalGameInstance is CoopGame coopGame)
                         {
-                            var gameTimer = localGameInstance.GameTimer;
+                            var gameTimer = coopGame.GameTimer;
                             if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
                             {
-                                var timeRemain = gameTimer.PastTime + raidTimer;
-                                if ((int)gameTimer.SessionTime.Value.TotalSeconds != (int)timeRemain.TotalSeconds)
-                                {
-                                    Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
-                                    gameTimer.ChangeSessionTime(timeRemain);
+                                if (gameTimer.PastTime.TotalSeconds < 3)
+                                    return;
 
-                                    // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
-                                    localGameInstance.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, localGameInstance.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
-                                }
+                                var timeRemain = gameTimer.PastTime + raidTimer;
+
+                                if (Math.Abs(gameTimer.SessionTime.Value.TotalSeconds - timeRemain.TotalSeconds) < 5)
+                                    return;
+
+                                Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
+                                gameTimer.ChangeSessionTime(timeRemain);
+
+                                // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
+                                coopGame.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, coopGame.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
                             }
                         }
                     }
