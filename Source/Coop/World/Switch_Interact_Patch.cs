@@ -17,7 +17,10 @@ namespace SIT.Core.Coop.World
 
         public static string MethodName => "Switch_Interact";
 
-        public static List<string> CallLocally = new();
+        protected override MethodBase GetTargetMethod()
+        {
+            return ReflectionHelpers.GetAllMethodsForType(InstanceType).FirstOrDefault(x => x.Name == "Interact" && x.GetParameters().Length == 1 && x.GetParameters()[0].Name == "interactionResult");
+        }
 
         static ConcurrentBag<long> ProcessedCalls = new();
 
@@ -34,17 +37,40 @@ namespace SIT.Core.Coop.World
             return true;
         }
 
+        [PatchPrefix]
+        public static bool Prefix(Switch __instance)
+        {
+            return false;
+        }
+
+        [PatchPostfix]
+        public static void Postfix(Switch __instance, InteractionResult interactionResult)
+        {
+            Dictionary<string, object> packet = new()
+            {
+                { "t", DateTime.Now.Ticks.ToString("G") },
+                { "serverId", CoopGameComponent.GetServerId() },
+                { "m", MethodName },
+                { "switchId", __instance.Id },
+                { "type", interactionResult.InteractionType.ToString() }
+            };
+
+            if (__instance.InteractingPlayer != null)
+                packet.Add("player", __instance.InteractingPlayer.ProfileId);
+
+            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(packet);
+        }
+
         public static void Replicated(Dictionary<string, object> packet)
         {
             if (HasProcessed(packet))
                 return;
 
-            Logger.LogDebug($"Switch_Interact_Patch:Replicated");
-
             if (Enum.TryParse(packet["type"].ToString(), out EInteractionType interactionType))
             {
-                Switch @switch;
-                @switch = (Switch)CoopGameComponent.GetCoopGameComponent().ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString());
+                CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
+                Switch @switch = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["switchId"].ToString()) as Switch;
+
                 if (@switch != null)
                 {
                     string methodName = string.Empty;
@@ -60,70 +86,41 @@ namespace SIT.Core.Coop.World
                             methodName = "Unlock";
                             break;
                         case EInteractionType.Breach:
-                            methodName = "Breach";
                             break;
                         case EInteractionType.Lock:
                             methodName = "Lock";
                             break;
                     }
+
+                    EFT.Player player = null;
+                    if (packet.ContainsKey("player"))
+                    {
+                        player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(packet["player"].ToString());
+                        if (player != null)
+                        {
+                            if (!coopGameComponent.HighPingMode && !player.IsYourPlayer)
+                            {
+                                if (SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient || coopGameComponent.PlayerUsers.Contains(player))
+                                {
+                                    WorldInteractiveObject.InteractionParameters interactionParameters = @switch.GetInteractionParameters(player.Transform.position);
+                                    player.SendHandsInteractionStateChanged(true, interactionParameters.AnimationId);
+                                    player.HandsController.Interact(true, interactionParameters.AnimationId);
+                                }
+                            }
+                        }
+                    }
+
                     ReflectionHelpers.InvokeMethodForObject(@switch, methodName);
                 }
                 else
                 {
-                    Logger.LogDebug("Switch_Interact_Patch:Replicated: Couldn't find Door in at all in world?");
+                    Logger.LogDebug("Switch_Interact_Patch:Replicated: Couldn't find Switch in at all in world?");
                 }
-
-
             }
             else
             {
                 Logger.LogError("Switch_Interact_Patch:Replicated:EInteractionType did not parse correctly!");
             }
-        }
-
-        protected override MethodBase GetTargetMethod()
-        {
-            return ReflectionHelpers.GetAllMethodsForType(InstanceType)
-                .FirstOrDefault(x => x.Name == "Interact" && x.GetParameters().Length == 1 && x.GetParameters()[0].Name == "interactionResult");
-        }
-
-        [PatchPrefix]
-        public static bool Prefix(Switch __instance)
-        {
-            if (CallLocally.Contains(__instance.Id))
-                return true;
-
-            return false;
-        }
-
-        [PatchPostfix]
-        public static void Postfix(Switch __instance, InteractionResult interactionResult)
-        {
-            if (CallLocally.Contains(__instance.Id))
-            {
-                CallLocally.Remove(__instance.Id);
-                return;
-            }
-
-            var coopGC = CoopGameComponent.GetCoopGameComponent();
-            if (coopGC == null)
-                return;
-
-            Logger.LogDebug($"Switch_Interact_Patch:Postfix:Door Id:{__instance.Id}");
-
-            Dictionary<string, object> packet = new()
-            {
-                { "t", DateTime.Now.Ticks },
-                { "serverId", CoopGameComponent.GetServerId() },
-                { "doorId", __instance.Id },
-                { "type", interactionResult.InteractionType.ToString() },
-                { "m", MethodName }
-            };
-
-            var packetJson = packet.SITToJson();
-            Logger.LogDebug($"Switch_Interact_Patch:Postfix:{packetJson}");
-
-            AkiBackendCommunication.Instance.PostDownWebSocketImmediately(packet);
         }
     }
 }
