@@ -201,19 +201,17 @@ namespace SIT.Core.Coop
                 throw new Exception("No Server Id found");
             }
 
-            if (!MatchmakerAcceptPatches.IsClient)
+            if (MatchmakerAcceptPatches.IsServer)
+            {
                 StartCoroutine(HostPinger());
-
-            if (!MatchmakerAcceptPatches.IsClient)
                 StartCoroutine(GameTimerSync());
-
+            }
 
             StartCoroutine(ClientLoadingPinger());
 
             var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{CoopGameComponent.GetServerId()}");
             Logger.LogDebug(friendlyAIJson);
             //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
-
         }
 
         private IEnumerator ClientLoadingPinger()
@@ -274,7 +272,7 @@ namespace SIT.Core.Coop
 
         private IEnumerator GameTimerSync()
         {
-            var waitSeconds = new WaitForSeconds(5f);
+            var waitSeconds = new WaitForSeconds(10f);
 
             while (true)
             {
@@ -283,11 +281,13 @@ namespace SIT.Core.Coop
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     yield break;
 
-                if (GameTimer.SessionTime.HasValue)
+                if (GameTimer.StartDateTime.HasValue && GameTimer.SessionTime.HasValue)
                 {
-                    Dictionary<string, string> raidTimerDict = new Dictionary<string, string>();
-                    raidTimerDict.Add("RaidTimer", GameTimer.SessionTime.Value.Ticks.ToString());
-                    raidTimerDict.Add("serverId", coopGameComponent.ServerId);
+                    Dictionary<string, object> raidTimerDict = new()
+                    {
+                        { "serverId", coopGameComponent.ServerId },
+                        { "RaidTimer", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
+                    };
                     AkiBackendCommunication.Instance.SendDataToPool(raidTimerDict.ToJson());
                 }
             }

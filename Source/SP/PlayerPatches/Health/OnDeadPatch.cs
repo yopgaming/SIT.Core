@@ -29,54 +29,50 @@ namespace SIT.Core.SP.PlayerPatches.Health
         [PatchPostfix]
         public static void PatchPostfix(Player __instance, EDamageType damageType)
         {
-            Player deadPlayer = __instance;
-            if (deadPlayer == null)
+            Player victim = __instance;
+            if (victim == null)
                 return;
 
-            if (OnPersonKilled != null)
-            {
-                OnPersonKilled(__instance, damageType);
-            }
+            OnPersonKilled?.Invoke(victim, damageType);
 
-            var killedBy = ReflectionHelpers.GetFieldOrPropertyFromInstance<Player>(deadPlayer, "LastAggressor", false);
-            if (killedBy == null)
-                return;
-
-            var killedByLastAggressor = ReflectionHelpers.GetFieldOrPropertyFromInstance<Player>(killedBy, "LastAggressor", false);
-            if (killedByLastAggressor == null)
-                return;
+            var attacker = ReflectionHelpers.GetFieldOrPropertyFromInstance<Player>(victim, "LastAggressor", false);
 
             if (DisplayDeathMessage)
-            {
-                if (killedBy != null)
-                    DisplayMessageNotifications.DisplayMessageNotification($"{killedBy.Profile.Info.Nickname} killed {deadPlayer.Profile.Nickname}");
-                else
-                    DisplayMessageNotifications.DisplayMessageNotification($"{deadPlayer.Profile.Nickname} has died by {damageType}");
-            }
+                DisplayMessageNotifications.DisplayMessageNotification(attacker != null ? $"\"{GeneratePlayerNameWithSide(attacker)}\" killed \"{GeneratePlayerNameWithSide(victim)}\"" : $"\"{GeneratePlayerNameWithSide(victim)}\" has died because of \"{("DamageType_" + damageType.ToString()).Localized()}\"");
 
             Dictionary<string, object> packet = new()
             {
-                { "diedAID", __instance.Profile.AccountId },
-                { "diedProfileId", __instance.ProfileId }
+                { "diedAID", victim.Profile.AccountId },
+                { "diedProfileId", victim.ProfileId },
+                { "diedFaction", victim.Side }
             };
-            if (__instance.Profile.Info != null)
+
+            if (victim.Profile.Info != null && victim.Profile.Info.Settings != null)
+                packet.Add("diedWST", victim.Profile.Info.Settings.Role);
+
+            if (attacker != null)
             {
-                packet.Add("diedFaction", __instance.Side);
-                if (__instance.Profile.Info.Settings != null)
-                    packet.Add("diedWST", __instance.Profile.Info.Settings.Role);
+                packet.Add("killedByAID", attacker.Profile.AccountId);
+                packet.Add("killedByProfileId", attacker.ProfileId);
+                packet.Add("killerFaction", attacker.Side);
             }
-            if (killedBy != null)
-            {
-                packet.Add("killedByProfileId", killedBy.ProfileId);
-                packet.Add("killedByAID", killedBy.Profile.AccountId);
-                packet.Add("killerFaction", killedBy.Side);
-            }
-            if (killedByLastAggressor != null)
-            {
-                packet.Add("killedByLastAggressorAID", killedByLastAggressor.Profile.AccountId);
-                packet.Add("killedByLastAggressorProfileId", killedByLastAggressor.ProfileId);
-            }
+
             AkiBackendCommunication.Instance.PostJsonAndForgetAsync("/client/raid/person/killed", JsonConvert.SerializeObject(packet));
+        }
+
+        public static string GeneratePlayerNameWithSide(Player player)
+        {
+            if (player == null)
+                return "";
+
+            var side = "Scav";
+
+            if (player.AIData.IAmBoss)
+                side = "Boss";
+            else if (player.Side != EPlayerSide.Savage)
+                side = player.Side.ToString();
+
+            return $"[{side}] {player.Profile.GetCorrectedNickname()}";
         }
     }
 }
