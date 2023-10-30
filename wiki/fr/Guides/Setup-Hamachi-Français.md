@@ -18,13 +18,13 @@ Vous pouvez également appliquer ce guide à des scénarios où l'hôte a des po
 1. Créez la même structure de dossiers que celle décrite dans le guide d'installation du client.
 Mais cette fois-ci, créez également un dossier appelé "Server"\
 SITCOOP/Serveur
-2. Télécharger et extraire la dernière version de [SPT-AKI Stable Release] (https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) dans le dossier Serveur.
+2. Télécharger et extraire la dernière version de [SPT-AKI Stable Release](https://dev.sp-tarkov.com/SPT-AKI/Stable-releases/releases) dans le dossier Serveur.
 3. Lancez Aki.Server.exe, vous pouvez le fermer une fois qu'il dit "Happy playing".
 4. Téléchargez [SIT.Aki server mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) et installez-le comme vous le feriez pour n'importe quel autre mod sur AKI Server.
 Le chemin du dossier du mod devrait ressembler à ceci:\
 C:\SITCOOP\Server\user\mods\SIT.Aki-Server-Mod-master\
 Pour être sûr de ne pas avoir de dossiers supplémentaires, le dossier SIT.Aki-Server-Mod-master doit contenir le fichier package.json.
-5. Configurez http.json et coopconfig.json comme décrit dans [Paulov-t's HOSTING.md] (https://github.com/paulov-t/SIT.Core/wiki/Hosting-French).
+5. Configurez http.json et coopconfig.json comme décrit dans [Paulov-t's HOSTING.md](https://github.com/paulov-t/SIT.Core/wiki/Hosting-French).
 Si vous utilisez Hamachi, utilisez Hamachi Ipv4 pour http.json et coopconfig.json.
 *n'utilisez jamais 127.0.0.1 ou Localhost!*
 6. Démarrez le serveur (en tant qu'administrateur) et allez à la section d'installation du client.
@@ -52,6 +52,6 @@ Example: http://100.100.100.100:6969
 
 **Félicitations, vous avez maintenant une nouvelle installation de SIT.
 
-**Profitez-en**
+**enjoy**
 
 Créé par ppyLEK *(petites modifications par SlejmUr)* Traduction par cocorico8
