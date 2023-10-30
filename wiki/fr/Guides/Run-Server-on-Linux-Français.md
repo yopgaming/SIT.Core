@@ -15,7 +15,7 @@ npm install
 npm run build:release # ou build:debug
 # Le serveur sera construit dans ./build
 ```
-**Copiez ou déplacez la compilation du serveur vers un autre endroit ! NE PAS exécuter le serveur directement à partir du répertoire de construction ! Le répertoire de compilation sera supprimé et recréé lors d'une compilation **.
+**Copiez ou déplacez la compilation du serveur vers un autre endroit ! NE PAS exécuter le serveur directement à partir du répertoire de construction ! Le répertoire de compilation sera supprimé et recréé lors d'une compilation.**
 
 
 ### Étape 2 Installer le mod SIT Server
