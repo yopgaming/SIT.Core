@@ -50,10 +50,10 @@ Si BSG décide de créer la possibilité de faire cela en direct OU si je reçoi
 * Ne donnez pas d'argent en espérant obtenir de l'aide ou une solution.
 * Il s'agit d'un hobby, pour le plaisir. Ne le prenez pas au sérieux.
 * Je sais qu'il s'agit là d'une tentative à moitié ratée, mais je vais essayer de la réparer du mieux que je peux.
-* Un [Discord SIT non officiel] (https://discord.gg/VengzHxNmZ) est disponible. La communauté s'est associée pour s'entraider et créer des serveurs communautaires. **Je ne fais pas partie de ce Discord**.
+* Un [Discord SIT non officiel](https://discord.gg/VengzHxNmZ) est disponible. La communauté s'est associée pour s'entraider et créer des serveurs communautaires. **Je ne fais pas partie de ce Discord**.
 
 ## Configuration requise pour SPT-AKI
-* Stay in Tarkov nécessite le [dernier serveur AKI] (https://dev.sp-tarkov.com/SPT-AKI/Server) pour fonctionner. Vous pouvez en savoir plus sur SPT-Aki [ici] (https://www.sp-tarkov.com/).
+* Stay in Tarkov nécessite le [dernier serveur AKI](https://dev.sp-tarkov.com/SPT-AKI/Server) pour fonctionner. Vous pouvez en savoir plus sur SPT-Aki [ici](https://www.sp-tarkov.com/).
 * N'INSTALLEZ PAS CELA SUR LE CLIENT SPT-AKI ! INSTALLEZ LE UNIQUEMENT SUR LE SERVEUR !
 
 ## [Wiki](https://github.com/paulov-t/SIT.Core/wiki)
@@ -72,7 +72,7 @@ Si BSG décide de créer la possibilité de faire cela en direct OU si je reçoi
 * Malgré les affirmations selon lesquelles les "VPN" tels que HAMACHI/RADMIN fonctionnent. Je vous recommande vivement de ne pas les utiliser. Ils ont des connexions très lentes. Essayez toujours de trouver un moyen d'héberger direct OU de payer un serveur cheap pour héberger le serveur Aki.
 
 ### PRÉREQUIS
-Vous devez avoir le [mod SPT-Aki ] (https://github.com/paulov-t/SIT.Aki-Server-Mod) installé dans votre serveur pour que ce module fonctionne. Si vous ne souhaitez pas utiliser le module Coop, vous devez le désactiver dans le fichier de configuration de BepInEx.
+Vous devez avoir le [mod SPT-Aki ](https://github.com/paulov-t/SIT.Aki-Server-Mod) installé dans votre serveur pour que ce module fonctionne. Si vous ne souhaitez pas utiliser le module Coop, vous devez le désactiver dans le fichier de configuration de BepInEx.
 
 ### La Coop peut-il utiliser le code Coop de BSG ?
 Le code du serveur BSG est caché du client pour des raisons évidentes. Donc l'implémentation de la Coop de BSG utilise les mêmes serveurs en ligne que le PvPvE. Nous ne pouvons pas voir le code, donc nous ne pouvons pas l'utiliser.
