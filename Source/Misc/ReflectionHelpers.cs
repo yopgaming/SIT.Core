@@ -344,5 +344,11 @@ namespace SIT.Core.Misc
                     return typesFound.FirstOrDefault();
             }
         }
+
+        internal static void GetTypeAndMethodWhereMethodExists(string methodName, out Type type, out MethodInfo methodInfo)
+        {
+            type = EftTypes.FirstOrDefault(x => ReflectionHelpers.GetAllMethodsForType(x).Any(y => y.Name.Equals(methodName, StringComparison.InvariantCulture)));
+            methodInfo = ReflectionHelpers.GetAllMethodsForType(type).First(y => y.Name.Equals(methodName, StringComparison.InvariantCulture));
+        }
     }
 }
