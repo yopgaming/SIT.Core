@@ -107,7 +107,7 @@ Optionnellement, mettez `logRequests` à `false` dans `SIT_DIR/server/Aki_Data/S
 2. Trouvez l'adresse IPv4 indiquée dans le widget LogMeIn Hamachi et copiez-la. Nous utiliserons `100.10.1.10` comme exemple d'adresse IP pour ce guide.
 3. Ouvrez le fichier de configuration du serveur coop dans `SIT_DIR/server/user/mods/SIT.Aki Server-Mod/config/coopConfig.json`.
 
-    *Le fichier `coopConfig.json` est automatiquement créé lorsque le mod serveur est lancé pour la première fois. Lancez `Aki.Server.exe` pour créer le fichier. Arrêtez et fermez le serveur une fois que le fichier a été créé afin que nous puissions continuer le processus d'installation.
+    *Le fichier `coopConfig.json` est automatiquement créé lorsque le mod serveur est lancé pour la première fois. Lancez `Aki.Server.exe` pour créer le fichier. Arrêtez et fermez le serveur une fois que le fichier a été créé afin que nous puissions continuer le processus d'installation.*
 
     *Note : Faites des modifications au fichier en utilisant Bloc-notes ou un éditeur de texte qui n'introduira pas de formatage. N'utilisez pas Microsoft Word.*
 4. Définissez `externalIP` à l'IP que nous avons copié de LogMeIn Hamachi : `100.10.1.10`.
