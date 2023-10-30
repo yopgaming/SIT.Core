@@ -51,11 +51,11 @@ namespace DrakiaXYZ.BigBrain.Patches
                 {
                     // If an instance of our action doesn't exist in our dict, add it
                     int action = (int)result.Value.Action;
-                    BaseNodeClass nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as BaseNodeClass;
+                    GClass121 nodeInstance = aiCoreNodeDict[(BotLogicDecision)action] as GClass121;
                     if (nodeInstance == null)
                     {
                         Delegate lazyGetter = _lazyGetterField.GetValue(__instance) as Delegate;
-                        nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as BaseNodeClass;
+                        nodeInstance = lazyGetter.DynamicInvoke(new object[] { (BotLogicDecision)action }) as GClass121;
 
                         if (nodeInstance != null)
                         {

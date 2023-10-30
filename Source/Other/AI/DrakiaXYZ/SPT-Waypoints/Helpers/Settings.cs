@@ -164,14 +164,14 @@ namespace DrakiaXYZ.Waypoints.Helpers
                 return;
             }
 
-            if (DebugEnabled.Value)
-            {
-                BotZoneDebugComponent.Enable();
-            }
-            else
-            {
-                BotZoneDebugComponent.Disable();
-            }
+            //if (DebugEnabled.Value)
+            //{
+            //    BotZoneDebugComponent.Enable();
+            //}
+            //else
+            //{
+            //    BotZoneDebugComponent.Disable();
+            //}
         }
 
         private static void ShowNavMesh_SettingChanged(object sender, EventArgs e)
@@ -203,14 +203,14 @@ namespace DrakiaXYZ.Waypoints.Helpers
 
         private static void EditorEnabled_SettingChanged(object sender, EventArgs e)
         {
-            if (EditorEnabled.Value)
-            {
-                EditorComponent.Enable();
-            }
-            else
-            {
-                EditorComponent.Disable();
-            }
+            //if (EditorEnabled.Value)
+            //{
+            //    EditorComponent.Enable();
+            //}
+            //else
+            //{
+            //    EditorComponent.Disable();
+            //}
         }
     }
 }
