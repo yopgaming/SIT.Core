@@ -8,14 +8,14 @@
 ## HOST
 
 
-1. Télécharger [SPT Aki] (https://www.sp-tarkov.com/) et extrayer Aki.Server et Aki_Data dans le dossier de votre choix.
+1. Télécharger [SPT Aki](https://www.sp-tarkov.com/) et extrayer Aki.Server et Aki_Data dans le dossier de votre choix.
 2. Suivez les instructions pour [Installer SIT Coop Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) dans le serveur et configurez-le correctement.
 3. Effacez toutes vos copies actuelles de Offline EFT
-4. Télécharger [SIT-Launcher](https://github.com/paulov-t/SIT.Launcher) [dernière version](https://github.com/paulov-t/SIT.Launcher/releases/) .zip et l'extraire n'importe où.
+4. Télécharger [SIT-Launcher](https://github.com/paulov-t/SIT.Launcher)[dernière version](https://github.com/paulov-t/SIT.Launcher/releases/) .zip et l'extraire n'importe où.
 5. Exécutez SIT.Launcher.exe
 6. Suivez les instructions du SIT-Launcher pour créer une copie de votre copie Live EFT et installer automatiquement la dernière version de SIT.
 7. S'assurer que SIT-Launcher installe SIT / Assemblies dans l'onglet Paramètres.
-8. Assurez-vous d'avoir suivi les instructions pour [Installer le SIT Coop Mod] (https://github.com/paulov-t/SIT.Aki-Server-Mod) et d'avoir configuré le fichier http.json de votre serveur Aki avec l'IP interne de votre carte réseau et le fichier coopConfig.json du Coop Mod avec votre [IP externe] (https://www.whatismyip.com/).
+8. Assurez-vous d'avoir suivi les instructions pour [Installer le SIT Coop Mod](https://github.com/paulov-t/SIT.Aki-Server-Mod) et d'avoir configuré le fichier http.json de votre serveur Aki avec l'IP interne de votre carte réseau et le fichier coopConfig.json du Coop Mod avec votre [IP externe] (https://www.whatismyip.com/).
 9. Lancez le serveur et partagez avec vos amis votre adresse IP externe.
 10. Transférez les ports 6969 et 6970 de votre routeur vers l'adresse IP de votre carte réseau locale (par exemple 192.1.2.3).
 11. Ouvrez le pare-feu sur les ports 6969 et 6970 de votre serveur et de votre routeur.

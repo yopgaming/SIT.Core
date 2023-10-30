@@ -15,7 +15,7 @@ Tout au long de ce guide, nous ferons référence à `SIT_DIR` comme répertoire
 - Un dossier `game` pour les fichiers du jeu Escape From Tarkov.
 
 
-*Envisagez d'utiliser un outil comme [7zip](https://7-zip.org/) ou WinRAR pour décompresser les fichiers compressés.
+*Envisagez d'utiliser un outil comme [7zip](https://7-zip.org/) ou WinRAR pour décompresser les fichiers compressés.*
 
 
 # Installation
@@ -52,7 +52,7 @@ Tout au long de ce guide, nous ferons référence à `SIT_DIR` comme répertoire
 2. Dézippez le fichier et extrayez le contenu dans `SIT_DIR/server/user/mods`.
 
 
-    *Le répertoire `user/mods` est automatiquement créé lorsque le serveur est lancé pour la première fois. Exécutez `Aki.Server.exe` pour créer le répertoire. Arrêtez et fermez le serveur une fois que le répertoire a été créé afin que nous puissions continuer le processus d'installation.
+    *Le répertoire `user/mods` est automatiquement créé lorsque le serveur est lancé pour la première fois. Exécutez `Aki.Server.exe` pour créer le répertoire. Arrêtez et fermez le serveur une fois que le répertoire a été créé afin que nous puissions continuer le processus d'installation.*
 
 
 # Configuration du serveur
@@ -65,10 +65,10 @@ Tout au long de ce guide, nous ferons référence à `SIT_DIR` comme répertoire
 1. Ouvrez le fichier de configuration du serveur coop dans `SIT_DIR/server/user/mods/SIT.Aki Server-Mod/config/coopConfig.json`.
 
 
-    *Le fichier `coopConfig.json` est automatiquement créé lorsque le mod serveur est lancé pour la première fois. Lancez `Aki.Server.exe` pour créer le fichier. Arrêtez et fermez le serveur une fois que le fichier a été créé afin que nous puissions continuer le processus d'installation.
+    *Le fichier `coopConfig.json` est automatiquement créé lorsque le mod serveur est lancé pour la première fois. Lancez `Aki.Server.exe` pour créer le fichier. Arrêtez et fermez le serveur une fois que le fichier a été créé afin que nous puissions continuer le processus d'installation.*
 
 
-    *Note : Faites des modifications au fichier en utilisant Notepad ou un éditeur de texte qui n'introduira pas de formatage. N'utilisez pas Microsoft Word.
+    *Note : Faites des modifications au fichier en utilisant Notepad ou un éditeur de texte qui n'introduira pas de formatage. N'utilisez pas Microsoft Word.*
 2. Définissez `externalIP` à `127.0.0.1`.
 3. Définissez `useExternalIPFinder` à `false`.
 4. Optionnellement, mettez `logRequests` à `false` dans `SIT_DIR/server/Aki_Data/Server/configs/http.json` pour empêcher le spam des logs.
@@ -78,11 +78,11 @@ Tout au long de ce guide, nous ferons référence à `SIT_DIR` comme répertoire
 Connectez-vous en utilisant `http://127.0.0.1:6969` comme serveur.
 
 
-*Vous ne pourrez pas inviter d'autres personnes à rejoindre votre jeu en utilisant localhost, mais cela peut être utile pour déboguer des problèmes de connexion. Utilisez ceci pour confirmer que le jeu et les mods sont installés correctement.
+*Vous ne pourrez pas inviter d'autres personnes à rejoindre votre jeu en utilisant localhost, mais cela peut être utile pour déboguer des problèmes de connexion. Utilisez ceci pour confirmer que le jeu et les mods sont installés correctement.*
 
 
 
-## Hosted with port forwarding
+## Hoster avec redirection de port
 
 
 ### Configuration
@@ -102,22 +102,19 @@ Optionnellement, mettez `logRequests` à `false` dans `SIT_DIR/server/Aki_Data/S
 
 ## Hébergé avec Hamachi VPN
 
-
 ### Serveur
 1. Lancez Hamachi.
 2. Trouvez l'adresse IPv4 indiquée dans le widget LogMeIn Hamachi et copiez-la. Nous utiliserons `100.10.1.10` comme exemple d'adresse IP pour ce guide.
 3. Ouvrez le fichier de configuration du serveur coop dans `SIT_DIR/server/user/mods/SIT.Aki Server-Mod/config/coopConfig.json`.
 
-
     *Le fichier `coopConfig.json` est automatiquement créé lorsque le mod serveur est lancé pour la première fois. Lancez `Aki.Server.exe` pour créer le fichier. Arrêtez et fermez le serveur une fois que le fichier a été créé afin que nous puissions continuer le processus d'installation.
 
-
-    *Note : Faites des modifications au fichier en utilisant Bloc-notes ou un éditeur de texte qui n'introduira pas de formatage. N'utilisez pas Microsoft Word.
+    *Note : Faites des modifications au fichier en utilisant Bloc-notes ou un éditeur de texte qui n'introduira pas de formatage. N'utilisez pas Microsoft Word.*
 4. Définissez `externalIP` à l'IP que nous avons copié de LogMeIn Hamachi : `100.10.1.10`.
 5. Mettez `useExternalIPFinder` à `false`.
 6. Ouvrez le fichier de configuration de la connexion au serveur de SPT-AKI dans `SIT_DIR/server/Aki_Data/Server/configs/http.json`.
 
-        *Note : Modifiez le fichier en utilisant le Bloc-notes ou un éditeur de texte qui n'introduit pas de formatage. N'utilisez pas Microsoft Word.
+        *Note : Modifiez le fichier en utilisant le Bloc-notes ou un éditeur de texte qui n'introduit pas de formatage. N'utilisez pas Microsoft Word.*
 7. Définissez `ip` à `100.10.1.10`.
 8. Optionnellement, mettez `logRequests` à `false` pour éviter le spam des logs.
 
@@ -141,7 +138,7 @@ Lancez `Aki.Server.exe` depuis `SIT_DIR/server`.
 Lancez le jeu via le `SIT Launcher`.
 
 
-*La première fois que vous essayez de vous connecter avec de nouvelles informations d'identification, il vous sera demandé de créer un compte, cliquez sur "Oui" (les mots de passe sont stockés en texte brut, n'utiliser pas vos vrai mot de passe). Vous pouvez également être invité à Alt+F4 après le lancement du jeu, si c'est le cas, fermez le jeu et relancez-le via SIT Launcher.
+*La première fois que vous essayez de vous connecter avec de nouvelles informations d'identification, il vous sera demandé de créer un compte, cliquez sur "Oui" (les mots de passe sont stockés en texte brut, n'utiliser pas vos vrai mot de passe). Vous pouvez également être invité à Alt+F4 après le lancement du jeu, si c'est le cas, fermez le jeu et relancez-le via SIT Launcher.*
 
 
 ## 3. Créer un lobby

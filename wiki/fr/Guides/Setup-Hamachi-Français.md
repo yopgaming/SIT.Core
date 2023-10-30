@@ -50,7 +50,7 @@ Example: http://100.100.100.100:6969
 
 9. Allez dans les paramètres du lanceur et assurez-vous que les options "Automatically Install SIT", "Force Install Latest SIT..." et "Automatically Install AKi Support" sont activées.
 
-**Félicitations, vous avez maintenant une nouvelle installation de SIT.
+**Félicitations, vous avez maintenant une nouvelle installation de SIT.**
 
 **enjoy**
 
