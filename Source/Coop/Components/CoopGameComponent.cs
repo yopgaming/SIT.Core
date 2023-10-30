@@ -1124,20 +1124,26 @@ namespace SIT.Core.Coop
                 }
             }
 
-            
-
             switch (packet["m"].ToString())
             {
-                case "WIO_Interact":
-                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
-                    break;
                 case "Door_Interact":
                     Door_Interact_Patch.Replicated(packet);
+                    break;
+                case "KeycardDoor_Interact":
+                    KeycardDoor_Interact_Patch.Replicated(packet);
+                    break;
+                case "LootableContainer_Interact":
+                    LootableContainer_Interact_Patch.Replicated(packet);
                     break;
                 case "Switch_Interact":
                     Switch_Interact_Patch.Replicated(packet);
                     break;
-
+                case "Trunk_Interact":
+                    Trunk_Interact_Patch.Replicated(packet);
+                    break;
+                case "WorldInteractiveObject_Interact":
+                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
+                    break;
             }
         }
 
