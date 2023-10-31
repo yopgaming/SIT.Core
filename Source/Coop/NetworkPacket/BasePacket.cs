@@ -76,7 +76,42 @@ namespace SIT.Core.Coop.NetworkPacket
             return allPropsFiltered;
         }
 
-        public virtual string Serialize()
+        //public virtual string Serialize()
+        //{
+        //    if (string.IsNullOrEmpty(ServerId))
+        //    {
+        //        throw new ArgumentNullException(nameof(ServerId));
+        //    }
+
+        //    if (string.IsNullOrEmpty(Method))
+        //    {
+        //        throw new ArgumentNullException(nameof(Method));
+        //    }
+
+        //    string result = null;
+        //    using (BinaryWriter binaryWriter = new(new MemoryStream()))
+        //    {
+        //        binaryWriter.WriteNonPrefixedString("SIT"); // 3
+        //        binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
+        //        binaryWriter.WriteNonPrefixedString(Method); // Unknown
+        //        binaryWriter.WriteNonPrefixedString("?");
+
+        //        var allPropsFiltered = GetPropertyInfos(this);
+
+        //        for (var i = 0; i < allPropsFiltered.Count(); i++)
+        //        {
+        //            var prop = allPropsFiltered[i];
+        //            binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
+        //            if (i != allPropsFiltered.Count() - 1)
+        //                binaryWriter.WriteNonPrefixedString(",");
+        //        }
+        //        result = Encoding.UTF8.GetString(((MemoryStream)binaryWriter.BaseStream).ToArray());
+        //    }
+
+        //    return result;
+        //}
+
+        public virtual byte[] Serialize()
         {
             if (string.IsNullOrEmpty(ServerId))
             {
@@ -88,33 +123,42 @@ namespace SIT.Core.Coop.NetworkPacket
                 throw new ArgumentNullException(nameof(Method));
             }
 
-            using BinaryWriter binaryWriter = new(new MemoryStream());
-            binaryWriter.WriteNonPrefixedString("SIT"); // 3
-            binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
-            binaryWriter.WriteNonPrefixedString(Method); // Unknown
-            binaryWriter.WriteNonPrefixedString("?");
-
-            var allPropsFiltered = GetPropertyInfos(this);
-
-            for (var i =0; i < allPropsFiltered.Count(); i++)
+            byte[] result = null;
+            using (BinaryWriter binaryWriter = new(new MemoryStream()))
             {
-                var prop = allPropsFiltered[i];
-                binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
-                if(i != allPropsFiltered.Count() - 1)   
-                    binaryWriter.WriteNonPrefixedString(",");
+                binaryWriter.WriteNonPrefixedString("SIT"); // 3
+                binaryWriter.WriteNonPrefixedString(ServerId); // pmc + 24 chars
+                binaryWriter.WriteNonPrefixedString(Method); // Unknown
+                binaryWriter.WriteNonPrefixedString("?");
+
+                var allPropsFiltered = GetPropertyInfos(this);
+
+                for (var i = 0; i < allPropsFiltered.Count(); i++)
+                {
+                    var prop = allPropsFiltered[i];
+                    binaryWriter.WriteNonPrefixedString(prop.GetValue(this).ToString());
+                    if (i != allPropsFiltered.Count() - 1)
+                        binaryWriter.WriteNonPrefixedString(",");
+                }
+                result = ((MemoryStream)binaryWriter.BaseStream).ToArray();
             }
-            return Encoding.UTF8.GetString(((MemoryStream)binaryWriter.BaseStream).ToArray());
+
+            return result;
         }
 
-        public virtual byte[] SerializeCompressed()
-        {
-            var str = $"SITC{Serialize()}";
-            return Zlib.Compress(str);
-        }
+        //public virtual byte[] SerializeCompressed()
+        //{
+        //    return Zlib.(Serialize(), ZlibCompression.Normal);
+        //}
 
         public virtual ISITPacket Deserialize(byte[] bytes)
         {
             return this;
+        }
+
+        public override string ToString()
+        {
+            return Encoding.UTF8.GetString(Serialize());
         }
 
     }

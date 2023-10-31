@@ -52,13 +52,13 @@ namespace SIT.Core.Coop
             UnloadMagazinePacket unloadMagazinePacket = new(Profile.ProfileId, magazine.Id, magazine.TemplateId);
             var serialized = unloadMagazinePacket.Serialize();
 
-            if (AlreadySent.Contains(serialized))
+            //if (AlreadySent.Contains(serialized))
             {
                 result = base.UnloadMagazine(magazine);
                 ItemControllerHandler_Move_Patch.DisableForPlayer.Remove(Profile.ProfileId);
             }
 
-            AlreadySent.Add(serialized);
+            //AlreadySent.Add(serialized);
 
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
             result = base.UnloadMagazine(magazine);
