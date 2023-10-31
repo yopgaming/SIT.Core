@@ -318,21 +318,122 @@ namespace SIT.Core.Core
                         var raidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
                         Logger.LogInfo($"RaidTimer: Remaining session time {raidTimer.TraderFormat()}");
 
-                        if (coopGameComponent.LocalGameInstance is CoopGame localGameInstance)
+                        if (coopGameComponent.LocalGameInstance is CoopGame coopGame)
                         {
-                            var gameTimer = localGameInstance.GameTimer;
+                            var gameTimer = coopGame.GameTimer;
                             if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
                             {
-                                var timeRemain = gameTimer.PastTime + raidTimer;
-                                if ((int)gameTimer.SessionTime.Value.TotalSeconds != (int)timeRemain.TotalSeconds)
-                                {
-                                    Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
-                                    gameTimer.ChangeSessionTime(timeRemain);
+                                if (gameTimer.PastTime.TotalSeconds < 3)
+                                    return;
 
-                                    // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
-                                    localGameInstance.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, localGameInstance.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
+                                var timeRemain = gameTimer.PastTime + raidTimer;
+
+                                if (Math.Abs(gameTimer.SessionTime.Value.TotalSeconds - timeRemain.TotalSeconds) < 5)
+                                    return;
+
+                                Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
+                                gameTimer.ChangeSessionTime(timeRemain);
+
+                                // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
+                                coopGame.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, coopGame.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
+                            }
+                        }
+                    }
+
+                    return;
+                }
+
+                // TimeAndWeather
+                if (packet.ContainsKey("TimeAndWeather"))
+                {
+                    if (MatchmakerAcceptPatches.IsClient)
+                    {
+                        Logger.LogDebug(packet.ToJson());
+
+                        var gameDateTime = new DateTime(long.Parse(packet["GameDateTime"].ToString()));
+                        if (coopGameComponent.LocalGameInstance is CoopGame coopGame && coopGame.GameDateTime != null)
+                            coopGame.GameDateTime.Reset(gameDateTime);
+
+                        var weatherController = EFT.Weather.WeatherController.Instance;
+                        if (weatherController != null)
+                        {
+                            var weatherDebug = weatherController.WeatherDebug;
+                            if (weatherDebug != null)
+                            {
+                                weatherDebug.Enabled = true;
+
+                                weatherDebug.CloudDensity = float.Parse(packet["CloudDensity"].ToString());
+                                weatherDebug.Fog = float.Parse(packet["Fog"].ToString());
+                                weatherDebug.LightningThunderProbability = float.Parse(packet["LightningThunderProbability"].ToString());
+                                weatherDebug.Rain = float.Parse(packet["Rain"].ToString());
+                                weatherDebug.Temperature = float.Parse(packet["Temperature"].ToString());
+                                weatherDebug.TopWindDirection = new(float.Parse(packet["TopWindDirection.x"].ToString()), float.Parse(packet["TopWindDirection.y"].ToString()));
+
+                                Vector2 windDirection = new(float.Parse(packet["WindDirection.x"].ToString()), float.Parse(packet["WindDirection.y"].ToString()));
+
+                                // working dog sh*t, if you are the programmer, DON'T EVER DO THIS! - dounai2333
+                                static bool BothPositive(float f1, float f2) => f1 > 0 && f2 > 0;
+                                static bool BothNegative(float f1, float f2) => f1 < 0 && f2 < 0;
+                                static bool VectorIsSameQuadrant(Vector2 v1, Vector2 v2, out int flag)
+                                {
+                                    flag = 0;
+                                    if (v1.x != 0 && v1.y != 0 && v2.x != 0 && v2.y != 0)
+                                    {
+                                        if ((BothPositive(v1.x, v2.x) && BothPositive(v1.y, v2.y))
+                                        || (BothNegative(v1.x, v2.x) && BothNegative(v1.y, v2.y))
+                                        || (BothPositive(v1.x, v2.x) && BothNegative(v1.y, v2.y))
+                                        || (BothNegative(v1.x, v2.x) && BothPositive(v1.y, v2.y)))
+                                        {
+                                            flag = 1;
+                                            return true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (v1.x != 0 && v2.x != 0)
+                                        {
+                                            if (BothPositive(v1.x, v2.x) || BothNegative(v1.x, v2.x))
+                                            {
+                                                flag = 1;
+                                                return true;
+                                            }
+                                        }
+                                        else if (v1.y != 0 && v2.y != 0)
+                                        {
+                                            if (BothPositive(v1.y, v2.y) || BothNegative(v1.y, v2.y))
+                                            {
+                                                flag = 2;
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                    return false;
+                                }
+
+                                for (int i = 1; i < WeatherClass.WindDirections.Count(); i++)
+                                {
+                                    Vector2 direction = WeatherClass.WindDirections[i];
+                                    if (VectorIsSameQuadrant(windDirection, direction, out int flag))
+                                    {
+                                        weatherDebug.WindDirection = (EFT.Weather.WeatherDebug.Direction)i;
+                                        weatherDebug.WindMagnitude = flag switch
+                                        {
+                                            1 => windDirection.x / direction.x,
+                                            2 => windDirection.y / direction.y,
+                                            _ => weatherDebug.WindMagnitude
+                                        };
+                                        break;
+                                    }
                                 }
                             }
+                            else
+                            {
+                                Logger.LogError("TimeAndWeather: WeatherDebug is null!");
+                            }
+                        }
+                        else
+                        {
+                            Logger.LogError("TimeAndWeather: WeatherController is null!");
                         }
                     }
 

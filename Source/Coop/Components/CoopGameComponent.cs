@@ -203,7 +203,6 @@ namespace SIT.Core.Coop
             StartCoroutine(ProcessServerCharacters());
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
-            StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
             Task.Run(() => PeriodicEnableDisableGC());
@@ -347,7 +346,6 @@ namespace SIT.Core.Coop
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
             StopCoroutine(ProcessServerCharacters());
-            StopCoroutine(SendWeatherToClients());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
@@ -1125,20 +1123,26 @@ namespace SIT.Core.Coop
                 }
             }
 
-            
-
             switch (packet["m"].ToString())
             {
-                case "WIO_Interact":
-                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
-                    break;
                 case "Door_Interact":
                     Door_Interact_Patch.Replicated(packet);
+                    break;
+                case "KeycardDoor_Interact":
+                    KeycardDoor_Interact_Patch.Replicated(packet);
+                    break;
+                case "LootableContainer_Interact":
+                    LootableContainer_Interact_Patch.Replicated(packet);
                     break;
                 case "Switch_Interact":
                     Switch_Interact_Patch.Replicated(packet);
                     break;
-
+                case "Trunk_Interact":
+                    Trunk_Interact_Patch.Replicated(packet);
+                    break;
+                case "WorldInteractiveObject_Interact":
+                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
+                    break;
             }
         }
 
@@ -1322,17 +1326,6 @@ namespace SIT.Core.Coop
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
-        }
-
-        private IEnumerator SendWeatherToClients()
-        {
-            var waitSeconds = new WaitForSeconds(60f);
-
-            while (RunAsyncTasks)
-            {
-                yield return waitSeconds;
-
-            }
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;

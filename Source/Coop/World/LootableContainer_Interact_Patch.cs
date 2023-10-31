@@ -11,11 +11,11 @@ using System.Reflection;
 
 namespace SIT.Core.Coop.World
 {
-    internal class Door_Interact_Patch : ModulePatch
+    internal class LootableContainer_Interact_Patch : ModulePatch
     {
-        public static Type InstanceType => typeof(Door);
+        public static Type InstanceType => typeof(LootableContainer);
 
-        public static string MethodName => "Door_Interact";
+        public static string MethodName => "LootableContainer_Interact";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -38,20 +38,20 @@ namespace SIT.Core.Coop.World
         }
 
         [PatchPrefix]
-        public static bool Prefix(Door __instance)
+        public static bool Prefix(LootableContainer __instance)
         {
             return false;
         }
 
         [PatchPostfix]
-        public static void Postfix(Door __instance, InteractionResult interactionResult)
+        public static void Postfix(LootableContainer __instance, InteractionResult interactionResult)
         {
             Dictionary<string, object> packet = new()
             {
                 { "t", DateTime.Now.Ticks.ToString("G") },
                 { "serverId", CoopGameComponent.GetServerId() },
                 { "m", MethodName },
-                { "doorId", __instance.Id },
+                { "lootableContainerId", __instance.Id },
                 { "type", interactionResult.InteractionType.ToString() }
             };
 
@@ -69,9 +69,9 @@ namespace SIT.Core.Coop.World
             if (Enum.TryParse(packet["type"].ToString(), out EInteractionType interactionType))
             {
                 CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
-                Door door = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString()) as Door;
+                LootableContainer lootableContainer = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["lootableContainerId"].ToString()) as LootableContainer;
 
-                if (door != null)
+                if (lootableContainer != null)
                 {
                     string methodName = string.Empty;
                     switch (interactionType)
@@ -86,7 +86,6 @@ namespace SIT.Core.Coop.World
                             methodName = "Unlock";
                             break;
                         case EInteractionType.Breach:
-                            methodName = "Breach";
                             break;
                         case EInteractionType.Lock:
                             methodName = "Lock";
@@ -99,11 +98,11 @@ namespace SIT.Core.Coop.World
                         player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(packet["player"].ToString());
                         if (player != null)
                         {
-                            if (!AkiBackendCommunication.Instance.HighPingMode && !player.IsYourPlayer)
+                            if (!coopGameComponent.HighPingMode && !player.IsYourPlayer)
                             {
                                 if (SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient || coopGameComponent.PlayerUsers.Contains(player))
                                 {
-                                    WorldInteractiveObject.InteractionParameters interactionParameters = door.GetInteractionParameters(player.Transform.position);
+                                    WorldInteractiveObject.InteractionParameters interactionParameters = lootableContainer.GetInteractionParameters(player.Transform.position);
                                     player.SendHandsInteractionStateChanged(true, interactionParameters.AnimationId);
                                     player.HandsController.Interact(true, interactionParameters.AnimationId);
                                 }
@@ -111,30 +110,16 @@ namespace SIT.Core.Coop.World
                         }
                     }
 
-                    if (methodName == "Breach" && player != null)
-                    {
-                        if (door.BreachSuccessRoll(player.Transform.position))
-                        {
-                            door.KickOpen(player.Transform.position, false);
-                        }
-                        else
-                        {
-                            door.FailBreach(player.Transform.position);
-                        }
-                    }
-                    else
-                    {
-                        ReflectionHelpers.InvokeMethodForObject(door, methodName);
-                    }
+                    lootableContainer.StartBehaviourTimer(EFTHardSettings.Instance.DelayToOpenContainer, () => ReflectionHelpers.InvokeMethodForObject(lootableContainer, methodName));
                 }
                 else
                 {
-                    Logger.LogDebug("Door_Interact_Patch:Replicated: Couldn't find Door in at all in world?");
+                    Logger.LogDebug("LootableContainer_Interact_Patch:Replicated: Couldn't find LootableContainer in at all in world?");
                 }
             }
             else
             {
-                Logger.LogError("Door_Interact_Patch:Replicated:EInteractionType did not parse correctly!");
+                Logger.LogError("LootableContainer_Interact_Patch:Replicated:EInteractionType did not parse correctly!");
             }
         }
     }

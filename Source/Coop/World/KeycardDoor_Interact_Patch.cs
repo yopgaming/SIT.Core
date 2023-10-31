@@ -11,11 +11,11 @@ using System.Reflection;
 
 namespace SIT.Core.Coop.World
 {
-    internal class Door_Interact_Patch : ModulePatch
+    internal class KeycardDoor_Interact_Patch : ModulePatch
     {
-        public static Type InstanceType => typeof(Door);
+        public static Type InstanceType => typeof(KeycardDoor);
 
-        public static string MethodName => "Door_Interact";
+        public static string MethodName => "KeycardDoor_Interact";
 
         protected override MethodBase GetTargetMethod()
         {
@@ -38,40 +38,46 @@ namespace SIT.Core.Coop.World
         }
 
         [PatchPrefix]
-        public static bool Prefix(Door __instance)
+        public static bool Prefix(KeycardDoor __instance)
         {
             return false;
         }
 
         [PatchPostfix]
-        public static void Postfix(Door __instance, InteractionResult interactionResult)
+        public static void Postfix(KeycardDoor __instance, InteractionResult interactionResult)
         {
             Dictionary<string, object> packet = new()
             {
                 { "t", DateTime.Now.Ticks.ToString("G") },
                 { "serverId", CoopGameComponent.GetServerId() },
                 { "m", MethodName },
-                { "doorId", __instance.Id },
+                { "keycardDoorId", __instance.Id },
                 { "type", interactionResult.InteractionType.ToString() }
             };
 
             if (__instance.InteractingPlayer != null)
                 packet.Add("player", __instance.InteractingPlayer.ProfileId);
 
+            if (interactionResult.InteractionType == EInteractionType.Unlock)
+                if (interactionResult is GClass2812 keyInteractionResult)
+                    packet.Add("succeed", keyInteractionResult.Succeed.ToString());
+
             AkiBackendCommunication.Instance.PostDownWebSocketImmediately(packet);
         }
 
-        public static void Replicated(Dictionary<string, object> packet)
+        public static async void Replicated(Dictionary<string, object> packet)
         {
+            Logger.LogInfo("KeycardDoor_Interact_Patch:Replicated");
+
             if (HasProcessed(packet))
                 return;
 
             if (Enum.TryParse(packet["type"].ToString(), out EInteractionType interactionType))
             {
                 CoopGameComponent coopGameComponent = CoopGameComponent.GetCoopGameComponent();
-                Door door = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["doorId"].ToString()) as Door;
+                KeycardDoor keycardDoor = coopGameComponent.ListOfInteractiveObjects.FirstOrDefault(x => x.Id == packet["keycardDoorId"].ToString()) as KeycardDoor;
 
-                if (door != null)
+                if (keycardDoor != null)
                 {
                     string methodName = string.Empty;
                     switch (interactionType)
@@ -86,7 +92,7 @@ namespace SIT.Core.Coop.World
                             methodName = "Unlock";
                             break;
                         case EInteractionType.Breach:
-                            methodName = "Breach";
+                            methodName = "Breath";
                             break;
                         case EInteractionType.Lock:
                             methodName = "Lock";
@@ -99,11 +105,11 @@ namespace SIT.Core.Coop.World
                         player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(packet["player"].ToString());
                         if (player != null)
                         {
-                            if (!AkiBackendCommunication.Instance.HighPingMode && !player.IsYourPlayer)
+                            if (!coopGameComponent.HighPingMode && !player.IsYourPlayer)
                             {
                                 if (SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient || coopGameComponent.PlayerUsers.Contains(player))
                                 {
-                                    WorldInteractiveObject.InteractionParameters interactionParameters = door.GetInteractionParameters(player.Transform.position);
+                                    WorldInteractiveObject.InteractionParameters interactionParameters = keycardDoor.GetInteractionParameters(player.Transform.position);
                                     player.SendHandsInteractionStateChanged(true, interactionParameters.AnimationId);
                                     player.HandsController.Interact(true, interactionParameters.AnimationId);
                                 }
@@ -111,30 +117,40 @@ namespace SIT.Core.Coop.World
                         }
                     }
 
-                    if (methodName == "Breach" && player != null)
+                    if (methodName == "Unlock" && packet.ContainsKey("succeed"))
                     {
-                        if (door.BreachSuccessRoll(player.Transform.position))
+                        bool succeed = bool.Parse(packet["succeed"].ToString());
+                        if (!succeed)
                         {
-                            door.KickOpen(player.Transform.position, false);
+                            await System.Threading.Tasks.Task.Delay(500);
+
+                            GripPose gripPose = keycardDoor.GetClosestGrip(player.Transform.position);
+                            MonoBehaviourSingleton<BetterAudio>.Instance.PlayAtPoint((gripPose != null) ? gripPose.transform.position : keycardDoor.transform.position, keycardDoor.DeniedBeep, FPSCamera.Instance.Distance(keycardDoor.transform.position), BetterAudio.AudioSourceGroupType.Environment, 15, 0.7f, EOcclusionTest.Fast, null, false);
+
+                            InteractiveProxy[] proxies = keycardDoor.Proxies;
+                            for (int i = 0; i < proxies.Length; i++)
+                                proxies[i].StartFlicker();
+
+                            keycardDoor.DoorState = EDoorState.Locked;
                         }
                         else
                         {
-                            door.FailBreach(player.Transform.position);
+                            ReflectionHelpers.InvokeMethodForObject(keycardDoor, methodName);
                         }
                     }
                     else
                     {
-                        ReflectionHelpers.InvokeMethodForObject(door, methodName);
+                        ReflectionHelpers.InvokeMethodForObject(keycardDoor, methodName);
                     }
                 }
                 else
                 {
-                    Logger.LogDebug("Door_Interact_Patch:Replicated: Couldn't find Door in at all in world?");
+                    Logger.LogDebug("KeycardDoor_Interact_Patch:Replicated: Couldn't find KeycardDoor in at all in world?");
                 }
             }
             else
             {
-                Logger.LogError("Door_Interact_Patch:Replicated:EInteractionType did not parse correctly!");
+                Logger.LogError("KeycardDoor_Interact_Patch:Replicated:EInteractionType did not parse correctly!");
             }
         }
     }
