@@ -105,7 +105,7 @@ namespace SIT.Core.Coop.World
                         player = Comfort.Common.Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(packet["player"].ToString());
                         if (player != null)
                         {
-                            if (!coopGameComponent.HighPingMode && !player.IsYourPlayer)
+                            if (!AkiBackendCommunication.Instance.HighPingMode && !player.IsYourPlayer)
                             {
                                 if (SIT.Coop.Core.Matchmaker.MatchmakerAcceptPatches.IsClient || coopGameComponent.PlayerUsers.Contains(player))
                                 {
