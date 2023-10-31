@@ -300,6 +300,17 @@ namespace SIT.Core.Coop
         //    //base.ComplexLateUpdate(queue, deltaTime);
         //}
 
+        public override void Move(Vector2 direction)
+        {
+            base.Move(direction);
+
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc.IsClientDrone)
+                return;
+
+
+        }
+
 
         public override void OnDestroy()
         {
