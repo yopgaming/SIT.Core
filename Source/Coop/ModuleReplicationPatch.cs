@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
@@ -127,7 +128,7 @@ namespace SIT.Core.Coop
 
         public static bool IsHighPingOrAI(EFT.Player player)
         {
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+            if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
                 return true;
 
             return player.IsAI;

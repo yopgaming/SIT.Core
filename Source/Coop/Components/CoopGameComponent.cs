@@ -216,7 +216,6 @@ namespace SIT.Core.Coop
             //GCHelpers.DisableGC();
 
 
-            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
 
             Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
@@ -1346,13 +1345,13 @@ namespace SIT.Core.Coop
         int GuiX = 10;
         int GuiWidth = 400;
 
-        public const int PING_LIMIT_HIGH = 125;
-        public const int PING_LIMIT_MID = 100;
+        //public const int PING_LIMIT_HIGH = 125;
+        //public const int PING_LIMIT_MID = 100;
 
         public int ServerPing { get; set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
 
-        public bool HighPingMode { get; set; } = false;
+        //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
 
@@ -1391,7 +1390,7 @@ namespace SIT.Core.Coop
 
             // PING ------
             GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
+            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"RTT:{(ServerPing)}");
             rect.y += 15;
             GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
@@ -1406,7 +1405,7 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-            if (HighPingMode)
+            if (AkiBackendCommunication.Instance.HighPingMode)
             {
                 GUI.contentColor = Color.red;
                 GUI.Label(rect, $"!HIGH PING MODE!");

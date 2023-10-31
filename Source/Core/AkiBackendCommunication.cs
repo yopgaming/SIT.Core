@@ -75,6 +75,9 @@ namespace SIT.Core.Core
 
         static WebSocketSharp.WebSocket WebSocket { get; set; }
 
+        public static int PING_LIMIT_HIGH { get; } = 125;
+        public static int PING_LIMIT_MID { get; }  = 100;
+
 
         protected AkiBackendCommunication(ManualLogSource logger = null)
         {
@@ -92,7 +95,6 @@ namespace SIT.Core.Core
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
 
             GetHeaders();
-            //CreateWebSocket();
             ConnectToAkiBackend();
             PeriodicallySendPing();
             PeriodicallySendPooledData();
@@ -104,6 +106,9 @@ namespace SIT.Core.Core
             }
             HttpClient.MaxResponseContentBufferSize = long.MaxValue;
             HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+
+            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
+
         }
 
         private void ConnectToAkiBackend()
@@ -416,7 +421,9 @@ namespace SIT.Core.Core
 
         public static bool DEBUGPACKETS { get; } = false;
 
+        public bool HighPingMode { get; set; }
         public BlockingCollection<string> PooledJsonToPost { get; } = new();
+        public BlockingCollection<byte[]> PooledBytesToPost { get; } = new();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
 
@@ -429,31 +436,23 @@ namespace SIT.Core.Core
 
         public void SendDataToPool(string serializedData)
         {
-            //// ------------------------------------------------------------------------------------
-            //// DEBUG: This is a sanity check to see if we are flooding packets.
-            //if (DEBUGPACKETS)
-            //{
-            //    if (PooledJsonToPost.Count() >= 11)
-            //    {
-            //        Logger.LogError("Holy moly. There is too much data being OUTPUT from this client!");
-            //        while (PooledJsonToPost.Any())
-            //        {
-            //            if (PooledJsonToPost.TryTake(out var item, -1))
-            //                Logger.LogError($"{item}");
-            //        }
-            //        //Application.Quit();
-            //    }
-            //}
-
-            //// Stop resending static "player states"
-            //if (PooledJsonToPost.Any(x => x == serializedData))
-            //    return;
-
-            //PooledJsonToPost.Add(serializedData);
-
             if(WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                WebSocket.SendAsync(serializedData, (bool b) => { });
+                WebSocket.Send(serializedData);
         }
+
+        public void SendDataToPool(byte[] serializedData)
+        {
+            if(HighPingMode)
+            {
+                PooledBytesToPost.Add(serializedData);
+            }
+            else
+            {
+                if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                    WebSocket.Send(serializedData);
+            }
+        }
+
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
             PooledDictionariesToPost.Add(new(url, data));
@@ -494,6 +493,25 @@ namespace SIT.Core.Core
 
                     swPing.Restart();
                     await Task.Delay(awaitPeriod);
+
+                    while (PooledBytesToPost.Any())
+                    {
+                        await Task.Delay(awaitPeriod);
+                        if (WebSocket != null)
+                        {
+                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                            {
+                                while (PooledBytesToPost.TryTake(out var bytes))
+                                {
+                                    WebSocket.Send(bytes);
+                                }
+                            }
+                            else
+                            {
+                                WebSocket_OnError();
+                            }
+                        }
+                    }
                     //await Task.Delay(100);
                     while (PooledDictionariesToPost.Any())
                     {
@@ -504,8 +522,8 @@ namespace SIT.Core.Core
                         {
 
                             var url = d.Key;
-                            //var json = JsonConvert.SerializeObject(d.Value);
-                            var json = d.Value.ToJson();
+                            var json = JsonConvert.SerializeObject(d.Value);
+                            //var json = d.Value.ToJson();
                             if (WebSocket != null)
                             {
                                 if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
@@ -517,7 +535,6 @@ namespace SIT.Core.Core
                                     WebSocket_OnError();
                                 }
                             }
-                            GC.Collect();
                         }
                     }
 
@@ -538,26 +555,6 @@ namespace SIT.Core.Core
                         json = null;
                     }
 
-                    //do
-                    //{
-
-                    //    if (PooledJsonToPost.TryTake(out var json))
-                    //    {
-                    //        if (WebSocket != null)
-                    //        {
-                    //            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                    //            {
-                    //                PostDownWebSocketImmediately(json);
-                    //            }
-                    //        }
-                    //        json = null;
-                    //    }
-
-                    //    await Task.Delay(awaitPeriod);
-
-                    //} while (PooledJsonToPost.Any());
-
-
                     while (PooledJsonToPostToUrl.Any())
                     {
                         await Task.Delay(awaitPeriod);
@@ -573,7 +570,6 @@ namespace SIT.Core.Core
 
                     PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
                     PostPing = (int)Math.Round(PostPingSmooth.Average());
-
                 }
             });
         }
