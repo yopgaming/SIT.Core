@@ -59,7 +59,7 @@ namespace SIT.Core.Coop.World
                 packet.Add("player", __instance.InteractingPlayer.ProfileId);
 
             if (interactionResult.InteractionType == EInteractionType.Unlock)
-                if (interactionResult is GClass2812 keyInteractionResult)
+                if (interactionResult is KeyInteractionResult keyInteractionResult)
                     packet.Add("succeed", keyInteractionResult.Succeed.ToString());
 
             AkiBackendCommunication.Instance.PostDownWebSocketImmediately(packet);
