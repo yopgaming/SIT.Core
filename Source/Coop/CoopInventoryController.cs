@@ -31,7 +31,7 @@ namespace SIT.Core.Coop
         {
         }
 
-        protected override void Execute(SearchContentOperation operation, Callback callback)
+        public override void Execute(SearchContentOperation operation, Callback callback)
         {
             //BepInLogger.LogInfo($"CoopInventoryController: {operation}");
             base.Execute(operation, callback);
