@@ -175,9 +175,9 @@ namespace SIT.Core
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        //0.13.5.2.26282
-
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "5" || majorN4 != "3")
+                        // 0.13.5.2.26282
+                        // 0.13.9.0.26921
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "9" || majorN4 != "0")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
