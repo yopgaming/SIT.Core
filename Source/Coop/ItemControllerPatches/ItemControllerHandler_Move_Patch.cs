@@ -239,8 +239,11 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
                 if (!ItemFinder.TryFindItemController(descriptor.Container.ParentId, out itemController))
                 {
-                    GetLogger().LogError("Unable to find ItemController");
-                    return;
+                    if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
+                    {
+                        GetLogger().LogError("Unable to find ItemController");
+                        return;
+                    }
                 }
 
                 if (itemController == null)
