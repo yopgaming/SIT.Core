@@ -221,12 +221,12 @@ namespace SIT.Core.Coop
 
         }
 
-        protected override void OnSkillLevelChanged(AbstractSkill skill)
+        public override void OnSkillLevelChanged(AbstractSkill skill)
         {
             //base.OnSkillLevelChanged(skill);
         }
 
-        protected override void OnWeaponMastered(MasterSkill masterSkill)
+        public override void OnWeaponMastered(MasterSkill masterSkill)
         {
             //base.OnWeaponMastered(masterSkill);
         }
