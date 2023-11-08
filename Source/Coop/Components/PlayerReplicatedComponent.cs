@@ -67,6 +67,9 @@ namespace SIT.Coop.Core.Player
 
             var method = packet["m"].ToString();
 
+            ProcessPlayerState(packet);
+
+
             if (!ModuleReplicationPatch.Patches.ContainsKey(method))
                 return;
 
@@ -77,7 +80,6 @@ namespace SIT.Coop.Core.Player
                 return;
             }
 
-            ProcessPlayerState(packet);
 
             //var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
             //if (packetHandlerComponents != null)
