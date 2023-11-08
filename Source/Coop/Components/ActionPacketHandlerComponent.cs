@@ -231,6 +231,9 @@ namespace SIT.Core.Coop.Components
 
             // ---------------------------------------------------
             //
+            if (!Players.ContainsKey(profileId))
+                return false;
+
             var plyr = Players[profileId];
             bool processed = false;
 
