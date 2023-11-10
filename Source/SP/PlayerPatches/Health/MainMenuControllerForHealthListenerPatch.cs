@@ -44,12 +44,13 @@ namespace SIT.Core.SP.PlayerPatches.Health
             {
                 listener.Init(healthController, false);
             }
-
-            foreach (var p in GameObject.FindObjectsOfType<CoopPlayer>())
+            if (CoopGameComponent.GetServerId == null)
             {
-                GameObject.Destroy(p);
+                foreach (var p in GameObject.FindObjectsOfType<CoopPlayer>())
+                {
+                    GameObject.Destroy(p);
+                }
             }
-
             listener.Update(healthController, false);
 
         }
