@@ -49,7 +49,7 @@ namespace SIT.Core.Coop
     /// <summary>
     /// A custom Game Type
     /// </summary>
-    public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame
+    public sealed class CoopGame : BaseLocalGame<GamePlayerOwner>, IBotGame, ISITGame
     {
        
         public new bool InRaid { get { return true; } }
@@ -151,12 +151,13 @@ namespace SIT.Core.Coop
             ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(CoopGame), typeof(BossWaveManager)).SetValue(coopGame, bosswavemanagerValue);
             coopGame.BossWaveManager = bosswavemanagerValue as BossWaveManager;
 
-            coopGame.StartCoroutine(coopGame.ReplicatedWeather());
             //coopGame.StartCoroutine(coopGame.DebugObjects());
             coopGame.func_1 = (EFT.Player player) => GamePlayerOwner.Create<GamePlayerOwner>(player, inputTree, insurance, backEndSession, commonUI, preloaderUI, gameUI, coopGame.GameDateTime, location);
 
             //GCHelpers.EnableGC();
             //coopGame.timeAndWeatherSettings = timeAndWeather;
+
+            Singleton<ISITGame>.Create(coopGame);
 
             return coopGame;
         }
@@ -199,19 +200,18 @@ namespace SIT.Core.Coop
                 throw new Exception("No Server Id found");
             }
 
-            if (!MatchmakerAcceptPatches.IsClient)
+            if (MatchmakerAcceptPatches.IsServer)
+            {
                 StartCoroutine(HostPinger());
-
-            if (!MatchmakerAcceptPatches.IsClient)
                 StartCoroutine(GameTimerSync());
-
+                StartCoroutine(TimeAndWeatherSync());
+            }
 
             StartCoroutine(ClientLoadingPinger());
 
             var friendlyAIJson = AkiBackendCommunication.Instance.GetJson($"/coop/server/friendlyAI/{CoopGameComponent.GetServerId()}");
             Logger.LogDebug(friendlyAIJson);
             //coopGame.FriendlyAIPMCSystem = JsonConvert.DeserializeObject<FriendlyAIPMCSystem>(friendlyAIJson);
-
         }
 
         private IEnumerator ClientLoadingPinger()
@@ -272,7 +272,7 @@ namespace SIT.Core.Coop
 
         private IEnumerator GameTimerSync()
         {
-            var waitSeconds = new WaitForSeconds(5f);
+            var waitSeconds = new WaitForSeconds(10f);
 
             while (true)
             {
@@ -281,129 +281,60 @@ namespace SIT.Core.Coop
                 if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
                     yield break;
 
-                if (GameTimer.SessionTime.HasValue)
+                if (GameTimer.StartDateTime.HasValue && GameTimer.SessionTime.HasValue)
                 {
-                    Dictionary<string, string> raidTimerDict = new Dictionary<string, string>();
-                    raidTimerDict.Add("RaidTimer", GameTimer.SessionTime.Value.Ticks.ToString());
-                    raidTimerDict.Add("serverId", coopGameComponent.ServerId);
+                    Dictionary<string, object> raidTimerDict = new()
+                    {
+                        { "serverId", coopGameComponent.ServerId },
+                        { "RaidTimer", (GameTimer.SessionTime - GameTimer.PastTime).Value.Ticks },
+                    };
                     AkiBackendCommunication.Instance.SendDataToPool(raidTimerDict.ToJson());
                 }
             }
         }
 
-        private WeatherDebug WeatherClear { get; set; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = -0.7f,
-            Fog = 0,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0,
-            ScatterGreyscale = 0,
-            Temperature = 24,
-            WindMagnitude = 0,
-            WindDirection = WeatherDebug.Direction.North,
-            TopWindDirection = Vector2.up
-        };
-
-        private WeatherDebug WeatherSlightCloud { get; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = -0.35f,
-            Fog = 0.004f,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0,
-            ScatterGreyscale = 0,
-            Temperature = 24,
-            WindDirection = WeatherDebug.Direction.North,
-            WindMagnitude = 0.02f,
-            TopWindDirection = Vector2.up
-        };
-
-        private WeatherDebug WeatherCloud { get; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = 0f,
-            Fog = 0.01f,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0,
-            ScatterGreyscale = 0,
-            Temperature = 20,
-            WindDirection = WeatherDebug.Direction.North,
-            WindMagnitude = 0.02f,
-            TopWindDirection = Vector2.up
-        };
-
-        private WeatherDebug WeatherRainDrizzle { get; } = new WeatherDebug()
-        {
-            Enabled = true,
-            CloudDensity = 0f,
-            Fog = 0.01f,
-            LightningThunderProbability = 0,
-            MBOITFog = false,
-            Rain = 0.01f,
-            ScatterGreyscale = 0,
-            Temperature = 19,
-            WindDirection = WeatherDebug.Direction.North,
-            WindMagnitude = 0.02f,
-            TopWindDirection = Vector2.up
-        };
-
-        //private TimeAndWeatherSettings timeAndWeatherSettings { get; set; }
-
-
-        public IEnumerator ReplicatedWeather()
+        public IEnumerator TimeAndWeatherSync()
         {
             var waitSeconds = new WaitForSeconds(15f);
-            //Logger.LogDebug($"ReplicatedWeather:timeAndWeatherSettings:HourOfDay:{timeAndWeatherSettings.HourOfDay}");
 
             while (true)
             {
                 yield return waitSeconds;
-                if (WeatherController.Instance != null)
+
+                if (!CoopGameComponent.TryGetCoopGameComponent(out var coopGameComponent))
+                    yield break;
+
+                Dictionary<string, object> timeAndWeatherDict = new();
+                timeAndWeatherDict.Add("TimeAndWeather", true);
+                timeAndWeatherDict.Add("serverId", coopGameComponent.ServerId);
+
+                if (GameDateTime != null)
+                    timeAndWeatherDict.Add("GameDateTime", GameDateTime.Calculate().Ticks);
+
+                var weatherController = WeatherController.Instance;
+                if (weatherController != null)
                 {
-                    WeatherController.Instance.SetWeatherForce(new WeatherClass() { });
+                    if (weatherController.CloudsController != null)
+                        timeAndWeatherDict.Add("CloudDensity", weatherController.CloudsController.Density);
 
-                    Logger.LogDebug($"ReplicatedWeather:EscapeDateTime:{GameTimer.EscapeDateTime}");
-                    Logger.LogDebug($"ReplicatedWeather:PastTime:{GameTimer.PastTime}");
-                    Logger.LogDebug($"ReplicatedWeather:SessionTime:{GameTimer.SessionTime}");
-                    Logger.LogDebug($"ReplicatedWeather:StartDateTime:{GameTimer.StartDateTime}");
+                    var weatherCurve = weatherController.WeatherCurve;
+                    if (weatherCurve != null)
+                    {
+                        timeAndWeatherDict.Add("Fog", weatherCurve.Fog);
+                        timeAndWeatherDict.Add("LightningThunderProbability", weatherCurve.LightningThunderProbability);
+                        timeAndWeatherDict.Add("Rain", weatherCurve.Rain);
+                        timeAndWeatherDict.Add("Temperature", weatherCurve.Temperature);
+                        timeAndWeatherDict.Add("WindDirection.x", weatherCurve.Wind.x);
+                        timeAndWeatherDict.Add("WindDirection.y", weatherCurve.Wind.y);
+                        timeAndWeatherDict.Add("TopWindDirection.x", weatherCurve.TopWind.x);
+                        timeAndWeatherDict.Add("TopWindDirection.y", weatherCurve.TopWind.y);
+                    }
 
-
-                    WeatherController.Instance.WeatherDebug.Enabled = true;
-                    WeatherController.Instance.WeatherDebug.CloudDensity = -0.35f;
-                    WeatherController.Instance.WeatherDebug.Fog = 0;
-                    WeatherController.Instance.WeatherDebug.LightningThunderProbability = 0;
-                    WeatherController.Instance.WeatherDebug.MBOITFog = false;
-                    WeatherController.Instance.WeatherDebug.Rain = 0;
-                    WeatherController.Instance.WeatherDebug.ScatterGreyscale = 0;
-                    WeatherController.Instance.WeatherDebug.Temperature = 24;
-                    WeatherController.Instance.WeatherDebug.WindDirection = WeatherDebug.Direction.North;
-                    WeatherController.Instance.WeatherDebug.TopWindDirection = Vector2.up;
-
-                    // ----------------------------------------------------------------------------------
-                    // Create synchronized time
-
-                    //var hourOfDay = WeatherController.Instance.
-                    WeatherController.Instance.WeatherDebug.SetHour(12);
-
-                    //WeatherController.Instance.WeatherDebug.SetHour(
-                    //    timeAndWeatherSettings.HourOfDay >= 6 && timeAndWeatherSettings.HourOfDay <= 8
-                    //    ? 7
-                    //    : timeAndWeatherSettings.HourOfDay >= 9 && timeAndWeatherSettings.HourOfDay <= 18
-                    //    ? 12
-                    //    : timeAndWeatherSettings.HourOfDay >= 19 && timeAndWeatherSettings.HourOfDay <= 21
-                    //    ? 20
-                    //    : 3
-                    //    );
+                    Logger.LogDebug(timeAndWeatherDict.ToJson());
+                    AkiBackendCommunication.Instance.SendDataToPool(timeAndWeatherDict.ToJson());
                 }
             }
         }
-
-
-      
 
         public Dictionary<string, EFT.Player> Bots { get; set; } = new Dictionary<string, EFT.Player>();
 
@@ -442,11 +373,11 @@ namespace SIT.Core.Coop
                        , profile
                        , true
                        , base.UpdateQueue
-                       , EFT.Player.EUpdateMode.Auto
+                       , EFT.Player.EUpdateMode.Manual
                        , EFT.Player.EUpdateMode.Auto
                        , BackendConfigManager.Config.CharacterController.BotPlayerMode
-                   , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseSensitivity
-                   , () => Singleton<SettingsManager>.Instance.Control.Settings.MouseAimingSensitivity
+                   , () => 1f
+                   , () => 1f
 , FilterCustomizationClass1.Default
 )
                   );
@@ -484,10 +415,6 @@ namespace SIT.Core.Coop
                     }
                 }
 
-                //GCHelpers.EnableGC();
-                ////GCHelpers.Collect(true);
-                //GCHelpers.DisableGC();
-                //GC.Collect(4, GCCollectionMode.Forced, false, false);
 
             }
             return localPlayer;
@@ -625,24 +552,45 @@ namespace SIT.Core.Coop
             // Here we can wait for other players, if desired
             await Task.Run(async () =>
             {
-                while(CoopGameComponent.GetCoopGameComponent() == null)
+                CoopGameComponent coopGameComponent = null;
+                while (!CoopGameComponent.TryGetCoopGameComponent(out coopGameComponent))
                 {
-
+                    await Task.Delay(5000);
                 }
 
-                //var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                do
+                if (coopGameComponent != null)
                 {
-                    numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - CoopGameComponent.GetCoopGameComponent().PlayerUsers.Length;
-                    if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                    while (coopGameComponent.PlayerUsers == null)
                     {
-                        MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)");
+                        await Task.Delay(1000);
                     }
 
-                    await Task.Delay(1000);
+                    var numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+                    do
+                    {
+                        if (coopGameComponent.PlayerUsers == null)
+                        {
+                            await Task.Delay(1000);
+                            continue;
+                        }
 
-                } while (numbersOfPlayersToWaitFor > 0);
+                        if (coopGameComponent.PlayerUsers.Count() == 0)
+                        {
+                            await Task.Delay(1000);
+                            continue;
+                        }
+
+                        var progress = (coopGameComponent.PlayerUsers.Count() / MatchmakerAcceptPatches.HostExpectedNumberOfPlayers);
+                        numbersOfPlayersToWaitFor = MatchmakerAcceptPatches.HostExpectedNumberOfPlayers - coopGameComponent.PlayerUsers.Count();
+                        if (MatchmakerAcceptPatches.TimeHasComeScreenController != null)
+                        {
+                            MatchmakerAcceptPatches.TimeHasComeScreenController.ChangeStatus($"Waiting for {numbersOfPlayersToWaitFor} Player(s)", progress);
+                        }
+
+                        await Task.Delay(1000);
+
+                    } while (numbersOfPlayersToWaitFor > 0);
+                }
             });
 
             // ---------------------------------------------
@@ -775,24 +723,24 @@ namespace SIT.Core.Coop
             this.PBotsController.SetSettings(numberOfBots, this.BackEndSession.BackEndConfig.BotPresets, this.BackEndSession.BackEndConfig.BotWeaponScatterings);
             this.PBotsController.AddActivePLayer(this.PlayerOwner.Player);
 
-            foreach(var friendlyB in FriendlyPlayers.Values)
-            {
-                //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
-                //botOwner.GetComponentsInChildren<Collider>();
-                //botOwner.GetPlayer.CharacterController.isEnabled = false;
-                Logger.LogDebug("Attempting to Activate friendly bot");
-                botCreator.ActivateBot(friendlyB.Profile, friendlyB.Position, botZones[0], false, (bot, zone) => {
-                    Logger.LogDebug("group action");
-                    return new BotGroupClass(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
-                }, (owner) => {
+            //foreach(var friendlyB in FriendlyPlayers.Values)
+            //{
+            //    //BotOwner botOwner = BotOwner.Create(friendlyB, null, this.GameDateTime, this.botsController_0, true);
+            //    //botOwner.GetComponentsInChildren<Collider>();
+            //    //botOwner.GetPlayer.CharacterController.isEnabled = false;
+            //    Logger.LogDebug("Attempting to Activate friendly bot");
+            //    botCreator.ActivateBot(friendlyB.Profile, friendlyB.Position, botZones[0], false, (bot, zone) => {
+            //        Logger.LogDebug("group action");
+            //        return new BotGroupClass(zone, this, bot, new List<BotOwner>(), new DeadBodiesController(new BotZoneGroupsDictionary()), this.Bots.Values.ToList(), forBoss: false);
+            //    }, (owner) => {
 
-                    Logger.LogDebug("Bot Owner created");
+            //        Logger.LogDebug("Bot Owner created");
 
-                    owner.GetComponentsInChildren<Collider>();
-                    owner.GetPlayer.CharacterController.isEnabled = false;
+            //        owner.GetComponentsInChildren<Collider>();
+            //        owner.GetPlayer.CharacterController.isEnabled = false;
 
-                }, cancellationToken: CancellationToken.None);
-            }
+            //    }, cancellationToken: CancellationToken.None);
+            //}
 
             yield return new WaitForSeconds(startDelay);
             if (shouldSpawnBots)
@@ -913,8 +861,8 @@ namespace SIT.Core.Coop
             ConsoleScreen.ApplyStartCommands();
         }
 
-        public Dictionary<string, (float, long, string)> ExtractingPlayers = new();
-        public List<string> ExtractedPlayers = new();
+        public Dictionary<string, (float, long, string)> ExtractingPlayers { get; } = new();
+        public List<string> ExtractedPlayers { get; } = new();
 
         private void ExfiltrationPoint_OnCancelExtraction(ExfiltrationPoint point, EFT.Player player)
         {
@@ -1027,6 +975,21 @@ namespace SIT.Core.Coop
         {
             base.CleanUp();
             BaseLocalGame<GamePlayerOwner>.smethod_4(this.Bots);
+        }
+
+        public override void Dispose()
+        {
+            Logger.LogDebug("CoopGame:Dispose()");
+            StartCoroutine(DisposingCo());
+            base.Dispose();
+        }
+
+        private IEnumerator DisposingCo()
+        {
+            Logger.LogDebug("CoopGame:DisposingCo()");
+            CoopPatches.LeftGameDestroyEverything();
+
+            yield break;
         }
 
         private BossWaveManager BossWaveManager;

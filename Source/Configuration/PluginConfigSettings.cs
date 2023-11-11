@@ -63,7 +63,15 @@ namespace SIT.Core.Configuration
             }
 
             public bool SETTING_DEBUGSpawnDronesOnServer { get; set; } = false;
-            public bool SETTING_DEBUGShowPlayerList { get; set; } = false;
+            public bool SETTING_DEBUGShowPlayerList 
+            { 
+                get 
+                { 
+                    return StayInTarkovPlugin.Instance.Config.Bind
+                       ("Coop", "ShowPlayerList", false, new ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
+                } 
+            }
+
             public int SETTING_PlayerStateTickRateInMS { get; set; } = 333;
             public bool SETTING_HeadshotsAlwaysKill { get; set; } = false;
             public bool SETTING_ShowFeed { get; set; } = true;
@@ -79,13 +87,21 @@ namespace SIT.Core.Configuration
 
             public bool BotWavesDisableStopper { get; set; } = false;
 
+            public int BlackScreenOnDeathTime
+            {
+                get
+                {
+                    return StayInTarkovPlugin.Instance.Config.Bind
+                       ("Coop", "BlackScreenOnDeathTime", 333, new ConfigDescription("How long to wait until your death waits to become a Free Camera")).Value;
+                }
+            }
+
             public void GetSettings()
             {
                 SETTING_DEBUGSpawnDronesOnServer = StayInTarkovPlugin.Instance.Config.Bind
                 ("Coop", "ShowDronesOnServer", false, new ConfigDescription("Whether to spawn the client drones on the server -- for debugging")).Value;
 
-                SETTING_DEBUGShowPlayerList = StayInTarkovPlugin.Instance.Config.Bind
-                   ("Coop", "ShowPlayerList", false, new ConfigDescription("Whether to show the player list on the GUI -- for debugging")).Value;
+                //SETTING_DEBUGShowPlayerList = 
 
                 SETTING_PlayerStateTickRateInMS = StayInTarkovPlugin.Instance.Config.Bind
                   ("Coop", "PlayerStateTickRateInMS", 666, new ConfigDescription("The rate at which Player States will be synchronized")).Value;

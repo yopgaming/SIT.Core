@@ -89,6 +89,7 @@ namespace SIT.Coop.Core.LocalGame
                 return;
             }
 
+            /*
             if (!MatchmakerAcceptPatches.IsClient)
             {
                 Dictionary<string, object> packet = new()
@@ -105,6 +106,7 @@ namespace SIT.Coop.Core.LocalGame
                 };
                 AkiBackendCommunication.Instance.PostJson("/coop/server/update", packet.ToJson(), timeout: 9999, debug: true);
             }
+            */
 
             //SendOrReceiveSpawnPoint(Singleton<GameWorld>.Instance.MainPlayer);
 

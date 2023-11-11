@@ -82,10 +82,10 @@ namespace SIT.Core.Coop.Player
             var serialized = itemPacket.Serialize();
             //Logger.LogInfo(serialized);
 
-            if(AlreadySent.Contains(serialized))
-                return;
+            //if(AlreadySent.Contains(serialized))
+            //    return;
 
-            AlreadySent.Add(serialized);
+            //AlreadySent.Add(serialized);
             AkiBackendCommunication.Instance.SendDataToPool(serialized);
         }
 

@@ -175,9 +175,9 @@ namespace SIT.Core
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        //0.13.5.2.26282
-
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "5" || majorN4 != "3")
+                        // 0.13.5.2.26282
+                        // 0.13.9.0.26921
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "9" || majorN4 != "1")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -270,19 +270,19 @@ namespace SIT.Core
                 new QTEPatch().Enable();
                 new TinnitusFixPatch().Enable();
 
-                //try
-                //{
-                //    BundleManager.GetBundles();
-                //    new EasyAssetsPatch().Enable();
-                //    new EasyBundlePatch().Enable();
-                //}
-                //catch (Exception ex)
-                //{
-                //    Logger.LogError("// --- ERROR -----------------------------------------------");
-                //    Logger.LogError("Bundle System Failed!!");
-                //    Logger.LogError(ex.ToString());
-                //    Logger.LogError("// --- ERROR -----------------------------------------------");
-                //}
+                try
+                {
+                    BundleManager.GetBundles();
+                    new EasyAssetsPatch().Enable();
+                    new EasyBundlePatch().Enable();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("// --- ERROR -----------------------------------------------");
+                    Logger.LogError("Bundle System Failed!!");
+                    Logger.LogError(ex.ToString());
+                    Logger.LogError("// --- ERROR -----------------------------------------------");
+                }
 
                 new WavesSpawnScenarioInitPatch(Config).Enable();
                 new WavesSpawnScenarioMethodPatch().Enable();
@@ -338,8 +338,7 @@ namespace SIT.Core
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
-            new IsPlayerEnemyPatch().Enable();
-            new IsPlayerEnemyByRolePatch().Enable();
+            new BotSelfEnemyPatch().Enable();
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             //new CustomAiPatch().Enable();
@@ -349,12 +348,8 @@ namespace SIT.Core
             if (!enabled.Value)
                 return;
 
-            new AddEnemyToAllGroupsInBotZonePatch().Enable();
-            new CheckAndAddEnemyPatch().Enable();
-            new BotCreatorTeleportPMCPatch().Enable();
-
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "PMC" }, 2);
-            BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
+            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 2);
+            //BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 
         }

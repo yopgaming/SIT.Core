@@ -20,7 +20,7 @@ namespace SIT.Core.Coop
             BepInLogger = BepInEx.Logging.Logger.CreateLogSource(nameof(CoopInventoryController));
         }
 
-        protected override void Execute(SearchContentOperation operation, Callback callback)
+        public override void Execute(SearchContentOperation operation, Callback callback)
         {
             base.Execute(operation, callback);
         }

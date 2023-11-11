@@ -1,8 +1,10 @@
 using EFT.HealthSystem;
+using SIT.Core.Coop;
 using SIT.Core.Core;
 using SIT.Core.Misc;
 using SIT.Tarkov.Core;
 using System.Reflection;
+using UnityEngine;
 
 namespace SIT.Core.SP.PlayerPatches.Health
 {
@@ -42,8 +44,13 @@ namespace SIT.Core.SP.PlayerPatches.Health
             {
                 listener.Init(healthController, false);
             }
-
-
+            if (CoopGameComponent.GetServerId == null)
+            {
+                foreach (var p in GameObject.FindObjectsOfType<CoopPlayer>())
+                {
+                    GameObject.Destroy(p);
+                }
+            }
             listener.Update(healthController, false);
 
         }

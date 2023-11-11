@@ -15,7 +15,7 @@ namespace DrakiaXYZ.Waypoints.Patches
         [PatchPrefix]
         public static void PatchPrefix()
         {
-            EditorComponent.Enable();
+            //EditorComponent.Enable();
         }
     }
 }

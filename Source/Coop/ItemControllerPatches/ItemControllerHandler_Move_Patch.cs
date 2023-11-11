@@ -124,8 +124,9 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
             Dictionary<string, object> dictionary = new()
             {
-                    { "t", DateTime.Now.Ticks.ToString("G") }
-                };
+                { "serverId", coopGameComponent.ServerId },
+                { "t", DateTime.Now.Ticks.ToString("G") }
+            };
 
             if (to is GridItemAddress gridItemAddress)
             {
@@ -240,11 +241,8 @@ namespace SIT.Core.Coop.ItemControllerPatches
                 {
                     if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
                     {
-                        if (!ItemFinder.TryFindItemController(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, out itemController))
-                        {
-                            GetLogger().LogError("Unable to find ItemController");
-                            return;
-                        }
+                        GetLogger().LogError("Unable to find ItemController");
+                        return;
                     }
                 }
 

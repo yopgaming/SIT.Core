@@ -21,7 +21,7 @@ namespace DrakiaXYZ.Waypoints.Patches
         [PatchPrefix]
         public static void PatchPrefix()
         {
-            BotZoneDebugComponent.Enable();
+            //BotZoneDebugComponent.Enable();
             NavMeshDebugComponent.Enable();
         }
     }

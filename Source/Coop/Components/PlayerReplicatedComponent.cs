@@ -67,17 +67,19 @@ namespace SIT.Coop.Core.Player
 
             var method = packet["m"].ToString();
 
-            var patch = ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == method);
+            ProcessPlayerState(packet);
+
+
+            if (!ModuleReplicationPatch.Patches.ContainsKey(method))
+                return;
+
+            var patch = ModuleReplicationPatch.Patches[method];
             if (patch != null)
             {
-                // Early bird stop to processing the same item twice!
-                //if (!ModuleReplicationPatch.HasProcessed(patch.GetType(), player, packet))
                 patch.Replicated(player, packet);
-
                 return;
             }
 
-            ProcessPlayerState(packet);
 
             //var packetHandlerComponents = this.GetComponents<IPlayerPacketHandlerComponent>();
             //if (packetHandlerComponents != null)
@@ -100,7 +102,9 @@ namespace SIT.Coop.Core.Player
                 return;
 
 
-            if (IsClientDrone)
+            if (!IsClientDrone)
+                return;
+
             {
                 // Pose
                 float poseLevel = float.Parse(packet["pose"].ToString());
@@ -115,8 +119,6 @@ namespace SIT.Coop.Core.Player
                 // ------------------------------------------------------
                 // Prone -- With fixes. Thanks @TehFl0w
                 ProcessPlayerStateProne(packet);
-
-
 
                 // Rotation
                 if (packet.ContainsKey("rX") && packet.ContainsKey("rY"))
@@ -170,7 +172,7 @@ namespace SIT.Coop.Core.Player
                 {
                     // Force Rotation
                     player.Rotation = ReplicatedRotation.Value;
-                    var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+                    var playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
                     playerMovePatch?.Replicated(player, packet);
                 }
 
@@ -289,8 +291,8 @@ namespace SIT.Coop.Core.Player
             if (!IsClientDrone)
                 return;
 
-            if (!CoopGameComponent.TryGetCoopGameComponent(out _))
-                return;
+            //if (!CoopGameComponent.TryGetCoopGameComponent(out _))
+            //    return;
 
             // Replicate Position.
             // If a short distance -> Smooth Lerp to the Desired Position
@@ -337,7 +339,7 @@ namespace SIT.Coop.Core.Player
             if (ReplicatedDirection.HasValue)
             {
                 if (_playerMovePatch == null)
-                    _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+                    _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
                 _playerMovePatch?.ReplicatedMove(player
                     , new PlayerMovePacket(player.ProfileId)
@@ -355,7 +357,7 @@ namespace SIT.Coop.Core.Player
 
         }
 
-        Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches.FirstOrDefault(x => x.MethodName == "Move");
+        Player_Move_Patch _playerMovePatch = (Player_Move_Patch)ModuleReplicationPatch.Patches["Move"];
 
         private Vector2 LastDirection { get; set; } = Vector2.zero;
         private DateTime LastDirectionSent { get; set; } = DateTime.Now;

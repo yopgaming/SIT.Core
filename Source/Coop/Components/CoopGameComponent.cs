@@ -46,15 +46,20 @@ namespace SIT.Core.Coop
         /// </summary>
         public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
 
-        public EFT.Player[] PlayerUsers
+        //public EFT.Player[] PlayerUsers
+        public IEnumerable<EFT.Player> PlayerUsers
         {
             get
             {
 
                 if (Players == null)
-                    return null;
+                    yield return null;
 
-                return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
+                var keys = Players.Keys.Where(x => x.StartsWith("pmc")).ToArray();
+                foreach (var key in keys)
+                    yield return Players[key];
+
+
             }
         }
 
@@ -111,9 +116,9 @@ namespace SIT.Core.Coop
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
 
-            if(CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
+            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            if (coopGameComponent != null)
                 return coopGameComponent;
-
 
             return null;
         }
@@ -198,7 +203,6 @@ namespace SIT.Core.Coop
             StartCoroutine(ProcessServerCharacters());
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
-            StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
             Task.Run(() => PeriodicEnableDisableGC());
@@ -211,7 +215,6 @@ namespace SIT.Core.Coop
             //GCHelpers.DisableGC();
 
 
-            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
 
             Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
@@ -289,18 +292,31 @@ namespace SIT.Core.Coop
                     //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
                 }
 
+                var world = Singleton<GameWorld>.Instance;
+
                 // Hide extracted Players
                 foreach (var playerId in coopGame.ExtractedPlayers)
                 {
-                    var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
+                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == playerId) as EFT.Player;
                     if (player == null)
                         continue;
 
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(((EFT.Player)player)
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(player
                         , new Dictionary<string, object>() { { "Extracted", true } }
                         , true);
 
-                    ((EFT.Player)player).SwitchRenderer(false);
+                    if (player.ActiveHealthController != null)
+                    {
+                        if (!player.ActiveHealthController.MetabolismDisabled)
+                        {
+                            player.ActiveHealthController.AddDamageMultiplier(0);
+                            player.ActiveHealthController.SetDamageCoeff(0);
+                            player.ActiveHealthController.DisableMetabolism();
+                            player.ActiveHealthController.PauseAllEffects();
+
+                            player.SwitchRenderer(false);
+                        }
+                    }
                     //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
                     //GameObject.Destroy(player);
                 }
@@ -330,7 +346,6 @@ namespace SIT.Core.Coop
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
             StopCoroutine(ProcessServerCharacters());
-            StopCoroutine(SendWeatherToClients());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
@@ -356,10 +371,10 @@ namespace SIT.Core.Coop
         {
             var quitState = EQuitState.NONE;
 
-            if (LocalGameInstance == null)
+            if (!Singleton<ISITGame>.Instantiated)
                 return quitState;
 
-            var coopGame = LocalGameInstance as CoopGame;
+            var coopGame = Singleton<ISITGame>.Instance;
             if (coopGame == null)
                 return quitState;
 
@@ -372,20 +387,17 @@ namespace SIT.Core.Coop
             if (coopGame.ExtractedPlayers == null)
                 return quitState;
 
-            if (coopGame.PlayerOwner == null)
-                return quitState;
-
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
 
-            if (PlayerUsers.Length > 1)
+            if (PlayerUsers.Count() > 1)
             {
                 if (PlayerUsers.Count() == numberOfPlayersDead)
                 {
                     quitState = EQuitState.YourTeamIsDead;
                 }
-                else if (!coopGame.PlayerOwner.Player.HealthController.IsAlive)
+                else if (!Singleton<GameWorld>.Instance.MainPlayer.PlayerHealthController.IsAlive)
                 {
                     quitState = EQuitState.YouAreDead;
                 }
@@ -398,12 +410,12 @@ namespace SIT.Core.Coop
             if (
                 numberOfPlayersAlive > 0
                 &&
-                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Length == numberOfPlayersExtracted)
+                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
                 )
             {
                 quitState = EQuitState.YourTeamHasExtracted;
             }
-            else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
+            else if (coopGame.ExtractedPlayers.Contains(Singleton<GameWorld>.Instance.MainPlayer.ProfileId))
             {
                 if (MatchmakerAcceptPatches.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
@@ -413,12 +425,12 @@ namespace SIT.Core.Coop
             return quitState;
         }
 
-        CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
-
         void Update()
-        //void LateUpdate()
         {
             GameCamera = Camera.current;
+
+            if (!Singleton<ISITGame>.Instantiated)
+                return;
 
             var quitState = GetQuitState();
 
@@ -430,10 +442,10 @@ namespace SIT.Core.Coop
                 )
             {
                 RequestQuitGame = true;
-                CoopGame.Stop(
+                Singleton<ISITGame>.Instance.Stop(
                     Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                    , CoopGame.MyExitStatus
-                    , CoopGame.MyExitLocation
+                    , Singleton<ISITGame>.Instance.MyExitStatus
+                    , Singleton<ISITGame>.Instance.MyExitLocation
                     , 0);
                 return;
             }
@@ -469,28 +481,11 @@ namespace SIT.Core.Coop
             if (Players == null)
                 return;
 
-            if (ActionPackets == null)
-                return;
-
             if (Singleton<GameWorld>.Instance == null)
                 return;
 
             if (RequestingObj == null)
                 return;
-
-            //if (ActionPackets.Count > 0)
-            //{
-            //    Dictionary<string, object> result = null;
-            //    swActionPackets.Restart();
-            //    var actionPacketLimitationTime = 11;
-            //    while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
-            //    {
-            //        ProcessLastActionDataPacket(result);
-            //        //Thread.Sleep(1);
-            //    }
-            //    PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
-
-            //}
 
             List<Dictionary<string, object>> playerStates = new();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
@@ -517,31 +512,6 @@ namespace SIT.Core.Coop
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
-
-                //foreach (var regPlayer in Singleton<GameWorld>.Instance.RegisteredPlayers)
-                //{
-                //    var player = (EFT.Player)regPlayer;
-                //    if (player == null)
-                //        continue;
-
-                //    if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                //        continue;
-
-                //    if (prc.IsClientDrone)
-                //        continue;
-
-                //    if (!player.enabled)
-                //        continue;
-
-                //    if (!player.isActiveAndEnabled)
-                //        continue;
-
-                //    if (playerStates.Any(x => x.ContainsKey("profileId") && x["profileId"].ToString() == player.ProfileId))
-                //        continue;
-
-                //    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
-                //}
-
 
 
                 //Logger.LogDebug(playerStates.SITToJson());
@@ -1010,6 +980,42 @@ namespace SIT.Core.Coop
                 }
             }
 
+            if (useAiControl)
+            {
+                if (profile.Info.Side == EPlayerSide.Bear || profile.Info.Side == EPlayerSide.Usec)
+                {
+                    var backpackSlot = profile.Inventory.Equipment.GetSlot(EquipmentSlot.Backpack);
+                    var backpack = backpackSlot.ContainedItem;
+                    if (backpack != null)
+                    {
+                        Item[] items = backpack.GetAllItems()?.ToArray();
+                        if (items != null)
+                        {
+                            for (int i = 0; i < items.Count(); i++)
+                            {
+                                Item item = items[i];
+                                if (item == backpack)
+                                    continue;
+
+                                item.SpawnedInSession = true;
+                            }
+                        }
+                    }
+                }
+            }
+            else // Make Player PMC items are all not 'FiR'
+            {
+                Item[] items = profile.Inventory.AllPlayerItems?.ToArray();
+                if (items != null)
+                {
+                    for (int i = 0; i < items.Count(); i++)
+                    {
+                        Item item = items[i];
+                        item.SpawnedInSession = false;
+                    }
+                }
+            }
+
             if (!SpawnedPlayersToFinalize.Any(x => otherPlayer))
                 SpawnedPlayersToFinalize.Add(otherPlayer);
 
@@ -1117,20 +1123,26 @@ namespace SIT.Core.Coop
                 }
             }
 
-            
-
             switch (packet["m"].ToString())
             {
-                case "WIO_Interact":
-                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
-                    break;
                 case "Door_Interact":
                     Door_Interact_Patch.Replicated(packet);
+                    break;
+                case "KeycardDoor_Interact":
+                    KeycardDoor_Interact_Patch.Replicated(packet);
+                    break;
+                case "LootableContainer_Interact":
+                    LootableContainer_Interact_Patch.Replicated(packet);
                     break;
                 case "Switch_Interact":
                     Switch_Interact_Patch.Replicated(packet);
                     break;
-
+                case "Trunk_Interact":
+                    Trunk_Interact_Patch.Replicated(packet);
+                    break;
+                case "WorldInteractiveObject_Interact":
+                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
+                    break;
             }
         }
 
@@ -1316,17 +1328,6 @@ namespace SIT.Core.Coop
             playerStates.Add(dictPlayerState);
         }
 
-        private IEnumerator SendWeatherToClients()
-        {
-            var waitSeconds = new WaitForSeconds(60f);
-
-            while (RunAsyncTasks)
-            {
-                yield return waitSeconds;
-
-            }
-        }
-
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
         public ulong LocalIndex { get; set; }
 
@@ -1337,13 +1338,13 @@ namespace SIT.Core.Coop
         int GuiX = 10;
         int GuiWidth = 400;
 
-        public const int PING_LIMIT_HIGH = 125;
-        public const int PING_LIMIT_MID = 100;
+        //public const int PING_LIMIT_HIGH = 125;
+        //public const int PING_LIMIT_MID = 100;
 
         public int ServerPing { get; set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
 
-        public bool HighPingMode { get; set; } = false;
+        //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
 
@@ -1382,7 +1383,7 @@ namespace SIT.Core.Coop
 
             // PING ------
             GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
+            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"RTT:{(ServerPing)}");
             rect.y += 15;
             GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
@@ -1397,7 +1398,7 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-            if (HighPingMode)
+            if (AkiBackendCommunication.Instance.HighPingMode)
             {
                 GUI.contentColor = Color.red;
                 GUI.Label(rect, $"!HIGH PING MODE!");

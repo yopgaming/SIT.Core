@@ -171,11 +171,13 @@ namespace SIT.Core.Coop.Player
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (player is CoopPlayer coopPlayer)
-            {
+
+            //if (player is CoopPlayer coopPlayer)
+
+            //{
                 Logger.LogDebug($"Player_ApplyDamageInfo_Patch:Replicated:{player.ProfileId}");
-                coopPlayer.ReceiveDamageFromServer(dict);
-            }
+                ((CoopPlayer)player).ReceiveDamageFromServer(dict);
+            //}
         }
     }
 }

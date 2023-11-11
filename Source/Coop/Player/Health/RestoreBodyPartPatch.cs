@@ -98,6 +98,9 @@ namespace SIT.Core.Coop.Player.Health
                     var healthPenalty = restoreBodyPartPacket.HealthPenalty + (1f - restoreBodyPartPacket.HealthPenalty) * player.Skills.SurgeryReducePenalty;
                     Logger.LogDebug("RestoreBodyPart::HealthPenalty::" + healthPenalty);
                     bodyPartState.Health = new HealthValue(1f, Mathf.Max(1f, Mathf.Ceil(bodyPartState.Health.Maximum * healthPenalty)), 0f);
+
+                    player.ExecuteSkill(new Action<float>(player.Skills.SurgeryAction.Complete));
+                    player.UpdateSpeedLimitByHealth();
                 }
             }
         }
