@@ -475,7 +475,7 @@ namespace SIT.Core.Coop.Components
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
 
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile, serverId, password);
 
                 FixesHideoutMusclePain();
                 DestroyThis();
@@ -595,12 +595,12 @@ namespace SIT.Core.Coop.Components
             // Start button
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
-
                 FixesHideoutMusclePain();
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
+
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile, MatchmakerAcceptPatches.Profile.ProfileId, passwordInput);
             }
         }
 

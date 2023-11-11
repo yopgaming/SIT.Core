@@ -120,7 +120,7 @@ namespace SIT.Core.Core
 
         private HashSet<string> WebSocketPreviousReceived { get; set; }
 
-        public void WebSocketCreate(Profile profile)
+        public void WebSocketCreate(Profile profile, string serverId, string password)
         {
             MyProfile = profile;
 
@@ -134,7 +134,7 @@ namespace SIT.Core.Core
             Logger.LogDebug("Request Instance is connecting to WebSocket");
 
             var webSocketPort = PluginConfigSettings.Instance.CoopSettings.SITWebSocketPort;
-            var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?";
+            var wsUrl = $"{PatchConstants.GetREALWSURL()}:{webSocketPort}/{profile.ProfileId}?serverId={serverId}&password={password}";
             Logger.LogDebug(webSocketPort);
             Logger.LogDebug(PatchConstants.GetREALWSURL());
             Logger.LogDebug(wsUrl);
@@ -200,7 +200,7 @@ namespace SIT.Core.Core
             Logger.LogError($"{nameof(WebSocket_OnError)}: {e.Exception}");
             WebSocket_OnError();
             WebSocketClose();
-            WebSocketCreate(MyProfile);
+            WebSocketCreate(MyProfile, "", "");
         }
 
         private void WebSocket_OnError()
