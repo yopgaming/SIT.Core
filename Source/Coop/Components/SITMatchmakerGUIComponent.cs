@@ -602,7 +602,7 @@ namespace SIT.Core.Coop.Components
                         showBotAmountField = GUI.Toggle(new UnityEngine.Rect(botAcheckbox, y, 200, 25), showBotAmountField, "");
 
                         // "AI Amount" text
-                        GUI.Label(new UnityEngine.Rect(botAcheckbox, y, botAmountLabelWidth, 25), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
+                        GUI.Label(new UnityEngine.Rect(botAtext, y, botAmountLabelWidth, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
 
 
                         // Reset GUI.enabled to enable other elements
