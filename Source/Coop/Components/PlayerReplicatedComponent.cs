@@ -57,9 +57,6 @@ namespace SIT.Coop.Core.Player
                     if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
                         return;
 
-                    if (!ItemFinder.TryFindItemController(player.ProfileId, out ItemController itemController))
-                        return;
-
                     Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
                     if (dogtagSlot == null)
                         return;
