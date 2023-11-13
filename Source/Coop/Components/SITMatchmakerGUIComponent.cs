@@ -54,11 +54,10 @@ namespace SIT.Core.Coop.Components
         private bool showBotAmountField = true;
 
         private string passwordInput = "";
-
         private string passwordClientInput = "";
 
-        public int botAmountInput = 0;
-        public string[] botAmountOptions = new string[] { "AsOnline", "Low", "Medium", "High", "NoBots" };
+        private int botAmountInput = 0;
+        private string[] botAmountOptions = new string[] { "AsOnline", "Low", "Medium", "High", "NoBots" };
 
         private const float verticalSpacing = 10f;
 
@@ -524,7 +523,7 @@ namespace SIT.Core.Coop.Components
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
-                var y = 30 + (iRow * 50);
+                var y = 20 + (iRow * 60);
 
                 switch (iRow)
                 {
@@ -585,7 +584,6 @@ namespace SIT.Core.Coop.Components
 
                         break;
 
-
                     case 3:
                         // Calculate the width of the "AI Amount" text
                         var botAmountLabelWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x;
@@ -640,7 +638,7 @@ namespace SIT.Core.Coop.Components
                         return EBotAmount.NoBots;
                     default:
                         return EBotAmount.AsOnline;
-                } 
+                }
             }
 
             // Style for back and start button
@@ -660,8 +658,7 @@ namespace SIT.Core.Coop.Components
             {
                 FixesHideoutMusclePain();
                 RaidSettings.BotSettings.BotAmount = botAmountInputProc(botAmountInput);
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
-
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
 
