@@ -94,7 +94,7 @@ namespace SIT.Coop.Core.Matchmaker
             timestamp = ts;
         }
 
-        public static bool CheckForMatch(RaidSettings settings, out string outJson, out string errorMessage)
+        public static bool CheckForMatch(RaidSettings settings, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
             PatchConstants.Logger.LogInfo("CheckForMatch");
