@@ -42,6 +42,7 @@ namespace SIT.Coop.Core.Matchmaker
         public static bool IsSinglePlayer => MatchingType == EMatchmakerType.Single;
         public static int HostExpectedNumberOfPlayers { get; set; } = 1;
         private static string groupId;
+        private static long timestamp;
         #endregion
 
         #region Static Fields
@@ -83,7 +84,17 @@ namespace SIT.Coop.Core.Matchmaker
             groupId = newId;
         }
 
-        public static bool CheckForMatch(RaidSettings settings, string password, out string outJson, out string errorMessage)
+        public static long GetTimestamp()
+        {
+            return timestamp;
+        }
+
+        public static void SetTimestamp(long ts)
+        {
+            timestamp = ts;
+        }
+
+        public static bool CheckForMatch(RaidSettings settings, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
             PatchConstants.Logger.LogInfo("CheckForMatch");
@@ -211,9 +222,12 @@ namespace SIT.Coop.Core.Matchmaker
         //public static void CreateMatch(string accountId, RaidSettings rs)
         public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
         {
+            long timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+
             var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId }
+                , { "timestamp", timestamp }
                 , { "settings", rs }
                 , { "expectedNumberOfPlayers", MatchmakerAcceptPatches.HostExpectedNumberOfPlayers }
                 , { "gameVersion", StayInTarkovPlugin.EFTVersionMajor }
@@ -230,6 +244,7 @@ namespace SIT.Coop.Core.Matchmaker
             {
                 PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
                 SetGroupId(profileId);
+                SetTimestamp(timestamp);
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupLeader;
                 return;
             }
