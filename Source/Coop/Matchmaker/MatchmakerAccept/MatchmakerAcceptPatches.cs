@@ -159,7 +159,7 @@ namespace SIT.Coop.Core.Matchmaker
             return false;
         }
 
-        public static bool JoinMatch(RaidSettings settings, string serverId, string password, out string outJson, out string errorMessage)
+        public static bool JoinMatch(RaidSettings settings, string profileId, string serverId, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
             PatchConstants.Logger.LogDebug("JoinMatch");
@@ -168,6 +168,7 @@ namespace SIT.Coop.Core.Matchmaker
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
                 JObject objectToSend = JObject.FromObject(settings);
+                objectToSend.Add("profileId", profileId);
                 objectToSend.Add("serverId", serverId);
                 objectToSend.Add("password", password);
 
