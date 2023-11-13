@@ -462,7 +462,7 @@ namespace SIT.Core.Coop.Components
                     if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
-                        JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, match["serverId"].ToString());
+                        JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, match["ServerId"].ToString());
                     }
 
                     index++;
