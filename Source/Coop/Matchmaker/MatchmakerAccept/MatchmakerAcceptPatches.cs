@@ -83,7 +83,7 @@ namespace SIT.Coop.Core.Matchmaker
             groupId = newId;
         }
 
-        public static bool CheckForMatch(RaidSettings settings, out string outJson, out string errorMessage)
+        public static bool CheckForMatch(RaidSettings settings, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
             PatchConstants.Logger.LogInfo("CheckForMatch");
@@ -91,7 +91,10 @@ namespace SIT.Coop.Core.Matchmaker
 
             if (MatchmakerAcceptPatches.MatchMakerAcceptScreenInstance != null)
             {
-                outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settings));
+                JObject settingsJSON = JObject.FromObject(settings);
+                settingsJSON.Add("password", password);
+
+                outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/exist", JsonConvert.SerializeObject(settingsJSON));
                 PatchConstants.Logger.LogInfo(outJson);
 
                 if (!string.IsNullOrEmpty(outJson))
@@ -104,6 +107,19 @@ namespace SIT.Coop.Core.Matchmaker
                     else
                     {
                         var outJObject = JObject.Parse(outJson);
+
+                        if(outJObject.ContainsKey("passwordRequired"))
+                        {
+                            errorMessage = "passwordRequired";
+                            return false;
+                        }
+
+                        if(outJObject.ContainsKey("invalidPassword"))
+                        {
+                            errorMessage = "Invalid password";
+                            return false;
+                        }
+
                         if (outJObject.ContainsKey("gameVersion"))
                         {
                             if (JObject.Parse(outJson)["gameVersion"].ToString() != StayInTarkovPlugin.EFTVersionMajor)
@@ -132,7 +148,7 @@ namespace SIT.Coop.Core.Matchmaker
             return false;
         }
 
-        public static bool JoinMatch(RaidSettings settings, string serverId, out string outJson, out string errorMessage)
+        public static bool JoinMatch(RaidSettings settings, string serverId, string password, out string outJson, out string errorMessage)
         {
             errorMessage = $"No server matches the data provided or the server no longer exists";
             PatchConstants.Logger.LogDebug("JoinMatch");
@@ -142,6 +158,7 @@ namespace SIT.Coop.Core.Matchmaker
             {
                 JObject objectToSend = JObject.FromObject(settings);
                 objectToSend.Add("serverId", serverId);
+                objectToSend.Add("password", password);
 
                 outJson = AkiBackendCommunication.Instance.PostJson("/coop/server/join", objectToSend.ToJson());
                 PatchConstants.Logger.LogInfo(outJson);
@@ -194,7 +211,6 @@ namespace SIT.Coop.Core.Matchmaker
         //public static void CreateMatch(string accountId, RaidSettings rs)
         public static void CreateMatch(string profileId, RaidSettings rs, string password = null)
         {
-
             var objectToSend = new Dictionary<string, object>
             {
                 { "serverId", profileId }
@@ -209,6 +225,7 @@ namespace SIT.Coop.Core.Matchmaker
 
             string text = AkiBackendCommunication.Instance.PostJson("/coop/server/create", JsonConvert.SerializeObject(
                 objectToSend));
+
             if (!string.IsNullOrEmpty(text))
             {
                 PatchConstants.Logger.LogInfo($"CreateMatch:: Match Created for {profileId}");
