@@ -1110,17 +1110,17 @@ namespace SIT.Core.Coop
             //{
             //    prc.ReplicatedDirection = new Vector2(1, 0);
             //}
-            dictPlayerState.Add("tp", prc.TriggerPressed);
+            //dictPlayerState.Add("tp", prc.TriggerPressed);
             dictPlayerState.Add("alive", player.HealthController.IsAlive);
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
             dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
 
             dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
             // ---------- 
-            dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
-            dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
-            dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
-            dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
+            //dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
+            //dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
+            //dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
+            //dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
             //
             if (prc.ReplicatedDirection.HasValue)
             {
@@ -1129,6 +1129,7 @@ namespace SIT.Core.Coop
             }
 
             // ---------- 
+            /*
             if (player.PlayerHealthController != null)
             {
                 foreach (var b in Enum.GetValues(typeof(EBodyPart)))
@@ -1147,9 +1148,23 @@ namespace SIT.Core.Coop
                 }
 
             }
+            */
             // ---------- 
+            if (player.HealthController.IsAlive)
+            {
+                foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+                {
+                    if (bodyPart == EBodyPart.Common)
+                        continue;
 
+                    var health = player.HealthController.GetBodyPartHealth(bodyPart);
+                    dictPlayerState.Add($"hp.{bodyPart}", health.Current);
+                    dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
+                }
 
+                dictPlayerState.Add("en", player.HealthController.Energy.Current);
+                dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
+            }
             // ----------
             dictPlayerState.Add("m", "PlayerState");
 
