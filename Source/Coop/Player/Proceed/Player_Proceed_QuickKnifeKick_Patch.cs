@@ -32,8 +32,6 @@ namespace SIT.Core.Coop.Player.Proceed
         [PatchPrefix]
         public static bool PrePatch(EFT.Player __instance)
         {
-            Logger.LogInfo("Player_Proceed_QuickKnifeKick_Patch:PrePatch");
-
             if (CallLocally.Contains(__instance.ProfileId))
                 return true;
 
@@ -43,8 +41,6 @@ namespace SIT.Core.Coop.Player.Proceed
         [PatchPostfix]
         public static void PostPatch(EFT.Player __instance, KnifeComponent knife, bool scheduled)
         {
-            Logger.LogInfo("Player_Proceed_QuickKnifeKick_Patch:PostPatch");
-
             if (CallLocally.Contains(__instance.ProfileId))
             {
                 CallLocally.Remove(__instance.ProfileId);
@@ -69,8 +65,6 @@ namespace SIT.Core.Coop.Player.Proceed
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            Logger.LogInfo("Player_Proceed_QuickKnifeKick_Patch:Replicated");
-
             if (HasProcessed(GetType(), player, dict))
                 return;
 
