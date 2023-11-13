@@ -38,6 +38,7 @@ namespace SIT.Core.Coop
         private AkiBackendCommunication RequestingObj { get; set; }
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
+        public long Timestamp { get; set; } = 0;
 
         public EFT.Player OwnPlayer { get; set; }
 

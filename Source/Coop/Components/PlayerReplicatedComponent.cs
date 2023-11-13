@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 using EFT;
 using EFT.HealthSystem;
+using EFT.InventoryLogic;
 using SIT.Coop.Core.Web;
 using SIT.Core.Coop;
 using SIT.Core.Coop.Components;
@@ -11,7 +12,8 @@ using SIT.Core.SP.Raid;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 using static AHealthController<EFT.HealthSystem.ActiveHealthController.AbstractHealthEffect>;
 
@@ -48,14 +50,50 @@ namespace SIT.Coop.Core.Player
                 PatchConstants.Logger.LogDebug($"PlayerReplicatedComponent:Start:Set Player to {player}");
             }
 
-            // ---------------------------------------------------------
-            // TODO: Add Dogtags to PMC Clients in match
             if (player.ProfileId.StartsWith("pmc"))
             {
                 if (UpdateDogtagPatch.GetDogtagItem(player) == null)
                 {
-                    var dogtagSlot = player.Inventory.Equipment.GetSlot(EFT.InventoryLogic.EquipmentSlot.Dogtag);
-                    //var dogtagItemComponent = dogtagSlot.Add(new DogtagComponent(new Item("")));
+                    if (!CoopGameComponent.TryGetCoopGameComponent(out CoopGameComponent coopGameComponent))
+                        return;
+
+                    if (!ItemFinder.TryFindItemController(player.ProfileId, out ItemController itemController))
+                        return;
+
+                    Slot dogtagSlot = player.Inventory.Equipment.GetSlot(EquipmentSlot.Dogtag);
+                    if (dogtagSlot == null)
+                        return;
+
+                    Item dogtagContainter = null;
+                    foreach (Item item in player.Inventory.GetAllItemByTemplate("55d7217a4bdc2d86028b456d"))
+                        if (item.IsContainer)
+                            dogtagContainter = item; // should be only 1 result.
+
+                    if (dogtagContainter == null)
+                        return;
+
+                    string itemId = "";
+                    using (SHA256 sha256 = SHA256.Create())
+                    {
+                        StringBuilder sb = new();
+
+                        byte[] hashes = sha256.ComputeHash(Encoding.UTF8.GetBytes(coopGameComponent.ServerId + player.ProfileId + coopGameComponent.Timestamp));
+                        for (int i = 0; i < hashes.Length; i++)
+                            sb.Append(hashes[i].ToString("x2"));
+
+                        itemId = sb.ToString().Substring(0, 24);
+                    }
+
+                    Item dogtag = Tarkov.Core.Spawners.ItemFactory.CreateItem(itemId, player.Side == EPlayerSide.Bear ? DogtagComponent.BearDogtagsTemplate : DogtagComponent.UsecDogtagsTemplate);
+
+                    if (dogtag != null)
+                    {
+                        if (!dogtag.TryGetItemComponent(out DogtagComponent dogtagComponent))
+                            return;
+
+                        dogtagComponent.GroupId = player.Profile.Info.GroupId;
+                        dogtagSlot.AddWithoutRestrictions(dogtag);
+                    }
                 }
             }
 
