@@ -470,7 +470,7 @@ namespace SIT.Core.Coop.Components
             {
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
-                MatchmakerAcceptPatches.SetGroupId(result["ServerId"].ToString());
+                MatchmakerAcceptPatches.SetGroupId(result["serverId"].ToString());
                 MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
