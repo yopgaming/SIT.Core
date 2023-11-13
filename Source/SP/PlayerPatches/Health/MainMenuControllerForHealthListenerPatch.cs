@@ -33,9 +33,13 @@ namespace SIT.Core.SP.PlayerPatches.Health
             if (healthController == null)
             {
                 Logger.LogInfo("MainMenuControllerPatch() - healthController is null");
-
+            }
+            else
+            {
                 foreach (var p in GameObject.FindObjectsOfType<CoopPlayer>())
+                {
                     GameObject.Destroy(p);
+                }
             }
 
             if (listener == null)
