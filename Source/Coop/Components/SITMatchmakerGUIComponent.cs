@@ -365,7 +365,7 @@ namespace SIT.Core.Coop.Components
 
             if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
             {
-                JoinMatch(pendingServerId, passwordClientInput);
+                JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, pendingServerId, passwordClientInput);
             }
         }
 
@@ -462,7 +462,7 @@ namespace SIT.Core.Coop.Components
                     if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
-                        JoinMatch(match["ServerId"].ToString());
+                        JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, match["ServerId"].ToString());
                     }
 
                     index++;
@@ -470,18 +470,18 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-        void JoinMatch(string serverId, string password = "")
+        void JoinMatch(string profileId, string serverId, string password = "")
         {
-            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, serverId, password, out string returnedJson, out string errorMessage))
+            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, profileId, serverId, password, out string returnedJson, out string errorMessage))
             {
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
-                var groupId = result["serverId"].ToString();
-                MatchmakerAcceptPatches.SetGroupId(groupId);
+                MatchmakerAcceptPatches.SetGroupId(result["ServerId"].ToString());
+                MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
 
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile, serverId, password);
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
 
                 FixesHideoutMusclePain();
                 DestroyThis();
@@ -662,7 +662,7 @@ namespace SIT.Core.Coop.Components
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
 
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile, MatchmakerAcceptPatches.Profile.ProfileId, passwordInput);
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
             }
         }
 
