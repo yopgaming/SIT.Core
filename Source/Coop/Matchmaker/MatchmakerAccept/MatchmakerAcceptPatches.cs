@@ -196,6 +196,12 @@ namespace SIT.Coop.Core.Matchmaker
                         return false;
                     }
 
+                    if(outJObject.ContainsKey("alreadyConnected"))
+                    {
+                        errorMessage = "Your profile is already connected to this server";
+                        return false;
+                    }
+
                     if (outJObject.ContainsKey("gameVersion"))
                     {
                         if (JObject.Parse(outJson)["gameVersion"].ToString() != StayInTarkovPlugin.EFTVersionMajor)
