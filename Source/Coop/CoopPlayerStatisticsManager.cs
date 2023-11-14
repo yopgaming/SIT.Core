@@ -21,7 +21,7 @@ namespace SIT.Core.Coop
         {
             if (value > 0)
             {
-                //NotificationManagerClass.DisplayNotification(new GClass1905(localizationKey1, localizationKey2, value));
+                NotificationManagerClass.DisplayNotification(new GClass1955(localizationKey1, localizationKey2, value));
             }
         }
     }
