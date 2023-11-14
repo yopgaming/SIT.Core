@@ -212,10 +212,6 @@ namespace SIT.Core.Coop
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
-            //GCHelpers.EnableGC();
-            //GCHelpers.DisableGC();
-
-
 
             Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
@@ -239,12 +235,12 @@ namespace SIT.Core.Coop
                     await Task.Delay(1000);
 
                     counter++;
-                    if (counter == (60 * 5))
+                    if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
                     {
                         GCHelpers.EnableGC();
                     }
 
-                    if (counter == (61 * 5))
+                    if (counter == (61 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
                     {
                         GCHelpers.DisableGC(true);
                         counter = 0;
