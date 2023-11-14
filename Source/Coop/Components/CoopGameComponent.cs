@@ -228,6 +228,7 @@ namespace SIT.Core.Coop
                 return;
 
             int counter = 0;
+            int maxMoveCounter = 60;
             await Task.Run(async () =>
             {
                 do
@@ -235,6 +236,14 @@ namespace SIT.Core.Coop
                     await Task.Delay(1000);
 
                     counter++;
+
+                    var myPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+                    if ((myPlayer != null && (myPlayer.HealthController.IsAlive && !myPlayer.Velocity.Equals(Vector3.zero))) && maxMoveCounter > 0)
+                    {
+                        maxMoveCounter--;
+                        continue;
+                    }
+
                     if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
                     {
                         GCHelpers.EnableGC();
@@ -244,6 +253,7 @@ namespace SIT.Core.Coop
                     {
                         GCHelpers.DisableGC(true);
                         counter = 0;
+                        maxMoveCounter = 60;
                     }
 
                 } while (RunAsyncTasks && PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector);
