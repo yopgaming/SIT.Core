@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
 using EFT;
+using EFT.Bots;
+using EFT.Interactive;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
@@ -22,8 +24,8 @@ namespace SIT.Core.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
-        private UnityEngine.Rect windowRect = new (20, 20, 120, 50);
-        private UnityEngine.Rect windowInnerRect { get; set; } = new (20, 20, 120, 50);
+        private UnityEngine.Rect windowRect = new(20, 20, 120, 50);
+        private UnityEngine.Rect windowInnerRect { get; set; } = new(20, 20, 120, 50);
         private GUIStyle styleBrowserRaidLabel { get; } = new GUIStyle();
         private GUIStyle styleBrowserRaidRow { get; } = new GUIStyle() { };
         private GUIStyle styleBrowserRaidLink { get; } = new GUIStyle();
@@ -47,11 +49,15 @@ namespace SIT.Core.Coop.Components
         private CancellationTokenSource m_cancellationTokenSource;
 
         private bool StopAllTasks = false;
-        
+
         private bool showPasswordField = false;
- 
+        private bool showBotAmountField = true;
+
         private string passwordInput = "";
         private string passwordClientInput = "";
+
+        private int botAmountInput = 0;
+        private string[] botAmountOptions = new string[] { "AsOnline", "Low", "Medium", "High", "NoBots" };
 
         private const float verticalSpacing = 10f;
 
@@ -323,7 +329,7 @@ namespace SIT.Core.Coop.Components
 
             GUI.Label(new UnityEngine.Rect(20,20,200,200), ErrorMessage);
 
-            if(GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {
                 showErrorMessageWindow = false;
                 showServerBrowserWindow = true;
@@ -370,7 +376,7 @@ namespace SIT.Core.Coop.Components
             string[] columnLabels = {
                 StayInTarkovPlugin.LanguageDictionary["SERVER"]
                 , StayInTarkovPlugin.LanguageDictionary["PLAYERS"]
-                , StayInTarkovPlugin.LanguageDictionary["LOCATION"] 
+                , StayInTarkovPlugin.LanguageDictionary["LOCATION"]
                 , StayInTarkovPlugin.LanguageDictionary["PASSWORD"]
             };
 
@@ -500,7 +506,7 @@ namespace SIT.Core.Coop.Components
 
         void DrawHostGameWindow(int windowID)
         {
-            var rows = 3;
+            var rows = 4;
             var halfWindowWidth = windowInnerRect.width / 2;
 
             // Define a style for the title label
@@ -517,7 +523,7 @@ namespace SIT.Core.Coop.Components
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
-                var y = 40 + (iRow * 50);
+                var y = 20 + (iRow * 60);
 
                 switch (iRow)
                 {
@@ -577,6 +583,61 @@ namespace SIT.Core.Coop.Components
                         }
 
                         break;
+
+                    case 3:
+                        // Calculate the width of the "AI Amount" text
+                        var botAmountLabelWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x;
+
+                        // Calculate the position for the checkbox and text to center-align them
+                        var botAhorizontal = 10;
+                        var botAcheckbox = halfWindowWidth - botAmountLabelWidth / 2 - botAhorizontal;
+                        var botAtext = botAcheckbox + 20;
+
+                        // Disable the checkbox to prevent interaction
+                        GUI.enabled = true;
+
+                        // Checkbox to toggle the AI Amount SelectionGrid visibility
+                        showBotAmountField = GUI.Toggle(new UnityEngine.Rect(botAcheckbox, y, 200, 25), showBotAmountField, "");
+
+                        // "AI Amount" text
+                        GUI.Label(new UnityEngine.Rect(botAtext, y, botAmountLabelWidth, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
+
+
+                        // Reset GUI.enabled to enable other elements
+                        GUI.enabled = true;
+
+                        var botAmountFieldWidth = 350;
+                        var botAmountX = halfWindowWidth - botAmountFieldWidth / 2;
+
+                        if (showBotAmountField)
+                        {
+                            y += 20;
+                            Rect botAmountGridRect = new Rect(botAmountX, y, botAmountOptions.Count() * 75, 25);
+
+                            botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, botAmountOptions, 5);
+
+                        }
+
+                        break;
+                }
+            }
+
+            EFT.Bots.EBotAmount botAmountInputProc(int id)
+            {
+                switch (id)
+                {
+                    case 0:
+                        return EBotAmount.AsOnline;
+                    case 1:
+                        return EBotAmount.Low;
+                    case 2:
+                        return EBotAmount.Medium;
+                    case 3:
+                        return EBotAmount.High;
+                    case 4:
+                        return EBotAmount.NoBots;
+                    default:
+                        return EBotAmount.AsOnline;
                 }
             }
 
@@ -596,6 +657,7 @@ namespace SIT.Core.Coop.Components
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
                 FixesHideoutMusclePain();
+                RaidSettings.BotSettings.BotAmount = botAmountInputProc(botAmountInput);
                 MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
