@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SIT.Core.SP.ScavMode
 {
-    public class DisableScavModePatch : ModulePatch
+    public class RemoveScavModeButtonPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

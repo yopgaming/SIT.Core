@@ -261,7 +261,7 @@ namespace SIT.Core
                 EnableSPPatches_PlayerHealth(Config);
 
                 //// --------- SCAV MODE ---------------------
-                new DisableScavModePatch().Enable();
+                new RemoveScavModeButtonPatch().Enable();
 
                 //// --------- Airdrop -----------------------
                 //new AirdropPatch().Enable();
@@ -296,8 +296,6 @@ namespace SIT.Core
                     Logger.LogError("// --- ERROR -----------------------------------------------");
                 }
 
-                new WavesSpawnScenarioInitPatch(Config).Enable();
-                new WavesSpawnScenarioMethodPatch().Enable();
             }
             catch(Exception ex)
             {
@@ -326,6 +324,7 @@ namespace SIT.Core
 
         private static void EnableSPPatches_PlayerProgression()
         {
+            new OfflineDisplayProgressPatch().Enable();
             new OfflineSaveProfile().Enable();
             new ExperienceGainPatch().Enable();
         }
