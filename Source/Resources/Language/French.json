@@ -1,0 +1,17 @@
+{
+  "HOST_RAID": "Host Raid",
+  "BACK": "Retour (ECH)",
+  "PLAY_SINGLE_PLAYER": "Jouer en solo",
+  "JOIN": "Rejoindre",
+  "SERVER": "Server",
+  "SERVER_NAME": "Nom du server",
+  "PLAYERS": "Joueurs",
+  "LOCATION": "Emplacement",
+  "RAID": "Raid",
+  "START": "Lancer",
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Nombre de joueurs à attendre (y compris vous)",
+  "REQUIRE_PASSWORD": "Mot de passe requis",
+  "PASSWORD": "Mot de passe",
+  "AI_AMOUNT": "Nombre d'IA'",
+  "ILLEGAL_MESSAGE": "Jeu illégal trouvé. Veuillez acheter, installer le jeu et le lancer au moins une fois."
+}
