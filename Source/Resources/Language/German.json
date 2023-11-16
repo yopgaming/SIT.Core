@@ -1,6 +1,6 @@
 {
   "HOST_RAID": "Raid Hosten",
-  "BACK": "Zurück (esc)",
+  "BACK": "Zurück (ESC)",
   "PLAY_SINGLE_PLAYER": "Einzelspieler",
   "JOIN": "Beitreten",
   "SERVER": "Server",
@@ -9,11 +9,14 @@
   "LOCATION": "Ort",
   "RAID": "Raid",
   "START": "Start",
-  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Number of Players to Wait For (Including You)",
-  "REQUIRE_PASSWORD": "Require Password",
-  "PASSWORD": "Password",
-  "AI_AMOUNT": "AI Amount",
-  "ILLEGAL_MESSAGE": "Illegal game found. Please buy, install the game and launch at least once."
-
-
+  "NUMBER_OF_PLAYERS_TO_WAIT_FOR_MESSAGE": "Spieleranzahl (inklusive dir)",
+  "REQUIRE_PASSWORD": "Passwort für die Lobby",
+  "PASSWORD": "Passwort",
+  "AI_AMOUNT": "KI Menge",
+  "ILLEGAL_MESSAGE": "Illegale Spielkopie erkannt! Bitte kaufe dir Escape from Tarkov und starte es mindestens ein mal.",
+  "RAID_TEAM_DEAD": "Du bist tot! Mit F8 kannst du die Lobby verlassen.",
+  "RAID_TEAM_EXTRACTED": "Dein Team ist entkommen! Mit F8 Key kannst du die Lobby verlassen.",
+  "RAID_PLAYER_DEAD": "Du bist tot! Warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_EXTRACTED": "Du bist entkommen! Warte bis die Runde vorbei ist oder verlasse die Lobby mit F8.",
+  "RAID_PLAYER_EXTRACTED_HOST": "Du bist entkommen! Warte bis alle Spieler entkommen sind oder verlasse die Lobby mit F8."
 }
