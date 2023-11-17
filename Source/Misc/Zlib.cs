@@ -65,7 +65,7 @@ namespace SIT.Core.Misc
 
         public static byte[] Compress(string data)
         {
-            return SimpleZlib.CompressToBytes(data, 6);
+            return SimpleZlib.CompressToBytes(data, 9);
         }
 
         public static async Task<byte[]> CompressAsync(string data, ZlibCompression level)
