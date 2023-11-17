@@ -45,7 +45,7 @@ namespace SIT.Core.Coop
             //new LocalGameSpawnAICoroutinePatch().Enable(); // No longer needed. Handled by CoopGame
             new NonWaveSpawnScenarioPatch(m_Config).Enable();
             new WaveSpawnScenarioPatch(m_Config).Enable();
-            //new LocalGame_Weather_Patch().Enable();
+            new LocalGame_Weather_Patch().Enable();
 
 
             // ------ MATCHMAKER -------------------------
@@ -82,12 +82,10 @@ namespace SIT.Core.Coop
 
             if (!NoMRPPatches.Any())
             {
-                NoMRPPatches.Add(new Door_Interact_Patch());
                 NoMRPPatches.Add(new Player_Init_Coop_Patch(m_Config));
-                NoMRPPatches.Add(new Switch_Interact_Patch());
                 NoMRPPatches.Add(new WeaponSoundPlayer_FireSonicSound_Patch());
-                NoMRPPatches.Add(new WorldInteractiveObject_Interact_Patch());
                 NoMRPPatches.Add(new ItemControllerHandler_Move_Patch());
+                NoMRPPatches.Add(new LootableContainer_Interact_Patch());
             }
 
             //Logger.LogInfo($"{NoMRPPatches.Count()} Non-MR Patches found");
@@ -120,7 +118,7 @@ namespace SIT.Core.Coop
                     }
                 }
                 else
-                    mrp = ModuleReplicationPatch.Patches.SingleOrDefault(x => x.GetType() == module);
+                    mrp = ModuleReplicationPatch.Patches.Values.SingleOrDefault(x => x.GetType() == module);
 
                 if (mrp == null)
                     continue;

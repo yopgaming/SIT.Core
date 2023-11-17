@@ -10,7 +10,9 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -19,9 +21,9 @@ namespace SIT.Core.Coop.Components
 {
     public class ActionPacketHandlerComponent : MonoBehaviour
     {
-        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new BlockingCollection<Dictionary<string, object>>();
-        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new();
-        public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new();
+        public BlockingCollection<Dictionary<string, object>> ActionPackets { get; } = new(9999);
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsMovement { get; private set; } = new(9999);
+        public BlockingCollection<Dictionary<string, object>> ActionPacketsDamage { get; private set; } = new(9999);
         public ConcurrentDictionary<string, EFT.Player> Players => CoopGameComponent.Players;
         public ManualLogSource Logger { get; private set; }
 
@@ -88,32 +90,68 @@ namespace SIT.Core.Coop.Components
 
             if (ActionPackets.Count > 0)
             {
+                Stopwatch stopwatchActionPackets = Stopwatch.StartNew();
                 while (ActionPackets.TryTake(out var result))
                 {
-                    ProcessLastActionDataPacket(result);
+                    Stopwatch stopwatchActionPacket = Stopwatch.StartNew();
+                    if (!ProcessLastActionDataPacket(result))
+                    {
+                        //ActionPackets.Add(result);
+                        continue;
+                    }
+
+                    if (stopwatchActionPacket.ElapsedMilliseconds > 1)
+                        Logger.LogDebug($"ActionPacket {result["m"]} took {stopwatchActionPacket.ElapsedMilliseconds}ms to process!");
                 }
+                if (stopwatchActionPackets.ElapsedMilliseconds > 1)
+                    Logger.LogDebug($"ActionPackets took {stopwatchActionPackets.ElapsedMilliseconds}ms to process!");
             }
 
             if (ActionPacketsMovement != null && ActionPacketsMovement.Count > 0)
             {
+                Stopwatch stopwatchActionPacketsMovement = Stopwatch.StartNew();
                 while (ActionPacketsMovement.TryTake(out var result))
                 {
-                    ProcessLastActionDataPacket(result);
+                    if (!ProcessLastActionDataPacket(result))
+                    {
+                        //ActionPacketsMovement.Add(result);
+                        continue;
+                    }
+                }
+                if(stopwatchActionPacketsMovement.ElapsedMilliseconds > 1)
+                {
+                    Logger.LogDebug($"ActionPacketsMovement took {stopwatchActionPacketsMovement.ElapsedMilliseconds}ms to process!");
                 }
             }
 
 
             if (ActionPacketsDamage != null && ActionPacketsDamage.Count > 0)
             {
+                Stopwatch stopwatchActionPacketsDamage = Stopwatch.StartNew();
                 while (ActionPacketsDamage.TryTake(out var packet))
                 {
-                    var profileId = packet["profileId"].ToString();
-                    var playerKVP = CoopGameComponent.Players.First(x => x.Key == profileId);
-                    if (playerKVP.Value == null)
-                        return;
+                    if (!packet.ContainsKey("profileId"))
+                        continue;
 
-                    var coopPlayer = (CoopPlayer)playerKVP.Value;
+                    var profileId = packet["profileId"].ToString();
+
+                    // The person is missing. Lets add this back until they exist
+                    if (!CoopGameComponent.Players.ContainsKey(profileId))
+                    {
+                        //ActionPacketsDamage.Add(packet);
+                        continue;
+                    }
+
+                    var playerKVP = CoopGameComponent.Players[profileId];
+                    if (playerKVP == null)
+                        continue;
+
+                    var coopPlayer = (CoopPlayer)playerKVP;
                     coopPlayer.ReceiveDamageFromServer(packet);
+                }
+                if (stopwatchActionPacketsDamage.ElapsedMilliseconds > 1)
+                {
+                    Logger.LogDebug($"ActionPacketsDamage took {stopwatchActionPacketsDamage.ElapsedMilliseconds}ms to process!");
                 }
             }
 
@@ -121,67 +159,59 @@ namespace SIT.Core.Coop.Components
             return;
         }
 
-        void ProcessLastActionDataPacket(Dictionary<string, object> packet)
+        bool ProcessLastActionDataPacket(Dictionary<string, object> packet)
         {
             if (Singleton<GameWorld>.Instance == null)
-                return;
+                return false;
 
             if (packet == null || packet.Count == 0)
             {
                 Logger.LogInfo("No Data Returned from Last Actions!");
-                return;
+                return false;
             }
 
-            if (!ProcessPlayerPacket(packet))
-            {
-                ProcessWorldPacket(ref packet);
-            }
+            bool result = ProcessPlayerPacket(packet);
+            if(!result)
+                result = ProcessWorldPacket(ref packet);
 
+            return result;
         }
 
-        void ProcessWorldPacket(ref Dictionary<string, object> packet)
+        bool ProcessWorldPacket(ref Dictionary<string, object> packet)
         {
+            // this isn't a world packet. return true
             if (packet.ContainsKey("profileId"))
-                return;
+                return true;
 
+            // this isn't a world packet. return true
             if (!packet.ContainsKey("m"))
-                return;
+                return true;
+
+            var result = false;
+            string method = packet["m"].ToString();
 
             foreach (var coopPatch in CoopPatches.NoMRPPatches)
-            {
-                var imrwp = coopPatch as IModuleReplicationWorldPatch;
-                if (imrwp != null)
-                {
-                    if (imrwp.MethodName == packet["m"].ToString())
+                if (coopPatch is IModuleReplicationWorldPatch imrwp)
+                    if (imrwp.MethodName == method)
                     {
                         imrwp.Replicated(ref packet);
+                        result = true;
                     }
-                }
-            }
 
-
-
-            switch (packet["m"].ToString())
+            if (method == "LootableContainer_Interact")
             {
-                case "WIO_Interact":
-                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
-                    break;
-                case "Door_Interact":
-                    Door_Interact_Patch.Replicated(packet);
-                    break;
-                case "Switch_Interact":
-                    Switch_Interact_Patch.Replicated(packet);
-                    break;
-
+                LootableContainer_Interact_Patch.Replicated(packet);
+                result = true;
             }
-        }
 
+            return result;
+        }
 
         bool ProcessPlayerPacket(Dictionary<string, object> packet)
         {
 
             if (packet == null)
-                return false;
+                return true;
 
             if (!packet.ContainsKey("profileId"))
                 return false;
@@ -200,20 +230,32 @@ namespace SIT.Core.Coop.Components
                 return false;
             }
 
-            var profilePlayers = Players.Where(x => x.Key == profileId && x.Value != null).ToArray();
+            //var profilePlayers = Players.Where(x => x.Key == profileId && x.Value != null).ToArray();
+
+            // ---------------------------------------------------
+            // Causes instance reference errors?
+            //var plyr = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(profileId);// Players[profileId];
+
+            // ---------------------------------------------------
+            //
+            if (!Players.ContainsKey(profileId))
+                return false;
+
+            var plyr = Players[profileId];
             bool processed = false;
 
-            foreach (var plyr in profilePlayers)
+            //foreach (var plyr in profilePlayers)
             {
-                if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                //if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
+                var prc = plyr.GetComponent<PlayerReplicatedComponent>();
                 {
                     prc.ProcessPacket(packet);
                     processed = true;
                 }
-                else
-                {
-                    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
-                }
+                //else
+                //{
+                //    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
+                //}
 
                 if (packet.ContainsKey("Extracted"))
                 {
@@ -228,12 +270,12 @@ namespace SIT.Core.Coop.Components
                             var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(Singleton<AbstractGame>.Instance);
                             if (botController != null)
                             {
-                                if (!RemovedFromAIPlayers.Contains(plyr.Key))
+                                if (!RemovedFromAIPlayers.Contains(profileId))
                                 {
-                                    RemovedFromAIPlayers.Add(plyr.Key);
+                                    RemovedFromAIPlayers.Add(profileId);
                                     Logger.LogDebug("Removing Client Player to Enemy list");
                                     var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(BotSpawner)).GetValue(botController);
-                                    botSpawner.DeletePlayer(plyr.Value);
+                                    botSpawner.DeletePlayer(plyr);
                                 }
                             }
                         }

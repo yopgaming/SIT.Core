@@ -55,12 +55,13 @@ namespace SIT.Core
 
         public static Dictionary<string, string> LanguageDictionary { get; } = new Dictionary<string, string>();    
 
+        public static bool LanguageDictionaryLoaded { get; private set; }
+
         private void Awake()
         {
             Instance = this;
             Settings = new PluginConfigSettings(Logger, Config);
             LogDependancyErrors();
-
 
             // Gather the Major/Minor numbers of EFT ASAP
             new VersionLabelPatch(Config).Enable();
@@ -75,6 +76,20 @@ namespace SIT.Core
 
             Logger.LogInfo($"Stay in Tarkov is loaded!");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private bool shownCheckError = false;
+
+        void Update()
+        {
+            if (!LegalGameCheck.Checked) 
+                LegalGameCheck.LegalityCheck(Config);
+
+            if (Singleton<PreloaderUI>.Instantiated && !shownCheckError && !LegalGameCheck.LegalGameFound)
+            {
+                shownCheckError = true;
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen("", LegalGameCheck.IllegalMessage, ErrorScreen.EButtonType.QuitButton, 60, () => { Application.Quit(); }, () => { Application.Quit(); });
+            }
         }
 
         private void ReadInLanguageDictionary()
@@ -120,6 +135,9 @@ namespace SIT.Core
                 default:
                     stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("English.json")));
                     break;
+                case "fr":
+                    stream = typeof(StayInTarkovPlugin).Assembly.GetManifestResourceStream(languageFiles.First(x => x.EndsWith("French.json")));
+                    break;
 
             }
 
@@ -156,6 +174,8 @@ namespace SIT.Core
 
             Logger.LogDebug("Loaded in the following Language Dictionary");
             Logger.LogDebug(LanguageDictionary.ToJson());
+
+            LanguageDictionaryLoaded = true;
         }
 
         private IEnumerator VersionChecks()
@@ -175,9 +195,9 @@ namespace SIT.Core
                         var majorN4 = EFTVersionMajor.Split('.')[3]; // 1
                         var majorN5 = EFTVersionMajor.Split('.')[4]; // build number
 
-                        //0.13.5.2.26282
-
-                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "5" || majorN4 != "3")
+                        // 0.13.5.2.26282
+                        // 0.13.9.0.26921
+                        if (majorN1 != "0" || majorN2 != "13" || majorN3 != "9" || majorN4 != "1")
                         {
                             Logger.LogError("Version Check: This version of SIT is not designed to work with this version of EFT.");
                         }
@@ -197,13 +217,6 @@ namespace SIT.Core
             Logger.LogInfo($"{nameof(EnableCorePatches)}");
             try
             {
-                // SIT Legal Game Checker
-                var lcRemover = Config.Bind<bool>("Debug Settings", "LC Remover", false).Value;
-                if (!lcRemover)
-                {
-                    LegalGameCheck.LegalityCheck();
-                }
-
                 // File Checker
                 new ConsistencySinglePatch().Enable();
                 new ConsistencyMultiPatch().Enable();
@@ -225,7 +238,6 @@ namespace SIT.Core
                     new WebSocketPatch().Enable();
                 }
 
-                //new TarkovTransportHttpMethodDebugPatch2().Enable();
             }
             catch (Exception e)
             {
@@ -252,7 +264,7 @@ namespace SIT.Core
                 EnableSPPatches_PlayerHealth(Config);
 
                 //// --------- SCAV MODE ---------------------
-                new DisableScavModePatch().Enable();
+                new RemoveScavModeButtonPatch().Enable();
 
                 //// --------- Airdrop -----------------------
                 //new AirdropPatch().Enable();
@@ -263,6 +275,9 @@ namespace SIT.Core
                 //// --------- Progression -----------------------
                 EnableSPPatches_PlayerProgression();
 
+                ////--------- Trader ------------------
+                new PostRaidHealingPricePatch().Enable();
+
                 //// --------------------------------------
                 // Bots
                 EnableSPPatches_Bots(Config);
@@ -270,22 +285,20 @@ namespace SIT.Core
                 new QTEPatch().Enable();
                 new TinnitusFixPatch().Enable();
 
-                //try
-                //{
-                //    BundleManager.GetBundles();
-                //    new EasyAssetsPatch().Enable();
-                //    new EasyBundlePatch().Enable();
-                //}
-                //catch (Exception ex)
-                //{
-                //    Logger.LogError("// --- ERROR -----------------------------------------------");
-                //    Logger.LogError("Bundle System Failed!!");
-                //    Logger.LogError(ex.ToString());
-                //    Logger.LogError("// --- ERROR -----------------------------------------------");
-                //}
+                try
+                {
+                    BundleManager.GetBundles();
+                    new EasyAssetsPatch().Enable();
+                    new EasyBundlePatch().Enable();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("// --- ERROR -----------------------------------------------");
+                    Logger.LogError("Bundle System Failed!!");
+                    Logger.LogError(ex.ToString());
+                    Logger.LogError("// --- ERROR -----------------------------------------------");
+                }
 
-                new WavesSpawnScenarioInitPatch(Config).Enable();
-                new WavesSpawnScenarioMethodPatch().Enable();
             }
             catch(Exception ex)
             {
@@ -314,6 +327,7 @@ namespace SIT.Core
 
         private static void EnableSPPatches_PlayerProgression()
         {
+            new OfflineDisplayProgressPatch().Enable();
             new OfflineSaveProfile().Enable();
             new ExperienceGainPatch().Enable();
         }
@@ -338,8 +352,7 @@ namespace SIT.Core
             new BotDifficultyPatch().Enable();
             new GetNewBotTemplatesPatch().Enable();
             new BotSettingsRepoClassIsFollowerFixPatch().Enable();
-            new IsPlayerEnemyPatch().Enable();
-            new IsPlayerEnemyByRolePatch().Enable();
+            new BotSelfEnemyPatch().Enable();
             new PmcFirstAidPatch().Enable();
             new SpawnProcessNegativeValuePatch().Enable();
             //new CustomAiPatch().Enable();
@@ -349,12 +362,8 @@ namespace SIT.Core
             if (!enabled.Value)
                 return;
 
-            new AddEnemyToAllGroupsInBotZonePatch().Enable();
-            new CheckAndAddEnemyPatch().Enable();
-            new BotCreatorTeleportPMCPatch().Enable();
-
-            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "PMC" }, 2);
-            BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
+            BrainManager.AddCustomLayer(typeof(RoamingLayer), new List<string>() { "Assault", "PMC" }, 2);
+            //BrainManager.AddCustomLayer(typeof(PMCRushSpawnLayer), new List<string>() { "Assault", "PMC" }, 9999);
 
 
         }

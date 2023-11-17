@@ -45,7 +45,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
             if (CoopGameComponent.GetCoopGameComponent() == null)
                 return false;
 
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && ____player.IsYourPlayer)
+            if (AkiBackendCommunication.Instance.HighPingMode && ____player.IsYourPlayer)
             {
                 return true;
             }
@@ -101,7 +101,7 @@ namespace SIT.Core.Coop.Player.FirearmControllerPatches
 
         public override void Replicated(EFT.Player player, Dictionary<string, object> dict)
         {
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+            if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
             {
                 // You would have already run this. Don't bother
                 return;

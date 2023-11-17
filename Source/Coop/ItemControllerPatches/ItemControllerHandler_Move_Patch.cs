@@ -3,6 +3,7 @@ using Comfort.Common;
 using EFT;
 using EFT.Hideout;
 using EFT.InventoryLogic;
+using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Web;
 using SIT.Core.Core;
 using SIT.Core.Misc;
@@ -26,7 +27,8 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
         public static HashSet<string> DisableForPlayer = new();
 
-        public static HashSet<string> AlreadySent = new();
+        public static HashSet<string> AlreadySentNoTime = new();
+        public static Dictionary<string, DateTime> LastSendReceiveOfItemId = new();
 
         private ManualLogSource GetLogger()
         {
@@ -55,7 +57,7 @@ namespace SIT.Core.Coop.ItemControllerPatches
             base.Enable();
 
             GetLogger().LogDebug("Clearing cached data");
-            AlreadySent.Clear();
+            LastSendReceiveOfItemId.Clear();
             CallLocally.Clear();
             DisableForPlayer.Clear();
 
@@ -124,8 +126,8 @@ namespace SIT.Core.Coop.ItemControllerPatches
 
             Dictionary<string, object> dictionary = new()
             {
-                    { "t", DateTime.Now.Ticks.ToString("G") }
-                };
+                { "serverId", coopGameComponent.ServerId },
+            };
 
             if (to is GridItemAddress gridItemAddress)
             {
@@ -161,13 +163,29 @@ namespace SIT.Core.Coop.ItemControllerPatches
             dictionary.Add("icCId", itemController.CurrentId);
             dictionary.Add("m", "IC_Move");
 
+            var jsonNoTime = dictionary.ToJson();
+            dictionary.Add("t", DateTime.Now.Ticks.ToString("G"));
             var json = dictionary.ToJson();
-            if (AlreadySent.Contains(json))
-                return;
+
+            // Check to see if this item has been sent very recently. i.e. this is spamming packets.
+            if (AlreadySentNoTime.Contains(jsonNoTime))
+            {
+                if (LastSendReceiveOfItemId.ContainsKey(item.Id) && LastSendReceiveOfItemId[item.Id] > DateTime.Now.AddSeconds(-1))
+                {
+                    GetLogger(typeof(ItemControllerHandler_Move_Patch)).LogError($"Why are trying to send the same item {item.Id} packet more than once? Something is wrong!");
+                    return;
+                }
+            }
+
+            AlreadySentNoTime.Add(jsonNoTime);
+
+            if (!LastSendReceiveOfItemId.ContainsKey(item.Id))
+                LastSendReceiveOfItemId.Add(item.Id, DateTime.Now);
+            else
+                LastSendReceiveOfItemId[item.Id] = DateTime.Now;
 
             Logger.LogDebug(json);
             AkiBackendCommunication.Instance.SendDataToPool(json);
-            AlreadySent.Add(json);
         }
 
 
@@ -190,11 +208,14 @@ namespace SIT.Core.Coop.ItemControllerPatches
             // -----------------------------------------------------------------------------------
             // Destroy the Loose Item if it exists
             //
-            var lootItems = Singleton<GameWorld>.Instance.LootItems.Where(x => x.ItemId == itemId);
+            var world = Singleton<GameWorld>.Instance;
+            var lootItems = world.LootItems.Where(x => x.ItemId == itemId);
+
             if (lootItems.Any())
             {
-                foreach(var i in lootItems)
+                foreach (var i in lootItems)
                 {
+                    world.LootList.Remove(i);
                     i.Kill();
                 }
             }
@@ -240,11 +261,8 @@ namespace SIT.Core.Coop.ItemControllerPatches
                 {
                     if (!ItemFinder.TryFindItemController(itemControllerId, out itemController))
                     {
-                        if (!ItemFinder.TryFindItemController(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, out itemController))
-                        {
-                            GetLogger().LogError("Unable to find ItemController");
-                            return;
-                        }
+                        GetLogger().LogError("Unable to find ItemController");
+                        return;
                     }
                 }
 
@@ -267,6 +285,11 @@ namespace SIT.Core.Coop.ItemControllerPatches
                     GetLogger().LogError($"CallLocally already contains {itemControllerId}");
                     return;
                 }
+
+                if (!LastSendReceiveOfItemId.ContainsKey(item.Id))
+                    LastSendReceiveOfItemId.Add(item.Id, DateTime.Now);
+                else
+                    LastSendReceiveOfItemId[item.Id] = DateTime.Now;
 
                 CallLocally.Add(itemController.ID);
 

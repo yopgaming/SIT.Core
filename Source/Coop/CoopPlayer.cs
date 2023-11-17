@@ -10,6 +10,7 @@ using SIT.Core.Coop.Player;
 using SIT.Core.Coop.Player.FirearmControllerPatches;
 using SIT.Tarkov.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,23 +41,43 @@ namespace SIT.Core.Coop
             , bool isYourPlayer = false
             , bool isClientDrone = false)
         {
-            CoopPlayer localPlayer = EFT.Player.Create<CoopPlayer>(
-                ResourceBundleConstants.PLAYER_BUNDLE_NAME
-                , playerId
-                , position
-                , updateQueue
-                , armsUpdateMode
-                , bodyUpdateMode
-                , characterControllerMode
-                , getSensitivity
-                , getAimingSensitivity
-                , prefix
-                , aiControl);
-            localPlayer.IsYourPlayer = isYourPlayer;
+            CoopPlayer player = null;
+
+            if (isClientDrone)
+            {
+                player = EFT.Player.Create<CoopPlayerClient>(
+                    ResourceBundleConstants.PLAYER_BUNDLE_NAME
+                    , playerId
+                    , position
+                    , updateQueue
+                    , EFT.Player.EUpdateMode.Manual
+                    , EFT.Player.EUpdateMode.Manual
+                    , characterControllerMode
+                    , getSensitivity
+                    , getAimingSensitivity
+                    , prefix
+                    , aiControl);
+            }
+            else
+            {
+                player = EFT.Player.Create<CoopPlayer>(
+                    ResourceBundleConstants.PLAYER_BUNDLE_NAME
+                    , playerId
+                    , position
+                    , updateQueue
+                    , armsUpdateMode
+                    , bodyUpdateMode
+                    , characterControllerMode
+                    , getSensitivity
+                    , getAimingSensitivity
+                    , prefix
+                    , aiControl);
+            }
+            player.IsYourPlayer = isYourPlayer;
 
             InventoryController inventoryController = isYourPlayer && !isClientDrone 
-                ? new CoopInventoryController(localPlayer, profile, true) 
-                : new CoopInventoryControllerForClientDrone(localPlayer, profile, true);
+                ? new CoopInventoryController(player, profile, true) 
+                : new CoopInventoryControllerForClientDrone(player, profile, true);
 
             if (questController == null && isYourPlayer)
             {
@@ -64,32 +85,33 @@ namespace SIT.Core.Coop
                 questController.Run();
             }
             
-            await localPlayer
-                .Init(rotation, layerName, pointOfView, profile, inventoryController, new PlayerHealthController(profile.Health, localPlayer, inventoryController, profile.Skills, aiControl)
+            await player
+                .Init(rotation, layerName, pointOfView, profile, inventoryController
+                , new PlayerHealthController(profile.Health, player, inventoryController, profile.Skills, aiControl)
                 , isYourPlayer ? new CoopPlayerStatisticsManager() : new NullStatisticsManager()
                 , questController
                 , filter
-                , EVoipState.NotAvailable
+                , aiControl || isClientDrone ? EVoipState.NotAvailable : EVoipState.Available
                 , aiControl
                 , async: false);
          
-            localPlayer._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(localPlayer);
-            localPlayer._handsController.Spawn(1f, delegate
+            player._handsController = EmptyHandsController.smethod_5<EmptyHandsController>(player);
+            player._handsController.Spawn(1f, delegate
             {
             });
-            localPlayer.AIData = new AiDataClass(null, localPlayer);
-            localPlayer.AggressorFound = false;
-            localPlayer._animators[0].enabled = true;
-            localPlayer.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
+            player.AIData = new AiDataClass(null, player);
+            player.AggressorFound = false;
+            player._animators[0].enabled = true;
+            player.BepInLogger = BepInEx.Logging.Logger.CreateLogSource("CoopPlayer");
 
             // If this is a Client Drone add Player Replicated Component
             if (isClientDrone)
             {
-                var prc = localPlayer.GetOrAddComponent<PlayerReplicatedComponent>();
+                var prc = player.GetOrAddComponent<PlayerReplicatedComponent>();
                 prc.IsClientDrone = true;
             }
 
-            return localPlayer;
+            return player;
         }
 
         /// <summary>
@@ -129,56 +151,56 @@ namespace SIT.Core.Coop
 
         private void SendDamageToAllClients(DamageInfo damageInfo, EBodyPart bodyPartType, float absorbed, EHeadSegment? headSegment = null)
         {
-            //await Task.Run(async () =>
-            //{
-                Dictionary<string, object> packet = new();
-                var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
-                damageInfo.HitCollider = null;
-                damageInfo.HittedBallisticCollider = null;
-                Dictionary<string, string> playerDict = new();
-                if (damageInfo.Player != null)
-                {
-                    playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
-                    playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
-                }
+            Dictionary<string, object> packet = new();
+            var bodyPartColliderType = ((BodyPartCollider)damageInfo.HittedBallisticCollider).BodyPartColliderType;
+            damageInfo.HitCollider = null;
+            damageInfo.HittedBallisticCollider = null;
+            Dictionary<string, string> playerDict = new();
+            if (damageInfo.Player != null)
+            {
+                playerDict.Add("d.p.aid", damageInfo.Player.iPlayer.Profile.AccountId);
+                playerDict.Add("d.p.id", damageInfo.Player.iPlayer.ProfileId);
+            }
 
-                damageInfo.Player = null;
-                Dictionary<string, string> weaponDict = new();
+            damageInfo.Player = null;
+            Dictionary<string, string> weaponDict = new();
 
-                if (damageInfo.Weapon != null)
-                {
-                    packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
-                    packet.Add("d.w.id", damageInfo.Weapon.Id);
-                }
-                damageInfo.Weapon = null;
+            if (damageInfo.Weapon != null)
+            {
+                packet.Add("d.w.tpl", damageInfo.Weapon.TemplateId);
+                packet.Add("d.w.id", damageInfo.Weapon.Id);
+            }
+            damageInfo.Weapon = null;
 
-                packet.Add("d", damageInfo.SITToJson());
-                //PatchConstants.Logger.LogDebug(packet["d"]);
+            packet.Add("d", damageInfo.SITToJson());
+            packet.Add("d.p", playerDict);
+            packet.Add("d.w", weaponDict);
+            packet.Add("bpt", bodyPartType.ToString());
+            packet.Add("bpct", bodyPartColliderType.ToString());
+            packet.Add("ab", absorbed.ToString());
+            packet.Add("hs", headSegment.ToString());
+            packet.Add("m", "ApplyDamageInfo");
 
-                packet.Add("d.p", playerDict);
-                packet.Add("d.w", weaponDict);
-                packet.Add("bpt", bodyPartType.ToString());
-                packet.Add("bpct", bodyPartColliderType.ToString());
-                packet.Add("ab", absorbed.ToString());
-                packet.Add("hs", headSegment.ToString());
-                packet.Add("m", "ApplyDamageInfo");
+            // -----------------------------------------------------------
+            // An attempt to stop the same packet being sent multiple times
+            if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
+                return;
 
-                // -----------------------------------------------------------
-                // An attempt to stop the same packet being sent multiple times
-                if (PreviousSentDamageInfoPackets.Contains(packet.ToJson()))
-                    return;
+            PreviousSentDamageInfoPackets.Add(packet.ToJson());
+            // -----------------------------------------------------------
 
-                PreviousSentDamageInfoPackets.Add(packet.ToJson());
-                // -----------------------------------------------------------
-
-                AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
-            //});
+            AkiBackendCommunicationCoop.PostLocalPlayerData(this, packet, true);
         }
 
         public void ReceiveDamageFromServer(Dictionary<string, object> dict)
         {
-            if(PreviousReceivedDamageInfoPackets.Contains(dict.ToJson())) 
-                return;
+            StartCoroutine(ReceiveDamageFromServerCR(dict));
+        }
+
+        public IEnumerator ReceiveDamageFromServerCR(Dictionary<string, object> dict)
+        {
+            if (PreviousReceivedDamageInfoPackets.Contains(dict.ToJson()))
+                yield break;
 
             PreviousReceivedDamageInfoPackets.Add(dict.ToJson());
 
@@ -192,17 +214,50 @@ namespace SIT.Core.Coop
             var damageInfo = Player_ApplyShot_Patch.BuildDamageInfoFromPacket(dict);
             damageInfo.HitCollider = Player_ApplyShot_Patch.GetCollider(this, damageInfo.BodyPartColliderType);
 
+            if (damageInfo.DamageType == EDamageType.Bullet && IsYourPlayer)
+            {
+                float handsShake = 0.05f;
+                float cameraShake = 0.4f;
+                float absorbedDamage = absorbed + damageInfo.Damage;
+
+                switch (bodyPartType)
+                {
+                    case EBodyPart.Head:
+                        handsShake = 0.1f;
+                        cameraShake = 1.3f;
+                        break;
+                    case EBodyPart.LeftArm:
+                    case EBodyPart.RightArm:
+                        handsShake = 0.15f;
+                        cameraShake = 0.5f;
+                        break;
+                    case EBodyPart.LeftLeg:
+                    case EBodyPart.RightLeg:
+                        cameraShake = 0.3f;
+                        break;
+                }
+
+                ProceduralWeaponAnimation.ForceReact.AddForce(Mathf.Sqrt(absorbedDamage) / 10, handsShake, cameraShake);
+                if (FPSCamera.Instance.EffectsController.TryGetComponent(out FastBlur fastBlur))
+                {
+                    fastBlur.enabled = true;
+                    fastBlur.Hit(MovementContext.PhysicalConditionIs(EPhysicalCondition.OnPainkillers) ? absorbedDamage : (bodyPartType == EBodyPart.Head ? absorbedDamage * 6 : absorbedDamage * 3));
+                }
+            }
+
             base.ApplyDamageInfo(damageInfo, bodyPartType, absorbed, headSegment);
             //base.ShotReactions(damageInfo, bodyPartType);
 
+            yield break;
+
         }
 
-        protected override void OnSkillLevelChanged(AbstractSkill skill)
+        public override void OnSkillLevelChanged(AbstractSkill skill)
         {
             //base.OnSkillLevelChanged(skill);
         }
 
-        protected override void OnWeaponMastered(MasterSkill masterSkill)
+        public override void OnWeaponMastered(MasterSkill masterSkill)
         {
             //base.OnWeaponMastered(masterSkill);
         }
@@ -264,6 +319,34 @@ namespace SIT.Core.Coop
             }
 
             base.Rotate(deltaRotation, ignoreClamp);
+        }
+
+        //public override void LateUpdate()
+        //{
+        //    //base.LateUpdate();
+        //}
+
+        //public override void ComplexLateUpdate(EUpdateQueue queue, float deltaTime)
+        //{
+        //    //base.ComplexLateUpdate(queue, deltaTime);
+        //}
+
+        public override void Move(Vector2 direction)
+        {
+            base.Move(direction);
+
+            var prc = GetComponent<PlayerReplicatedComponent>();
+            if (prc.IsClientDrone)
+                return;
+
+
+        }
+
+
+        public override void OnDestroy()
+        {
+            BepInLogger.LogDebug("OnDestroy()");
+            base.OnDestroy();
         }
 
     }

@@ -1,5 +1,7 @@
-﻿using SIT.Core.Misc;
+﻿using EFT;
+using SIT.Core.Misc;
 using SIT.Tarkov.Core;
+using System.Linq;
 using System.Reflection;
 
 namespace SIT.Core.AkiSupport.SITFixes
@@ -8,8 +10,10 @@ namespace SIT.Core.AkiSupport.SITFixes
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ReflectionHelpers.GetMethodForType(typeof(BotSettingsRepoClass), "IsFollower");
+            var t = PatchConstants.EftTypes.First(x => x.GetMethods().Any(y => y.Name == "IsFollower" && y.GetParameters().Length == 1 && y.GetParameters()[0].ParameterType == typeof(WildSpawnType)));
+            return ReflectionHelpers.GetMethodForType(t, "IsFollower");
         }
+
 
         [PatchPrefix]
         public static bool Prefix(ref bool __result, EFT.WildSpawnType role)

@@ -38,6 +38,7 @@ namespace SIT.Core.Coop
         private AkiBackendCommunication RequestingObj { get; set; }
         public SITConfig SITConfig { get; private set; } = new SITConfig();
         public string ServerId { get; set; } = null;
+        public long Timestamp { get; set; } = 0;
 
         public EFT.Player OwnPlayer { get; set; }
 
@@ -46,15 +47,20 @@ namespace SIT.Core.Coop
         /// </summary>
         public ConcurrentDictionary<string, EFT.Player> Players { get; } = new();
 
-        public EFT.Player[] PlayerUsers
+        //public EFT.Player[] PlayerUsers
+        public IEnumerable<EFT.Player> PlayerUsers
         {
             get
             {
 
                 if (Players == null)
-                    return null;
+                    yield return null;
 
-                return Players.Values.Where(x => x.ProfileId.StartsWith("pmc")).ToArray();
+                var keys = Players.Keys.Where(x => x.StartsWith("pmc")).ToArray();
+                foreach (var key in keys)
+                    yield return Players[key];
+
+
             }
         }
 
@@ -111,9 +117,9 @@ namespace SIT.Core.Coop
             if (CoopPatches.CoopGameComponentParent == null)
                 return null;
 
-            if(CoopPatches.CoopGameComponentParent.TryGetComponent<CoopGameComponent>(out var coopGameComponent))
+            var coopGameComponent = CoopPatches.CoopGameComponentParent.GetComponent<CoopGameComponent>();
+            if (coopGameComponent != null)
                 return coopGameComponent;
-
 
             return null;
         }
@@ -198,7 +204,6 @@ namespace SIT.Core.Coop
             StartCoroutine(ProcessServerCharacters());
             //Task.Run(() => ReadFromServerLastActions());
             //Task.Run(() => ProcessFromServerLastActions());
-            StartCoroutine(SendWeatherToClients());
             StartCoroutine(EverySecondCoroutine());
 
             Task.Run(() => PeriodicEnableDisableGC());
@@ -207,11 +212,6 @@ namespace SIT.Core.Coop
             //PatchConstants.Logger.LogDebug($"Found {ListOfInteractiveObjects.Length} interactive objects");
 
             CoopPatches.EnableDisablePatches();
-            //GCHelpers.EnableGC();
-            //GCHelpers.DisableGC();
-
-
-            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
 
             Player_Init_Coop_Patch.SendPlayerDataToServer((LocalPlayer)Singleton<GameWorld>.Instance.RegisteredPlayers.First(x => x.IsYourPlayer));
 
@@ -228,6 +228,7 @@ namespace SIT.Core.Coop
                 return;
 
             int counter = 0;
+            int maxMoveCounter = 60;
             await Task.Run(async () =>
             {
                 do
@@ -235,15 +236,24 @@ namespace SIT.Core.Coop
                     await Task.Delay(1000);
 
                     counter++;
-                    if (counter == (60 * 5))
+
+                    var myPlayer = Singleton<GameWorld>.Instance.MainPlayer;
+                    if ((myPlayer != null && (myPlayer.HealthController.IsAlive && !myPlayer.Velocity.Equals(Vector3.zero))) && maxMoveCounter > 0)
+                    {
+                        maxMoveCounter--;
+                        continue;
+                    }
+
+                    if (counter == (60 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
                     {
                         GCHelpers.EnableGC();
                     }
 
-                    if (counter == (61 * 5))
+                    if (counter == (61 * PluginConfigSettings.Instance.AdvancedSettings.SITGarbageCollectorIntervalMinutes))
                     {
                         GCHelpers.DisableGC(true);
                         counter = 0;
+                        maxMoveCounter = 60;
                     }
 
                 } while (RunAsyncTasks && PluginConfigSettings.Instance.AdvancedSettings.UseSITGarbageCollector);
@@ -289,18 +299,31 @@ namespace SIT.Core.Coop
                     //LocalGameInstance.Stop(Singleton<GameWorld>.Instance.MainPlayer.ProfileId, ExitStatus.Survived, "", 0);
                 }
 
+                var world = Singleton<GameWorld>.Instance;
+
                 // Hide extracted Players
                 foreach (var playerId in coopGame.ExtractedPlayers)
                 {
-                    var player = Singleton<GameWorld>.Instance.RegisteredPlayers.Find(x => x.ProfileId == playerId);
+                    var player = world.RegisteredPlayers.Find(x => x.ProfileId == playerId) as EFT.Player;
                     if (player == null)
                         continue;
 
-                    AkiBackendCommunicationCoop.PostLocalPlayerData(((EFT.Player)player)
+                    AkiBackendCommunicationCoop.PostLocalPlayerData(player
                         , new Dictionary<string, object>() { { "Extracted", true } }
                         , true);
 
-                    ((EFT.Player)player).SwitchRenderer(false);
+                    if (player.ActiveHealthController != null)
+                    {
+                        if (!player.ActiveHealthController.MetabolismDisabled)
+                        {
+                            player.ActiveHealthController.AddDamageMultiplier(0);
+                            player.ActiveHealthController.SetDamageCoeff(0);
+                            player.ActiveHealthController.DisableMetabolism();
+                            player.ActiveHealthController.PauseAllEffects();
+
+                            player.SwitchRenderer(false);
+                        }
+                    }
                     //Singleton<GameWorld>.Instance.UnregisterPlayer(player);
                     //GameObject.Destroy(player);
                 }
@@ -330,7 +353,6 @@ namespace SIT.Core.Coop
             PlayersToSpawnPacket.Clear();
             RunAsyncTasks = false;
             StopCoroutine(ProcessServerCharacters());
-            StopCoroutine(SendWeatherToClients());
             StopCoroutine(EverySecondCoroutine());
 
             CoopPatches.EnableDisablePatches();
@@ -356,10 +378,10 @@ namespace SIT.Core.Coop
         {
             var quitState = EQuitState.NONE;
 
-            if (LocalGameInstance == null)
+            if (!Singleton<ISITGame>.Instantiated)
                 return quitState;
 
-            var coopGame = LocalGameInstance as CoopGame;
+            var coopGame = Singleton<ISITGame>.Instance;
             if (coopGame == null)
                 return quitState;
 
@@ -372,20 +394,17 @@ namespace SIT.Core.Coop
             if (coopGame.ExtractedPlayers == null)
                 return quitState;
 
-            if (coopGame.PlayerOwner == null)
-                return quitState;
-
             var numberOfPlayersDead = PlayerUsers.Count(x => !x.HealthController.IsAlive);
             var numberOfPlayersAlive = PlayerUsers.Count(x => x.HealthController.IsAlive);
             var numberOfPlayersExtracted = coopGame.ExtractedPlayers.Count;
 
-            if (PlayerUsers.Length > 1)
+            if (PlayerUsers.Count() > 1)
             {
                 if (PlayerUsers.Count() == numberOfPlayersDead)
                 {
                     quitState = EQuitState.YourTeamIsDead;
                 }
-                else if (!coopGame.PlayerOwner.Player.HealthController.IsAlive)
+                else if (!Singleton<GameWorld>.Instance.MainPlayer.PlayerHealthController.IsAlive)
                 {
                     quitState = EQuitState.YouAreDead;
                 }
@@ -398,12 +417,12 @@ namespace SIT.Core.Coop
             if (
                 numberOfPlayersAlive > 0
                 &&
-                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Length == numberOfPlayersExtracted)
+                (numberOfPlayersAlive == numberOfPlayersExtracted || PlayerUsers.Count() == numberOfPlayersExtracted)
                 )
             {
                 quitState = EQuitState.YourTeamHasExtracted;
             }
-            else if (coopGame.ExtractedPlayers.Contains(coopGame.PlayerOwner.Player.ProfileId))
+            else if (coopGame.ExtractedPlayers.Contains(Singleton<GameWorld>.Instance.MainPlayer.ProfileId))
             {
                 if (MatchmakerAcceptPatches.IsClient)
                     quitState = EQuitState.YouHaveExtractedOnlyAsClient;
@@ -413,12 +432,12 @@ namespace SIT.Core.Coop
             return quitState;
         }
 
-        CoopGame CoopGame { get; } = (CoopGame)Singleton<AbstractGame>.Instance;
-
         void Update()
-        //void LateUpdate()
         {
             GameCamera = Camera.current;
+
+            if (!Singleton<ISITGame>.Instantiated)
+                return;
 
             var quitState = GetQuitState();
 
@@ -430,10 +449,10 @@ namespace SIT.Core.Coop
                 )
             {
                 RequestQuitGame = true;
-                CoopGame.Stop(
+                Singleton<ISITGame>.Instance.Stop(
                     Singleton<GameWorld>.Instance.MainPlayer.ProfileId
-                    , CoopGame.MyExitStatus
-                    , CoopGame.MyExitLocation
+                    , Singleton<ISITGame>.Instance.MyExitStatus
+                    , Singleton<ISITGame>.Instance.MyExitLocation
                     , 0);
                 return;
             }
@@ -469,28 +488,11 @@ namespace SIT.Core.Coop
             if (Players == null)
                 return;
 
-            if (ActionPackets == null)
-                return;
-
             if (Singleton<GameWorld>.Instance == null)
                 return;
 
             if (RequestingObj == null)
                 return;
-
-            //if (ActionPackets.Count > 0)
-            //{
-            //    Dictionary<string, object> result = null;
-            //    swActionPackets.Restart();
-            //    var actionPacketLimitationTime = 11;
-            //    while (ActionPackets.TryTake(out result) && (HighPingMode || swActionPackets.ElapsedMilliseconds < actionPacketLimitationTime))
-            //    {
-            //        ProcessLastActionDataPacket(result);
-            //        //Thread.Sleep(1);
-            //    }
-            //    PerformanceCheck_ActionPackets = (swActionPackets.ElapsedMilliseconds > actionPacketLimitationTime);
-
-            //}
 
             List<Dictionary<string, object>> playerStates = new();
             if (LastPlayerStateSent < DateTime.Now.AddMilliseconds(-PluginConfigSettings.Instance.CoopSettings.SETTING_PlayerStateTickRateInMS))
@@ -517,31 +519,6 @@ namespace SIT.Core.Coop
 
                     CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
                 }
-
-                //foreach (var regPlayer in Singleton<GameWorld>.Instance.RegisteredPlayers)
-                //{
-                //    var player = (EFT.Player)regPlayer;
-                //    if (player == null)
-                //        continue;
-
-                //    if (!player.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                //        continue;
-
-                //    if (prc.IsClientDrone)
-                //        continue;
-
-                //    if (!player.enabled)
-                //        continue;
-
-                //    if (!player.isActiveAndEnabled)
-                //        continue;
-
-                //    if (playerStates.Any(x => x.ContainsKey("profileId") && x["profileId"].ToString() == player.ProfileId))
-                //        continue;
-
-                //    CreatePlayerStatePacketFromPRC(ref playerStates, player, prc);
-                //}
-
 
 
                 //Logger.LogDebug(playerStates.SITToJson());
@@ -1010,6 +987,42 @@ namespace SIT.Core.Coop
                 }
             }
 
+            if (useAiControl)
+            {
+                if (profile.Info.Side == EPlayerSide.Bear || profile.Info.Side == EPlayerSide.Usec)
+                {
+                    var backpackSlot = profile.Inventory.Equipment.GetSlot(EquipmentSlot.Backpack);
+                    var backpack = backpackSlot.ContainedItem;
+                    if (backpack != null)
+                    {
+                        Item[] items = backpack.GetAllItems()?.ToArray();
+                        if (items != null)
+                        {
+                            for (int i = 0; i < items.Count(); i++)
+                            {
+                                Item item = items[i];
+                                if (item == backpack)
+                                    continue;
+
+                                item.SpawnedInSession = true;
+                            }
+                        }
+                    }
+                }
+            }
+            else // Make Player PMC items are all not 'FiR'
+            {
+                Item[] items = profile.Inventory.AllPlayerItems?.ToArray();
+                if (items != null)
+                {
+                    for (int i = 0; i < items.Count(); i++)
+                    {
+                        Item item = items[i];
+                        item.SpawnedInSession = false;
+                    }
+                }
+            }
+
             if (!SpawnedPlayersToFinalize.Any(x => otherPlayer))
                 SpawnedPlayersToFinalize.Add(otherPlayer);
 
@@ -1081,172 +1094,6 @@ namespace SIT.Core.Coop
             });
         }
 
-        public void ProcessLastActionDataPacket(Dictionary<string, object> packet)
-        {
-            if (Singleton<GameWorld>.Instance == null)
-                return;
-
-            if (packet == null || packet.Count == 0)
-            {
-                PatchConstants.Logger.LogInfo("CoopGameComponent:No Data Returned from Last Actions!");
-                return;
-            }
-
-            ProcessPlayerPacket(packet);
-            ProcessWorldPacket(ref packet);
-
-        }
-
-        private void ProcessWorldPacket(ref Dictionary<string, object> packet)
-        {
-            if (packet.ContainsKey("profileId"))
-                return;
-
-            if (!packet.ContainsKey("m"))
-                return;
-
-            foreach (var coopPatch in CoopPatches.NoMRPPatches)
-            {
-                var imrwp = coopPatch as IModuleReplicationWorldPatch;
-                if (imrwp != null)
-                {
-                    if (imrwp.MethodName == packet["m"].ToString())
-                    {
-                        imrwp.Replicated(ref packet);
-                    }
-                }
-            }
-
-            
-
-            switch (packet["m"].ToString())
-            {
-                case "WIO_Interact":
-                    WorldInteractiveObject_Interact_Patch.Replicated(packet);
-                    break;
-                case "Door_Interact":
-                    Door_Interact_Patch.Replicated(packet);
-                    break;
-                case "Switch_Interact":
-                    Switch_Interact_Patch.Replicated(packet);
-                    break;
-
-            }
-        }
-
-        private List<string> RemovedFromAIPlayers = new();
-
-        private void ProcessPlayerPacket(Dictionary<string, object> packet)
-        {
-            if (packet == null)
-                return;
-
-            if (!packet.ContainsKey("profileId"))
-                return;
-
-            //if (packet["m"].ToString() != "PlayerState")
-            //{
-            //    Logger.LogInfo(packet.ToJson());
-            //}
-
-            var profileId = packet["profileId"].ToString();
-
-            if (Players == null)
-                return;
-
-            if (!Players.Any())
-                return;
-
-            var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
-
-            if (!Players.Any(x => x.Key == profileId) && !registeredPlayers.Any(x => x.ProfileId == profileId))
-            {
-                // Start a new thread that waits for the localplayer to exist to send death events about them
-                if (packet["m"].ToString() == "Kill")
-                {
-                    Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: Received kill packet for null player with ID {profileId}, enqueuing death");
-                    Task.Run(async() => await WaitForPlayerAndProcessPacket(profileId, packet));
-                }
-                return;
-            }
-
-            foreach (var plyr in
-                Players
-                .Where(x => x.Key == profileId)
-                .Where(x => x.Value != null)
-                )
-            {
-                if (plyr.Value.TryGetComponent<PlayerReplicatedComponent>(out var prc))
-                {
-                    prc.ProcessPacket(packet);
-                }
-                else
-                {
-                    Logger.LogError($"Player {profileId} doesn't have a PlayerReplicatedComponent!");
-                }
-
-                if (packet.ContainsKey("Extracted"))
-                {
-                    var coopGame = LocalGameInstance as CoopGame;
-                    if (coopGame != null)
-                    {
-                        //Logger.LogInfo($"Received Extracted ProfileId {packet["profileId"]}");
-                        if (!coopGame.ExtractedPlayers.Contains(packet["profileId"].ToString()))
-                            coopGame.ExtractedPlayers.Add(packet["profileId"].ToString());
-
-                        if (!MatchmakerAcceptPatches.IsClient)
-                        {
-                            var botController = (BotControllerClass)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BaseLocalGame<GamePlayerOwner>), typeof(BotControllerClass)).GetValue(this.LocalGameInstance);
-                            if (botController != null)
-                            {
-                                if (!RemovedFromAIPlayers.Contains(plyr.Key))
-                                {
-                                    RemovedFromAIPlayers.Add(plyr.Key);
-                                    Logger.LogDebug("Removing Client Player to Enemy list");
-                                    var botSpawner = (BotSpawner)ReflectionHelpers.GetFieldFromTypeByFieldType(typeof(BotControllerClass), typeof(BotSpawner)).GetValue(botController);
-                                    botSpawner.DeletePlayer(plyr.Value);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-        }
-
-        private async Task WaitForPlayerAndProcessPacket(string profileId, Dictionary<string, object> packet)
-        {
-            // Start the timer.
-            var startTime = DateTime.Now;
-            var maxWaitTime = TimeSpan.FromMinutes(2);
-
-            while (true)
-            {
-                // Check if maximum wait time has been reached.
-                if (DateTime.Now - startTime > maxWaitTime)
-                {
-                    Logger.LogError($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {maxWaitTime.TotalMinutes} minutes, but player {profileId} still did not exist after timeout period.");
-                    return;
-                }
-
-                if (Players == null)
-                    continue;
-
-                var registeredPlayers = Singleton<GameWorld>.Instance.RegisteredPlayers;
-
-                // If the player now exists, process the packet and end the thread.
-                if (Players.Any(x => x.Key == profileId) || registeredPlayers.Any(x => x.Profile.ProfileId == profileId))
-                {
-                    // Logger.LogDebug($"{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")}: WaitForPlayerAndProcessPacket waited for {(DateTime.Now - startTime).TotalSeconds}s");
-                    ProcessPlayerPacket(packet);
-                    return;
-                }
-
-                // Wait for a short period before checking again.
-                await Task.Delay(1000);
-            }
-        }
-
         private void CreatePlayerStatePacketFromPRC(ref List<Dictionary<string, object>> playerStates, EFT.Player player, PlayerReplicatedComponent prc)
         {
             Dictionary<string, object> dictPlayerState = new();
@@ -1270,17 +1117,17 @@ namespace SIT.Core.Coop
             //{
             //    prc.ReplicatedDirection = new Vector2(1, 0);
             //}
-            dictPlayerState.Add("tp", prc.TriggerPressed);
+            //dictPlayerState.Add("tp", prc.TriggerPressed);
             dictPlayerState.Add("alive", player.HealthController.IsAlive);
             dictPlayerState.Add("tilt", player.MovementContext.Tilt);
             dictPlayerState.Add("prn", player.MovementContext.IsInPronePose);
 
             dictPlayerState.Add("t", DateTime.Now.Ticks.ToString("G"));
             // ---------- 
-            dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
-            dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
-            dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
-            dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
+            //dictPlayerState.Add("p.hs.c", player.Physical.HandsStamina.Current);
+            //dictPlayerState.Add("p.hs.t", player.Physical.HandsStamina.TotalCapacity.Value);
+            //dictPlayerState.Add("p.s.c", player.Physical.Stamina.Current);
+            //dictPlayerState.Add("p.s.t", player.Physical.Stamina.TotalCapacity.Value);
             //
             if (prc.ReplicatedDirection.HasValue)
             {
@@ -1289,6 +1136,7 @@ namespace SIT.Core.Coop
             }
 
             // ---------- 
+            /*
             if (player.PlayerHealthController != null)
             {
                 foreach (var b in Enum.GetValues(typeof(EBodyPart)))
@@ -1307,24 +1155,27 @@ namespace SIT.Core.Coop
                 }
 
             }
+            */
             // ---------- 
+            if (player.HealthController.IsAlive)
+            {
+                foreach (EBodyPart bodyPart in Enum.GetValues(typeof(EBodyPart)))
+                {
+                    if (bodyPart == EBodyPart.Common)
+                        continue;
 
+                    var health = player.HealthController.GetBodyPartHealth(bodyPart);
+                    dictPlayerState.Add($"hp.{bodyPart}", health.Current);
+                    dictPlayerState.Add($"hp.{bodyPart}.m", health.Maximum);
+                }
 
+                dictPlayerState.Add("en", player.HealthController.Energy.Current);
+                dictPlayerState.Add("hy", player.HealthController.Hydration.Current);
+            }
             // ----------
             dictPlayerState.Add("m", "PlayerState");
 
             playerStates.Add(dictPlayerState);
-        }
-
-        private IEnumerator SendWeatherToClients()
-        {
-            var waitSeconds = new WaitForSeconds(60f);
-
-            while (RunAsyncTasks)
-            {
-                yield return waitSeconds;
-
-            }
         }
 
         private DateTime LastPlayerStateSent { get; set; } = DateTime.Now;
@@ -1337,13 +1188,13 @@ namespace SIT.Core.Coop
         int GuiX = 10;
         int GuiWidth = 400;
 
-        public const int PING_LIMIT_HIGH = 125;
-        public const int PING_LIMIT_MID = 100;
+        //public const int PING_LIMIT_HIGH = 125;
+        //public const int PING_LIMIT_MID = 100;
 
         public int ServerPing { get; set; } = 1;
         public ConcurrentQueue<int> ServerPingSmooth { get; } = new();
 
-        public bool HighPingMode { get; set; } = false;
+        //public bool HighPingMode { get; set; } = false;
         public bool ServerHasStopped { get; set; }
         private bool ServerHasStoppedActioned { get; set; }
 
@@ -1382,7 +1233,7 @@ namespace SIT.Core.Coop
 
             // PING ------
             GUI.contentColor = Color.white;
-            GUI.contentColor = ServerPing >= PING_LIMIT_HIGH ? Color.red : ServerPing >= PING_LIMIT_MID ? Color.yellow : Color.green;
+            GUI.contentColor = ServerPing >= AkiBackendCommunication.PING_LIMIT_HIGH ? Color.red : ServerPing >= AkiBackendCommunication.PING_LIMIT_MID ? Color.yellow : Color.green;
             GUI.Label(rect, $"RTT:{(ServerPing)}");
             rect.y += 15;
             GUI.Label(rect, $"Host RTT:{(ServerPing + AkiBackendCommunication.Instance.HostPing)}");
@@ -1397,7 +1248,7 @@ namespace SIT.Core.Coop
                 rect.y += 15;
             }
 
-            if (HighPingMode)
+            if (AkiBackendCommunication.Instance.HighPingMode)
             {
                 GUI.contentColor = Color.red;
                 GUI.Label(rect, $"!HIGH PING MODE!");
@@ -1414,7 +1265,7 @@ namespace SIT.Core.Coop
             var h = 0.2f; // proportional height (0..1)
             var rectEndOfGameMessage = UnityEngine.Rect.zero;
             rectEndOfGameMessage.x = (float)(Screen.width * (1 - w)) / 2;
-            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2;
+            rectEndOfGameMessage.y = (float)(Screen.height * (1 - h)) / 2 + (Screen.height/3);
             rectEndOfGameMessage.width = Screen.width * w;
             rectEndOfGameMessage.height = Screen.height * h;
 
@@ -1435,22 +1286,22 @@ namespace SIT.Core.Coop
             {
                 case EQuitState.YourTeamIsDead:
                     //GUI.Label(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle);
-                    if (GUI.Button(rectEndOfGameMessage, $"You're team is Dead! Please quit now using the F8 Key.", middleLargeLabelStyle))
+                    if (GUI.Button(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_DEAD"], middleLargeLabelStyle))
                     {
 
                     }
                     break;
                 case EQuitState.YouAreDead:
-                    GUI.Label(rectEndOfGameMessage, $"You are Dead! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_DEAD"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YourTeamHasExtracted:
-                    GUI.Label(rectEndOfGameMessage, $"Your team have extracted! Quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_TEAM_EXTRACTED"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsHost:
-                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED_HOST"], middleLargeLabelStyle);
                     break;
                 case EQuitState.YouHaveExtractedOnlyAsClient:
-                    GUI.Label(rectEndOfGameMessage, $"You have extracted! Please wait for the game to end or quit now using the F8 Key.", middleLargeLabelStyle);
+                    GUI.Label(rectEndOfGameMessage, StayInTarkovPlugin.LanguageDictionary["RAID_PLAYER_EXTRACTED"], middleLargeLabelStyle);
                     break;
             }
 

@@ -62,7 +62,7 @@ namespace SIT.Core.Coop.Player
         {
             GetLogger(typeof(Player_Jump_Patch)).LogDebug("Jump:Replicated");
 
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+            if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
             {
                 return;
             }

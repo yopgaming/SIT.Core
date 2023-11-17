@@ -73,7 +73,10 @@ namespace SIT.Core.Core
 
         protected ManualLogSource Logger;
 
-        static WebSocketSharp.WebSocket WebSocket { get; set; }
+        WebSocketSharp.WebSocket WebSocket { get; set; }
+
+        public static int PING_LIMIT_HIGH { get; } = 125;
+        public static int PING_LIMIT_MID { get; }  = 100;
 
 
         protected AkiBackendCommunication(ManualLogSource logger = null)
@@ -92,7 +95,6 @@ namespace SIT.Core.Core
                 RemoteEndPoint = PatchConstants.GetBackendUrl();
 
             GetHeaders();
-            //CreateWebSocket();
             ConnectToAkiBackend();
             PeriodicallySendPing();
             PeriodicallySendPooledData();
@@ -104,6 +106,9 @@ namespace SIT.Core.Core
             }
             HttpClient.MaxResponseContentBufferSize = long.MaxValue;
             HttpClient.Timeout = new TimeSpan(0, 0, 0, 0, 1000);
+
+            HighPingMode = PluginConfigSettings.Instance.CoopSettings.ForceHighPingMode;
+
         }
 
         private void ConnectToAkiBackend()
@@ -113,18 +118,18 @@ namespace SIT.Core.Core
 
         private Profile MyProfile { get; set; }
 
-        private HashSet<string> WebSocketPreviousReceived { get; set; }
+        //private HashSet<string> WebSocketPreviousReceived { get; set; }
 
         public void WebSocketCreate(Profile profile)
         {
             MyProfile = profile;
 
             Logger.LogDebug("WebSocketCreate");
-            if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
-            {
-                Logger.LogDebug("WebSocketCreate:WebSocket already exits");
-                return;
-            }
+            //if (WebSocket != null && WebSocket.ReadyState != WebSocketSharp.WebSocketState.Closed)
+            //{
+            //    Logger.LogDebug("WebSocketCreate:WebSocket already exits");
+            //    return;
+            //}
 
             Logger.LogDebug("Request Instance is connecting to WebSocket");
 
@@ -134,7 +139,7 @@ namespace SIT.Core.Core
             Logger.LogDebug(PatchConstants.GetREALWSURL());
             Logger.LogDebug(wsUrl);
 
-            WebSocketPreviousReceived = new HashSet<string>();
+            //WebSocketPreviousReceived = new HashSet<string>();
             WebSocket = new WebSocketSharp.WebSocket(wsUrl);
             WebSocket.WaitTime = TimeSpan.FromMinutes(1);
             WebSocket.EmitOnPing = true;    
@@ -146,17 +151,6 @@ namespace SIT.Core.Core
             WebSocket.OnMessage += WebSocket_OnMessage;
             // ---
 
-            // Continously Ping from SIT.Core (Keep Alive)
-            //_ = Task.Run(async () =>
-            //{
-
-            //    while (WebSocket != null)
-            //    {
-            //        //WebSocket.Send((new { RandomPing = 0 }).ToJson());
-            //        await Task.Delay(1000);
-            //    }
-
-            //});
         }
 
         public void WebSocketClose()
@@ -214,6 +208,7 @@ namespace SIT.Core.Core
 
         private void WebSocket_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
+            GC.AddMemoryPressure(e.RawData.Length);
             try
             {
                 //Logger.LogInfo($"Step.0. WebSocket_OnMessage");
@@ -241,10 +236,10 @@ namespace SIT.Core.Core
                     return;
 
 
-                if (WebSocketPreviousReceived.Contains(e.Data))
-                    return;
+                //if (WebSocketPreviousReceived.Contains(e.Data))
+                //    return;
 
-                WebSocketPreviousReceived.Add(e.Data);
+                //WebSocketPreviousReceived.Add(e.Data);
 
                 if (DEBUGPACKETS)
                 {
@@ -308,12 +303,130 @@ namespace SIT.Core.Core
                 // Syncronize RaidTimer
                 if (packet.ContainsKey("RaidTimer"))
                 {
-                    var tsRaidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
+                    if (MatchmakerAcceptPatches.IsClient)
+                    {
+                        var raidTimer = new TimeSpan(long.Parse(packet["RaidTimer"].ToString()));
+                        Logger.LogInfo($"RaidTimer: Remaining session time {raidTimer.TraderFormat()}");
 
-                    //if(coopGameComponent.LocalGameInstance is CoopGame)
-                    //{
-                    //    coopGameComponent.LocalGameInstance.GameTimer.ChangeSessionTime(tsRaidTimer);
-                    //}
+                        if (coopGameComponent.LocalGameInstance is CoopGame coopGame)
+                        {
+                            var gameTimer = coopGame.GameTimer;
+                            if (gameTimer.StartDateTime.HasValue && gameTimer.SessionTime.HasValue)
+                            {
+                                if (gameTimer.PastTime.TotalSeconds < 3)
+                                    return;
+
+                                var timeRemain = gameTimer.PastTime + raidTimer;
+
+                                if (Math.Abs(gameTimer.SessionTime.Value.TotalSeconds - timeRemain.TotalSeconds) < 5)
+                                    return;
+
+                                Logger.LogInfo($"RaidTimer: New SessionTime {timeRemain.TraderFormat()}");
+                                gameTimer.ChangeSessionTime(timeRemain);
+
+                                // FIXME: Giving SetTime() with empty exfil point arrays has a known bug that may cause client game crashes!
+                                coopGame.GameUi.TimerPanel.SetTime(gameTimer.StartDateTime.Value, coopGame.Profile_0.Info.Side, gameTimer.SessionSeconds(), new EFT.Interactive.ExfiltrationPoint[] { });
+                            }
+                        }
+                    }
+
+                    return;
+                }
+
+                // TimeAndWeather
+                if (packet.ContainsKey("TimeAndWeather"))
+                {
+                    if (MatchmakerAcceptPatches.IsClient)
+                    {
+                        Logger.LogDebug(packet.ToJson());
+
+                        var gameDateTime = new DateTime(long.Parse(packet["GameDateTime"].ToString()));
+                        if (coopGameComponent.LocalGameInstance is CoopGame coopGame && coopGame.GameDateTime != null)
+                            coopGame.GameDateTime.Reset(gameDateTime);
+
+                        var weatherController = EFT.Weather.WeatherController.Instance;
+                        if (weatherController != null)
+                        {
+                            var weatherDebug = weatherController.WeatherDebug;
+                            if (weatherDebug != null)
+                            {
+                                weatherDebug.Enabled = true;
+
+                                weatherDebug.CloudDensity = float.Parse(packet["CloudDensity"].ToString());
+                                weatherDebug.Fog = float.Parse(packet["Fog"].ToString());
+                                weatherDebug.LightningThunderProbability = float.Parse(packet["LightningThunderProbability"].ToString());
+                                weatherDebug.Rain = float.Parse(packet["Rain"].ToString());
+                                weatherDebug.Temperature = float.Parse(packet["Temperature"].ToString());
+                                weatherDebug.TopWindDirection = new(float.Parse(packet["TopWindDirection.x"].ToString()), float.Parse(packet["TopWindDirection.y"].ToString()));
+
+                                Vector2 windDirection = new(float.Parse(packet["WindDirection.x"].ToString()), float.Parse(packet["WindDirection.y"].ToString()));
+
+                                // working dog sh*t, if you are the programmer, DON'T EVER DO THIS! - dounai2333
+                                static bool BothPositive(float f1, float f2) => f1 > 0 && f2 > 0;
+                                static bool BothNegative(float f1, float f2) => f1 < 0 && f2 < 0;
+                                static bool VectorIsSameQuadrant(Vector2 v1, Vector2 v2, out int flag)
+                                {
+                                    flag = 0;
+                                    if (v1.x != 0 && v1.y != 0 && v2.x != 0 && v2.y != 0)
+                                    {
+                                        if ((BothPositive(v1.x, v2.x) && BothPositive(v1.y, v2.y))
+                                        || (BothNegative(v1.x, v2.x) && BothNegative(v1.y, v2.y))
+                                        || (BothPositive(v1.x, v2.x) && BothNegative(v1.y, v2.y))
+                                        || (BothNegative(v1.x, v2.x) && BothPositive(v1.y, v2.y)))
+                                        {
+                                            flag = 1;
+                                            return true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (v1.x != 0 && v2.x != 0)
+                                        {
+                                            if (BothPositive(v1.x, v2.x) || BothNegative(v1.x, v2.x))
+                                            {
+                                                flag = 1;
+                                                return true;
+                                            }
+                                        }
+                                        else if (v1.y != 0 && v2.y != 0)
+                                        {
+                                            if (BothPositive(v1.y, v2.y) || BothNegative(v1.y, v2.y))
+                                            {
+                                                flag = 2;
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                    return false;
+                                }
+
+                                for (int i = 1; i < WeatherClass.WindDirections.Count(); i++)
+                                {
+                                    Vector2 direction = WeatherClass.WindDirections[i];
+                                    if (VectorIsSameQuadrant(windDirection, direction, out int flag))
+                                    {
+                                        weatherDebug.WindDirection = (EFT.Weather.WeatherDebug.Direction)i;
+                                        weatherDebug.WindMagnitude = flag switch
+                                        {
+                                            1 => windDirection.x / direction.x,
+                                            2 => windDirection.y / direction.y,
+                                            _ => weatherDebug.WindMagnitude
+                                        };
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Logger.LogError("TimeAndWeather: WeatherDebug is null!");
+                            }
+                        }
+                        else
+                        {
+                            Logger.LogError("TimeAndWeather: WeatherController is null!");
+                        }
+                    }
+
                     return;
                 }
 
@@ -399,7 +512,9 @@ namespace SIT.Core.Core
 
         public static bool DEBUGPACKETS { get; } = false;
 
+        public bool HighPingMode { get; set; }
         public BlockingCollection<string> PooledJsonToPost { get; } = new();
+        public BlockingCollection<byte[]> PooledBytesToPost { get; } = new();
         public BlockingCollection<KeyValuePair<string, Dictionary<string, object>>> PooledDictionariesToPost { get; } = new();
         public BlockingCollection<List<Dictionary<string, object>>> PooledDictionaryCollectionToPost { get; } = new();
 
@@ -412,31 +527,23 @@ namespace SIT.Core.Core
 
         public void SendDataToPool(string serializedData)
         {
-            //// ------------------------------------------------------------------------------------
-            //// DEBUG: This is a sanity check to see if we are flooding packets.
-            //if (DEBUGPACKETS)
-            //{
-            //    if (PooledJsonToPost.Count() >= 11)
-            //    {
-            //        Logger.LogError("Holy moly. There is too much data being OUTPUT from this client!");
-            //        while (PooledJsonToPost.Any())
-            //        {
-            //            if (PooledJsonToPost.TryTake(out var item, -1))
-            //                Logger.LogError($"{item}");
-            //        }
-            //        //Application.Quit();
-            //    }
-            //}
-
-            //// Stop resending static "player states"
-            //if (PooledJsonToPost.Any(x => x == serializedData))
-            //    return;
-
-            //PooledJsonToPost.Add(serializedData);
-
             if(WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                WebSocket.SendAsync(serializedData, (bool b) => { });
+                WebSocket.Send(serializedData);
         }
+
+        public void SendDataToPool(byte[] serializedData)
+        {
+            if(HighPingMode)
+            {
+                PooledBytesToPost.Add(serializedData);
+            }
+            else
+            {
+                if (WebSocket != null && WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                    WebSocket.Send(serializedData);
+            }
+        }
+
         public void SendDataToPool(string url, Dictionary<string, object> data)
         {
             PooledDictionariesToPost.Add(new(url, data));
@@ -477,6 +584,25 @@ namespace SIT.Core.Core
 
                     swPing.Restart();
                     await Task.Delay(awaitPeriod);
+
+                    while (PooledBytesToPost.Any())
+                    {
+                        await Task.Delay(awaitPeriod);
+                        if (WebSocket != null)
+                        {
+                            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
+                            {
+                                while (PooledBytesToPost.TryTake(out var bytes))
+                                {
+                                    WebSocket.Send(bytes);
+                                }
+                            }
+                            else
+                            {
+                                WebSocket_OnError();
+                            }
+                        }
+                    }
                     //await Task.Delay(100);
                     while (PooledDictionariesToPost.Any())
                     {
@@ -487,8 +613,8 @@ namespace SIT.Core.Core
                         {
 
                             var url = d.Key;
-                            //var json = JsonConvert.SerializeObject(d.Value);
-                            var json = d.Value.ToJson();
+                            var json = JsonConvert.SerializeObject(d.Value);
+                            //var json = d.Value.ToJson();
                             if (WebSocket != null)
                             {
                                 if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
@@ -500,7 +626,6 @@ namespace SIT.Core.Core
                                     WebSocket_OnError();
                                 }
                             }
-                            GC.Collect();
                         }
                     }
 
@@ -521,26 +646,6 @@ namespace SIT.Core.Core
                         json = null;
                     }
 
-                    //do
-                    //{
-
-                    //    if (PooledJsonToPost.TryTake(out var json))
-                    //    {
-                    //        if (WebSocket != null)
-                    //        {
-                    //            if (WebSocket.ReadyState == WebSocketSharp.WebSocketState.Open)
-                    //            {
-                    //                PostDownWebSocketImmediately(json);
-                    //            }
-                    //        }
-                    //        json = null;
-                    //    }
-
-                    //    await Task.Delay(awaitPeriod);
-
-                    //} while (PooledJsonToPost.Any());
-
-
                     while (PooledJsonToPostToUrl.Any())
                     {
                         await Task.Delay(awaitPeriod);
@@ -556,7 +661,6 @@ namespace SIT.Core.Core
 
                     PostPingSmooth.Enqueue((int)swPing.ElapsedMilliseconds - awaitPeriod);
                     PostPing = (int)Math.Round(PostPingSmooth.Average());
-
                 }
             });
         }
@@ -762,9 +866,7 @@ namespace SIT.Core.Core
                 if (stream == null)
                     return "";
                 var bytes = stream.ToArray();
-                var dec = Zlib.Decompress(bytes);
-                var result = Encoding.UTF8.GetString(dec);
-                dec = null;
+                var result = Zlib.Decompress(bytes);
                 bytes = null;
                 return result;
             }
@@ -776,22 +878,23 @@ namespace SIT.Core.Core
             {
                 if (stream == null)
                     return "";
+
                 var bytes = stream.ToArray();
-                byte[] resultBytes;
+                string resultString;
+
                 if (compress)
                 {
                     if (Zlib.IsCompressed(bytes))
-                        resultBytes = Zlib.Decompress(bytes);
+                        resultString = Zlib.Decompress(bytes);
                     else
-                        resultBytes = bytes;
+                        resultString = Encoding.UTF8.GetString(bytes);
                 }
                 else
                 {
-                    resultBytes = bytes;
+                    resultString = Encoding.UTF8.GetString(bytes);
                 }
-                var result = Encoding.UTF8.GetString(resultBytes);
-                bytes = null;
-                return result;
+
+                return resultString;
             }
         }
 

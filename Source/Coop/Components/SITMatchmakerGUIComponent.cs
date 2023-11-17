@@ -1,11 +1,14 @@
 ﻿using BepInEx.Logging;
 using EFT;
+using EFT.Bots;
+using EFT.Interactive;
 using EFT.UI;
 using EFT.UI.Matchmaker;
 using Newtonsoft.Json.Linq;
 using SIT.Coop.Core.Matchmaker;
 using SIT.Core.Core;
 using SIT.Core.Misc;
+using SIT.Tarkov.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +16,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking.Match;
 using Color = UnityEngine.Color;
 using FontStyle = UnityEngine.FontStyle;
 
@@ -20,8 +24,8 @@ namespace SIT.Core.Coop.Components
 {
     internal class SITMatchmakerGUIComponent : MonoBehaviour
     {
-        private UnityEngine.Rect windowRect = new (20, 20, 120, 50);
-        private UnityEngine.Rect windowInnerRect { get; set; } = new (20, 20, 120, 50);
+        private UnityEngine.Rect windowRect = new(20, 20, 120, 50);
+        private UnityEngine.Rect windowInnerRect { get; set; } = new(20, 20, 120, 50);
         private GUIStyle styleBrowserRaidLabel { get; } = new GUIStyle();
         private GUIStyle styleBrowserRaidRow { get; } = new GUIStyle() { };
         private GUIStyle styleBrowserRaidLink { get; } = new GUIStyle();
@@ -45,14 +49,17 @@ namespace SIT.Core.Coop.Components
         private CancellationTokenSource m_cancellationTokenSource;
 
         private bool StopAllTasks = false;
-        
+
         private bool showPasswordField = false;
- 
+        private bool showBotAmountField = true;
+
         private string passwordInput = "";
+        private string passwordClientInput = "";
+
+        private int botAmountInput = 0;
+        private string[] botAmountOptions = new string[] { "AsOnline", "Low", "Medium", "High", "NoBots" };
 
         private const float verticalSpacing = 10f;
-
-
 
         private ManualLogSource Logger { get; set; }
         public MatchMakerPlayerPreview MatchMakerPlayerPreview { get; internal set; }
@@ -67,6 +74,8 @@ namespace SIT.Core.Coop.Components
         private bool showServerBrowserWindow { get; set; } = true;
         private bool showErrorMessageWindow { get; set; } = false;
         private bool showPasswordRequiredWindow { get; set; } = false;
+
+        private string pendingServerId = "";
 
         #endregion
 
@@ -190,7 +199,6 @@ namespace SIT.Core.Coop.Components
                 // Create "Host Game" button
                 if (GUI.Button(new UnityEngine.Rect(buttonX, buttonY, buttonWidth, buttonHeight), StayInTarkovPlugin.LanguageDictionary["HOST_RAID"], gamemodeButtonStyle))
                 {
-
                     showServerBrowserWindow = false;
                     showHostGameWindow = true;
                 }
@@ -245,6 +253,8 @@ namespace SIT.Core.Coop.Components
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = false;
+                showPasswordRequiredWindow = false;
+
                 windowInnerRect = GUI.Window(0, windowRect, DrawWindowErrorMessage, "Error Message");
             }
 
@@ -252,7 +262,8 @@ namespace SIT.Core.Coop.Components
             {
                 showHostGameWindow = false;
                 showServerBrowserWindow = false;
-                windowInnerRect = GUI.Window(0, windowRect, DrawWindowPasswordRequired, "Password Required");
+
+                windowInnerRect = GUI.Window(0, windowRect, DrawPasswordRequiredWindow, "Password required");
             }
         }
 
@@ -305,8 +316,6 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-       
-
         string ErrorMessage { get; set; }
 
         /// <summary>
@@ -318,26 +327,45 @@ namespace SIT.Core.Coop.Components
             if (!showErrorMessageWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20,20,1000,1000), ErrorMessage);
+            GUI.Label(new UnityEngine.Rect(20,20,200,200), ErrorMessage);
 
-            if(GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
             {
                 showErrorMessageWindow = false;
                 showServerBrowserWindow = true;
             }
         }
 
-        void DrawWindowPasswordRequired(int windowID)
+        void DrawPasswordRequiredWindow(int windowID)
         {
             if (!showPasswordRequiredWindow)
                 return;
 
-            GUI.Label(new UnityEngine.Rect(20, 20, 1000, 1000), ErrorMessage);
+            var halfWindowWidth = windowInnerRect.width / 2;
+            var halfWindowHeight = windowInnerRect.height / 2;
 
-            if (GUI.Button(new UnityEngine.Rect(20, windowInnerRect.height - 90, windowInnerRect.width - 40, 45), "Close"))
+            var PasswordTextWidth = GUI.skin.label.CalcSize(new GUIContent("Enter password")).x;
+
+            var textX = halfWindowWidth - PasswordTextWidth / 2;
+
+            GUI.Label(new UnityEngine.Rect(textX, halfWindowHeight - 100, PasswordTextWidth, 30), "Enter password");
+
+            var passwordFieldWidth = 200;
+            var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
+
+            passwordClientInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, halfWindowHeight - 50, 200, 30), passwordClientInput, '*', 25);
+
+            var buttonX = halfWindowWidth - PasswordTextWidth / 2;
+
+            if (GUI.Button(new UnityEngine.Rect(buttonX - 60, halfWindowHeight, 100, 40), "Back"))
             {
-                showErrorMessageWindow = false;
+                showPasswordRequiredWindow = false;
                 showServerBrowserWindow = true;
+            }
+
+            if (GUI.Button(new UnityEngine.Rect(buttonX + 60, halfWindowHeight, 100, 40), "Join"))
+            {
+                JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, pendingServerId, passwordClientInput);
             }
         }
 
@@ -348,7 +376,7 @@ namespace SIT.Core.Coop.Components
             string[] columnLabels = {
                 StayInTarkovPlugin.LanguageDictionary["SERVER"]
                 , StayInTarkovPlugin.LanguageDictionary["PLAYERS"]
-                , StayInTarkovPlugin.LanguageDictionary["LOCATION"] 
+                , StayInTarkovPlugin.LanguageDictionary["LOCATION"]
                 , StayInTarkovPlugin.LanguageDictionary["PASSWORD"]
             };
 
@@ -425,7 +453,7 @@ namespace SIT.Core.Coop.Components
                     GUI.Label(new UnityEngine.Rect(cellWidth * 2, yPos, cellWidth - separatorWidth, cellHeight), match["Location"].ToString(), labelStyle);
 
                     // Display Password Locked
-                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? "*" : "", labelStyle);
+                    GUI.Label(new UnityEngine.Rect(cellWidth * 3, yPos, cellWidth - separatorWidth, cellHeight), bool.Parse(match["IsPasswordLocked"].ToString()) ? "Yes" : "", labelStyle);
 
                     // Calculate the width of the combined server information (Host Name, Player Count, Location)
                     var serverInfoWidth = cellWidth * 3 - separatorWidth * 2;
@@ -434,7 +462,7 @@ namespace SIT.Core.Coop.Components
                     if (GUI.Button(new UnityEngine.Rect(cellWidth * 4 + separatorWidth / 2 + 15, yPos + (cellHeight * 0.3f) - 5, cellWidth * 0.8f, cellHeight * 0.6f), StayInTarkovPlugin.LanguageDictionary["JOIN"], buttonStyle))
                     {
                         // Perform actions when the "Join" button is clicked
-                        JoinMatch(match["ServerId"].ToString());
+                        JoinMatch(MatchmakerAcceptPatches.Profile.ProfileId, match["ServerId"].ToString());
                     }
 
                     index++;
@@ -442,14 +470,14 @@ namespace SIT.Core.Coop.Components
             }
         }
 
-        void JoinMatch(string serverId)
+        void JoinMatch(string profileId, string serverId, string password = "")
         {
-            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, serverId, out string returnedJson, out string errorMessage))
+            if (MatchmakerAcceptPatches.JoinMatch(RaidSettings, profileId, serverId, password, out string returnedJson, out string errorMessage))
             {
                 Logger.LogDebug(returnedJson);
                 JObject result = JObject.Parse(returnedJson);
-                var groupId = result["serverId"].ToString();
-                MatchmakerAcceptPatches.SetGroupId(groupId);
+                MatchmakerAcceptPatches.SetGroupId(result["serverId"].ToString());
+                MatchmakerAcceptPatches.SetTimestamp(long.Parse(result["timestamp"].ToString()));
                 MatchmakerAcceptPatches.MatchingType = EMatchmakerType.GroupPlayer;
                 MatchmakerAcceptPatches.HostExpectedNumberOfPlayers = int.Parse(result["expectedNumberOfPlayers"].ToString());
 
@@ -461,14 +489,24 @@ namespace SIT.Core.Coop.Components
             }
             else
             {
-                this.ErrorMessage = errorMessage;
-                this.showErrorMessageWindow = true;
+                if (errorMessage == "passwordRequired")
+                {
+                    showPasswordRequiredWindow = true;
+                    pendingServerId = serverId;
+                }
+                else
+                {
+                    this.ErrorMessage = errorMessage;
+                    this.showErrorMessageWindow = true;
+                    pendingServerId = "";
+                }
+
             }
         }
 
         void DrawHostGameWindow(int windowID)
         {
-            var rows = 3;
+            var rows = 4;
             var halfWindowWidth = windowInnerRect.width / 2;
 
             // Define a style for the title label
@@ -485,7 +523,7 @@ namespace SIT.Core.Coop.Components
 
             for (var iRow = 0; iRow < rows; iRow++)
             {
-                var y = 40 + (iRow * 50);
+                var y = 20 + (iRow * 60);
 
                 switch (iRow)
                 {
@@ -527,7 +565,7 @@ namespace SIT.Core.Coop.Components
                         var textX = checkboxX + 20;
 
                         // Disable the checkbox to prevent interaction
-                        GUI.enabled = false;
+                        //GUI.enabled = false;
 
                         // Checkbox to toggle the password field visibility
                         showPasswordField = GUI.Toggle(new UnityEngine.Rect(checkboxX, y, 200, 30), showPasswordField, "");
@@ -535,31 +573,71 @@ namespace SIT.Core.Coop.Components
                         // "Require Password" text
                         GUI.Label(new UnityEngine.Rect(textX, y, requirePasswordTextWidth, 30), StayInTarkovPlugin.LanguageDictionary["REQUIRE_PASSWORD"]);
 
-                        // Feature is currently unavailable
-                        var featureUnavailableLabelStyle = new GUIStyle(GUI.skin.label)
-                        {
-                            fontStyle = FontStyle.Italic,
-                            normal = { textColor = Color.gray },
-                            fontSize = 10
-                        };
-                        GUI.Label(new UnityEngine.Rect(textX, y + 20, requirePasswordTextWidth, 30), "soonTM", featureUnavailableLabelStyle);
-
-                        // Reset GUI.enabled to enable other elements
-                        GUI.enabled = true;
-
                         // Password field (visible only when the checkbox is checked)
                         var passwordFieldWidth = 200;
                         var passwordFieldX = halfWindowWidth - passwordFieldWidth / 2;
 
                         if (showPasswordField)
                         {
-                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(220, y, 200, 30), passwordInput, '*', 25);
-                            y += 30;
+                            passwordInput = GUI.PasswordField(new UnityEngine.Rect(passwordFieldX, y + 30, 200, 30), passwordInput, '*', 25);
                         }
 
                         break;
 
+                    case 3:
+                        // Calculate the width of the "AI Amount" text
+                        var botAmountLabelWidth = GUI.skin.label.CalcSize(new GUIContent(StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"])).x;
 
+                        // Calculate the position for the checkbox and text to center-align them
+                        var botAhorizontal = 10;
+                        var botAcheckbox = halfWindowWidth - botAmountLabelWidth / 2 - botAhorizontal;
+                        var botAtext = botAcheckbox + 20;
+
+                        // Disable the checkbox to prevent interaction
+                        GUI.enabled = true;
+
+                        // Checkbox to toggle the AI Amount SelectionGrid visibility
+                        showBotAmountField = GUI.Toggle(new UnityEngine.Rect(botAcheckbox, y, 200, 25), showBotAmountField, "");
+
+                        // "AI Amount" text
+                        GUI.Label(new UnityEngine.Rect(botAtext, y, botAmountLabelWidth, 60), StayInTarkovPlugin.LanguageDictionary["AI_AMOUNT"]);
+
+
+                        // Reset GUI.enabled to enable other elements
+                        GUI.enabled = true;
+
+                        var botAmountFieldWidth = 350;
+                        var botAmountX = halfWindowWidth - botAmountFieldWidth / 2;
+
+                        if (showBotAmountField)
+                        {
+                            y += 20;
+                            Rect botAmountGridRect = new Rect(botAmountX, y, botAmountOptions.Count() * 75, 25);
+
+                            botAmountInput = GUI.SelectionGrid(botAmountGridRect, botAmountInput, botAmountOptions, 5);
+
+                        }
+
+                        break;
+                }
+            }
+
+            EFT.Bots.EBotAmount botAmountInputProc(int id)
+            {
+                switch (id)
+                {
+                    case 0:
+                        return EBotAmount.AsOnline;
+                    case 1:
+                        return EBotAmount.Low;
+                    case 2:
+                        return EBotAmount.Medium;
+                    case 3:
+                        return EBotAmount.High;
+                    case 4:
+                        return EBotAmount.NoBots;
+                    default:
+                        return EBotAmount.AsOnline;
                 }
             }
 
@@ -578,12 +656,13 @@ namespace SIT.Core.Coop.Components
             // Start button
             if (GUI.Button(new UnityEngine.Rect(halfWindowWidth + 10, windowInnerRect.height - 60, halfWindowWidth - 20, 30), StayInTarkovPlugin.LanguageDictionary["START"], smallButtonStyle))
             {
-                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
-
                 FixesHideoutMusclePain();
-                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings);
+                RaidSettings.BotSettings.BotAmount = botAmountInputProc(botAmountInput);
+                MatchmakerAcceptPatches.CreateMatch(MatchmakerAcceptPatches.Profile.ProfileId, RaidSettings, passwordInput);
                 OriginalAcceptButton.OnClick.Invoke();
                 DestroyThis();
+
+                AkiBackendCommunication.Instance.WebSocketCreate(MatchmakerAcceptPatches.Profile);
             }
         }
 
@@ -621,7 +700,5 @@ namespace SIT.Core.Coop.Components
             GameObject.DestroyImmediate(this.gameObject);
             GameObject.DestroyImmediate(this);
         }
-
-
     }
 }

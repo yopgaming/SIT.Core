@@ -62,96 +62,23 @@ namespace SIT.Core.Misc
         /// <summary>
         /// Deflate data.
         /// </summary>
-        public static byte[] Compress(byte[] data, ZlibCompression level)
-        {
-            byte[] buffer = new byte[data.Length + 24];
-
-            ZStream zs = new()
-            {
-                avail_in = data.Length,
-                next_in = data,
-                next_in_index = 0,
-                avail_out = buffer.Length,
-                next_out = buffer,
-                next_out_index = 0
-            };
-
-            zs.deflateInit((int)level);
-            zs.deflate(zlibConst.Z_FINISH);
-
-            data = new byte[zs.next_out_index];
-            Array.Copy(zs.next_out, 0, data, 0, zs.next_out_index);
-
-            return data;
-        }
 
         public static byte[] Compress(string data)
         {
-            // result should hardly be bigger than source data
-            byte[] bytes = new byte[Encoding.UTF8.GetByteCount(data) + 24];
-            var result = 0;
-            do
-            {
-                result = Pooled9LevelZLib.CompressToBytesNonAlloc(data, bytes);
-                //PatchConstants.Logger.LogDebug(result);
-                if (result != 0 && result != 1)
-                    break;
-
-            } while (result != 0 && result != 1);
-            
-            return bytes;
-
+            return SimpleZlib.CompressToBytes(data, 9);
         }
 
-        public static async Task<byte[]> CompressAsync(byte[] data, ZlibCompression level)
+        public static async Task<byte[]> CompressAsync(string data, ZlibCompression level)
         {
-            return await Task.Run(() => Compress(data, level));
+            return await Task.Run(() => Compress(data));
         }
 
         /// <summary>
         /// Inflate data.
         /// </summary>
-        public static byte[] Decompress(byte[] data)
+        public static string Decompress(byte[] data)
         {
-            return Encoding.UTF8.GetBytes(Pooled9LevelZLib.DecompressNonAlloc(data, data.Length));
-
-            //byte[] buffer = new byte[4096];
-
-            //ZStream zs = new()
-            //{
-            //    avail_in = data.Length,
-            //    next_in = data,
-            //    next_in_index = 0,
-            //    avail_out = buffer.Length,
-            //    next_out = buffer,
-            //    next_out_index = 0
-            //};
-
-            //zs.inflateInit();
-
-            //using (MemoryStream ms = new())
-            //{
-            //    do
-            //    {
-            //        zs.avail_out = buffer.Length;
-            //        zs.next_out = buffer;
-            //        zs.next_out_index = 0;
-
-            //        int result = zs.inflate(0);
-
-            //        if (result != 0 && result != 1)
-            //        {
-            //            break;
-            //        }
-
-            //        ms.Write(zs.next_out, 0, zs.next_out_index);
-            //    }
-            //    while (zs.avail_in > 0 || zs.avail_out == 0);
-
-            //    zs.free();
-            //    zs = null;
-            //    return ms.ToArray();
-            //}
+            return SimpleZlib.Decompress(data);
         }
     }
 }

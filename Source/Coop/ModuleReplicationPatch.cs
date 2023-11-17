@@ -1,16 +1,18 @@
 ﻿using Newtonsoft.Json;
 using SIT.Core.Coop.NetworkPacket;
+using SIT.Core.Core;
 using SIT.Tarkov.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SIT.Core.Coop
 {
     public abstract class ModuleReplicationPatch : ModulePatch, IModuleReplicationPatch
     {
-        public static List<ModuleReplicationPatch> Patches { get; } = new List<ModuleReplicationPatch>();
+        public static Dictionary<string, ModuleReplicationPatch> Patches { get; } = new Dictionary<string, ModuleReplicationPatch>();
 
         public ModuleReplicationPatch()
         {
@@ -20,8 +22,8 @@ namespace SIT.Core.Coop
                 return;
             }
 
-            if (!DisablePatch)
-                Patches.Add(this);
+            if (!DisablePatch && !Patches.ContainsKey(this.MethodName))
+                Patches.Add(this.MethodName, this);
 
             LastSent.TryAdd(GetType(), new Dictionary<string, object>());
         }
@@ -88,6 +90,8 @@ namespace SIT.Core.Coop
 
         protected static bool HasProcessed(Type type, string playerId, long timestamp)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             if (!ProcessedCalls.ContainsKey(type))
                 ProcessedCalls.TryAdd(type, new ConcurrentDictionary<string, ConcurrentBag<long>>());
 
@@ -102,10 +106,13 @@ namespace SIT.Core.Coop
                 return false;
             }
 
-            if (ProcessedCalls[type][playerId].Count > 1000)
+            if (ProcessedCalls[type][playerId].Count > 100)
             {
                 Logger.LogDebug($"Processed calls for {type}{playerId} seem a little high. Lets trim this collection.");
             }
+
+            if (stopwatch.ElapsedMilliseconds > 1)
+                PatchConstants.Logger.LogDebug($"HasProcessed {type} took {stopwatch.ElapsedMilliseconds}ms to process!");
 
             return true;
         }
@@ -116,12 +123,12 @@ namespace SIT.Core.Coop
                 return;
 
             var p = Patches.Single(x => x.GetType().Equals(type));
-            p.Replicated(player, dict);
+            p.Value.Replicated(player, dict);
         }
 
         public static bool IsHighPingOrAI(EFT.Player player)
         {
-            if (CoopGameComponent.GetCoopGameComponent().HighPingMode && player.IsYourPlayer)
+            if (AkiBackendCommunication.Instance.HighPingMode && player.IsYourPlayer)
                 return true;
 
             return player.IsAI;
@@ -130,11 +137,11 @@ namespace SIT.Core.Coop
         public override void Enable()
         {
             base.Enable();
-            if (!Patches.Contains(this))
-                Patches.Add(this);
+            if (!Patches.ContainsKey(MethodName))
+                Patches.Add(this.MethodName, this);
         }
 
-        public override void Disable() { base.Disable(); if (Patches.Contains(this)) Patches.Remove(this); }
+        public override void Disable() { base.Disable(); if (Patches.ContainsKey(this.MethodName)) Patches.Remove(this.MethodName); }
 
 
         public override bool Equals(object obj)

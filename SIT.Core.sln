@@ -12,9 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 		README.md = README.md
 		README_CN.md = README_CN.md
 		README_DE.md = README_DE.md
+		README_FR.md = README_FR.md
 		README_JA.md = README_JA.md
 		README_KO.md = README_KO.md
 		README_PO.md = README_PO.md
+		.github\ReleaseNotes.txt = .github\ReleaseNotes.txt
 	EndProjectSection
 EndProject
 Global
